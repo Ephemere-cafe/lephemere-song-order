@@ -58,6 +58,11 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
 .icon-btn{background:transparent;border:1px solid var(--line);color:var(--parchment-dim);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:13px;flex-shrink:0;}
 .icon-btn:hover{color:var(--parchment);border-color:var(--parchment-dim);}
+.icon-btn:disabled{opacity:.28;cursor:not-allowed;}
+.menu-category-head{display:flex;align-items:center;gap:6px;margin-top:14px;}
+.menu-category-head .panel-title{flex:1;margin:0;}
+.menu-sort-actions{display:flex;gap:5px;flex-shrink:0;}
+.menu-sort-note{font-size:11px;color:var(--parchment-dim);margin:8px 0 0;line-height:1.65;}
 
 /* top-level section tabs */
 .main-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
@@ -207,8 +212,9 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       <div class="panel">
         <p class="admin-section-label">📖 目前菜單</p>
         <div id="menuManageList">尚未設定菜單</div>
-        <button class="btn ghost small" id="seedDefaultMenu" style="margin-top:12px;">匯入官網現有菜單</button>
-        <p style="font-size:11px;color:var(--parchment-dim);margin:8px 0 0;">只有在菜單完全空白時可以使用，會把官網上的前菜／湯品／主食／飲品／甜品／無菜單套餐匯入進來，之後可以再自行增減。</p>
+        <button class="btn ghost small" id="seedDefaultMenu" style="margin-top:12px;">匯入預設菜單</button>
+        <p class="menu-sort-note">使用分類標題旁及各品項右側的 ↑ ↓，即可調整客人點餐頁的顯示順序。排序完成後會自動儲存。</p>
+        <p class="menu-sort-note">「匯入預設菜單」使用的是後台內建資料，只有在菜單完全空白時可以使用，避免重複匯入。</p>
       </div>
     </div>
 
@@ -306,8 +312,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   var menuCategoryOrder = [];
 
   var DEFAULT_MENU = [
-    { category:'Appetizer 前菜', name:'黑衣森林傘蕈溫沙拉', price:8000 },
-    { category:'Appetizer 前菜', name:'庫爾蘋果新薯沙拉', price:8000 },
+    { category:'Appetizer 前菜', name:'黑衣森林傘蕈溫沙拉', price:10000 },
+    { category:'Appetizer 前菜', name:'庫爾蘋果新薯沙拉', price:10000 },
     { category:'Soup 湯品', name:'法式焗烤起司洋蔥湯', price:12000 },
     { category:'Main Course 主食', name:'巨匠特製紅醬蛋包飯', price:18000, addonLabel:'加購隱藏魔法（店員到桌服務）', addonPrice:5000 },
     { category:'Main Course 主食', name:'黑松露野菇燉飯', price:18000 },
@@ -573,9 +579,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
   // ================= 菜單管理 =================
 
-  function renderMenuManageList(){
-    var el = document.getElementById('menuManageList');
-    if(menuCategoryOrder.length === 0){ el.innerHTML = '尚未設定菜單'; return; }
+  function buildMenuGroups(){
     var groups = {};
     menuCategoryOrder.forEach(function(c){ groups[c] = []; });
     Object.keys(menuItems).forEach(function(id){
@@ -584,22 +588,143 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       if(!groups[cat]) groups[cat] = [];
       groups[cat].push(Object.assign({id:id}, item));
     });
+    return groups;
+  }
+
+  function menuItemData(item){
+    var data = {};
+    Object.keys(item).forEach(function(key){
+      if(key !== 'id') data[key] = item[key];
+    });
+    return data;
+  }
+
+  function saveMenuOrder(categoryOrder, groups){
+    var updates = {};
+    categoryOrder.forEach(function(cat){
+      (groups[cat] || []).forEach(function(item){
+        var key = menuRef.push().key;
+        updates[key] = menuItemData(item);
+      });
+    });
+    menuRef.set(updates).catch(function(){
+      alert('菜單順序儲存失敗，請稍後再試一次。');
+    });
+  }
+
+  function moveMenuCategory(index, direction){
+    var target = index + direction;
+    if(index < 0 || target < 0 || target >= menuCategoryOrder.length) return;
+    var order = menuCategoryOrder.slice();
+    var moved = order.splice(index, 1)[0];
+    order.splice(target, 0, moved);
+    saveMenuOrder(order, buildMenuGroups());
+  }
+
+  function moveMenuItem(id, direction){
+    var item = menuItems[id];
+    if(!item) return;
+    var cat = item.category || '其他';
+    var groups = buildMenuGroups();
+    var items = groups[cat] || [];
+    var index = items.findIndex(function(entry){ return entry.id === id; });
+    var target = index + direction;
+    if(index < 0 || target < 0 || target >= items.length) return;
+    var moved = items.splice(index, 1)[0];
+    items.splice(target, 0, moved);
+    saveMenuOrder(menuCategoryOrder.slice(), groups);
+  }
+
+  function editMenuItem(id){
+    var item = menuItems[id];
+    if(!item) return;
+    var category = prompt('分類名稱', item.category || '其他');
+    if(category === null) return;
+    category = category.trim();
+    if(!category){ alert('分類名稱不可空白'); return; }
+
+    var name = prompt('品項名稱', item.name || '');
+    if(name === null) return;
+    name = name.trim();
+    if(!name){ alert('品項名稱不可空白'); return; }
+
+    var priceText = prompt('價格（Gil）', String(item.price || 0));
+    if(priceText === null) return;
+    var price = parseInt(priceText, 10);
+    if(isNaN(price) || price < 0){ alert('請輸入正確的價格'); return; }
+
+    var note = prompt('備註（沒有可留空）', item.note || '');
+    if(note === null) return;
+    var addonLabel = prompt('加購項目名稱（沒有可留空）', item.addonLabel || '');
+    if(addonLabel === null) return;
+    var addonPrice = 0;
+    if(addonLabel.trim()){
+      var addonPriceText = prompt('加購價格（Gil）', String(item.addonPrice || 0));
+      if(addonPriceText === null) return;
+      addonPrice = parseInt(addonPriceText, 10);
+      if(isNaN(addonPrice) || addonPrice < 0){ alert('請輸入正確的加購價格'); return; }
+    }
+
+    var data = { category:category, name:name, price:price };
+    if(note.trim()) data.note = note.trim();
+    if(addonLabel.trim()){
+      data.addonLabel = addonLabel.trim();
+      data.addonPrice = addonPrice;
+    }
+    menuRef.child(id).set(data);
+  }
+
+  function renderMenuManageList(){
+    var el = document.getElementById('menuManageList');
+    if(menuCategoryOrder.length === 0){ el.innerHTML = '尚未設定菜單'; return; }
+    var groups = buildMenuGroups();
     var html = '';
-    menuCategoryOrder.forEach(function(cat){
+    menuCategoryOrder.forEach(function(cat, catIndex){
       var items = groups[cat] || [];
       if(items.length === 0) return;
-      html += '<p class="panel-title" style="margin-top:14px;">'+escapeHtml(cat)+'</p>';
-      items.forEach(function(item){
+      html += '<div class="menu-category-head">'
+        + '<p class="panel-title">'+escapeHtml(cat)+'</p>'
+        + '<div class="menu-sort-actions">'
+        + '<button class="icon-btn" data-move-category="'+catIndex+'" data-direction="-1" title="分類往上" aria-label="'+escapeHtml(cat)+'分類往上" '+(catIndex===0?'disabled':'')+'>↑</button>'
+        + '<button class="icon-btn" data-move-category="'+catIndex+'" data-direction="1" title="分類往下" aria-label="'+escapeHtml(cat)+'分類往下" '+(catIndex===menuCategoryOrder.length-1?'disabled':'')+'>↓</button>'
+        + '</div></div>';
+      items.forEach(function(item, itemIndex){
         html += '<div class="staff-check">'
           + '<label style="flex:1;">'+escapeHtml(item.name)+' <span style="color:var(--gold-dim);">'+fmtGil(item.price)+'</span>'
           + (item.note ? '<div style="font-size:11px;color:var(--parchment-dim);">'+escapeHtml(item.note)+'</div>' : '')
           + (item.addonLabel ? '<div style="font-size:11px;color:var(--mist);">加購：'+escapeHtml(item.addonLabel)+' ＋'+fmtGil(item.addonPrice)+'</div>' : '')
           + '</label>'
+          + '<div class="menu-sort-actions">'
+          + '<button class="icon-btn" data-move-item="'+item.id+'" data-direction="-1" title="品項往上" aria-label="'+escapeHtml(item.name)+'往上" '+(itemIndex===0?'disabled':'')+'>↑</button>'
+          + '<button class="icon-btn" data-move-item="'+item.id+'" data-direction="1" title="品項往下" aria-label="'+escapeHtml(item.name)+'往下" '+(itemIndex===items.length-1?'disabled':'')+'>↓</button>'
+          + '<button class="icon-btn" data-edit-item="'+item.id+'" title="編輯品項" aria-label="編輯'+escapeHtml(item.name)+'">✎</button>'
           + '<button class="icon-btn" data-remove-item="'+item.id+'" title="從菜單刪除">✕</button>'
+          + '</div>'
           + '</div>';
       });
     });
     el.innerHTML = html || '尚未設定菜單';
+    el.querySelectorAll('[data-move-category]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        moveMenuCategory(
+          parseInt(btn.getAttribute('data-move-category'), 10),
+          parseInt(btn.getAttribute('data-direction'), 10)
+        );
+      });
+    });
+    el.querySelectorAll('[data-move-item]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        moveMenuItem(
+          btn.getAttribute('data-move-item'),
+          parseInt(btn.getAttribute('data-direction'), 10)
+        );
+      });
+    });
+    el.querySelectorAll('[data-edit-item]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        editMenuItem(btn.getAttribute('data-edit-item'));
+      });
+    });
     el.querySelectorAll('[data-remove-item]').forEach(function(btn){
       btn.addEventListener('click', function(){
         if(confirm('確定要從菜單移除這個品項嗎？')){
@@ -643,7 +768,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       alert('菜單目前已經有品項了，這個按鈕只能在菜單全空的時候使用，避免重複匯入。');
       return;
     }
-    if(!confirm('確定要匯入官網現有菜單嗎？')) return;
+    if(!confirm('確定要匯入後台內建的預設菜單嗎？')) return;
     var updates = {};
     DEFAULT_MENU.forEach(function(item){
       var key = menuRef.push().key;
