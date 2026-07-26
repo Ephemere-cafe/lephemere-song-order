@@ -125,10 +125,10 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <div class="panel">
       <p class="panel-title">訂購資料</p>
       <div class="row">
-        <input type="text" id="custName" placeholder="角色名／稱呼">
+        <input type="text" id="custName" maxlength="40" autocomplete="name" placeholder="角色名／稱呼">
       </div>
       <div class="row" style="margin-top:8px;">
-        <input type="text" id="custNote" placeholder="備註（座位、指定服務等，選填）">
+        <input type="text" id="custNote" maxlength="120" placeholder="備註（座位、指定服務等，選填）">
       </div>
       <p id="orderError" style="font-size:12px;color:var(--rose);margin:10px 0 0;display:none;"></p>
       <button class="btn primary" id="submitOrder" style="margin-top:12px;">送出訂單</button>
@@ -202,6 +202,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
     menuRef.on('value', function(snap){
       menuItems = snap.val() || {};
+      syncCartWithMenu();
       categoryOrder = [];
       Object.keys(menuItems).forEach(function(id){
         var cat = menuItems[id].category || '其他';
@@ -213,6 +214,51 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   }
 
   // ---------- menu rendering ----------
+  function syncCartWithMenu(){
+    var syncedCart = {};
+    var syncedAddons = {};
+    var menuIds = Object.keys(menuItems);
+
+    Object.keys(cart).forEach(function(oldId){
+      var line = cart[oldId];
+      var newId = oldId;
+      var latest = menuItems[newId];
+
+      if(!latest){
+        newId = menuIds.find(function(id){ return menuItems[id].name === line.name; });
+        latest = newId ? menuItems[newId] : null;
+      }
+      if(!latest) return;
+
+      var addon = null;
+      if(line.addon && latest.addonLabel){
+        addon = { label:latest.addonLabel, price:latest.addonPrice };
+        syncedAddons[newId] = true;
+      }
+      syncedCart[newId] = {
+        name:latest.name,
+        price:latest.price,
+        qty:line.qty,
+        addon:addon
+      };
+    });
+
+    Object.keys(pendingAddons).forEach(function(oldId){
+      if(!pendingAddons[oldId]) return;
+      var newId = oldId;
+      if(!menuItems[newId]){
+        var oldName = cart[oldId] ? cart[oldId].name : '';
+        newId = menuIds.find(function(id){ return menuItems[id].name === oldName; });
+      }
+      if(newId && menuItems[newId] && menuItems[newId].addonLabel){
+        syncedAddons[newId] = true;
+      }
+    });
+
+    cart = syncedCart;
+    pendingAddons = syncedAddons;
+  }
+
   function groupedMenu(){
     var groups = {};
     categoryOrder.forEach(function(c){ groups[c] = []; });
@@ -305,7 +351,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     Object.keys(cart).forEach(function(id){
       var line = cart[id];
       total += line.price * line.qty;
-      if(line.addon) total += line.addon.price;
+      if(line.addon) total += line.addon.price * line.qty;
     });
     return total;
   }
@@ -322,7 +368,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       var line = cart[id];
       html += '<div class="cart-line"><span class="name">'+escapeHtml(line.name)+' × '+line.qty+'</span><span>'+fmtGil(line.price*line.qty)+'</span></div>';
       if(line.addon){
-        html += '<div class="cart-line"><span>　'+escapeHtml(line.addon.label)+'</span><span>'+fmtGil(line.addon.price)+'</span></div>';
+        html += '<div class="cart-line"><span>　'+escapeHtml(line.addon.label)+' × '+line.qty+'</span><span>'+fmtGil(line.addon.price*line.qty)+'</span></div>';
       }
     });
     html += '<div class="cart-total"><span>總計</span><span>'+fmtGil(cartTotal())+'</span></div>';
@@ -333,9 +379,9 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   function sendDiscordNotification(text){
     if(!webhookUrl) return;
     fetch(webhookUrl, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({content: text})
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({content:text})
     }).catch(function(){});
   }
 
@@ -356,6 +402,12 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       errEl.style.display = 'block';
       return;
     }
+    var total = cartTotal();
+    if(total < 10000){
+      errEl.textContent = '每位入座客人的低消為 10,000 Gil，請再選擇其他餐點或服務';
+      errEl.style.display = 'block';
+      return;
+    }
     errEl.style.display = 'none';
 
     var submitBtn = document.getElementById('submitOrder');
@@ -366,14 +418,13 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       var line = cart[id];
       return { id:id, name:line.name, price:line.price, qty:line.qty, addon: line.addon };
     });
-    var total = cartTotal();
 
     nextOrderNumberRef.transaction(function(current){
       return (current || 0) + 1;
     }).then(function(result){
       var orderNumber = result.snapshot.val();
       var orderId = ordersRef.push().key;
-      ordersRef.child(orderId).set({
+      return ordersRef.child(orderId).set({
         orderNumber: orderNumber,
         name: name,
         note: note,
@@ -382,11 +433,13 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         status: 'pending',
         createdAt: Date.now()
       }).then(function(){
-        var lines = items.map(function(it){
-          var extra = it.addon ? '（＋'+it.addon.label+'）' : '';
-          return '・'+it.name+' × '+it.qty+extra;
+        var lines = items.map(function(item){
+          var extra = item.addon ? '（＋'+item.addon.label+' × '+item.qty+'）' : '';
+          return '・'+item.name+' × '+item.qty+extra;
         }).join('\n');
-        sendDiscordNotification('新的點餐訂單 #'+orderNumber+'\n'+name+(note?'（'+note+'）':'')+'\n'+lines+'\n總計：'+fmtGil(total));
+        sendDiscordNotification('新的點餐訂單 #'+orderNumber+'\n'
+          +name+(note?'（'+note+'）':'')+'\n'
+          +lines+'\n總計：'+fmtGil(total));
 
         document.getElementById('successNumber').textContent = '#'+orderNumber;
         document.getElementById('orderFlow').style.display = 'none';
@@ -394,7 +447,6 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
         cart = {};
         pendingAddons = {};
-        document.getElementById('custName').value = '';
         document.getElementById('custNote').value = '';
         renderMenu();
         renderCart();
