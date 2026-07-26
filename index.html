@@ -159,6 +159,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   var categoryOrder = []; // first-seen order
 
   var cart = {}; // id -> {name, price, qty, addon:{label,price}|null}
+  var pendingAddons = {}; // remembers add-ons selected before the base item is added
   var db, ordersRef, nextOrderNumberRef, webhookRef, menuRef;
   var webhookUrl = '';
 
@@ -241,7 +242,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         html += '<div class="item-row">'
           + '<div class="item-name">'+escapeHtml(item.name)
           + (item.note ? '<span class="item-note">'+escapeHtml(item.note)+'</span>' : '')
-          + (item.addonLabel ? '<div class="addon-row"><input type="checkbox" id="addon-'+item.id+'" '+(cart[item.id]&&cart[item.id].addon?'checked':'')+'><label for="addon-'+item.id+'">'+escapeHtml(item.addonLabel)+' ＋'+fmtGil(item.addonPrice)+'</label></div>' : '')
+          + (item.addonLabel ? '<div class="addon-row"><input type="checkbox" id="addon-'+item.id+'" '+((cart[item.id]&&cart[item.id].addon)||pendingAddons[item.id]?'checked':'')+'><label for="addon-'+item.id+'">'+escapeHtml(item.addonLabel)+' ＋'+fmtGil(item.addonPrice)+'</label></div>' : '')
           + '</div>'
           + '<div class="item-price">'+fmtGil(item.price)+'</div>'
           + '<div class="stepper">'
@@ -263,9 +264,11 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     el.querySelectorAll('[id^="addon-"]').forEach(function(cb){
       cb.addEventListener('change', function(){
         var itemId = cb.id.replace('addon-','');
-        if(!cart[itemId]) return;
         var item = menuItems[itemId];
-        cart[itemId].addon = cb.checked ? { label:item.addonLabel, price:item.addonPrice } : null;
+        pendingAddons[itemId] = cb.checked;
+        if(cart[itemId]){
+          cart[itemId].addon = cb.checked ? { label:item.addonLabel, price:item.addonPrice } : null;
+        }
         renderCart();
       });
     });
@@ -278,8 +281,18 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     var next = Math.max(0, current + delta);
     if(next === 0){
       delete cart[id];
+      delete pendingAddons[id];
+      var addonEl = document.getElementById('addon-'+id);
+      if(addonEl) addonEl.checked = false;
     } else {
-      if(!cart[id]) cart[id] = { name:item.name, price:item.price, qty:0, addon:null };
+      if(!cart[id]){
+        cart[id] = {
+          name:item.name,
+          price:item.price,
+          qty:0,
+          addon:pendingAddons[id] ? { label:item.addonLabel, price:item.addonPrice } : null
+        };
+      }
       cart[id].qty = next;
     }
     var qtyEl = document.getElementById('qty-'+id);
@@ -380,6 +393,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         document.getElementById('successBox').style.display = 'block';
 
         cart = {};
+        pendingAddons = {};
         document.getElementById('custName').value = '';
         document.getElementById('custNote').value = '';
         renderMenu();
