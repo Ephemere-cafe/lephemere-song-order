@@ -81,6 +81,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 .configwarn{position:relative;z-index:1;background:#3a2b2b;border:1px solid var(--rose-dim);color:var(--parchment);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.6;}
 .success-box{position:relative;z-index:1;background:rgba(143,166,136,0.12);border:1px solid var(--sage-dim);border-radius:10px;padding:18px;text-align:center;margin-bottom:14px;}
 .success-box .num{font-family:'Noto Serif TC',serif;font-size:30px;color:var(--sage);margin:6px 0;}
+.success-copy{max-width:540px;margin:0 auto;font-size:12.5px;line-height:1.8;color:var(--parchment-dim);}
+.success-note{max-width:540px;margin:8px auto 0;font-size:11.5px;line-height:1.7;color:var(--gold-dim);}
 .empty{font-size:12.5px;color:var(--parchment-dim);}
 </style>
 </head>
@@ -104,8 +106,9 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   <div id="successBox" class="success-box" style="display:none;">
     <div style="font-size:12px;color:var(--parchment-dim);letter-spacing:0.06em;">訂單已送出</div>
     <div class="num" id="successNumber"></div>
-    <div style="font-size:12.5px;color:var(--parchment-dim);">請向店員出示此編號，餐點準備完成會由店員為您送上</div>
-    <button class="btn ghost" id="newOrderBtn" style="margin-top:12px;">再點一份</button>
+    <div class="success-copy">曇時已收到您的訂單，請留在座位稍候。餐點準備完成後，女僕會為您送上，並於送餐時收取本次訂單費用。</div>
+    <div class="success-note">如需修改或取消訂單，請告知女僕並提供上方編號。</div>
+    <button class="btn ghost" id="newOrderBtn" style="margin-top:12px;">繼續加點</button>
   </div>
 
   <div id="orderFlow">
