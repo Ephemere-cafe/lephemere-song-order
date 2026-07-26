@@ -520,7 +520,10 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     var html = '';
     arr.forEach(function(o){
       var itemsHtml = (o.items||[]).map(function(it){
-        var extra = it.addon ? '（＋'+escapeHtml(it.addon.label)+' '+fmtGil(it.addon.price)+'）' : '';
+        var addonQty = Number(it.qty) || 1;
+        var extra = it.addon
+          ? '（＋'+escapeHtml(it.addon.label)+' × '+addonQty+'　'+fmtGil(it.addon.price*addonQty)+'）'
+          : '';
         return '<div>'+escapeHtml(it.name)+' × '+it.qty+extra+'</div>';
       }).join('');
 
