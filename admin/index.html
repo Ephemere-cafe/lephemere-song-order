@@ -212,9 +212,12 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       <div class="panel">
         <p class="admin-section-label">📖 目前菜單</p>
         <div id="menuManageList">尚未設定菜單</div>
-        <button class="btn ghost small" id="seedDefaultMenu" style="margin-top:12px;">匯入預設菜單</button>
+        <div class="row" style="margin-top:12px;">
+          <button class="btn primary small" id="syncMenuPrices">同步最新菜單價格</button>
+          <button class="btn ghost small" id="seedDefaultMenu">匯入預設菜單</button>
+        </div>
         <p class="menu-sort-note">使用分類標題旁及各品項右側的 ↑ ↓，即可調整客人點餐頁的顯示順序。排序完成後會自動儲存。</p>
-        <p class="menu-sort-note">「匯入預設菜單」使用的是後台內建資料，只有在菜單完全空白時可以使用，避免重複匯入。</p>
+        <p class="menu-sort-note">「同步最新菜單價格」會依照品項名稱更新目前菜單的價格，不會刪除特別服務或改變順序。「匯入預設菜單」則只有在菜單完全空白時可以使用。</p>
       </div>
     </div>
 
@@ -314,15 +317,15 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   var DEFAULT_MENU = [
     { category:'Appetizer 前菜', name:'黑衣森林傘蕈溫沙拉', price:10000 },
     { category:'Appetizer 前菜', name:'庫爾蘋果新薯沙拉', price:10000 },
-    { category:'Soup 湯品', name:'法式焗烤起司洋蔥湯', price:12000 },
-    { category:'Main Course 主食', name:'巨匠特製紅醬蛋包飯', price:18000, addonLabel:'加購隱藏魔法（店員到桌服務）', addonPrice:5000 },
-    { category:'Main Course 主食', name:'黑松露野菇燉飯', price:18000 },
-    { category:'Drinks 飲品', name:'三倍絲滑鮮奶油咖啡', price:10000 },
-    { category:'Drinks 飲品', name:'絲絨醇厚熱巧克力', price:10000 },
-    { category:'Drinks 飲品', name:'伊修加爾德皇家奶茶', price:10000 },
-    { category:'Dessert 甜品', name:'莊園黑巧奶油蛋糕', price:10000 },
-    { category:'Dessert 甜品', name:'現煎黃金法式吐司', price:10000 },
-    { category:'Dessert 甜品', name:'秋實手工柿子布丁', price:10000 },
+    { category:'Soup 湯品', name:'法式焗烤起司洋蔥湯', price:14000 },
+    { category:'Main Course 主食', name:'巨匠特製紅醬蛋包飯', price:20000, addonLabel:'加購隱藏魔法（店員到桌服務）', addonPrice:5000 },
+    { category:'Main Course 主食', name:'黑松露野菇燉飯', price:20000 },
+    { category:'Drinks 飲品', name:'三倍絲滑鮮奶油咖啡', price:12000 },
+    { category:'Drinks 飲品', name:'絲絨醇厚熱巧克力', price:12000 },
+    { category:'Drinks 飲品', name:'伊修加爾德皇家奶茶', price:12000 },
+    { category:'Dessert 甜品', name:'莊園黑巧奶油蛋糕', price:12000 },
+    { category:'Dessert 甜品', name:'現煎黃金法式吐司', price:12000 },
+    { category:'Dessert 甜品', name:'秋實手工柿子布丁', price:12000 },
     { category:'Set 無菜單料理', name:'主廚精選五道套餐（店長隨機出餐）', price:40000, note:'共5道菜，內容由店長現場決定' }
   ];
 
@@ -775,6 +778,42 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       updates[key] = item;
     });
     menuRef.update(updates);
+  });
+
+  document.getElementById('syncMenuPrices').addEventListener('click', function(){
+    if(!isConfigured) return;
+    if(Object.keys(menuItems).length === 0){
+      alert('目前菜單是空的，請先使用「匯入預設菜單」。');
+      return;
+    }
+    if(!confirm('要將目前菜單同步為官網最新價格嗎？特別服務與菜單順序不會受到影響。')) return;
+
+    var priceByName = {};
+    DEFAULT_MENU.forEach(function(item){ priceByName[item.name] = item; });
+    var updates = {};
+    var matched = 0;
+
+    Object.keys(menuItems).forEach(function(id){
+      var current = menuItems[id];
+      var latest = priceByName[current.name];
+      if(!latest) return;
+      updates[id + '/price'] = latest.price;
+      if(latest.addonPrice !== undefined){
+        updates[id + '/addonPrice'] = latest.addonPrice;
+      }
+      matched++;
+    });
+
+    if(matched === 0){
+      alert('找不到名稱相符的品項，沒有更新任何價格。');
+      return;
+    }
+
+    menuRef.update(updates).then(function(){
+      alert('已同步 ' + matched + ' 個品項的最新價格。');
+    }).catch(function(){
+      alert('價格同步失敗，請稍後再試一次。');
+    });
   });
 
   // ================= 預約管理 =================
