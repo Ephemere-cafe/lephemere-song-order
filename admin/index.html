@@ -39,7 +39,7 @@ body{margin:0;background:#241f30;font-family:'Noto Sans TC',sans-serif;}
   margin:0 0 12px; padding-bottom:6px; border-bottom:1px solid var(--line);
 }
 
-input[type=text]{
+input[type=text],input[type=number]{
   background:var(--ink-deep);border:1px solid var(--line);color:var(--parchment);
   border-radius:7px;padding:9px 11px;font-size:14px;font-family:inherit;
 }
@@ -63,6 +63,31 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 .menu-category-head .panel-title{flex:1;margin:0;}
 .menu-sort-actions{display:flex;gap:5px;flex-shrink:0;}
 .menu-sort-note{font-size:11px;color:var(--parchment-dim);margin:8px 0 0;line-height:1.65;}
+.menu-edit-btn{min-width:54px;padding-left:10px;padding-right:10px;}
+.menu-edit-overlay{
+  display:none;position:fixed;inset:0;background:rgba(10,8,16,0.78);z-index:210;
+  align-items:center;justify-content:center;padding:20px;
+}
+.menu-edit-overlay.open{display:flex;}
+.menu-edit-modal{
+  background:var(--ink);border:1px solid var(--gold-dim);border-radius:12px;
+  padding:20px;max-width:520px;width:100%;max-height:calc(100vh - 40px);overflow:auto;
+  box-shadow:0 18px 55px rgba(0,0,0,.35);
+}
+.menu-edit-modal h4{font-family:'Noto Serif TC',serif;color:var(--gold);font-size:16px;margin:0 0 16px;}
+.menu-edit-grid{display:grid;grid-template-columns:1fr 150px;gap:12px;}
+.menu-edit-field{display:flex;flex-direction:column;gap:6px;}
+.menu-edit-field.full{grid-column:1/-1;}
+.menu-edit-field label{font-size:12px;color:var(--parchment-dim);}
+.menu-edit-field input,.menu-edit-field textarea{width:100%;}
+.menu-edit-field textarea{min-height:82px;}
+.menu-edit-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+.menu-edit-help{font-size:11px;color:var(--parchment-dim);line-height:1.65;margin:10px 0 0;}
+@media(max-width:560px){
+  .menu-edit-grid{grid-template-columns:1fr;}
+  .menu-edit-field.full{grid-column:auto;}
+  .menu-sort-actions{flex-wrap:wrap;justify-content:flex-end;}
+}
 
 /* top-level section tabs */
 .main-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
@@ -213,11 +238,11 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
         <p class="admin-section-label">📖 目前菜單</p>
         <div id="menuManageList">尚未設定菜單</div>
         <div class="row" style="margin-top:12px;">
-          <button class="btn primary small" id="syncMenuPrices">同步最新菜單價格</button>
+          <button class="btn ghost small" id="syncMenuPrices">套用內建預設價格</button>
           <button class="btn ghost small" id="seedDefaultMenu">匯入預設菜單</button>
         </div>
-        <p class="menu-sort-note">使用分類標題旁及各品項右側的 ↑ ↓，即可調整客人點餐頁的顯示順序。排序完成後會自動儲存。</p>
-        <p class="menu-sort-note">「同步最新菜單價格」會依照品項名稱更新目前菜單的價格，不會刪除特別服務或改變順序。「匯入預設菜單」則只有在菜單完全空白時可以使用。</p>
+        <p class="menu-sort-note">按每個品項右側的「編輯」，即可修改名稱、價格、備註、分類及加購內容；儲存後會自動同步到顧客點餐頁。</p>
+        <p class="menu-sort-note">使用分類標題旁及各品項右側的 ↑ ↓，即可調整顯示順序。「套用內建預設價格」會覆蓋內建餐點目前的價格，只有需要還原時再使用。</p>
       </div>
     </div>
 
@@ -270,6 +295,43 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
 </div>
 
+<div class="menu-edit-overlay" id="menuEditOverlay" role="dialog" aria-modal="true" aria-labelledby="menuEditTitle">
+  <div class="menu-edit-modal">
+    <h4 id="menuEditTitle">編輯菜單品項</h4>
+    <div class="menu-edit-grid">
+      <div class="menu-edit-field">
+        <label for="editItemCategory">分類名稱</label>
+        <input type="text" id="editItemCategory" maxlength="60" placeholder="例如：Main Course 主食">
+      </div>
+      <div class="menu-edit-field">
+        <label for="editItemPrice">價格（Gil）</label>
+        <input type="number" id="editItemPrice" min="0" step="1" inputmode="numeric">
+      </div>
+      <div class="menu-edit-field full">
+        <label for="editItemName">菜單名稱</label>
+        <input type="text" id="editItemName" maxlength="80" placeholder="輸入顯示給客人的品項名稱">
+      </div>
+      <div class="menu-edit-field full">
+        <label for="editItemNote">備註</label>
+        <textarea id="editItemNote" maxlength="180" placeholder="選填；會顯示在品項名稱下方"></textarea>
+      </div>
+      <div class="menu-edit-field">
+        <label for="editItemAddonLabel">加購項目名稱</label>
+        <input type="text" id="editItemAddonLabel" maxlength="80" placeholder="沒有加購可留空">
+      </div>
+      <div class="menu-edit-field">
+        <label for="editItemAddonPrice">加購價格（Gil）</label>
+        <input type="number" id="editItemAddonPrice" min="0" step="1" inputmode="numeric">
+      </div>
+    </div>
+    <p class="menu-edit-help">儲存後，顧客點餐頁會自動同步新的名稱、價格與備註；已送出的舊訂單不會被修改。</p>
+    <div class="menu-edit-actions">
+      <button class="btn ghost" id="menuEditCancel">取消</button>
+      <button class="btn primary" id="menuEditSave">儲存修改</button>
+    </div>
+  </div>
+</div>
+
 <div class="photo-modal-overlay" id="photoModalOverlay">
   <div class="photo-modal">
     <h4>設定店員頭貼</h4>
@@ -313,6 +375,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
   var menuItems = {};
   var menuCategoryOrder = [];
+  var editingMenuItemId = null;
 
   var DEFAULT_MENU = [
     { category:'Appetizer 前菜', name:'黑衣森林傘蕈溫沙拉', price:10000 },
@@ -644,40 +707,65 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   function editMenuItem(id){
     var item = menuItems[id];
     if(!item) return;
-    var category = prompt('分類名稱', item.category || '其他');
-    if(category === null) return;
-    category = category.trim();
-    if(!category){ alert('分類名稱不可空白'); return; }
+    editingMenuItemId = id;
+    document.getElementById('editItemCategory').value = item.category || '其他';
+    document.getElementById('editItemName').value = item.name || '';
+    document.getElementById('editItemPrice').value = Number(item.price || 0);
+    document.getElementById('editItemNote').value = item.note || '';
+    document.getElementById('editItemAddonLabel').value = item.addonLabel || '';
+    document.getElementById('editItemAddonPrice').value = Number(item.addonPrice || 0);
+    document.getElementById('menuEditOverlay').classList.add('open');
+    setTimeout(function(){ document.getElementById('editItemName').focus(); }, 0);
+  }
 
-    var name = prompt('品項名稱', item.name || '');
-    if(name === null) return;
-    name = name.trim();
-    if(!name){ alert('品項名稱不可空白'); return; }
+  function closeMenuEditor(){
+    editingMenuItemId = null;
+    document.getElementById('menuEditOverlay').classList.remove('open');
+  }
 
-    var priceText = prompt('價格（Gil）', String(item.price || 0));
-    if(priceText === null) return;
-    var price = parseInt(priceText, 10);
-    if(isNaN(price) || price < 0){ alert('請輸入正確的價格'); return; }
+  function saveMenuItemChanges(){
+    if(!editingMenuItemId || !menuItems[editingMenuItemId]) return;
+    var category = document.getElementById('editItemCategory').value.trim();
+    var name = document.getElementById('editItemName').value.trim();
+    var price = Number(document.getElementById('editItemPrice').value);
+    var note = document.getElementById('editItemNote').value.trim();
+    var addonLabel = document.getElementById('editItemAddonLabel').value.trim();
+    var addonPriceText = document.getElementById('editItemAddonPrice').value;
+    var addonPrice = addonPriceText === '' ? 0 : Number(addonPriceText);
 
-    var note = prompt('備註（沒有可留空）', item.note || '');
-    if(note === null) return;
-    var addonLabel = prompt('加購項目名稱（沒有可留空）', item.addonLabel || '');
-    if(addonLabel === null) return;
-    var addonPrice = 0;
-    if(addonLabel.trim()){
-      var addonPriceText = prompt('加購價格（Gil）', String(item.addonPrice || 0));
-      if(addonPriceText === null) return;
-      addonPrice = parseInt(addonPriceText, 10);
-      if(isNaN(addonPrice) || addonPrice < 0){ alert('請輸入正確的加購價格'); return; }
+    if(!category){ alert('請填寫分類名稱。'); return; }
+    if(!name){ alert('請填寫菜單名稱。'); return; }
+    if(!Number.isInteger(price) || price < 0){ alert('價格請輸入 0 以上的整數。'); return; }
+    if(addonLabel && (!Number.isInteger(addonPrice) || addonPrice < 0)){
+      alert('加購價格請輸入 0 以上的整數。');
+      return;
     }
 
-    var data = { category:category, name:name, price:price };
-    if(note.trim()) data.note = note.trim();
-    if(addonLabel.trim()){
-      data.addonLabel = addonLabel.trim();
+    var data = menuItemData(menuItems[editingMenuItemId]);
+    data.category = category;
+    data.name = name;
+    data.price = price;
+    if(note) data.note = note; else delete data.note;
+    if(addonLabel){
+      data.addonLabel = addonLabel;
       data.addonPrice = addonPrice;
+    }else{
+      delete data.addonLabel;
+      delete data.addonPrice;
     }
-    menuRef.child(id).set(data);
+
+    var saveBtn = document.getElementById('menuEditSave');
+    var id = editingMenuItemId;
+    saveBtn.disabled = true;
+    saveBtn.textContent = '儲存中…';
+    menuRef.child(id).set(data).then(function(){
+      closeMenuEditor();
+    }).catch(function(){
+      alert('菜單修改儲存失敗，請確認網路後再試一次。');
+    }).finally(function(){
+      saveBtn.disabled = false;
+      saveBtn.textContent = '儲存修改';
+    });
   }
 
   function renderMenuManageList(){
@@ -703,7 +791,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
           + '<div class="menu-sort-actions">'
           + '<button class="icon-btn" data-move-item="'+item.id+'" data-direction="-1" title="品項往上" aria-label="'+escapeHtml(item.name)+'往上" '+(itemIndex===0?'disabled':'')+'>↑</button>'
           + '<button class="icon-btn" data-move-item="'+item.id+'" data-direction="1" title="品項往下" aria-label="'+escapeHtml(item.name)+'往下" '+(itemIndex===items.length-1?'disabled':'')+'>↓</button>'
-          + '<button class="icon-btn" data-edit-item="'+item.id+'" title="編輯品項" aria-label="編輯'+escapeHtml(item.name)+'">✎</button>'
+          + '<button class="btn small menu-edit-btn" data-edit-item="'+item.id+'" title="編輯品項" aria-label="編輯'+escapeHtml(item.name)+'">編輯</button>'
           + '<button class="icon-btn" data-remove-item="'+item.id+'" title="從菜單刪除">✕</button>'
           + '</div>'
           + '</div>';
@@ -768,6 +856,17 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     document.getElementById('newItemAddonPrice').value = '';
   });
 
+  document.getElementById('menuEditCancel').addEventListener('click', closeMenuEditor);
+  document.getElementById('menuEditSave').addEventListener('click', saveMenuItemChanges);
+  document.getElementById('menuEditOverlay').addEventListener('click', function(e){
+    if(e.target === this) closeMenuEditor();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && document.getElementById('menuEditOverlay').classList.contains('open')){
+      closeMenuEditor();
+    }
+  });
+
   document.getElementById('seedDefaultMenu').addEventListener('click', function(){
     if(!isConfigured) return;
     if(Object.keys(menuItems).length > 0){
@@ -789,7 +888,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       alert('目前菜單是空的，請先使用「匯入預設菜單」。');
       return;
     }
-    if(!confirm('要將目前菜單同步為官網最新價格嗎？特別服務與菜單順序不會受到影響。')) return;
+    if(!confirm('確定要套用內建預設價格嗎？同名餐點目前的自訂價格會被覆蓋，特別服務與菜單順序不受影響。')) return;
 
     var priceByName = {};
     DEFAULT_MENU.forEach(function(item){ priceByName[item.name] = item; });
