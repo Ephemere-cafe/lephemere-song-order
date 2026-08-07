@@ -44,6 +44,16 @@ body{margin:0;background:#241f30;font-family:'Noto Sans TC',sans-serif;}
 .panel-title{font-size:12px;color:var(--mist);letter-spacing:0.06em;margin:0 0 10px;text-transform:uppercase;}
 .cat-title{font-family:'Noto Serif TC',serif;font-weight:600;font-size:14px;color:var(--gold);margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line);}
 .cat-title:first-child{margin-top:0;}
+.category-notice{
+  display:flex;align-items:flex-start;gap:9px;margin:4px 0 8px;padding:9px 11px;
+  border:1px solid rgba(202,160,107,0.22);border-left:3px solid var(--gold-dim);
+  border-radius:7px;background:rgba(202,160,107,0.07);
+  color:var(--parchment-dim);font-size:11.5px;line-height:1.7;
+}
+.category-notice-label{
+  color:var(--gold);font-family:'Noto Serif TC',serif;font-size:10px;
+  letter-spacing:0.08em;white-space:nowrap;padding-top:1px;
+}
 
 .item-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(243,236,225,0.06);}
 .item-row:last-child{border-bottom:none;}
@@ -279,15 +289,26 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       return;
     }
     var html = '';
+    function isPolaroidLimitNote(note){
+      return /每位店員每次營業限量開放\s*3\s*張拍立得服務/.test(note || '');
+    }
     categoryOrder.forEach(function(cat){
       var items = groups[cat] || [];
       if(items.length === 0) return;
       html += '<div class="cat-title">'+escapeHtml(cat)+'</div>';
+      var limitNoteItem = items.find(function(item){ return isPolaroidLimitNote(item.note); });
+      if(limitNoteItem){
+        var limitText = String(limitNoteItem.note || '').replace(/^\s*※\s*/, '');
+        html += '<div class="category-notice">'
+          + '<span class="category-notice-label">LIMITED</span>'
+          + '<span>'+escapeHtml(limitText)+'</span>'
+          + '</div>';
+      }
       items.forEach(function(item){
         var qty = cart[item.id] ? cart[item.id].qty : 0;
         html += '<div class="item-row">'
           + '<div class="item-name">'+escapeHtml(item.name)
-          + (item.note ? '<span class="item-note">'+escapeHtml(item.note)+'</span>' : '')
+          + (item.note && !isPolaroidLimitNote(item.note) ? '<span class="item-note">'+escapeHtml(item.note)+'</span>' : '')
           + (item.addonLabel ? '<div class="addon-row"><input type="checkbox" id="addon-'+item.id+'" '+((cart[item.id]&&cart[item.id].addon)||pendingAddons[item.id]?'checked':'')+'><label for="addon-'+item.id+'">'+escapeHtml(item.addonLabel)+' ＋'+fmtGil(item.addonPrice)+'</label></div>' : '')
           + '</div>'
           + '<div class="item-price">'+fmtGil(item.price)+'</div>'
