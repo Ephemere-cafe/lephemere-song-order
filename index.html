@@ -63,7 +63,11 @@ body{margin:0;background:#241f30;font-family:'Noto Sans TC',sans-serif;}
 .stepper{display:flex;align-items:center;gap:6px;}
 .step-btn{width:26px;height:26px;border-radius:6px;background:var(--ink-deep);border:1px solid var(--line);color:var(--parchment);font-size:14px;cursor:pointer;line-height:1;}
 .step-btn:hover{border-color:var(--gold-dim);color:var(--gold);}
+.step-btn:disabled{opacity:.28;cursor:not-allowed;border-color:var(--line);color:var(--parchment-dim);}
 .step-qty{width:20px;text-align:center;font-size:14px;}
+.item-row.unavailable{opacity:.58;}
+.availability{display:inline-flex;margin-top:4px;padding:2px 7px;border:1px solid rgba(202,160,107,.32);border-radius:20px;color:var(--gold);font-size:10.5px;}
+.availability.soldout{color:var(--rose);border-color:rgba(192,123,138,.42);}
 
 .addon-row{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--mist);margin-top:4px;margin-left:0;}
 .addon-row input{accent-color:var(--gold-dim);}
@@ -89,6 +93,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 .empty-cart{font-size:12.5px;color:var(--parchment-dim);}
 
 .configwarn{position:relative;z-index:1;background:#3a2b2b;border:1px solid var(--rose-dim);color:var(--parchment);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.6;}
+.status-banner{position:relative;z-index:1;background:rgba(202,160,107,.09);border:1px solid var(--gold-dim);color:var(--parchment);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;line-height:1.7;}
 .success-box{position:relative;z-index:1;background:rgba(143,166,136,0.12);border:1px solid var(--sage-dim);border-radius:10px;padding:18px;text-align:center;margin-bottom:14px;}
 .success-box .num{font-family:'Noto Serif TC',serif;font-size:30px;color:var(--sage);margin:6px 0;}
 .success-copy{max-width:540px;margin:0 auto;font-size:12.5px;line-height:1.8;color:var(--parchment-dim);}
@@ -111,6 +116,10 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
   <div id="configWarn" class="configwarn" style="display:none;">
     尚未設定 Firebase 連線資訊，請在程式碼中填入 firebaseConfig 後重新上傳。
+  </div>
+
+  <div id="operationBanner" class="status-banner" style="display:none;">
+    目前已結束線上點餐，菜單仍可瀏覽。若您已在店內，請直接詢問女僕。
   </div>
 
   <div id="successBox" class="success-box" style="display:none;">
@@ -170,8 +179,9 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
   var cart = {}; // id -> {name, price, qty, addon:{label,price}|null}
   var pendingAddons = {}; // remembers add-ons selected before the base item is added
-  var db, ordersRef, nextOrderNumberRef, webhookRef, menuRef;
+  var db, ordersRef, nextOrderNumberRef, webhookRef, menuRef, operationStatusRef;
   var webhookUrl = '';
+  var operationStatus = { isOpen:true };
 
   function petals(){
     var wrap = document.getElementById('wrap');
@@ -203,6 +213,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     nextOrderNumberRef = db.ref('lephemere/nextOrderNumber');
     webhookRef = db.ref('lephemere/webhookUrl');
     menuRef = db.ref('lephemere/menu');
+    operationStatusRef = db.ref('lephemere/operationStatus');
 
     db.ref('.info/connected').on('value', function(snap){
       document.getElementById('connDot').className = snap.val()===true ? 'dot online' : 'dot offline';
@@ -210,17 +221,33 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
     webhookRef.on('value', function(snap){ webhookUrl = snap.val() || ''; });
 
+    operationStatusRef.on('value', function(snap){
+      operationStatus = snap.val() || { isOpen:true };
+      renderOperationStatus();
+      renderMenu();
+    });
+
     menuRef.on('value', function(snap){
       menuItems = snap.val() || {};
       syncCartWithMenu();
       categoryOrder = [];
-      Object.keys(menuItems).forEach(function(id){
+      Object.keys(menuItems).sort(function(a,b){
+        return Number(menuItems[a].sortOrder||0)-Number(menuItems[b].sortOrder||0);
+      }).forEach(function(id){
         var cat = menuItems[id].category || '其他';
         if(categoryOrder.indexOf(cat) === -1) categoryOrder.push(cat);
       });
       renderMenu();
       renderCart();
     });
+  }
+
+  function renderOperationStatus(){
+    var closed = operationStatus.isOpen===false;
+    document.getElementById('operationBanner').style.display = closed ? 'block' : 'none';
+    var btn = document.getElementById('submitOrder');
+    btn.disabled = closed;
+    btn.textContent = closed ? '目前未開放點餐' : '送出訂單';
   }
 
   // ---------- menu rendering ----------
@@ -239,6 +266,12 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         latest = newId ? menuItems[newId] : null;
       }
       if(!latest) return;
+      if(latest.available===false) return;
+      var allowedQty = Number(line.qty||0);
+      if(latest.stockEnabled===true){
+        allowedQty = Math.min(allowedQty, Number(latest.stockRemaining||0));
+      }
+      if(allowedQty<=0) return;
 
       var addon = null;
       if(line.addon && latest.addonLabel){
@@ -248,7 +281,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       syncedCart[newId] = {
         name:latest.name,
         price:latest.price,
-        qty:line.qty,
+        qty:allowedQty,
         addon:addon
       };
     });
@@ -278,6 +311,9 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       if(!groups[cat]) groups[cat] = [];
       groups[cat].push(Object.assign({id:id}, item));
     });
+    Object.keys(groups).forEach(function(cat){
+      groups[cat].sort(function(a,b){ return Number(a.sortOrder||0)-Number(b.sortOrder||0); });
+    });
     return groups;
   }
 
@@ -295,10 +331,13 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     categoryOrder.forEach(function(cat){
       var items = groups[cat] || [];
       if(items.length === 0) return;
-      html += '<div class="cat-title">'+escapeHtml(cat)+'</div>';
+      var categoryParts = String(cat || '其他').split('※');
+      var categoryTitle = (categoryParts.shift() || '其他').trim();
+      var categoryNote = categoryParts.join('※').trim();
+      html += '<div class="cat-title">'+escapeHtml(categoryTitle)+'</div>';
       var limitNoteItem = items.find(function(item){ return isPolaroidLimitNote(item.note); });
-      if(limitNoteItem){
-        var limitText = String(limitNoteItem.note || '').replace(/^\s*※\s*/, '');
+      var limitText = categoryNote || (limitNoteItem ? String(limitNoteItem.note || '').replace(/^\s*※\s*/, '') : '');
+      if(limitText){
         html += '<div class="category-notice">'
           + '<span class="category-notice-label">LIMITED</span>'
           + '<span>'+escapeHtml(limitText)+'</span>'
@@ -306,16 +345,23 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       }
       items.forEach(function(item){
         var qty = cart[item.id] ? cart[item.id].qty : 0;
-        html += '<div class="item-row">'
+        var soldOut = item.available===false || (item.stockEnabled===true && Number(item.stockRemaining||0)<=0);
+        var orderingDisabled = soldOut || operationStatus.isOpen===false;
+        var availability = '';
+        if(item.available===false) availability = '<span class="availability soldout">暫停供應</span>';
+        else if(item.stockEnabled===true && Number(item.stockRemaining||0)<=0) availability = '<span class="availability soldout">本次額滿</span>';
+        else if(item.stockEnabled===true) availability = '<span class="availability">剩餘 '+Number(item.stockRemaining||0)+' 份</span>';
+        html += '<div class="item-row '+(soldOut?'unavailable':'')+'">'
           + '<div class="item-name">'+escapeHtml(item.name)
           + (item.note && !isPolaroidLimitNote(item.note) ? '<span class="item-note">'+escapeHtml(item.note)+'</span>' : '')
-          + (item.addonLabel ? '<div class="addon-row"><input type="checkbox" id="addon-'+item.id+'" '+((cart[item.id]&&cart[item.id].addon)||pendingAddons[item.id]?'checked':'')+'><label for="addon-'+item.id+'">'+escapeHtml(item.addonLabel)+' ＋'+fmtGil(item.addonPrice)+'</label></div>' : '')
+          + availability
+          + (item.addonLabel ? '<div class="addon-row"><input type="checkbox" id="addon-'+item.id+'" '+((cart[item.id]&&cart[item.id].addon)||pendingAddons[item.id]?'checked':'')+' '+(orderingDisabled?'disabled':'')+'><label for="addon-'+item.id+'">'+escapeHtml(item.addonLabel)+' ＋'+fmtGil(item.addonPrice)+'</label></div>' : '')
           + '</div>'
           + '<div class="item-price">'+fmtGil(item.price)+'</div>'
           + '<div class="stepper">'
           + '<button class="step-btn" data-dec="'+item.id+'">－</button>'
           + '<span class="step-qty" id="qty-'+item.id+'">'+qty+'</span>'
-          + '<button class="step-btn" data-inc="'+item.id+'">＋</button>'
+          + '<button class="step-btn" data-inc="'+item.id+'" '+(orderingDisabled?'disabled':'')+'>＋</button>'
           + '</div>'
           + '</div>';
       });
@@ -344,8 +390,12 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   function changeQty(id, delta){
     var item = menuItems[id];
     if(!item) return;
+    if(delta>0 && (operationStatus.isOpen===false || item.available===false)) return;
     var current = cart[id] ? cart[id].qty : 0;
     var next = Math.max(0, current + delta);
+    if(delta>0 && item.stockEnabled===true){
+      next = Math.min(next, Number(item.stockRemaining||0));
+    }
     if(next === 0){
       delete cart[id];
       delete pendingAddons[id];
@@ -406,12 +456,51 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     }).catch(function(){});
   }
 
+  function releaseLimitedStock(reservations){
+    return Promise.all(Object.keys(reservations||{}).map(function(id){
+      var qty = Number(reservations[id]||0);
+      return menuRef.child(id).child('stockRemaining').transaction(function(current){ return Number(current||0)+qty; });
+    }));
+  }
+
+  function reserveLimitedStock(items){
+    var limited = items.filter(function(item){ return menuItems[item.id] && menuItems[item.id].stockEnabled===true; });
+    var reservations = {};
+    var applied = [];
+    function reserveAt(index){
+      if(index>=limited.length) return Promise.resolve(reservations);
+      var ordered = limited[index];
+      var qty = Number(ordered.qty||0);
+      return menuRef.child(ordered.id).transaction(function(item){
+        if(!item || item.available===false || item.stockEnabled!==true || Number(item.stockRemaining||0)<qty) return;
+        item.stockRemaining = Number(item.stockRemaining||0)-qty;
+        return item;
+      }).then(function(result){
+        if(!result.committed) throw new Error('stock-unavailable');
+        reservations[ordered.id] = qty;
+        applied.push(ordered.id);
+        return reserveAt(index+1);
+      });
+    }
+    return reserveAt(0).catch(function(err){
+      var rollback = {};
+      applied.forEach(function(id){ rollback[id]=reservations[id]; });
+      return releaseLimitedStock(rollback).then(function(){ throw err; });
+    });
+  }
+
   document.getElementById('submitOrder').addEventListener('click', function(){
     if(!isConfigured) return;
     var errEl = document.getElementById('orderError');
     var name = document.getElementById('custName').value.trim();
     var note = document.getElementById('custNote').value.trim();
     var ids = Object.keys(cart);
+
+    if(operationStatus.isOpen===false){
+      errEl.textContent = '目前已結束線上點餐，請直接詢問女僕';
+      errEl.style.display = 'block';
+      return;
+    }
 
     if(!name){
       errEl.textContent = '請填寫角色名／稱呼';
@@ -440,8 +529,10 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       return { id:id, name:line.name, price:line.price, qty:line.qty, addon: line.addon };
     });
 
-    nextOrderNumberRef.transaction(function(current){
-      return (current || 0) + 1;
+    var reservedStock = {};
+    reserveLimitedStock(items).then(function(reservations){
+      reservedStock = reservations;
+      return nextOrderNumberRef.transaction(function(current){ return (current || 0) + 1; });
     }).then(function(result){
       var orderNumber = result.snapshot.val();
       var orderId = ordersRef.push().key;
@@ -452,6 +543,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         items: items,
         total: total,
         status: 'pending',
+        stockReservations: reservedStock,
+        stockReleased: false,
         createdAt: Date.now()
       }).then(function(){
         var lines = items.map(function(item){
@@ -474,8 +567,12 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         submitBtn.disabled = false;
         submitBtn.textContent = '送出訂單';
       });
-    }).catch(function(){
-      errEl.textContent = '送出失敗，請稍後再試一次';
+    }).catch(function(err){
+      var release = Object.keys(reservedStock).length ? releaseLimitedStock(reservedStock) : Promise.resolve();
+      release.catch(function(){});
+      errEl.textContent = err && err.message==='stock-unavailable'
+        ? '部分限量服務剛好額滿，請重新確認菜單後再送出'
+        : '送出失敗，請稍後再試一次';
       errEl.style.display = 'block';
       submitBtn.disabled = false;
       submitBtn.textContent = '送出訂單';
