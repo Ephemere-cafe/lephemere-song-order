@@ -49,7 +49,7 @@ body{margin:0;background:#241f30;font-family:'Noto Sans TC',sans-serif;}
   margin:0 0 12px; padding-bottom:6px; border-bottom:1px solid var(--line);
 }
 
-input[type=text],input[type=number],select{
+input[type=text],input[type=number],input[type=search],select{
   background:var(--ink-deep);border:1px solid var(--line);color:var(--parchment);
   border-radius:7px;padding:9px 11px;font-size:14px;font-family:inherit;
 }
@@ -108,13 +108,54 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 .tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
 .tab{padding:7px 14px;border-radius:20px;border:1px solid var(--line);font-size:12.5px;cursor:pointer;color:var(--parchment-dim);}
 .tab.active{border-color:var(--gold-dim);color:var(--gold);background:rgba(202,160,107,0.08);}
+.order-tools{display:flex;align-items:center;gap:10px;margin:-2px 0 14px;}
+.order-tools input{flex:1;min-width:0;width:100%;}
+.order-search-hint{font-size:11px;color:var(--parchment-dim);white-space:nowrap;}
+.sound-toggle.enabled{border-color:var(--sage-dim);color:var(--sage);}
+.overview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px;flex-wrap:wrap;}
+.overview-head h2{font-family:'Noto Serif TC',serif;font-size:16px;color:var(--gold);margin:0 0 4px;}
+.overview-head p{font-size:11.5px;color:var(--parchment-dim);margin:0;}
+.overview-actions{display:flex;gap:7px;flex-wrap:wrap;}
+.system-strip{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px;padding-top:12px;border-top:1px solid var(--line);}
+.system-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid var(--line);border-radius:20px;font-size:11px;color:var(--parchment-dim);}
+.system-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--parchment-dim);}
+.system-pill.ok{color:var(--sage);border-color:rgba(143,166,136,.36);}
+.system-pill.ok::before{background:var(--sage);}
+.system-pill.warn{color:var(--gold);border-color:rgba(202,160,107,.38);}
+.system-pill.warn::before{background:var(--gold);}
+.system-pill.bad{color:var(--rose);border-color:rgba(192,123,138,.4);}
+.system-pill.bad::before{background:var(--rose);}
+.identity-panel{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:14px;border:1px solid var(--line);border-radius:9px;background:rgba(243,236,225,.025);}
+.identity-panel label{font-size:12px;color:var(--parchment-dim);white-space:nowrap;}
+.identity-panel select{flex:1;min-width:0;}
+.identity-help{font-size:11px;color:var(--parchment-dim);}
 
 .order-card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:var(--ink-deep);}
 .order-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;}
 .order-num{font-family:'Noto Serif TC',serif;color:var(--gold);font-size:16px;}
 .order-name{font-size:13px;color:var(--parchment);margin-top:2px;}
 .order-note{font-size:11.5px;color:var(--mist);margin-top:2px;}
+.handoff-note{margin-top:9px;border:1px solid var(--line);border-radius:8px;background:rgba(243,236,225,.025);overflow:hidden;}
+.handoff-note summary{cursor:pointer;list-style:none;padding:8px 10px;font-size:11.5px;color:var(--mist);display:flex;justify-content:space-between;gap:10px;}
+.handoff-note summary::-webkit-details-marker{display:none;}
+.handoff-note[open] summary{border-bottom:1px solid var(--line);}
+.handoff-note-body{padding:9px 10px;}
+.handoff-note-body textarea{min-height:64px;font-size:12px;}
+.handoff-note-preview{color:var(--parchment-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:62%;}
 .order-time{font-size:11px;color:var(--parchment-dim);text-align:right;}
+.order-elapsed{display:block;margin-top:5px;font-size:11px;color:var(--mist);white-space:nowrap;}
+.order-elapsed.warning{color:var(--gold);font-weight:500;}
+.order-elapsed.urgent{color:var(--rose);font-weight:700;}
+.special-tags{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 2px;}
+.special-tag{display:inline-flex;align-items:center;border-radius:20px;padding:4px 9px;font-size:11px;font-weight:500;letter-spacing:.02em;}
+.special-tag.polaroid{background:rgba(192,123,138,.16);color:#e3a4b2;border:1px solid rgba(192,123,138,.35);}
+.special-tag.lens{background:rgba(167,155,196,.16);color:#c9bce6;border:1px solid rgba(167,155,196,.35);}
+.special-tag.magic{background:rgba(202,160,107,.16);color:#dfb982;border:1px solid rgba(202,160,107,.35);}
+.special-service-list{display:flex;flex-direction:column;gap:6px;margin:9px 0 2px;}
+.special-service-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;background:rgba(243,236,225,.025);border:1px solid var(--line);}
+.special-service-row .special-tag{flex:none;}
+.special-service-row select{margin-left:auto;min-width:112px;padding:5px 8px;font-size:11.5px;}
+.special-service-row.is-completed{opacity:.62;}
 .order-items{margin:8px 0;font-size:13px;color:var(--parchment-dim);}
 .order-items div{padding:2px 0;}
 .order-total{font-size:13px;color:var(--gold-dim);margin-top:4px;}
@@ -133,10 +174,33 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 .status-completed{background:rgba(143,166,136,0.15);color:var(--sage);}
 .status-cancelled{background:rgba(199,191,174,0.1);color:var(--parchment-dim);text-decoration:line-through;}
 .order-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.order-day-group{
+  border:1px solid var(--line);border-radius:10px;margin-bottom:10px;
+  background:rgba(25,20,32,0.48);overflow:hidden;
+}
+.order-day-group>summary{
+  list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;padding:12px 14px;color:var(--parchment);user-select:none;
+}
+.order-day-group>summary::-webkit-details-marker{display:none;}
+.order-day-title{font-family:'Noto Serif TC',serif;color:var(--gold);font-size:14px;}
+.order-day-meta{font-size:11.5px;color:var(--parchment-dim);text-align:right;}
+.order-day-arrow{display:inline-block;color:var(--gold);margin-left:8px;transition:transform .2s ease;}
+.order-day-group[open] .order-day-arrow{transform:rotate(180deg);}
+.order-day-list{padding:0 10px 10px;border-top:1px solid var(--line);}
+.order-day-list .order-card:first-child{margin-top:10px;}
+.order-day-list .order-card:last-child{margin-bottom:0;}
 
 .stats-row{display:flex;gap:16px;flex-wrap:wrap;}
 .stat{font-size:13px;color:var(--parchment-dim);}
 .stat b{color:var(--gold);font-size:16px;display:block;font-family:'Noto Serif TC',serif;}
+.stat.attention b{color:var(--rose);}
+.stat.caution b{color:var(--gold);}
+.stock-badge{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:20px;padding:2px 7px;margin-left:6px;font-size:10px;color:var(--parchment-dim);vertical-align:middle;}
+.stock-badge.available{color:var(--sage);border-color:rgba(143,166,136,.35);}
+.stock-badge.limited{color:var(--gold);border-color:rgba(202,160,107,.38);}
+.stock-badge.soldout{color:var(--rose);border-color:rgba(192,123,138,.42);}
+.report-text{white-space:pre-wrap;background:var(--ink-deep);border:1px solid var(--line);border-radius:8px;padding:12px;color:var(--parchment-dim);font:12px/1.75 'Noto Sans TC',sans-serif;max-height:55vh;overflow:auto;}
 
 @media(max-width:560px){
   .wrap{padding:20px 14px 32px;}
@@ -146,6 +210,16 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   .duty-summary-text{white-space:normal;line-height:1.5;}
   .order-service{align-items:stretch;flex-direction:column;gap:6px;}
   .order-actions .btn{flex:1;}
+  .order-tools{align-items:stretch;flex-direction:column;}
+  .order-search-hint{white-space:normal;align-self:flex-start;}
+  .special-service-row{align-items:stretch;flex-direction:column;}
+  .special-service-row select{margin-left:0;width:100%;}
+  .order-day-group>summary{align-items:flex-start;}
+  .order-day-meta{max-width:48%;line-height:1.5;}
+  .identity-panel{align-items:stretch;flex-direction:column;}
+  .overview-actions .btn{flex:1;}
+  .system-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+  .system-pill{justify-content:center;}
 }
 
 .staff-check{
@@ -222,14 +296,43 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     <!-- ============ 訂單管理 ============ -->
     <div id="ordersTab">
       <div class="panel">
+        <div class="overview-head">
+          <div>
+            <h2>今日營業總覽</h2>
+            <p id="overviewDate">即時整理今天的訂單與待處理事項</p>
+          </div>
+          <div class="overview-actions">
+            <button class="btn ghost small" id="viewDailyReport">查看今日日報</button>
+            <button class="btn primary small" id="operationToggle">結束營業並產生日報</button>
+          </div>
+        </div>
         <div class="stats-row">
           <div class="stat"><b id="statPending">0</b>待接單</div>
+          <div class="stat attention"><b id="statUnassigned">0</b>待指派</div>
+          <div class="stat caution"><b id="statOverdue">0</b>等待逾 10 分鐘</div>
+          <div class="stat"><b id="statSpecialPending">0</b>特別服務待完成</div>
           <div class="stat"><b id="statPreparing">0</b>服務中</div>
           <div class="stat"><b id="statCompleted">0</b>今日完成</div>
-          <div class="stat"><b id="statTotalGil">0</b>今日營業額（未取消）</div>
+          <div class="stat"><b id="statTotalGil">0</b>今日訂單總額</div>
         </div>
-        <button class="btn ghost small" id="resetOrderNumber" style="margin-top:12px;border-color:var(--rose-dim);color:var(--rose);">重置訂單編號</button>
+        <div class="row" style="margin-top:12px;">
+          <button class="btn ghost small" id="resetOrderNumber" style="border-color:var(--rose-dim);color:var(--rose);">重置訂單編號</button>
+          <button class="btn ghost small sound-toggle" id="soundToggle">🔕 提示音關閉</button>
+          <button class="btn ghost small" id="soundTest">測試提示音</button>
+        </div>
         <p style="font-size:11px;color:var(--parchment-dim);margin:6px 0 0;">下一筆新訂單會從 #1 開始重新編號，不會影響已存在的訂單紀錄。</p>
+        <div class="system-strip" aria-label="系統狀態">
+          <span class="system-pill bad" id="systemDatabase">訂單連線中</span>
+          <span class="system-pill warn" id="systemOrdering">點餐狀態確認中</span>
+          <span class="system-pill warn" id="systemDiscord">Discord 未設定</span>
+          <span class="system-pill warn" id="systemSound">提示音關閉</span>
+        </div>
+      </div>
+
+      <div class="identity-panel">
+        <label for="currentStaffSelect">我現在是</label>
+        <select id="currentStaffSelect" aria-label="選擇目前操作的店員"><option value="">請先選擇店員</option></select>
+        <span class="identity-help">選好後可一鍵「由我接待」並使用「我的訂單」。</span>
       </div>
 
       <details class="panel duty-panel">
@@ -259,10 +362,16 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
       <div class="tabs" id="orderSubTabs">
         <div class="tab active" data-filter="active">進行中</div>
+        <div class="tab" data-filter="mine">我的訂單</div>
         <div class="tab" data-filter="unassigned">待指派</div>
         <div class="tab" data-filter="completed">已完成</div>
         <div class="tab" data-filter="cancelled">已取消</div>
         <div class="tab" data-filter="all">全部</div>
+      </div>
+
+      <div class="order-tools">
+        <input type="search" id="orderSearch" placeholder="搜尋訂單編號、主人、餐點或服務店員">
+        <span class="order-search-hint" id="orderSearchHint"></span>
       </div>
 
       <div id="orderList"></div>
@@ -295,7 +404,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
           <button class="btn ghost small" id="syncMenuPrices">套用內建預設價格</button>
           <button class="btn ghost small" id="seedDefaultMenu">匯入預設菜單</button>
         </div>
-        <p class="menu-sort-note">按每個品項右側的「編輯」，即可修改名稱、價格、備註、分類及加購內容；儲存後會自動同步到顧客點餐頁。</p>
+        <p class="menu-sort-note">按每個品項右側的「編輯」，即可修改名稱、價格、備註、分類、加購內容與限量名額；儲存後會自動同步到官網及主人點餐頁。</p>
         <p class="menu-sort-note">使用分類標題旁及各品項右側的 ↑ ↓，即可調整顯示順序。「套用內建預設價格」會覆蓋內建餐點目前的價格，只有需要還原時再使用。</p>
       </div>
     </div>
@@ -360,11 +469,32 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
         <label for="editItemAddonPrice">加購價格（Gil）</label>
         <input type="number" id="editItemAddonPrice" min="0" step="1" inputmode="numeric">
       </div>
+      <div class="menu-edit-field full">
+        <label><input type="checkbox" id="editItemAvailable" checked> 開放這個品項供主人點餐</label>
+      </div>
+      <div class="menu-edit-field">
+        <label><input type="checkbox" id="editItemStockEnabled"> 啟用限量名額</label>
+      </div>
+      <div class="menu-edit-field">
+        <label for="editItemStockRemaining">目前剩餘份數／名額</label>
+        <input type="number" id="editItemStockRemaining" min="0" step="1" inputmode="numeric" disabled>
+      </div>
     </div>
-    <p class="menu-edit-help">儲存後，顧客點餐頁會自動同步新的名稱、價格與備註；已送出的舊訂單不會被修改。</p>
+    <p class="menu-edit-help">限量名額會在主人送出訂單時自動扣除；取消尚未完成的訂單時會自動歸還。儲存後，官網與線上點餐頁都會同步更新。</p>
     <div class="menu-edit-actions">
       <button class="btn ghost" id="menuEditCancel">取消</button>
       <button class="btn primary" id="menuEditSave">儲存修改</button>
+    </div>
+  </div>
+</div>
+
+<div class="menu-edit-overlay" id="reportOverlay" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
+  <div class="menu-edit-modal">
+    <h4 id="reportTitle">今日日報</h4>
+    <div class="report-text" id="reportText">整理中…</div>
+    <div class="menu-edit-actions">
+      <button class="btn ghost" id="reportClose">關閉</button>
+      <button class="btn primary" id="reportCopy">複製日報</button>
     </div>
   </div>
 </div>
@@ -405,10 +535,21 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   if(!isConfigured){ document.getElementById('configWarn').style.display = 'block'; }
 
   var db;
-  var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, menuRef, nextOrderNumberRef;
+  var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, menuRef, nextOrderNumberRef, webhookRef, operationStatusRef, dailyReportsRef;
 
   var orders = {};
   var currentOrderFilter = 'active';
+  var orderSearchTerm = '';
+  var webhookUrl = '';
+  var knownOrderIds = {};
+  var ordersSnapshotReady = false;
+  var soundEnabled = false;
+  var orderAudioContext = null;
+  var currentStaffId = '';
+  var isDatabaseConnected = false;
+  var operationStatus = { isOpen:true };
+  try{ soundEnabled = localStorage.getItem('lephemereOrderSound') === 'on'; }catch(e){}
+  try{ currentStaffId = localStorage.getItem('lephemereCurrentStaffId') || ''; }catch(e){}
 
   var menuItems = {};
   var menuCategoryOrder = [];
@@ -437,6 +578,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   var STATUS_LABEL = { pending:'待接單', preparing:'服務中', served:'服務中', completed:'已完成', cancelled:'已取消' };
   var NEXT_STATUS = { pending:'preparing', preparing:'completed', served:'completed' };
   var NEXT_LABEL = { pending:'開始服務', preparing:'完成服務', served:'完成服務' };
+  var PREV_STATUS = { preparing:'pending', served:'preparing', completed:'preparing', cancelled:'pending' };
+  var PREV_LABEL = { preparing:'退回待接單', served:'退回服務中', completed:'退回服務中', cancelled:'恢復訂單' };
 
   function escapeHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
   function fmtGil(n){ return (n||0).toLocaleString('en-US') + ' Gil'; }
@@ -444,9 +587,65 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     var d = new Date(ts);
     return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
   }
+  function orderDateKey(ts){
+    if(!ts) return 'unknown';
+    var d = new Date(ts);
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  function orderDateLabel(key){
+    if(key==='unknown') return '日期未記錄';
+    var text = key.replace(/-/g,' / ');
+    return key===todayKey() ? '今天・'+text : text;
+  }
+  function discordFieldValue(value){
+    var text = String(value || '—');
+    return text.length > 1024 ? text.slice(0,1023)+'…' : text;
+  }
+  function sendDiscordAssignmentUpdate(order, staffName){
+    if(!webhookUrl) return Promise.resolve();
+    var assigned = !!staffName;
+    return fetch(webhookUrl, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        username:'曇時 Cafe｜接待通知',
+        allowed_mentions:{parse:[]},
+        embeds:[{
+          title:assigned ? '👥 接待店員已更新' : '↩️ 接待指派已取消',
+          color:assigned ? 13279339 : 12614538,
+          fields:[
+            {name:'訂單編號',value:'#'+discordFieldValue(order.orderNumber),inline:true},
+            {name:'主人',value:discordFieldValue(order.name||'未填寫'),inline:true},
+            {name:'目前服務店員',value:discordFieldValue(staffName||'尚未指派'),inline:false}
+          ],
+          footer:{text:"曇時 Cafe l'Éphémère｜點餐後台"},
+          timestamp:new Date().toISOString()
+        }]
+      })
+    }).catch(function(err){ console.warn('Discord update failed', err); });
+  }
   function todayKey(){
     var d = new Date();
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  function setSystemPill(id, text, state){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.textContent = text;
+    el.className = 'system-pill '+state;
+  }
+
+  function renderSystemStatus(){
+    setSystemPill('systemDatabase', isDatabaseConnected ? '訂單連線正常' : '訂單連線中斷', isDatabaseConnected ? 'ok' : 'bad');
+    setSystemPill('systemOrdering', operationStatus.isOpen===false ? '線上點餐已打烊' : '線上點餐開放中', operationStatus.isOpen===false ? 'warn' : 'ok');
+    setSystemPill('systemDiscord', webhookUrl ? 'Discord 已設定' : 'Discord 未設定', webhookUrl ? 'ok' : 'warn');
+    setSystemPill('systemSound', soundEnabled ? '提示音開啟' : '提示音關閉', soundEnabled ? 'ok' : 'warn');
+    var toggle = document.getElementById('operationToggle');
+    if(toggle){
+      toggle.textContent = operationStatus.isOpen===false ? '開始營業' : '結束營業並產生日報';
+      toggle.className = operationStatus.isOpen===false ? 'btn primary small' : 'btn primary small';
+    }
   }
 
   function tickClock(){
@@ -455,6 +654,42 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   }
   tickClock();
   setInterval(tickClock,15000);
+  setInterval(function(){ updateElapsedLabels(); renderStats(); },30000);
+
+  function updateSoundButton(){
+    var btn = document.getElementById('soundToggle');
+    if(!btn) return;
+    btn.textContent = soundEnabled ? '🔔 提示音開啟' : '🔕 提示音關閉';
+    btn.classList.toggle('enabled', soundEnabled);
+    renderSystemStatus();
+  }
+
+  function playOrderSound(force){
+    if(!soundEnabled && !force) return;
+    var AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if(!AudioCtx) return;
+    if(!orderAudioContext) orderAudioContext = new AudioCtx();
+    var play = function(){
+      var now = orderAudioContext.currentTime;
+      var gain = orderAudioContext.createGain();
+      var osc = orderAudioContext.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(660, now);
+      osc.frequency.setValueAtTime(880, now+0.14);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.18, now+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now+0.34);
+      osc.connect(gain);
+      gain.connect(orderAudioContext.destination);
+      osc.start(now);
+      osc.stop(now+0.36);
+    };
+    if(orderAudioContext.state==='suspended'){
+      orderAudioContext.resume().then(play).catch(function(){});
+    }else{
+      play();
+    }
+  }
 
   function formatRulesText(text){
     var lines = text.split('\n');
@@ -478,9 +713,14 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     staffRosterRef = db.ref('lephemere/staffRoster');
     todayStaffRef = db.ref('lephemere/todayStaff');
     menuRef = db.ref('lephemere/menu');
+    webhookRef = db.ref('lephemere/webhookUrl');
+    operationStatusRef = db.ref('lephemere/operationStatus');
+    dailyReportsRef = db.ref('lephemere/dailyReports');
 
     db.ref('.info/connected').on('value', function(snap){
-      document.getElementById('connDot').className = snap.val()===true ? 'dot online' : 'dot offline';
+      isDatabaseConnected = snap.val()===true;
+      document.getElementById('connDot').className = isDatabaseConnected ? 'dot online' : 'dot offline';
+      renderSystemStatus();
     });
 
     firebase.auth().onAuthStateChanged(function(user){
@@ -501,9 +741,29 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     attached = true;
 
     ordersRef.on('value', function(snap){
-      orders = snap.val() || {};
+      var nextOrders = snap.val() || {};
+      if(ordersSnapshotReady){
+        var hasNewOrder = Object.keys(nextOrders).some(function(id){
+          return !knownOrderIds[id] && nextOrders[id].status==='pending';
+        });
+        if(hasNewOrder) playOrderSound();
+      }
+      knownOrderIds = {};
+      Object.keys(nextOrders).forEach(function(id){ knownOrderIds[id] = true; });
+      ordersSnapshotReady = true;
+      orders = nextOrders;
       renderStats();
       renderOrders();
+    });
+
+    webhookRef.on('value', function(snap){
+      webhookUrl = snap.val() || '';
+      renderSystemStatus();
+    });
+
+    operationStatusRef.on('value', function(snap){
+      operationStatus = snap.val() || { isOpen:true };
+      renderSystemStatus();
     });
 
     rulesRef.on('value', function(snap){
@@ -513,13 +773,19 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
     staffRosterRef.on('value', function(snap){
       staffRoster = snap.val() || {};
+      if(currentStaffId && !staffRoster[currentStaffId]){
+        currentStaffId = '';
+        try{ localStorage.removeItem('lephemereCurrentStaffId'); }catch(e){}
+      }
       renderStaffCheckList();
+      renderCurrentStaffSelect();
       renderOrders();
     });
 
     todayStaffRef.on('value', function(snap){
       todayStaff = snap.val() || {};
       renderStaffCheckList();
+      renderCurrentStaffSelect();
       renderOrders();
       var dateInput = document.getElementById('onDutyDate');
       if(dateInput && !dateInput.value){
@@ -530,11 +796,14 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     menuRef.on('value', function(snap){
       menuItems = snap.val() || {};
       menuCategoryOrder = [];
-      Object.keys(menuItems).forEach(function(id){
+      Object.keys(menuItems).sort(function(a,b){
+        return Number(menuItems[a].sortOrder || 0) - Number(menuItems[b].sortOrder || 0);
+      }).forEach(function(id){
         var cat = menuItems[id].category || '其他';
         if(menuCategoryOrder.indexOf(cat) === -1) menuCategoryOrder.push(cat);
       });
       renderMenuManageList();
+      renderOrders();
     });
 
     openDatesRef.on('value', function(snap){
@@ -584,13 +853,63 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     renderOrders();
   });
 
+  document.getElementById('orderSearch').addEventListener('input', function(e){
+    orderSearchTerm = e.target.value.trim().toLowerCase();
+    renderOrders();
+  });
+
+  document.getElementById('soundToggle').addEventListener('click', function(){
+    soundEnabled = !soundEnabled;
+    try{ localStorage.setItem('lephemereOrderSound', soundEnabled ? 'on' : 'off'); }catch(e){}
+    updateSoundButton();
+    if(soundEnabled) playOrderSound();
+  });
+  document.getElementById('soundTest').addEventListener('click', function(){ playOrderSound(true); });
+  updateSoundButton();
+
+  function renderCurrentStaffSelect(){
+    var select = document.getElementById('currentStaffSelect');
+    if(!select) return;
+    var onDutyIds = todayStaff.staffIds || [];
+    var ids = Object.keys(staffRoster);
+    ids.sort(function(a,b){
+      var aDuty = onDutyIds.indexOf(a) > -1 ? 0 : 1;
+      var bDuty = onDutyIds.indexOf(b) > -1 ? 0 : 1;
+      if(aDuty!==bDuty) return aDuty-bDuty;
+      return String(staffRoster[a].name||'').localeCompare(String(staffRoster[b].name||''), 'zh-Hant');
+    });
+    var html = '<option value="">請先選擇店員</option>';
+    ids.forEach(function(id){
+      var duty = onDutyIds.indexOf(id) > -1 ? '（今日值班）' : '';
+      html += '<option value="'+id+'" '+(id===currentStaffId?'selected':'')+'>'+escapeHtml(staffRoster[id].name||'未命名店員')+duty+'</option>';
+    });
+    select.innerHTML = html;
+  }
+
+  document.getElementById('currentStaffSelect').addEventListener('change', function(e){
+    currentStaffId = e.target.value;
+    try{
+      if(currentStaffId) localStorage.setItem('lephemereCurrentStaffId', currentStaffId);
+      else localStorage.removeItem('lephemereCurrentStaffId');
+    }catch(err){}
+    renderOrders();
+  });
+
+  document.addEventListener('pointerdown', function unlockOrderAudio(){
+    if(!soundEnabled) return;
+    var AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if(!AudioCtx) return;
+    if(!orderAudioContext) orderAudioContext = new AudioCtx();
+    if(orderAudioContext.state==='suspended') orderAudioContext.resume().catch(function(){});
+  }, {once:true});
+
   function isToday(ts){
     var d = new Date(ts), now = new Date();
     return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
   }
 
   function renderStats(){
-    var pending=0, preparing=0, completed=0, gil=0;
+    var pending=0, preparing=0, completed=0, gil=0, unassigned=0, overdue=0, specialPending=0;
     Object.keys(orders).forEach(function(id){
       var o = orders[id];
       if(!isToday(o.createdAt)) return;
@@ -598,30 +917,191 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       if(o.status==='preparing' || o.status==='served') preparing++;
       if(o.status==='completed') completed++;
       if(o.status!=='cancelled') gil += (o.total||0);
+      if((o.status==='pending' || o.status==='preparing' || o.status==='served') && !o.assignedStaffId) unassigned++;
+      if(o.status==='pending' && o.createdAt && Date.now()-o.createdAt >= 600000) overdue++;
+      if(o.status==='pending' || o.status==='preparing' || o.status==='served'){
+        var states = o.specialServices || {};
+        collectSpecialTags(o.items||[]).forEach(function(tag){
+          if(!states[tag.key] || states[tag.key].status!=='completed') specialPending++;
+        });
+      }
     });
     document.getElementById('statPending').textContent = pending;
+    document.getElementById('statUnassigned').textContent = unassigned;
+    document.getElementById('statOverdue').textContent = overdue;
+    document.getElementById('statSpecialPending').textContent = specialPending;
     document.getElementById('statPreparing').textContent = preparing;
     document.getElementById('statCompleted').textContent = completed;
     document.getElementById('statTotalGil').textContent = fmtGil(gil);
+    document.getElementById('overviewDate').textContent = todayKey().replace(/-/g,' / ')+'・即時整理今天的訂單與待處理事項';
+  }
+
+  function addSpecialTag(tags, key, label){
+    if(tags.some(function(tag){ return tag.key===key; })) return;
+    tags.push({ key:key, label:label });
+  }
+
+  function collectSpecialTags(items){
+    var tags = [];
+    (items||[]).forEach(function(item){
+      var menuItem = menuItems[item.id] || {};
+      var source = [item.name, menuItem.name, menuItem.category, item.note, menuItem.note].filter(Boolean).join(' ');
+      if(/拍立得|簽繪|cheki|小顏.*抹茶|naipa.*蘆薈水果凍/i.test(source)){
+        addSpecialTag(tags, 'polaroid', '📷 拍立得');
+      }
+      if(/個人攝影|專屬留影|lens|純拍/i.test(source)){
+        addSpecialTag(tags, 'lens', '✦ 個人攝影');
+      }
+      if(item.addon && /魔法|萌え|萌萌/i.test(item.addon.label||'')){
+        addSpecialTag(tags, 'magic', '♥ 蛋包飯魔法');
+      }
+    });
+    return tags;
+  }
+
+  function specialTagsHtml(order){
+    var tags = collectSpecialTags(order.items||[]);
+    if(!tags.length) return '';
+    var states = order.specialServices || {};
+    return '<div class="special-service-list">'+tags.map(function(tag){
+      var current = states[tag.key] && states[tag.key].status || 'pending';
+      return '<div class="special-service-row '+(current==='completed'?'is-completed':'')+'">'
+        +'<span class="special-tag '+tag.key+'">'+tag.label+'</span>'
+        +'<select data-special-progress="'+order.id+'" data-special-key="'+tag.key+'" aria-label="'+tag.label+'進度">'
+        +'<option value="pending" '+(current==='pending'?'selected':'')+'>待處理</option>'
+        +'<option value="in_progress" '+(current==='in_progress'?'selected':'')+'>進行中</option>'
+        +'<option value="completed" '+(current==='completed'?'selected':'')+'>已完成</option>'
+        +'</select></div>';
+    }).join('')+'</div>';
+  }
+
+  function applyStockDelta(reservations, direction){
+    var keys = Object.keys(reservations || {});
+    if(!keys.length) return Promise.resolve();
+    var applied = [];
+    function changeAt(index){
+      if(index>=keys.length) return Promise.resolve();
+      var id = keys[index];
+      var qty = Number(reservations[id]||0);
+      if(!qty) return changeAt(index+1);
+      return menuRef.child(id).transaction(function(item){
+        if(!item) return;
+        if(direction < 0){
+          if(item.available===false || item.stockEnabled!==true || Number(item.stockRemaining||0)<qty) return;
+          item.stockRemaining = Number(item.stockRemaining||0)-qty;
+        }else{
+          if(item.stockRemaining===undefined && item.stockEnabled!==true) return item;
+          item.stockRemaining = Number(item.stockRemaining||0)+qty;
+        }
+        return item;
+      }).then(function(result){
+        if(!result.committed) throw new Error('stock-unavailable');
+        applied.push(id);
+        return changeAt(index+1);
+      });
+    }
+    function rollback(){
+      return Promise.all(applied.map(function(id){
+        var qty = Number(reservations[id]||0);
+        return menuRef.child(id).child('stockRemaining').transaction(function(current){
+          return Math.max(0, Number(current||0)-direction*qty);
+        });
+      }));
+    }
+    return changeAt(0).catch(function(err){
+      return rollback().then(function(){ throw err; });
+    });
+  }
+
+  function releaseOrderStock(order){
+    if(!order || order.stockReleased===true || !order.stockReservations) return Promise.resolve();
+    return applyStockDelta(order.stockReservations, 1);
+  }
+
+  function reserveOrderStock(order){
+    if(!order || order.stockReleased!==true || !order.stockReservations) return Promise.resolve();
+    return applyStockDelta(order.stockReservations, -1);
+  }
+
+  function updateElapsedLabels(){
+    document.querySelectorAll('[data-elapsed-start]').forEach(function(el){
+      var start = Number(el.getAttribute('data-elapsed-start'));
+      var status = el.getAttribute('data-elapsed-status');
+      if(!start){ el.textContent=''; return; }
+      var minutes = Math.max(0, Math.floor((Date.now()-start)/60000));
+      el.className = 'order-elapsed';
+      if(status==='pending'){
+        el.textContent = '已等待 '+minutes+' 分鐘';
+        if(minutes>=20) el.classList.add('urgent');
+        else if(minutes>=10) el.classList.add('warning');
+      }else{
+        el.textContent = '服務中 '+minutes+' 分鐘';
+      }
+    });
   }
 
   function renderOrders(){
     var el = document.getElementById('orderList');
+    if(currentOrderFilter==='mine' && !currentStaffId){
+      document.getElementById('orderSearchHint').textContent = '';
+      el.innerHTML = '<p class="empty">請先在上方選擇「我現在是」哪位店員。</p>';
+      return;
+    }
     var arr = Object.keys(orders).map(function(id){ var o=orders[id]; o.id=id; return o; });
 
     arr = arr.filter(function(o){
       if(currentOrderFilter==='active') return o.status==='pending' || o.status==='preparing' || o.status==='served';
+      if(currentOrderFilter==='mine') return !!currentStaffId && o.assignedStaffId===currentStaffId && (o.status==='pending' || o.status==='preparing' || o.status==='served');
       if(currentOrderFilter==='unassigned') return (o.status==='pending' || o.status==='preparing' || o.status==='served') && !o.assignedStaffId;
       if(currentOrderFilter==='completed') return o.status==='completed';
       if(currentOrderFilter==='cancelled') return o.status==='cancelled';
       return true;
     });
-    arr.sort(function(a,b){ return (a.createdAt||0) - (b.createdAt||0); });
+    if(orderSearchTerm){
+      arr = arr.filter(function(o){
+        var itemText = (o.items||[]).map(function(item){
+          return (item.name||'')+' '+(item.addon && item.addon.label || '');
+        }).join(' ');
+        var haystack = [o.orderNumber, o.name, o.note, o.internalNote, o.assignedStaffName, itemText].join(' ').toLowerCase();
+        return haystack.indexOf(orderSearchTerm) > -1;
+      });
+    }
+    document.getElementById('orderSearchHint').textContent = orderSearchTerm ? '找到 '+arr.length+' 筆' : '';
+    var groupByDate = currentOrderFilter==='completed' || currentOrderFilter==='cancelled' || currentOrderFilter==='all';
+    arr.sort(function(a,b){
+      return groupByDate ? (b.createdAt||0) - (a.createdAt||0) : (a.createdAt||0) - (b.createdAt||0);
+    });
 
     if(arr.length===0){ el.innerHTML = '<p class="empty">目前沒有符合條件的訂單</p>'; return; }
 
+    var dayStats = {};
+    if(groupByDate){
+      arr.forEach(function(o){
+        var key = orderDateKey(o.createdAt);
+        if(!dayStats[key]) dayStats[key] = { count:0, gil:0 };
+        dayStats[key].count++;
+        if(o.status!=='cancelled') dayStats[key].gil += (o.total||0);
+      });
+    }
+
     var html = '';
+    var openDay = null;
+    var dayIndex = 0;
     arr.forEach(function(o){
+      if(groupByDate){
+        var dateKey = orderDateKey(o.createdAt);
+        if(dateKey!==openDay){
+          if(openDay!==null) html += '</div></details>';
+          var stat = dayStats[dateKey];
+          var meta = stat.count+' 筆'+(stat.gil ? '・'+fmtGil(stat.gil) : '');
+          html += '<details class="order-day-group" '+(dayIndex===0?'open':'')+'>'
+            +'<summary><span class="order-day-title">'+orderDateLabel(dateKey)+'</span>'
+            +'<span class="order-day-meta">'+meta+'<span class="order-day-arrow">⌄</span></span></summary>'
+            +'<div class="order-day-list">';
+          openDay = dateKey;
+          dayIndex++;
+        }
+      }
       var itemsHtml = (o.items||[]).map(function(it){
         var addonQty = Number(it.qty) || 1;
         var extra = it.addon
@@ -629,17 +1109,28 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
           : '';
         return '<div>'+escapeHtml(it.name)+' × '+it.qty+extra+'</div>';
       }).join('');
+      var elapsedStart = o.status==='pending' ? o.createdAt : (o.statusUpdatedAt||o.createdAt);
+      var elapsedHtml = (o.status==='pending' || o.status==='preparing' || o.status==='served') && elapsedStart
+        ? '<span class="order-elapsed" data-elapsed-start="'+elapsedStart+'" data-elapsed-status="'+o.status+'"></span>'
+        : '';
+      var tagsHtml = specialTagsHtml(o);
 
+      var assignedId = o.assignedStaffId || '';
       var actionsHtml = '';
       if(NEXT_STATUS[o.status]){
         actionsHtml += '<button class="btn primary small" data-advance="'+o.id+'">'+NEXT_LABEL[o.status]+'</button>';
       }
+      if(PREV_STATUS[o.status]){
+        actionsHtml += '<button class="btn ghost small" data-revert-order="'+o.id+'">↶ '+PREV_LABEL[o.status]+'</button>';
+      }
       if(o.status!=='completed' && o.status!=='cancelled'){
         actionsHtml += '<button class="btn ghost small" data-cancel-order="'+o.id+'">取消訂單</button>';
       }
+      if(!assignedId && currentStaffId && o.status!=='completed' && o.status!=='cancelled'){
+        actionsHtml = '<button class="btn ghost small" data-claim-order="'+o.id+'">由我接待</button>'+actionsHtml;
+      }
       actionsHtml += '<button class="btn ghost small" data-delete-order="'+o.id+'" style="border-color:var(--rose-dim);color:var(--rose);">刪除</button>';
 
-      var assignedId = o.assignedStaffId || '';
       var staffIds = Object.keys(staffRoster);
       var onDutyIds = todayStaff.staffIds || [];
       staffIds.sort(function(a,b){
@@ -662,6 +1153,12 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
         +'<label for="assignee-'+o.id+'">目前服務店員</label>'
         +'<select id="assignee-'+o.id+'" data-assignee="'+o.id+'">'+staffOptions+'</select>'
         +'</div>';
+      var internalNoteText = o.internalNote || '';
+      var internalNoteHtml = '<details class="handoff-note">'
+        +'<summary><span>店內交接備註</span><span class="handoff-note-preview">'+(internalNoteText ? escapeHtml(internalNoteText) : '尚未填寫')+'</span></summary>'
+        +'<div class="handoff-note-body"><textarea data-internal-note="'+o.id+'" maxlength="240" placeholder="例如：靠窗座位、同行兩位、稍後拍立得">'+escapeHtml(internalNoteText)+'</textarea>'
+        +'<div class="row" style="justify-content:flex-end;margin-top:7px;"><button class="btn ghost small" data-save-internal-note="'+o.id+'">儲存交接備註</button></div></div>'
+        +'</details>';
 
       html += '<div class="order-card">'
         + '<div class="order-top">'
@@ -669,15 +1166,30 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
         + '<div class="order-name">'+escapeHtml(o.name||'')+'</div>'
         + (o.note ? '<div class="order-note">備註：'+escapeHtml(o.note)+'</div>' : '')
         + '</div>'
-        + '<div class="order-time">'+fmtTime(o.createdAt)+'</div>'
+        + '<div class="order-time">'+fmtTime(o.createdAt)+elapsedHtml+'</div>'
         + '</div>'
+        + tagsHtml
         + '<div class="order-items">'+itemsHtml+'</div>'
         + '<div class="order-total">合計 '+fmtGil(o.total)+'</div>'
         + serviceHtml
+        + internalNoteHtml
         + '<div class="order-actions">'+actionsHtml+'</div>'
         + '</div>';
     });
+    if(groupByDate && openDay!==null) html += '</div></details>';
     el.innerHTML = html;
+    updateElapsedLabels();
+
+    el.querySelectorAll('[data-special-progress]').forEach(function(select){
+      select.addEventListener('change', function(){
+        var id = select.getAttribute('data-special-progress');
+        var key = select.getAttribute('data-special-key');
+        ordersRef.child(id).child('specialServices').child(key).update({
+          status: select.value,
+          updatedAt: Date.now()
+        });
+      });
+    });
 
     el.querySelectorAll('[data-assignee]').forEach(function(select){
       select.addEventListener('change', function(){
@@ -688,6 +1200,9 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
             assignedStaffId: null,
             assignedStaffName: null,
             assignedAt: null
+          }).then(function(){
+            var order = orders[id] || {};
+            return sendDiscordAssignmentUpdate(order, null);
           });
           return;
         }
@@ -696,7 +1211,32 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
           assignedStaffId: staffId,
           assignedStaffName: staff.name || '未命名店員',
           assignedAt: Date.now()
+        }).then(function(){
+          var order = orders[id] || {};
+          return sendDiscordAssignmentUpdate(order, staff.name||'未命名店員');
         });
+      });
+    });
+
+    el.querySelectorAll('[data-claim-order]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.getAttribute('data-claim-order');
+        var staff = staffRoster[currentStaffId];
+        if(!staff){ alert('請先在上方選擇「我現在是」哪位店員。'); return; }
+        ordersRef.child(id).update({
+          assignedStaffId: currentStaffId,
+          assignedStaffName: staff.name || '未命名店員',
+          assignedAt: Date.now()
+        }).then(function(){ return sendDiscordAssignmentUpdate(orders[id]||{}, staff.name||'未命名店員'); });
+      });
+    });
+
+    el.querySelectorAll('[data-save-internal-note]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.getAttribute('data-save-internal-note');
+        var input = el.querySelector('[data-internal-note="'+id+'"]');
+        var text = input ? input.value.trim() : '';
+        ordersRef.child(id).update({ internalNote:text || null, internalNoteUpdatedAt:Date.now() });
       });
     });
 
@@ -704,14 +1244,40 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       btn.addEventListener('click', function(){
         var id = btn.getAttribute('data-advance');
         var next = NEXT_STATUS[orders[id].status];
-        if(next) ordersRef.child(id).child('status').set(next);
+        if(next){
+          var statusUpdate = { status:next, statusUpdatedAt:Date.now() };
+          if(next==='completed') statusUpdate.completedAt = Date.now();
+          ordersRef.child(id).update(statusUpdate);
+        }
+      });
+    });
+    el.querySelectorAll('[data-revert-order]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.getAttribute('data-revert-order');
+        var previous = PREV_STATUS[orders[id].status];
+        if(!previous) return;
+        if(confirm('確定要將這筆訂單'+PREV_LABEL[orders[id].status]+'嗎？')){
+          var order = orders[id];
+          var stockPromise = order.status==='cancelled' ? reserveOrderStock(order) : Promise.resolve();
+          stockPromise.then(function(){
+            return ordersRef.child(id).update({
+              status: previous,
+              statusUpdatedAt: Date.now(),
+              completedAt: null,
+              cancelledAt: null,
+              stockReleased: false
+            });
+          }).catch(function(){ alert('限量服務的名額不足，請先到菜單管理補回名額後再恢復訂單。'); });
+        }
       });
     });
     el.querySelectorAll('[data-cancel-order]').forEach(function(btn){
       btn.addEventListener('click', function(){
         var id = btn.getAttribute('data-cancel-order');
         if(confirm('確定要取消這筆訂單嗎？')){
-          ordersRef.child(id).child('status').set('cancelled');
+          releaseOrderStock(orders[id]).then(function(){
+            return ordersRef.child(id).update({ status:'cancelled', statusUpdatedAt:Date.now(), cancelledAt:Date.now(), stockReleased:true });
+          }).catch(function(){ alert('名額歸還失敗，請確認連線後再試一次。'); });
         }
       });
     });
@@ -719,10 +1285,86 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       btn.addEventListener('click', function(){
         var id = btn.getAttribute('data-delete-order');
         if(confirm('確定要永久刪除這筆訂單嗎？此動作無法復原。')){
-          ordersRef.child(id).remove();
+          var order = orders[id];
+          var shouldRelease = order && order.status!=='completed' && order.status!=='cancelled';
+          (shouldRelease ? releaseOrderStock(order) : Promise.resolve()).then(function(){ return ordersRef.child(id).remove(); });
         }
       });
     });
+  }
+
+  function buildDailyReport(){
+    var date = todayKey();
+    var list = Object.keys(orders).map(function(id){ return orders[id]; }).filter(function(o){ return isToday(o.createdAt); });
+    var active=0, completed=0, cancelled=0, totalGil=0;
+    var staffCounts = {};
+    var special = { total:0, completed:0 };
+    list.forEach(function(o){
+      if(o.status==='completed') completed++;
+      else if(o.status==='cancelled') cancelled++;
+      else active++;
+      if(o.status!=='cancelled'){
+        totalGil += Number(o.total||0);
+        if(o.assignedStaffName) staffCounts[o.assignedStaffName] = (staffCounts[o.assignedStaffName]||0)+1;
+      }
+      if(o.status!=='cancelled'){
+        var states = o.specialServices || {};
+        collectSpecialTags(o.items||[]).forEach(function(tag){
+          special.total++;
+          if(states[tag.key] && states[tag.key].status==='completed') special.completed++;
+        });
+      }
+    });
+    var staffLines = Object.keys(staffCounts).sort().map(function(name){ return '・'+name+'：'+staffCounts[name]+' 筆'; });
+    if(!staffLines.length) staffLines.push('・尚無店員接待紀錄');
+    var text = '【曇時營業日報｜'+date+'】\n'
+      +'訂單：'+list.length+' 筆（完成 '+completed+'／進行中 '+active+'／取消 '+cancelled+'）\n'
+      +'訂單總額：'+fmtGil(totalGil)+'\n'
+      +'特別服務：完成 '+special.completed+'／共 '+special.total+' 項\n\n'
+      +'接待紀錄\n'+staffLines.join('\n');
+    return {
+      text:text,
+      data:{ date:date, orderCount:list.length, activeCount:active, completedCount:completed, cancelledCount:cancelled, totalGil:totalGil, specialTotal:special.total, specialCompleted:special.completed, staffCounts:staffCounts, text:text, generatedAt:Date.now() }
+    };
+  }
+
+  function showDailyReport(save){
+    var report = buildDailyReport();
+    document.getElementById('reportText').textContent = report.text;
+    document.getElementById('reportOverlay').classList.add('open');
+    if(save && dailyReportsRef) dailyReportsRef.child(report.data.date).set(report.data);
+    return report;
+  }
+
+  document.getElementById('viewDailyReport').addEventListener('click', function(){ showDailyReport(false); });
+  document.getElementById('operationToggle').addEventListener('click', function(){
+    if(operationStatus.isOpen===false){
+      operationStatusRef.set({ isOpen:true, label:'營業中', updatedAt:Date.now() });
+      return;
+    }
+    var preview = buildDailyReport();
+    var warning = preview.data.activeCount>0 ? '目前仍有 '+preview.data.activeCount+' 筆進行中訂單。\n\n' : '';
+    if(!confirm(warning+'確定要結束今天的線上點餐並產生日報嗎？已送出的訂單仍會保留。')) return;
+    var report = showDailyReport(true);
+    operationStatusRef.set({ isOpen:false, label:'已打烊', updatedAt:Date.now(), reportDate:report.data.date });
+  });
+  document.getElementById('reportClose').addEventListener('click', function(){ document.getElementById('reportOverlay').classList.remove('open'); });
+  document.getElementById('reportOverlay').addEventListener('click', function(e){ if(e.target===this) this.classList.remove('open'); });
+  document.getElementById('reportCopy').addEventListener('click', function(){
+    var text = document.getElementById('reportText').textContent;
+    var done = function(){
+      var btn = document.getElementById('reportCopy');
+      btn.textContent = '已複製';
+      setTimeout(function(){ btn.textContent='複製日報'; }, 1400);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(function(){ fallbackCopy(text); done(); });
+    }else{ fallbackCopy(text); done(); }
+  });
+  function fallbackCopy(text){
+    var area = document.createElement('textarea');
+    area.value=text; area.style.position='fixed'; area.style.opacity='0';
+    document.body.appendChild(area); area.select(); document.execCommand('copy'); area.remove();
   }
 
   document.getElementById('resetOrderNumber').addEventListener('click', function(){
@@ -743,6 +1385,9 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       if(!groups[cat]) groups[cat] = [];
       groups[cat].push(Object.assign({id:id}, item));
     });
+    Object.keys(groups).forEach(function(cat){
+      groups[cat].sort(function(a,b){ return Number(a.sortOrder||0)-Number(b.sortOrder||0); });
+    });
     return groups;
   }
 
@@ -756,13 +1401,14 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
   function saveMenuOrder(categoryOrder, groups){
     var updates = {};
-    categoryOrder.forEach(function(cat){
+    var sortOrder = 1;
+    categoryOrder.forEach(function(cat, categoryIndex){
       (groups[cat] || []).forEach(function(item){
-        var key = menuRef.push().key;
-        updates[key] = menuItemData(item);
+        updates[item.id+'/sortOrder'] = sortOrder++;
+        updates[item.id+'/categoryOrder'] = categoryIndex+1;
       });
     });
-    menuRef.set(updates).catch(function(){
+    menuRef.update(updates).catch(function(){
       alert('菜單順序儲存失敗，請稍後再試一次。');
     });
   }
@@ -800,6 +1446,10 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     document.getElementById('editItemNote').value = item.note || '';
     document.getElementById('editItemAddonLabel').value = item.addonLabel || '';
     document.getElementById('editItemAddonPrice').value = Number(item.addonPrice || 0);
+    document.getElementById('editItemAvailable').checked = item.available !== false;
+    document.getElementById('editItemStockEnabled').checked = item.stockEnabled === true;
+    document.getElementById('editItemStockRemaining').value = Number(item.stockRemaining || 0);
+    document.getElementById('editItemStockRemaining').disabled = item.stockEnabled !== true;
     document.getElementById('menuEditOverlay').classList.add('open');
     setTimeout(function(){ document.getElementById('editItemName').focus(); }, 0);
   }
@@ -818,12 +1468,19 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     var addonLabel = document.getElementById('editItemAddonLabel').value.trim();
     var addonPriceText = document.getElementById('editItemAddonPrice').value;
     var addonPrice = addonPriceText === '' ? 0 : Number(addonPriceText);
+    var available = document.getElementById('editItemAvailable').checked;
+    var stockEnabled = document.getElementById('editItemStockEnabled').checked;
+    var stockRemaining = Number(document.getElementById('editItemStockRemaining').value || 0);
 
     if(!category){ alert('請填寫分類名稱。'); return; }
     if(!name){ alert('請填寫菜單名稱。'); return; }
     if(!Number.isInteger(price) || price < 0){ alert('價格請輸入 0 以上的整數。'); return; }
     if(addonLabel && (!Number.isInteger(addonPrice) || addonPrice < 0)){
       alert('加購價格請輸入 0 以上的整數。');
+      return;
+    }
+    if(stockEnabled && (!Number.isInteger(stockRemaining) || stockRemaining < 0)){
+      alert('剩餘份數請輸入 0 以上的整數。');
       return;
     }
 
@@ -839,6 +1496,10 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       delete data.addonLabel;
       delete data.addonPrice;
     }
+    data.available = available;
+    data.stockEnabled = stockEnabled;
+    if(stockEnabled) data.stockRemaining = stockRemaining;
+    else delete data.stockRemaining;
 
     var saveBtn = document.getElementById('menuEditSave');
     var id = editingMenuItemId;
@@ -869,8 +1530,16 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
         + '<button class="icon-btn" data-move-category="'+catIndex+'" data-direction="1" title="分類往下" aria-label="'+escapeHtml(cat)+'分類往下" '+(catIndex===menuCategoryOrder.length-1?'disabled':'')+'>↓</button>'
         + '</div></div>';
       items.forEach(function(item, itemIndex){
+        var stockBadge = '';
+        if(item.available===false){
+          stockBadge = '<span class="stock-badge soldout">暫停供應</span>';
+        }else if(item.stockEnabled===true){
+          stockBadge = Number(item.stockRemaining||0)>0
+            ? '<span class="stock-badge limited">剩 '+Number(item.stockRemaining||0)+' 份</span>'
+            : '<span class="stock-badge soldout">本次額滿</span>';
+        }
         html += '<div class="staff-check">'
-          + '<label style="flex:1;">'+escapeHtml(item.name)+' <span style="color:var(--gold-dim);">'+fmtGil(item.price)+'</span>'
+          + '<label style="flex:1;">'+escapeHtml(item.name)+' <span style="color:var(--gold-dim);">'+fmtGil(item.price)+'</span>'+stockBadge
           + (item.note ? '<div style="font-size:11px;color:var(--parchment-dim);">'+escapeHtml(item.note)+'</div>' : '')
           + (item.addonLabel ? '<div style="font-size:11px;color:var(--mist);">加購：'+escapeHtml(item.addonLabel)+' ＋'+fmtGil(item.addonPrice)+'</div>' : '')
           + '</label>'
@@ -927,7 +1596,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       alert('請至少填寫分類、品名跟價格');
       return;
     }
-    var data = { category:category, name:name, price:price };
+    var maxSortOrder = Object.keys(menuItems).reduce(function(max,id){ return Math.max(max, Number(menuItems[id].sortOrder||0)); }, 0);
+    var data = { category:category, name:name, price:price, available:true, sortOrder:maxSortOrder+1 };
     if(note) data.note = note;
     if(addonLabel && addonPrice){ data.addonLabel = addonLabel; data.addonPrice = addonPrice; }
 
@@ -944,6 +1614,12 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
   document.getElementById('menuEditCancel').addEventListener('click', closeMenuEditor);
   document.getElementById('menuEditSave').addEventListener('click', saveMenuItemChanges);
+  document.getElementById('editItemStockEnabled').addEventListener('change', function(e){
+    document.getElementById('editItemStockRemaining').disabled = !e.target.checked;
+    if(e.target.checked && document.getElementById('editItemStockRemaining').value===''){
+      document.getElementById('editItemStockRemaining').value = 0;
+    }
+  });
   document.getElementById('menuEditOverlay').addEventListener('click', function(e){
     if(e.target === this) closeMenuEditor();
   });
