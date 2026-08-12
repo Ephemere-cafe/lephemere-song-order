@@ -335,31 +335,6 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
         <span class="identity-help">選好後可一鍵「由我接待」並使用「我的訂單」。</span>
       </div>
 
-      <details class="panel duty-panel">
-        <summary class="duty-summary">
-          <span class="duty-summary-title">👥 今日值班設定</span>
-          <span class="duty-summary-right">
-            <span class="duty-summary-text" id="dutySummaryText">尚未設定今日值班</span>
-            <span class="duty-chevron" aria-hidden="true">⌄</span>
-          </span>
-        </summary>
-        <div class="duty-content">
-          <p class="panel-title">新增店員到名單</p>
-          <div class="row">
-            <input type="text" id="newStaffName" placeholder="店員名稱" style="flex:1;min-width:100px;">
-            <input type="text" id="newStaffRole" placeholder="角色（如：店長／女僕／樂手）" style="flex:1;min-width:140px;">
-            <button class="btn primary" id="addStaff">加入名單</button>
-          </div>
-          <p class="panel-title" style="margin-top:16px;">勾選今天值班的店員</p>
-          <div id="staffCheckList" style="margin-bottom:10px;">尚未建立店員名單</div>
-          <div class="row" style="margin-bottom:8px;">
-            <input type="text" id="onDutyDate" placeholder="日期 YYYY-MM-DD" style="min-width:130px;">
-          </div>
-          <button class="btn primary" id="updateTodayStaff">更新今日值班</button>
-          <p style="font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;">值班店員會優先出現在每筆訂單的「目前服務店員」選單；名單會保留到下次更新。</p>
-        </div>
-      </details>
-
       <div class="tabs" id="orderSubTabs">
         <div class="tab active" data-filter="active">進行中</div>
         <div class="tab" data-filter="mine">我的訂單</div>
@@ -412,6 +387,31 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     <!-- ============ 預約管理 ============ -->
     <div id="reservationsTab" style="display:none;">
 
+      <details class="panel duty-panel">
+        <summary class="duty-summary">
+          <span class="duty-summary-title">👥 各日排班設定</span>
+          <span class="duty-summary-right">
+            <span class="duty-summary-text" id="dutySummaryText">尚未設定排班</span>
+            <span class="duty-chevron" aria-hidden="true">⌄</span>
+          </span>
+        </summary>
+        <div class="duty-content">
+          <p class="panel-title">新增店員到名單</p>
+          <div class="row">
+            <input type="text" id="newStaffName" placeholder="店員名稱" style="flex:1;min-width:100px;">
+            <input type="text" id="newStaffRole" placeholder="角色（如：店長／女僕／樂手）" style="flex:1;min-width:140px;">
+            <button class="btn primary" id="addStaff">加入名單</button>
+          </div>
+          <p class="panel-title" style="margin-top:16px;">選擇日期與當日值班店員</p>
+          <div class="row" style="margin-bottom:10px;">
+            <input type="text" id="onDutyDate" placeholder="日期 YYYY-MM-DD" style="min-width:150px;">
+          </div>
+          <div id="staffCheckList" style="margin-bottom:10px;">尚未建立店員名單</div>
+          <button class="btn primary" id="updateTodayStaff">儲存這天的排班</button>
+          <p style="font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;">排班會依日期同步到預約頁面的值班人員與「指名女僕」名單。</p>
+        </div>
+      </details>
+
       <div class="panel">
         <p class="admin-section-label">📋 店規／注意事項</p>
         <textarea id="rulesEditor" placeholder="輸入店規或注意事項"></textarea>
@@ -419,7 +419,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
           <button class="btn primary" id="saveRules">儲存店規</button>
           <button class="btn ghost" id="hideRules">目前不顯示</button>
         </div>
-        <p style="font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;">儲存後立刻顯示在預約頁面最上方。留空並儲存則不顯示這個區塊。</p>
+        <p style="font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;">儲存後會顯示在預約表單下方。留空並儲存則不顯示這個區塊。</p>
       </div>
 
       <div class="panel">
@@ -535,7 +535,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   if(!isConfigured){ document.getElementById('configWarn').style.display = 'block'; }
 
   var db;
-  var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, menuRef, nextOrderNumberRef, webhookRef, operationStatusRef, dailyReportsRef;
+  var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, staffSchedulesRef, menuRef, nextOrderNumberRef, webhookRef, operationStatusRef, dailyReportsRef;
 
   var orders = {};
   var currentOrderFilter = 'active';
@@ -574,6 +574,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   var reservations = {};
   var staffRoster = {};
   var todayStaff = {};
+  var staffSchedules = {};
 
   var STATUS_LABEL = { pending:'待接單', preparing:'服務中', served:'服務中', completed:'已完成', cancelled:'已取消' };
   var NEXT_STATUS = { pending:'preparing', preparing:'completed', served:'completed' };
@@ -712,6 +713,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     rulesRef = db.ref('lephemere/rules');
     staffRosterRef = db.ref('lephemere/staffRoster');
     todayStaffRef = db.ref('lephemere/todayStaff');
+    staffSchedulesRef = db.ref('lephemere/staffSchedules');
     menuRef = db.ref('lephemere/menu');
     webhookRef = db.ref('lephemere/webhookUrl');
     operationStatusRef = db.ref('lephemere/operationStatus');
@@ -784,13 +786,18 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
     todayStaffRef.on('value', function(snap){
       todayStaff = snap.val() || {};
-      renderStaffCheckList();
-      renderCurrentStaffSelect();
-      renderOrders();
       var dateInput = document.getElementById('onDutyDate');
       if(dateInput && !dateInput.value){
         dateInput.value = todayStaff.date || todayKey();
       }
+      renderStaffCheckList();
+      renderCurrentStaffSelect();
+      renderOrders();
+    });
+
+    staffSchedulesRef.on('value', function(snap){
+      staffSchedules = snap.val() || {};
+      renderStaffCheckList();
     });
 
     menuRef.on('value', function(snap){
@@ -1697,16 +1704,18 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   function renderDutySummary(){
     var el = document.getElementById('dutySummaryText');
     if(!el) return;
-    var ids = todayStaff.staffIds || [];
+    var selectedDate = document.getElementById('onDutyDate').value.trim() || todayKey();
+    var schedule = staffSchedules[selectedDate];
+    var ids = schedule && schedule.staffIds ? schedule.staffIds : (todayStaff.date===selectedDate ? (todayStaff.staffIds||[]) : []);
     var names = ids.map(function(id){
       return staffRoster[id] && staffRoster[id].name;
     }).filter(Boolean);
     if(names.length){
-      el.textContent = '今日值班：'+names.join('、');
+      el.textContent = selectedDate+'：'+names.join('、');
     }else if(ids.length){
-      el.textContent = '已選擇 '+ids.length+' 位店員';
+      el.textContent = selectedDate+'：已選擇 '+ids.length+' 位店員';
     }else{
-      el.textContent = '尚未設定今日值班';
+      el.textContent = selectedDate+'：尚未設定排班';
     }
   }
 
@@ -1715,7 +1724,11 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     var el = document.getElementById('staffCheckList');
     var keys = Object.keys(staffRoster);
     if(keys.length===0){ el.innerHTML = '尚未建立店員名單'; return; }
-    var currentOnDuty = todayStaff.staffIds || [];
+    var selectedDate = document.getElementById('onDutyDate').value.trim() || todayKey();
+    var selectedSchedule = staffSchedules[selectedDate];
+    var currentOnDuty = selectedSchedule && selectedSchedule.staffIds
+      ? selectedSchedule.staffIds
+      : (todayStaff.date===selectedDate ? (todayStaff.staffIds||[]) : []);
     var html = '';
     keys.forEach(function(k){
       var s = staffRoster[k];
@@ -1753,8 +1766,13 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     var checked = document.querySelectorAll('#staffCheckList input[type=checkbox]:checked');
     var ids = Array.prototype.map.call(checked, function(cb){ return cb.getAttribute('data-staff-id'); });
     var dateInput = document.getElementById('onDutyDate').value.trim();
-    todayStaffRef.set({ date: dateInput || todayKey(), staffIds: ids });
+    var date = dateInput || todayKey();
+    var data = { date:date, staffIds:ids, updatedAt:Date.now() };
+    staffSchedulesRef.child(date).set(data);
+    if(date===todayKey()) todayStaffRef.set(data);
   });
+
+  document.getElementById('onDutyDate').addEventListener('change', renderStaffCheckList);
 
   // ---------- photo cropper ----------
   var photoEditStaffId = null;
