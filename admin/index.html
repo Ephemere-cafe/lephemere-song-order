@@ -8,7 +8,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap');
 
 *{box-sizing:border-box;}
-body{margin:0;background:#241f30;font-family:'Noto Sans TC',sans-serif;}
+body{margin:0;background:#17131e;font-family:'Noto Sans TC',sans-serif;}
 :root{
   --ink:#241f30; --ink-deep:#191420; --card:#2d2738;
   --parchment:#f3ece1; --parchment-dim:#c7bfae;
@@ -18,8 +18,9 @@ body{margin:0;background:#241f30;font-family:'Noto Sans TC',sans-serif;}
   --mist:#a79bc4; --line:rgba(243,236,225,0.12);
 }
 .wrap{
-  background:var(--ink); color:var(--parchment); padding:28px 22px 40px;
-  border-radius:14px; max-width:900px; margin:0 auto; position:relative; min-height:100vh;
+  background:var(--ink); color:var(--parchment); padding:24px 28px 48px;
+  max-width:1180px; margin:0 auto; position:relative; min-height:100vh;
+  box-shadow:0 0 80px rgba(0,0,0,.22);
 }
 .header{
   display:flex; justify-content:space-between; align-items:flex-end;
@@ -100,22 +101,33 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 }
 
 /* top-level section tabs */
-.main-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
-.main-tab{padding:9px 18px;border-radius:20px;border:1px solid var(--line);font-size:13px;cursor:pointer;color:var(--parchment-dim);background:var(--card);}
-.main-tab.active{border-color:var(--gold-dim);color:var(--gold);background:rgba(202,160,107,0.1);}
+.main-tabs{
+  display:flex;align-items:center;gap:4px;margin-bottom:18px;padding:5px;
+  border:1px solid var(--line);border-radius:11px;background:rgba(25,20,32,.58);
+}
+.main-tab{
+  padding:9px 17px;border-radius:7px;border:1px solid transparent;font-size:13px;
+  cursor:pointer;color:var(--parchment-dim);transition:.18s ease;
+}
+.main-tab:hover{color:var(--parchment);background:rgba(243,236,225,.04);}
+.main-tab.active{border-color:rgba(202,160,107,.32);color:var(--gold);background:rgba(202,160,107,.11);}
+.main-tabs #adminLogoutBtn{margin-left:auto!important;border-color:transparent;}
 
 /* order sub-tabs */
-.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
-.tab{padding:7px 14px;border-radius:20px;border:1px solid var(--line);font-size:12.5px;cursor:pointer;color:var(--parchment-dim);}
+.tabs{display:flex;gap:5px;flex-wrap:wrap;margin:0;}
+.tab{padding:7px 13px;border-radius:7px;border:1px solid transparent;font-size:12.5px;cursor:pointer;color:var(--parchment-dim);}
 .tab.active{border-color:var(--gold-dim);color:var(--gold);background:rgba(202,160,107,0.08);}
-.order-tools{display:flex;align-items:center;gap:10px;margin:-2px 0 14px;}
+.order-tools{display:flex;align-items:center;gap:10px;margin:0;min-width:260px;flex:1;}
 .order-tools input{flex:1;min-width:0;width:100%;}
 .order-search-hint{font-size:11px;color:var(--parchment-dim);white-space:nowrap;}
 .sound-toggle.enabled{border-color:var(--sage-dim);color:var(--sage);}
-.overview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px;flex-wrap:wrap;}
-.overview-head h2{font-family:'Noto Serif TC',serif;font-size:16px;color:var(--gold);margin:0 0 4px;}
+.overview-panel{padding:20px;margin-bottom:16px;background:linear-gradient(145deg,rgba(55,46,66,.96),rgba(42,36,52,.96));}
+.overview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:18px;flex-wrap:wrap;}
+.overview-kicker{display:block;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mist);margin-bottom:5px;}
+.overview-head h2{font-family:'Noto Serif TC',serif;font-size:18px;color:var(--parchment);margin:0 0 5px;}
 .overview-head p{font-size:11.5px;color:var(--parchment-dim);margin:0;}
 .overview-actions{display:flex;gap:7px;flex-wrap:wrap;}
+.overview-actions .btn.primary{box-shadow:0 6px 18px rgba(138,111,77,.18);}
 .system-strip{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px;padding-top:12px;border-top:1px solid var(--line);}
 .system-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid var(--line);border-radius:20px;font-size:11px;color:var(--parchment-dim);}
 .system-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--parchment-dim);}
@@ -125,10 +137,37 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 .system-pill.warn::before{background:var(--gold);}
 .system-pill.bad{color:var(--rose);border-color:rgba(192,123,138,.4);}
 .system-pill.bad::before{background:var(--rose);}
-.identity-panel{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:14px;border:1px solid var(--line);border-radius:9px;background:rgba(243,236,225,.025);}
+.identity-panel{display:flex;align-items:center;gap:10px;padding:0;border:0;background:transparent;min-width:310px;flex:1;}
 .identity-panel label{font-size:12px;color:var(--parchment-dim);white-space:nowrap;}
 .identity-panel select{flex:1;min-width:0;}
 .identity-help{font-size:11px;color:var(--parchment-dim);}
+.stats-row{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px!important;}
+.stat{
+  min-width:0;padding:12px 11px;border:1px solid rgba(243,236,225,.09);border-radius:9px;
+  background:rgba(25,20,32,.34);font-size:10.5px!important;line-height:1.45;color:var(--parchment-dim)!important;
+}
+.stat b{font-size:20px!important;line-height:1.1;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.stat.attention{border-color:rgba(192,123,138,.22);background:rgba(192,123,138,.055);}
+.stat.caution{border-color:rgba(202,160,107,.22);background:rgba(202,160,107,.05);}
+.operation-tools{margin-top:12px;border-top:1px solid var(--line);}
+.operation-tools>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 0;color:var(--parchment-dim);font-size:11.5px;}
+.operation-tools>summary::-webkit-details-marker{display:none;}
+.operation-tools>summary::after{content:'展開';font-size:10px;color:var(--gold);}
+.operation-tools[open]>summary::after{content:'收起';}
+.operation-tools-content{padding-top:12px;}
+.operation-tools-note{font-size:10.5px;color:var(--parchment-dim);margin:7px 0 0;}
+.order-workspace{padding:14px 16px;margin-bottom:14px;}
+.workspace-title-row{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px;}
+.workspace-title-row h2{font-family:'Noto Serif TC',serif;font-size:15px;margin:0;color:var(--parchment);}
+.workspace-title-row p{font-size:10.5px;color:var(--parchment-dim);margin:3px 0 0;}
+.workspace-controls{display:flex;gap:12px;align-items:center;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--line);}
+.workspace-browse{display:flex;align-items:center;gap:12px;justify-content:space-between;}
+@media(max-width:900px){
+  .stats-row{grid-template-columns:repeat(4,minmax(0,1fr))!important;}
+  .stat:last-child{grid-column:span 2;}
+  .workspace-browse{align-items:stretch;flex-direction:column;}
+  .order-tools{width:100%;}
+}
 
 .order-card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:var(--ink-deep);}
 .order-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;}
@@ -203,8 +242,13 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 .report-text{white-space:pre-wrap;background:var(--ink-deep);border:1px solid var(--line);border-radius:8px;padding:12px;color:var(--parchment-dim);font:12px/1.75 'Noto Sans TC',sans-serif;max-height:55vh;overflow:auto;}
 
 @media(max-width:560px){
-  .wrap{padding:20px 14px 32px;}
-  .stats-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+  .wrap{padding:16px 12px 32px;}
+  .header{margin-bottom:12px;padding-bottom:12px;}
+  .main-tabs{overflow-x:auto;flex-wrap:nowrap;position:sticky;top:0;z-index:90;background:rgba(25,20,32,.96);backdrop-filter:blur(12px);}
+  .main-tab{flex:none;padding:9px 13px;}
+  .stats-row{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;}
+  .stat:last-child{grid-column:1/-1;}
+  .overview-panel{padding:15px 13px;}
   .duty-summary{align-items:flex-start;}
   .duty-summary-right{max-width:58%;}
   .duty-summary-text{white-space:normal;line-height:1.5;}
@@ -216,10 +260,15 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   .special-service-row select{margin-left:0;width:100%;}
   .order-day-group>summary{align-items:flex-start;}
   .order-day-meta{max-width:48%;line-height:1.5;}
-  .identity-panel{align-items:stretch;flex-direction:column;}
+  .identity-panel{align-items:stretch;flex-direction:column;min-width:0;width:100%;}
+  .identity-help{display:none;}
   .overview-actions .btn{flex:1;}
   .system-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
   .system-pill{justify-content:center;}
+  .workspace-controls,.workspace-browse{align-items:stretch;flex-direction:column;}
+  .order-tools{width:100%;min-width:0;}
+  .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;}
+  .tab{text-align:center;padding:8px 5px;}
 }
 
 .staff-check{
@@ -302,17 +351,18 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   <div id="adminArea" style="display:none;">
 
     <div class="main-tabs" id="mainTabs">
-      <div class="main-tab active" data-main="orders">🍽 訂單管理</div>
-      <div class="main-tab" data-main="menu">🍰 菜單管理</div>
-      <div class="main-tab" data-main="reservations">🕯 預約管理</div>
+      <div class="main-tab active" data-main="orders">訂單</div>
+      <div class="main-tab" data-main="menu">菜單</div>
+      <div class="main-tab" data-main="reservations">預約</div>
       <button class="btn ghost small" id="adminLogoutBtn" style="margin-left:auto;">登出</button>
     </div>
 
     <!-- ============ 訂單管理 ============ -->
     <div id="ordersTab">
-      <div class="panel">
+      <div class="panel overview-panel">
         <div class="overview-head">
           <div>
+            <span class="overview-kicker">Live Operations</span>
             <h2>今日營業總覽</h2>
             <p id="overviewDate">即時整理今天的訂單與待處理事項</p>
           </div>
@@ -330,38 +380,50 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
           <div class="stat"><b id="statCompleted">0</b>今日完成</div>
           <div class="stat"><b id="statTotalGil">0</b>今日訂單總額</div>
         </div>
-        <div class="row" style="margin-top:12px;">
-          <button class="btn ghost small" id="resetOrderNumber" style="border-color:var(--rose-dim);color:var(--rose);">重置訂單編號</button>
-          <button class="btn ghost small sound-toggle" id="soundToggle">🔕 提示音關閉</button>
-          <button class="btn ghost small" id="soundTest">測試提示音</button>
+        <details class="operation-tools">
+          <summary>系統狀態與營業工具</summary>
+          <div class="operation-tools-content">
+            <div class="row">
+              <button class="btn ghost small sound-toggle" id="soundToggle">🔕 提示音關閉</button>
+              <button class="btn ghost small" id="soundTest">測試提示音</button>
+              <button class="btn ghost small" id="resetOrderNumber" style="border-color:var(--rose-dim);color:var(--rose);">重置訂單編號</button>
+            </div>
+            <p class="operation-tools-note">重置後，下一筆新訂單會從 #1 開始編號；既有訂單紀錄不受影響。</p>
+            <div class="system-strip" aria-label="系統狀態">
+              <span class="system-pill bad" id="systemDatabase">訂單連線中</span>
+              <span class="system-pill warn" id="systemOrdering">點餐狀態確認中</span>
+              <span class="system-pill warn" id="systemDiscord">Discord 未設定</span>
+              <span class="system-pill warn" id="systemSound">提示音關閉</span>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="panel order-workspace">
+        <div class="workspace-title-row">
+          <div><h2>訂單工作區</h2><p>先選擇身分，再處理目前需要服務的訂單</p></div>
         </div>
-        <p style="font-size:11px;color:var(--parchment-dim);margin:6px 0 0;">下一筆新訂單會從 #1 開始重新編號，不會影響已存在的訂單紀錄。</p>
-        <div class="system-strip" aria-label="系統狀態">
-          <span class="system-pill bad" id="systemDatabase">訂單連線中</span>
-          <span class="system-pill warn" id="systemOrdering">點餐狀態確認中</span>
-          <span class="system-pill warn" id="systemDiscord">Discord 未設定</span>
-          <span class="system-pill warn" id="systemSound">提示音關閉</span>
+        <div class="workspace-controls">
+          <div class="identity-panel">
+            <label for="currentStaffSelect">操作店員</label>
+            <select id="currentStaffSelect" aria-label="選擇目前操作的店員"><option value="">請先選擇店員</option></select>
+            <span class="identity-help">選擇後可使用「由我接待」</span>
+          </div>
         </div>
-      </div>
-
-      <div class="identity-panel">
-        <label for="currentStaffSelect">我現在是</label>
-        <select id="currentStaffSelect" aria-label="選擇目前操作的店員"><option value="">請先選擇店員</option></select>
-        <span class="identity-help">選好後可一鍵「由我接待」並使用「我的訂單」。</span>
-      </div>
-
-      <div class="tabs" id="orderSubTabs">
-        <div class="tab active" data-filter="active">進行中</div>
-        <div class="tab" data-filter="mine">我的訂單</div>
-        <div class="tab" data-filter="unassigned">待指派</div>
-        <div class="tab" data-filter="completed">已完成</div>
-        <div class="tab" data-filter="cancelled">已取消</div>
-        <div class="tab" data-filter="all">全部</div>
-      </div>
-
-      <div class="order-tools">
-        <input type="search" id="orderSearch" placeholder="搜尋訂單編號、主人、餐點或服務店員">
-        <span class="order-search-hint" id="orderSearchHint"></span>
+        <div class="workspace-browse">
+          <div class="tabs" id="orderSubTabs">
+            <div class="tab active" data-filter="active">進行中</div>
+            <div class="tab" data-filter="mine">我的訂單</div>
+            <div class="tab" data-filter="unassigned">待指派</div>
+            <div class="tab" data-filter="completed">已完成</div>
+            <div class="tab" data-filter="cancelled">已取消</div>
+            <div class="tab" data-filter="all">全部</div>
+          </div>
+          <div class="order-tools">
+            <input type="search" id="orderSearch" placeholder="搜尋編號、主人、餐點或店員">
+            <span class="order-search-hint" id="orderSearchHint"></span>
+          </div>
+        </div>
       </div>
 
       <div id="orderList"></div>
