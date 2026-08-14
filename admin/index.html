@@ -233,6 +233,21 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--parchment-dim);
 }
 .staff-check-photo img{width:100%;height:100%;object-fit:cover;}
+.staff-manager-list{display:grid;gap:8px;margin-top:12px;}
+.staff-editor-card{background:var(--ink-deep);border:1px solid var(--line);border-radius:9px;overflow:hidden;}
+.staff-editor-card>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;}
+.staff-editor-card>summary::-webkit-details-marker{display:none;}
+.staff-editor-summary{flex:1;min-width:0;}
+.staff-editor-summary strong{display:block;font-size:13px;color:var(--parchment);}
+.staff-editor-summary span{display:block;font-size:11px;color:var(--parchment-dim);margin-top:2px;}
+.staff-editor-chevron{color:var(--gold);transition:transform .2s ease;}
+.staff-editor-card[open] .staff-editor-chevron{transform:rotate(180deg);}
+.staff-editor-body{padding:12px;border-top:1px solid var(--line);}
+.staff-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.staff-editor-grid .wide{grid-column:1/-1;}
+.staff-editor-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
+.staff-help{font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;line-height:1.65;}
+@media(max-width:620px){.staff-editor-grid{grid-template-columns:1fr;}.staff-editor-grid .wide{grid-column:auto;}}
 
 .photo-modal-overlay{
   display:none;position:fixed;inset:0;background:rgba(10,8,16,0.72);z-index:200;
@@ -387,6 +402,22 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     <!-- ============ 預約管理 ============ -->
     <div id="reservationsTab" style="display:none;">
 
+      <div class="panel">
+        <p class="admin-section-label">🪪 店員名冊管理</p>
+        <p class="panel-title">新增店員</p>
+        <div class="row">
+          <input type="text" id="newStaffName" placeholder="店員名稱（必填）" style="flex:1;min-width:130px;">
+          <input type="text" id="newStaffRole" placeholder="職位（如：女僕／樂手）" style="flex:1;min-width:150px;">
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <input type="text" id="newStaffQuote" placeholder="官網個人介紹（選填）" style="flex:1;min-width:180px;">
+          <input type="url" id="newStaffThreads" placeholder="Threads 網址（選填）" style="flex:1;min-width:180px;">
+          <button class="btn primary" id="addStaff">新增店員</button>
+        </div>
+        <p class="staff-help">新增或修改後會即時同步至官網「駐店成員」。頭貼可在新增完成後，從下方成員資料中設定。</p>
+        <div id="staffManageList" class="staff-manager-list">尚未建立店員名單</div>
+      </div>
+
       <details class="panel duty-panel">
         <summary class="duty-summary">
           <span class="duty-summary-title">👥 各日排班設定</span>
@@ -396,13 +427,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
           </span>
         </summary>
         <div class="duty-content">
-          <p class="panel-title">新增店員到名單</p>
-          <div class="row">
-            <input type="text" id="newStaffName" placeholder="店員名稱" style="flex:1;min-width:100px;">
-            <input type="text" id="newStaffRole" placeholder="角色（如：店長／女僕／樂手）" style="flex:1;min-width:140px;">
-            <button class="btn primary" id="addStaff">加入名單</button>
-          </div>
-          <p class="panel-title" style="margin-top:16px;">選擇日期與當日值班店員</p>
+          <p class="panel-title">選擇日期與當日值班店員</p>
           <div class="row" style="margin-bottom:10px;">
             <input type="text" id="onDutyDate" placeholder="日期 YYYY-MM-DD" style="min-width:150px;">
           </div>
@@ -583,6 +608,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   var PREV_LABEL = { preparing:'退回待接單', served:'退回服務中', completed:'退回服務中', cancelled:'恢復訂單' };
 
   function escapeHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+  function escapeAttr(s){return escapeHtml(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
   function fmtGil(n){ return (n||0).toLocaleString('en-US') + ' Gil'; }
   function fmtTime(ts){
     var d = new Date(ts);
@@ -779,6 +805,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
         currentStaffId = '';
         try{ localStorage.removeItem('lephemereCurrentStaffId'); }catch(e){}
       }
+      renderStaffManageList();
       renderStaffCheckList();
       renderCurrentStaffSelect();
       renderOrders();
@@ -1701,6 +1728,67 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   });
 
   // ---------- staff roster / on-duty ----------
+  function staffSortKeys(){
+    var original = Object.keys(staffRoster);
+    return original.slice().sort(function(a,b){
+      var sa = staffRoster[a] || {}, sb = staffRoster[b] || {};
+      var oa = Number(sa.sortOrder || (original.indexOf(a) + 1));
+      var ob = Number(sb.sortOrder || (original.indexOf(b) + 1));
+      if(oa !== ob) return oa - ob;
+      return String(sa.name || '').localeCompare(String(sb.name || ''), 'zh-Hant');
+    });
+  }
+
+  function renderStaffManageList(){
+    var el = document.getElementById('staffManageList');
+    if(!el) return;
+    var keys = staffSortKeys();
+    if(!keys.length){ el.innerHTML = '<span class="empty">尚未建立店員名單</span>'; return; }
+    var html = '';
+    keys.forEach(function(k){
+      var s = staffRoster[k] || {};
+      var photoInner = s.photo ? '<img src="'+s.photo+'" alt="">' : escapeHtml((s.name || '?').slice(0,1));
+      html += '<details class="staff-editor-card" data-staff-editor="'+k+'">'
+        + '<summary><div class="staff-check-photo">'+photoInner+'</div>'
+        + '<div class="staff-editor-summary"><strong>'+escapeHtml(s.name || '未命名店員')+'</strong><span>'+escapeHtml(s.role || '尚未設定職位')+'</span></div>'
+        + '<span class="staff-editor-chevron" aria-hidden="true">⌄</span></summary>'
+        + '<div class="staff-editor-body"><div class="staff-editor-grid">'
+        + '<input type="text" data-staff-field="name" value="'+escapeAttr(s.name || '')+'" placeholder="店員名稱">'
+        + '<input type="text" data-staff-field="role" value="'+escapeAttr(s.role || '')+'" placeholder="職位（如：女僕／樂手）">'
+        + '<input class="wide" type="text" data-staff-field="quote" value="'+escapeAttr(s.quote || '')+'" placeholder="官網個人介紹（選填）">'
+        + '<input class="wide" type="url" data-staff-field="threads" value="'+escapeAttr(s.threads || '')+'" placeholder="Threads 網址（選填）">'
+        + '</div><div class="staff-editor-actions">'
+        + '<button class="btn primary small" data-save-staff="'+k+'">儲存修改</button>'
+        + '<button class="btn ghost small" data-photo-staff="'+k+'">設定頭貼</button>'
+        + '<button class="btn ghost small" data-remove-staff="'+k+'" style="border-color:var(--rose-dim);color:var(--rose);">刪除店員</button>'
+        + '</div></div></details>';
+    });
+    el.innerHTML = html;
+    el.querySelectorAll('[data-save-staff]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.getAttribute('data-save-staff');
+        var card = btn.closest('[data-staff-editor]');
+        var name = card.querySelector('[data-staff-field="name"]').value.trim();
+        var role = card.querySelector('[data-staff-field="role"]').value.trim();
+        var quote = card.querySelector('[data-staff-field="quote"]').value.trim();
+        var threads = card.querySelector('[data-staff-field="threads"]').value.trim();
+        if(!name){ alert('請填寫店員名稱。'); return; }
+        if(threads && !/^https:\/\//i.test(threads)){ alert('Threads 網址請以 https:// 開頭。'); return; }
+        staffRosterRef.child(id).update({name:name, role:role, quote:quote, threads:threads, updatedAt:Date.now()});
+      });
+    });
+    el.querySelectorAll('[data-photo-staff]').forEach(function(btn){
+      btn.addEventListener('click', function(){ openPhotoEditor(btn.getAttribute('data-photo-staff')); });
+    });
+    el.querySelectorAll('[data-remove-staff]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.getAttribute('data-remove-staff');
+        var name = (staffRoster[id] && staffRoster[id].name) || '這位店員';
+        if(confirm('確定要從名冊刪除「'+name+'」嗎？既有訂單紀錄不會被刪除。')) staffRosterRef.child(id).remove();
+      });
+    });
+  }
+
   function renderDutySummary(){
     var el = document.getElementById('dutySummaryText');
     if(!el) return;
@@ -1722,7 +1810,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   function renderStaffCheckList(){
     renderDutySummary();
     var el = document.getElementById('staffCheckList');
-    var keys = Object.keys(staffRoster);
+    var keys = staffSortKeys();
     if(keys.length===0){ el.innerHTML = '尚未建立店員名單'; return; }
     var selectedDate = document.getElementById('onDutyDate').value.trim() || todayKey();
     var selectedSchedule = staffSchedules[selectedDate];
@@ -1733,32 +1821,33 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     keys.forEach(function(k){
       var s = staffRoster[k];
       var checked = currentOnDuty.indexOf(k) > -1 ? 'checked' : '';
-      var photoInner = s.photo ? '<img src="'+s.photo+'" alt="">' : '';
+      var photoInner = s.photo ? '<img src="'+s.photo+'" alt="">' : escapeHtml((s.name || '?').slice(0,1));
       html += '<div class="staff-check"><input type="checkbox" data-staff-id="'+k+'" '+checked+'>'
         + '<div class="staff-check-photo">'+photoInner+'</div>'
         + '<label>'+escapeHtml(s.name)+' <span style="color:var(--parchment-dim);font-size:11px;">· '+escapeHtml(s.role||'')+'</span></label>'
-        + '<button class="icon-btn" data-photo-staff="'+k+'" title="設定頭貼">📷</button>'
-        + '<button class="icon-btn" data-remove-staff="'+k+'" title="從名單刪除">✕</button>'
         + '</div>';
     });
     el.innerHTML = html;
-    el.querySelectorAll('[data-remove-staff]').forEach(function(btn){
-      btn.addEventListener('click', function(){ staffRosterRef.child(btn.getAttribute('data-remove-staff')).remove(); });
-    });
-    el.querySelectorAll('[data-photo-staff]').forEach(function(btn){
-      btn.addEventListener('click', function(){ openPhotoEditor(btn.getAttribute('data-photo-staff')); });
-    });
   }
 
   document.getElementById('addStaff').addEventListener('click', function(){
     if(!isConfigured) return;
     var name = document.getElementById('newStaffName').value.trim();
     var role = document.getElementById('newStaffRole').value.trim();
-    if(!name) return;
+    var quote = document.getElementById('newStaffQuote').value.trim();
+    var threads = document.getElementById('newStaffThreads').value.trim();
+    if(!name){ alert('請填寫店員名稱。'); return; }
+    if(threads && !/^https:\/\//i.test(threads)){ alert('Threads 網址請以 https:// 開頭。'); return; }
     var key = staffRosterRef.push().key;
-    staffRosterRef.child(key).set({ name: name, role: role });
+    var rosterCount = Object.keys(staffRoster).length;
+    var nextOrder = Object.keys(staffRoster).reduce(function(max,id){
+      return Math.max(max, Number((staffRoster[id] || {}).sortOrder || 0));
+    }, rosterCount) + 1;
+    staffRosterRef.child(key).set({ name:name, role:role, quote:quote, threads:threads, sortOrder:nextOrder, createdAt:Date.now() });
     document.getElementById('newStaffName').value = '';
     document.getElementById('newStaffRole').value = '';
+    document.getElementById('newStaffQuote').value = '';
+    document.getElementById('newStaffThreads').value = '';
   });
 
   document.getElementById('updateTodayStaff').addEventListener('click', function(){
