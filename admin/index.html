@@ -353,6 +353,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     <div class="main-tabs" id="mainTabs">
       <div class="main-tab active" data-main="orders">訂單</div>
       <div class="main-tab" data-main="menu">菜單</div>
+      <div class="main-tab" data-main="staff">店員</div>
       <div class="main-tab" data-main="reservations">預約</div>
       <button class="btn ghost small" id="adminLogoutBtn" style="margin-left:auto;">登出</button>
     </div>
@@ -461,9 +462,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       </div>
     </div>
 
-    <!-- ============ 預約管理 ============ -->
-    <div id="reservationsTab" style="display:none;">
-
+    <!-- ============ 店員管理 ============ -->
+    <div id="staffTab" style="display:none;">
       <div class="panel">
         <p class="admin-section-label">🪪 店員名冊管理</p>
         <p class="panel-title">新增店員</p>
@@ -479,6 +479,10 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
         <p class="staff-help">新增或修改後會即時同步至官網「駐店成員」。頭貼可在新增完成後，從下方成員資料中設定。</p>
         <div id="staffManageList" class="staff-manager-list">尚未建立店員名單</div>
       </div>
+    </div>
+
+    <!-- ============ 預約管理 ============ -->
+    <div id="reservationsTab" style="display:none;">
 
       <details class="panel duty-panel">
         <summary class="duty-summary">
@@ -936,6 +940,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     tab.classList.add('active');
     document.getElementById('ordersTab').style.display = target==='orders' ? 'block' : 'none';
     document.getElementById('menuTab').style.display = target==='menu' ? 'block' : 'none';
+    document.getElementById('staffTab').style.display = target==='staff' ? 'block' : 'none';
     document.getElementById('reservationsTab').style.display = target==='reservations' ? 'block' : 'none';
   });
 
