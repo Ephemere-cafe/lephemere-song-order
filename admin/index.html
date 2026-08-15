@@ -50,7 +50,7 @@ body{margin:0;background:#17131e;font-family:'Noto Sans TC',sans-serif;}
   margin:0 0 12px; padding-bottom:6px; border-bottom:1px solid var(--line);
 }
 
-input[type=text],input[type=number],input[type=search],select{
+input[type=text],input[type=password],input[type=number],input[type=search],select{
   background:var(--ink-deep);border:1px solid var(--line);color:var(--parchment);
   border-radius:7px;padding:9px 11px;font-size:14px;font-family:inherit;
 }
@@ -111,7 +111,27 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 }
 .main-tab:hover{color:var(--parchment);background:rgba(243,236,225,.04);}
 .main-tab.active{border-color:rgba(202,160,107,.32);color:var(--gold);background:rgba(202,160,107,.11);}
+.access-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 10px;margin-left:auto;
+  border:1px solid var(--line);border-radius:20px;color:var(--parchment-dim);font-size:11px;white-space:nowrap;
+}
+.access-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--sage);}
+.access-badge.manager{color:var(--gold);border-color:rgba(202,160,107,.34);}
+.access-badge.manager::before{background:var(--gold);}
 .main-tabs #adminLogoutBtn{margin-left:auto!important;border-color:transparent;}
+.main-tabs .access-badge+#adminLogoutBtn{margin-left:0!important;}
+.access-intro{font-size:12px;line-height:1.8;color:var(--parchment-dim);margin:0;}
+.access-list{display:grid;gap:8px;margin-top:12px;}
+.access-user{
+  display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:12px;align-items:center;
+  padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:var(--ink-deep);
+}
+.access-user-email{font-size:13px;color:var(--parchment);overflow-wrap:anywhere;}
+.access-user-meta{font-size:10.5px;color:var(--parchment-dim);margin-top:3px;}
+.access-user select{width:100%;}
+.access-owner-note{font-size:10.5px;color:var(--gold);text-align:right;}
+.access-message{font-size:11.5px;color:var(--sage);margin:10px 0 0;min-height:1.6em;}
+.access-message.error{color:var(--rose);}
 
 /* order sub-tabs */
 .tabs{display:flex;gap:5px;flex-wrap:wrap;margin:0;}
@@ -246,6 +266,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   .header{margin-bottom:12px;padding-bottom:12px;}
   .main-tabs{overflow-x:auto;flex-wrap:nowrap;position:sticky;top:0;z-index:90;background:rgba(25,20,32,.96);backdrop-filter:blur(12px);}
   .main-tab{flex:none;padding:9px 13px;}
+  .access-badge{display:none;}
   .stats-row{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;}
   .stat:last-child{grid-column:1/-1;}
   .overview-panel{padding:15px 13px;}
@@ -269,6 +290,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   .order-tools{width:100%;min-width:0;}
   .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;}
   .tab{text-align:center;padding:8px 5px;}
+  .access-user{grid-template-columns:1fr;gap:8px;}
+  .access-owner-note{text-align:left;}
 }
 
 .staff-check{
@@ -321,7 +344,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 .photo-modal input[type=range]{width:100%;margin:6px 0 14px;}
 .photo-modal-actions{display:flex;gap:8px;justify-content:flex-end;}
 
-.login-box{max-width:360px;margin:60px auto;}
+.login-box{max-width:390px;margin:60px auto;}
+.login-help{font-size:11.5px;color:var(--parchment-dim);line-height:1.7;margin:10px 0 0;}
 .empty{font-size:12.5px;color:var(--parchment-dim);}
 </style>
 </head>
@@ -343,22 +367,25 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   </div>
 
   <div class="panel login-box" id="loginBox">
-    <p class="panel-title">管理登入</p>
+    <p class="admin-section-label">後台登入</p>
     <div class="row" style="flex-direction:column;align-items:stretch;">
       <input type="text" id="adminEmail" placeholder="帳號 Email">
-      <input type="text" id="adminPassword" placeholder="密碼">
+      <input type="password" id="adminPassword" placeholder="密碼" autocomplete="current-password">
       <button class="btn primary" id="adminLoginBtn">登入</button>
     </div>
     <p id="loginError" style="font-size:12px;color:var(--rose);margin:8px 0 0;display:none;">帳號或密碼錯誤</p>
+    <p class="login-help">登入後會依帳號權限顯示可使用的功能。訂單人員只會看到訂單工作區；管理人員可使用完整後台。</p>
   </div>
 
   <div id="adminArea" style="display:none;">
 
     <div class="main-tabs" id="mainTabs">
       <div class="main-tab active" data-main="orders">訂單</div>
-      <div class="main-tab" data-main="menu">菜單</div>
-      <div class="main-tab" data-main="staff">店員</div>
-      <div class="main-tab" data-main="reservations">預約</div>
+      <div class="main-tab manager-only" data-main="menu" data-manager-only>菜單</div>
+      <div class="main-tab manager-only" data-main="staff" data-manager-only>店員</div>
+      <div class="main-tab manager-only" data-main="reservations" data-manager-only>預約</div>
+      <div class="main-tab manager-only" data-main="access" data-manager-only>權限</div>
+      <span class="access-badge" id="currentAccessBadge">權限確認中</span>
       <button class="btn ghost small" id="adminLogoutBtn" style="margin-left:auto;">登出</button>
     </div>
 
@@ -372,8 +399,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
             <p id="overviewDate">即時整理今天的訂單與待處理事項</p>
           </div>
           <div class="overview-actions">
-            <button class="btn ghost small" id="viewDailyReport">查看今日日報</button>
-            <button class="btn primary small" id="operationToggle">結束營業並產生日報</button>
+            <button class="btn ghost small manager-only" data-manager-only id="viewDailyReport">查看今日日報</button>
+            <button class="btn primary small manager-only" data-manager-only id="operationToggle">結束營業並產生日報</button>
           </div>
         </div>
         <div class="stats-row">
@@ -391,7 +418,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
             <div class="row">
               <button class="btn ghost small sound-toggle" id="soundToggle">🔕 提示音關閉</button>
               <button class="btn ghost small" id="soundTest">測試提示音</button>
-              <button class="btn ghost small" id="resetOrderNumber" style="border-color:var(--rose-dim);color:var(--rose);">重置訂單編號</button>
+              <button class="btn ghost small manager-only" data-manager-only id="resetOrderNumber" style="border-color:var(--rose-dim);color:var(--rose);">重置訂單編號</button>
             </div>
             <p class="operation-tools-note">重置後，下一筆新訂單會從 #1 開始編號；既有訂單紀錄不受影響。</p>
             <div class="system-strip" aria-label="系統狀態">
@@ -435,7 +462,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     </div>
 
     <!-- ============ 菜單管理 ============ -->
-    <div id="menuTab" style="display:none;">
+    <div id="menuTab" class="manager-only" data-manager-only style="display:none;">
       <div class="panel">
         <p class="admin-section-label">🍰 新增餐點</p>
         <div class="row">
@@ -467,7 +494,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     </div>
 
     <!-- ============ 店員管理 ============ -->
-    <div id="staffTab" style="display:none;">
+    <div id="staffTab" class="manager-only" data-manager-only style="display:none;">
       <div class="panel">
         <p class="admin-section-label">🪪 店員名冊管理</p>
         <p class="panel-title">新增店員</p>
@@ -486,7 +513,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     </div>
 
     <!-- ============ 預約管理 ============ -->
-    <div id="reservationsTab" style="display:none;">
+    <div id="reservationsTab" class="manager-only" data-manager-only style="display:none;">
 
       <details class="panel duty-panel">
         <summary class="duty-summary">
@@ -533,6 +560,20 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
         <div id="adminReservationList" style="font-size:12.5px;">尚無預約</div>
       </div>
 
+    </div>
+
+    <!-- ============ 權限管理 ============ -->
+    <div id="accessTab" class="manager-only" data-manager-only style="display:none;">
+      <div class="panel">
+        <p class="admin-section-label">🔐 後台帳號權限</p>
+        <p class="access-intro">新帳號第一次登入後會自動列在這裡，預設只能使用「訂單管理」。將帳號改成「管理人員」後，才可使用菜單、店員、預約與權限設定。</p>
+        <div id="accessUserList" class="access-list"><span class="empty">正在讀取帳號…</span></div>
+        <p id="accessMessage" class="access-message" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <p class="panel-title">新增帳號方式</p>
+        <p class="access-intro">請先在 Firebase「Authentication → 使用者」建立 Email／密碼帳號，再請對方登入後台一次。該帳號會自動出現在上方名單，接著即可調整權限。</p>
+      </div>
     </div>
 
   </div>
@@ -633,7 +674,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   if(!isConfigured){ document.getElementById('configWarn').style.display = 'block'; }
 
   var db;
-  var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, staffSchedulesRef, menuRef, nextOrderNumberRef, webhookRef, operationStatusRef, dailyReportsRef;
+  var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, staffSchedulesRef, menuRef, nextOrderNumberRef, webhookRef, operationStatusRef, dailyReportsRef, adminUsersRef, adminOwnerUidRef;
 
   var orders = {};
   var currentOrderFilter = 'active';
@@ -646,6 +687,11 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   var currentStaffId = '';
   var isDatabaseConnected = false;
   var operationStatus = { isOpen:true };
+  var currentAuthUser = null;
+  var currentAccessRole = 'orders';
+  var adminOwnerUid = '';
+  var adminUsers = {};
+  var accessListListening = false;
   try{ soundEnabled = localStorage.getItem('lephemereOrderSound') === 'on'; }catch(e){}
   try{ currentStaffId = localStorage.getItem('lephemereCurrentStaffId') || ''; }catch(e){}
 
@@ -803,6 +849,120 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     return html;
   }
 
+  function isManager(){
+    return currentAccessRole === 'manager';
+  }
+
+  function showOrdersTab(){
+    document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
+    var ordersMainTab = document.querySelector('.main-tab[data-main="orders"]');
+    if(ordersMainTab) ordersMainTab.classList.add('active');
+    document.getElementById('ordersTab').style.display = 'block';
+    document.getElementById('menuTab').style.display = 'none';
+    document.getElementById('staffTab').style.display = 'none';
+    document.getElementById('reservationsTab').style.display = 'none';
+    document.getElementById('accessTab').style.display = 'none';
+  }
+
+  function accessUsersValueHandler(snap){
+    adminUsers = snap.val() || {};
+    renderAccessUserList();
+  }
+
+  function syncAccessListListener(){
+    if(!adminUsersRef) return;
+    if(isManager() && !accessListListening){
+      accessListListening = true;
+      adminUsersRef.on('value', accessUsersValueHandler);
+    }else if(!isManager() && accessListListening){
+      accessListListening = false;
+      adminUsersRef.off('value', accessUsersValueHandler);
+      adminUsers = {};
+    }
+  }
+
+  function applyAccessUI(){
+    var manager = isManager();
+    document.querySelectorAll('.manager-only').forEach(function(el){ el.hidden = !manager; });
+    var badge = document.getElementById('currentAccessBadge');
+    if(badge){
+      badge.textContent = manager ? '管理人員' : '訂單人員';
+      badge.className = 'access-badge'+(manager ? ' manager' : '');
+    }
+    if(!manager) showOrdersTab();
+    syncAccessListListener();
+    if(attached) renderOrders();
+  }
+
+  function setAccessMessage(text, isError){
+    var el = document.getElementById('accessMessage');
+    if(!el) return;
+    el.textContent = text || '';
+    el.className = 'access-message'+(isError ? ' error' : '');
+  }
+
+  function accessDateText(ts){
+    if(!ts) return '尚無登入紀錄';
+    var d = new Date(ts);
+    if(isNaN(d.getTime())) return '登入時間未記錄';
+    return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  }
+
+  function renderAccessUserList(){
+    var el = document.getElementById('accessUserList');
+    if(!el || !isManager()) return;
+    var ids = Object.keys(adminUsers).sort(function(a,b){
+      if(a===adminOwnerUid) return -1;
+      if(b===adminOwnerUid) return 1;
+      return String(adminUsers[a].email||'').localeCompare(String(adminUsers[b].email||''));
+    });
+    if(!ids.length){
+      el.innerHTML = '<span class="empty">尚無後台帳號紀錄</span>';
+      return;
+    }
+    var html = '';
+    ids.forEach(function(uid){
+      var user = adminUsers[uid] || {};
+      var owner = uid === adminOwnerUid;
+      var role = owner ? 'manager' : (user.role === 'manager' ? 'manager' : 'orders');
+      html += '<div class="access-user">'
+        + '<div><div class="access-user-email">'+escapeHtml(user.email || '未記錄 Email')+'</div>'
+        + '<div class="access-user-meta">最近登入：'+escapeHtml(accessDateText(user.lastLoginAt))+'</div></div>';
+      if(owner){
+        html += '<div class="access-owner-note">主要管理帳號・完整權限</div>';
+      }else{
+        html += '<select data-access-role="'+escapeAttr(uid)+'" aria-label="設定 '+escapeAttr(user.email || '帳號')+' 的權限">'
+          + '<option value="orders" '+(role==='orders'?'selected':'')+'>訂單人員</option>'
+          + '<option value="manager" '+(role==='manager'?'selected':'')+'>管理人員</option>'
+          + '</select>';
+      }
+      html += '</div>';
+    });
+    el.innerHTML = html;
+  }
+
+  function initializeAccess(user){
+    currentAuthUser = user;
+    return adminOwnerUidRef.transaction(function(current){ return current || user.uid; }).then(function(result){
+      adminOwnerUid = result.snapshot.val() || user.uid;
+      return adminUsersRef.child(user.uid).once('value');
+    }).then(function(snap){
+      var existing = snap.val() || {};
+      currentAccessRole = user.uid===adminOwnerUid ? 'manager' : (existing.role==='manager' ? 'manager' : 'orders');
+      var update = { email:user.email || existing.email || '', role:currentAccessRole, lastLoginAt:Date.now() };
+      if(!existing.createdAt) update.createdAt = Date.now();
+      return adminUsersRef.child(user.uid).update(update);
+    }).then(function(){
+      adminUsersRef.child(user.uid).on('value', function(snap){
+        if(!currentAuthUser || currentAuthUser.uid!==user.uid) return;
+        var record = snap.val() || {};
+        currentAccessRole = user.uid===adminOwnerUid ? 'manager' : (record.role==='manager' ? 'manager' : 'orders');
+        applyAccessUI();
+      });
+      applyAccessUI();
+    });
+  }
+
   if(isConfigured){
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
@@ -818,6 +978,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     webhookRef = db.ref('lephemere/webhookUrl');
     operationStatusRef = db.ref('lephemere/operationStatus');
     dailyReportsRef = db.ref('lephemere/dailyReports');
+    adminUsersRef = dailyReportsRef.child('_access/users');
+    adminOwnerUidRef = dailyReportsRef.child('_access/ownerUid');
 
     db.ref('.info/connected').on('value', function(snap){
       isDatabaseConnected = snap.val()===true;
@@ -828,9 +990,23 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     firebase.auth().onAuthStateChanged(function(user){
       if(user){
         document.getElementById('loginBox').style.display = 'none';
-        document.getElementById('adminArea').style.display = 'block';
-        attachData();
+        document.getElementById('adminArea').style.display = 'none';
+        initializeAccess(user).then(function(){
+          document.getElementById('adminArea').style.display = 'block';
+          attachData();
+        }).catch(function(err){
+          console.error('Access initialization failed', err);
+          document.getElementById('loginBox').style.display = 'block';
+          document.getElementById('adminArea').style.display = 'none';
+          var errorEl = document.getElementById('loginError');
+          errorEl.textContent = '無法確認帳號權限，請檢查資料庫連線後重試';
+          errorEl.style.display = 'block';
+        });
       }else{
+        if(currentAuthUser && adminUsersRef) adminUsersRef.child(currentAuthUser.uid).off();
+        currentAuthUser = null;
+        currentAccessRole = 'orders';
+        syncAccessListListener();
         document.getElementById('loginBox').style.display = 'block';
         document.getElementById('adminArea').style.display = 'none';
       }
@@ -936,22 +1112,57 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       document.getElementById('loginError').style.display = 'none';
       document.getElementById('adminPassword').value = '';
     }).catch(function(){
+      document.getElementById('loginError').textContent = '帳號或密碼錯誤';
       document.getElementById('loginError').style.display = 'block';
     });
   });
+  document.getElementById('adminPassword').addEventListener('keydown', function(e){
+    if(e.key==='Enter') document.getElementById('adminLoginBtn').click();
+  });
   document.getElementById('adminLogoutBtn').addEventListener('click', function(){ firebase.auth().signOut(); });
+
+  document.getElementById('adminArea').addEventListener('click', function(e){
+    var restricted = e.target.closest('[data-manager-only]');
+    if(restricted && !isManager()){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      showOrdersTab();
+    }
+  }, true);
+
+  document.getElementById('accessUserList').addEventListener('change', function(e){
+    var select = e.target.closest('[data-access-role]');
+    if(!select || !isManager()) return;
+    var uid = select.getAttribute('data-access-role');
+    if(!uid || uid===adminOwnerUid) return;
+    var nextRole = select.value==='manager' ? 'manager' : 'orders';
+    select.disabled = true;
+    setAccessMessage('正在更新權限…', false);
+    adminUsersRef.child(uid).update({ role:nextRole, roleUpdatedAt:Date.now(), roleUpdatedBy:currentAuthUser ? currentAuthUser.uid : '' }).then(function(){
+      setAccessMessage('權限已更新；對方不需重新登入，畫面會自動切換。', false);
+    }).catch(function(err){
+      console.error('Access role update failed', err);
+      setAccessMessage('權限更新失敗，請稍後再試。', true);
+      renderAccessUserList();
+    }).then(function(){ select.disabled = false; });
+  });
 
   // ---------- main tabs ----------
   document.getElementById('mainTabs').addEventListener('click', function(e){
     var tab = e.target.closest('.main-tab');
     if(!tab) return;
     var target = tab.getAttribute('data-main');
+    if(target!=='orders' && !isManager()){
+      showOrdersTab();
+      return;
+    }
     document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
     tab.classList.add('active');
     document.getElementById('ordersTab').style.display = target==='orders' ? 'block' : 'none';
     document.getElementById('menuTab').style.display = target==='menu' ? 'block' : 'none';
     document.getElementById('staffTab').style.display = target==='staff' ? 'block' : 'none';
     document.getElementById('reservationsTab').style.display = target==='reservations' ? 'block' : 'none';
+    document.getElementById('accessTab').style.display = target==='access' ? 'block' : 'none';
   });
 
   // ================= 訂單管理 =================
@@ -1240,7 +1451,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       if(!assignedId && currentStaffId && o.status!=='completed' && o.status!=='cancelled'){
         actionsHtml = '<button class="btn ghost small" data-claim-order="'+o.id+'">由我接待</button>'+actionsHtml;
       }
-      actionsHtml += '<button class="btn ghost small" data-delete-order="'+o.id+'" style="border-color:var(--rose-dim);color:var(--rose);">刪除</button>';
+      if(isManager()) actionsHtml += '<button class="btn ghost small" data-delete-order="'+o.id+'" style="border-color:var(--rose-dim);color:var(--rose);">刪除</button>';
 
       var staffIds = Object.keys(staffRoster);
       var onDutyIds = todayStaff.staffIds || [];
