@@ -692,6 +692,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   var adminOwnerUid = '';
   var adminUsers = {};
   var accessListListening = false;
+  var PRIMARY_MANAGER_EMAILS = ['tanjicafe@gmail.com'];
   try{ soundEnabled = localStorage.getItem('lephemereOrderSound') === 'on'; }catch(e){}
   try{ currentStaffId = localStorage.getItem('lephemereCurrentStaffId') || ''; }catch(e){}
 
@@ -853,6 +854,10 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     return currentAccessRole === 'manager';
   }
 
+  function isPrimaryManagerEmail(email){
+    return PRIMARY_MANAGER_EMAILS.indexOf(String(email || '').trim().toLowerCase()) > -1;
+  }
+
   function showOrdersTab(){
     document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
     var ordersMainTab = document.querySelector('.main-tab[data-main="orders"]');
@@ -901,11 +906,35 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     el.className = 'access-message'+(isError ? ' error' : '');
   }
 
+  function setLoginLoading(loading){
+    var btn = document.getElementById('adminLoginBtn');
+    if(!btn) return;
+    btn.disabled = !!loading;
+    btn.textContent = loading ? '正在登入…' : '登入';
+  }
+
+  function loginErrorMessage(err){
+    var code = err && err.code || '';
+    if(code==='auth/invalid-credential' || code==='auth/user-not-found' || code==='auth/wrong-password') return '帳號尚未在 Firebase 建立，或密碼不正確';
+    if(code==='auth/too-many-requests') return '登入嘗試次數過多，請稍候幾分鐘再試';
+    if(code==='auth/operation-not-allowed') return 'Firebase 尚未開啟 Email／密碼登入方式';
+    if(code==='auth/network-request-failed') return '目前無法連線至登入服務，請確認網路後重試';
+    return '登入失敗，請稍後再試';
+  }
+
   function accessDateText(ts){
     if(!ts) return '尚無登入紀錄';
     var d = new Date(ts);
     if(isNaN(d.getTime())) return '登入時間未記錄';
     return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  }
+
+  function maskAccessEmail(email){
+    var parts = String(email || '').split('@');
+    if(parts.length!==2) return '後台帳號';
+    var local = parts[0];
+    var visible = local ? local.charAt(0) : '';
+    return visible+'***@'+parts[1];
   }
 
   function renderAccessUserList(){
@@ -914,7 +943,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     var ids = Object.keys(adminUsers).sort(function(a,b){
       if(a===adminOwnerUid) return -1;
       if(b===adminOwnerUid) return 1;
-      return String(adminUsers[a].email||'').localeCompare(String(adminUsers[b].email||''));
+      return String(adminUsers[a].emailLabel||'').localeCompare(String(adminUsers[b].emailLabel||''));
     });
     if(!ids.length){
       el.innerHTML = '<span class="empty">尚無後台帳號紀錄</span>';
@@ -926,12 +955,12 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       var owner = uid === adminOwnerUid;
       var role = owner ? 'manager' : (user.role === 'manager' ? 'manager' : 'orders');
       html += '<div class="access-user">'
-        + '<div><div class="access-user-email">'+escapeHtml(user.email || '未記錄 Email')+'</div>'
-        + '<div class="access-user-meta">最近登入：'+escapeHtml(accessDateText(user.lastLoginAt))+'</div></div>';
+        + '<div><div class="access-user-email">'+escapeHtml(user.emailLabel || '後台帳號')+'</div>'
+        + '<div class="access-user-meta">帳號識別 '+escapeHtml(uid.slice(-6))+'・最近登入：'+escapeHtml(accessDateText(user.lastLoginAt))+'</div></div>';
       if(owner){
         html += '<div class="access-owner-note">主要管理帳號・完整權限</div>';
       }else{
-        html += '<select data-access-role="'+escapeAttr(uid)+'" aria-label="設定 '+escapeAttr(user.email || '帳號')+' 的權限">'
+        html += '<select data-access-role="'+escapeAttr(uid)+'" aria-label="設定 '+escapeAttr(user.emailLabel || '帳號')+' 的權限">'
           + '<option value="orders" '+(role==='orders'?'selected':'')+'>訂單人員</option>'
           + '<option value="manager" '+(role==='manager'?'selected':'')+'>管理人員</option>'
           + '</select>';
@@ -943,20 +972,24 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
   function initializeAccess(user){
     currentAuthUser = user;
-    return adminOwnerUidRef.transaction(function(current){ return current || user.uid; }).then(function(result){
-      adminOwnerUid = result.snapshot.val() || user.uid;
-      return adminUsersRef.child(user.uid).once('value');
+    var primaryManager = isPrimaryManagerEmail(user.email);
+    var ownerPromise = primaryManager
+      ? adminOwnerUidRef.set(user.uid).then(function(){ adminOwnerUid = user.uid; }).catch(function(err){ adminOwnerUid = user.uid; console.warn('Owner record sync failed', err); })
+      : adminOwnerUidRef.once('value').then(function(snap){ adminOwnerUid = snap.val() || ''; }).catch(function(err){ adminOwnerUid = ''; console.warn('Owner record read failed', err); });
+    return ownerPromise.then(function(){
+      return adminUsersRef.child(user.uid).once('value').catch(function(err){ console.warn('Access record read failed', err); return null; });
     }).then(function(snap){
-      var existing = snap.val() || {};
-      currentAccessRole = user.uid===adminOwnerUid ? 'manager' : (existing.role==='manager' ? 'manager' : 'orders');
-      var update = { email:user.email || existing.email || '', role:currentAccessRole, lastLoginAt:Date.now() };
+      var existing = snap && snap.val ? (snap.val() || {}) : {};
+      currentAccessRole = primaryManager ? 'manager' : (existing.role==='manager' ? 'manager' : 'orders');
+      var update = { emailLabel:maskAccessEmail(user.email), role:currentAccessRole, lastLoginAt:Date.now() };
       if(!existing.createdAt) update.createdAt = Date.now();
-      return adminUsersRef.child(user.uid).update(update);
+      applyAccessUI();
+      return adminUsersRef.child(user.uid).update(update).catch(function(err){ console.warn('Access record sync failed', err); });
     }).then(function(){
       adminUsersRef.child(user.uid).on('value', function(snap){
         if(!currentAuthUser || currentAuthUser.uid!==user.uid) return;
         var record = snap.val() || {};
-        currentAccessRole = user.uid===adminOwnerUid ? 'manager' : (record.role==='manager' ? 'manager' : 'orders');
+        currentAccessRole = isPrimaryManagerEmail(user.email) ? 'manager' : (record.role==='manager' ? 'manager' : 'orders');
         applyAccessUI();
       });
       applyAccessUI();
@@ -978,8 +1011,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     webhookRef = db.ref('lephemere/webhookUrl');
     operationStatusRef = db.ref('lephemere/operationStatus');
     dailyReportsRef = db.ref('lephemere/dailyReports');
-    adminUsersRef = dailyReportsRef.child('_access/users');
-    adminOwnerUidRef = dailyReportsRef.child('_access/ownerUid');
+    adminUsersRef = todayStaffRef.child('_access/users');
+    adminOwnerUidRef = todayStaffRef.child('_access/ownerUid');
 
     db.ref('.info/connected').on('value', function(snap){
       isDatabaseConnected = snap.val()===true;
@@ -992,6 +1025,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
         document.getElementById('loginBox').style.display = 'none';
         document.getElementById('adminArea').style.display = 'none';
         initializeAccess(user).then(function(){
+          setLoginLoading(false);
           document.getElementById('adminArea').style.display = 'block';
           attachData();
         }).catch(function(err){
@@ -1001,6 +1035,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
           var errorEl = document.getElementById('loginError');
           errorEl.textContent = '無法確認帳號權限，請檢查資料庫連線後重試';
           errorEl.style.display = 'block';
+          setLoginLoading(false);
         });
       }else{
         if(currentAuthUser && adminUsersRef) adminUsersRef.child(currentAuthUser.uid).off();
@@ -1009,6 +1044,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
         syncAccessListListener();
         document.getElementById('loginBox').style.display = 'block';
         document.getElementById('adminArea').style.display = 'none';
+        setLoginLoading(false);
       }
     });
   }
@@ -1108,11 +1144,20 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     if(!isConfigured) return;
     var email = document.getElementById('adminEmail').value.trim();
     var pw = document.getElementById('adminPassword').value;
+    var loginErrorEl = document.getElementById('loginError');
+    loginErrorEl.style.display = 'none';
+    if(!email || !pw){
+      loginErrorEl.textContent = '請輸入帳號與密碼';
+      loginErrorEl.style.display = 'block';
+      return;
+    }
+    setLoginLoading(true);
     firebase.auth().signInWithEmailAndPassword(email, pw).then(function(){
       document.getElementById('loginError').style.display = 'none';
       document.getElementById('adminPassword').value = '';
-    }).catch(function(){
-      document.getElementById('loginError').textContent = '帳號或密碼錯誤';
+    }).catch(function(err){
+      setLoginLoading(false);
+      document.getElementById('loginError').textContent = loginErrorMessage(err);
       document.getElementById('loginError').style.display = 'block';
     });
   });
