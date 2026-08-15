@@ -296,6 +296,10 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 .staff-editor-grid .wide{grid-column:1/-1;}
 .staff-editor-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
 .staff-help{font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;line-height:1.65;}
+.schedule-save-status{font-size:11.5px;color:var(--parchment-dim);}
+.schedule-save-status.saving{color:var(--gold);}
+.schedule-save-status.saved{color:var(--sage);}
+.schedule-save-status.error{color:var(--rose);}
 @media(max-width:620px){.staff-editor-grid{grid-template-columns:1fr;}.staff-editor-grid .wide{grid-column:auto;}}
 
 .photo-modal-overlay{
@@ -498,8 +502,11 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
             <input type="text" id="onDutyDate" placeholder="日期 YYYY-MM-DD" style="min-width:150px;">
           </div>
           <div id="staffCheckList" style="margin-bottom:10px;">尚未建立店員名單</div>
-          <button class="btn primary" id="updateTodayStaff">儲存這天的排班</button>
-          <p style="font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;">排班會依日期同步到預約頁面的值班人員與「指名女僕」名單。</p>
+          <div class="row">
+            <button class="btn primary" id="updateTodayStaff">立即儲存</button>
+            <span class="schedule-save-status" id="scheduleSaveStatus">勾選後會自動儲存</span>
+          </div>
+          <p style="font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;">排班儲存後會立即同步至預約頁面的「本次可指名女僕」名單。</p>
         </div>
       </details>
 
@@ -1856,12 +1863,16 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     });
   }
 
-  function renderDutySummary(){
+  var scheduleSaveTimer = null;
+
+  function renderDutySummary(overrideIds, overrideDate){
     var el = document.getElementById('dutySummaryText');
     if(!el) return;
-    var selectedDate = document.getElementById('onDutyDate').value.trim() || todayKey();
+    var selectedDate = overrideDate || document.getElementById('onDutyDate').value.trim() || todayKey();
     var schedule = staffSchedules[selectedDate];
-    var ids = schedule && schedule.staffIds ? schedule.staffIds : (todayStaff.date===selectedDate ? (todayStaff.staffIds||[]) : []);
+    var ids = Array.isArray(overrideIds)
+      ? overrideIds
+      : (schedule && schedule.staffIds ? schedule.staffIds : (todayStaff.date===selectedDate ? (todayStaff.staffIds||[]) : []));
     var names = ids.map(function(id){
       return staffRoster[id] && staffRoster[id].name;
     }).filter(Boolean);
@@ -1872,6 +1883,40 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     }else{
       el.textContent = selectedDate+'：尚未設定排班';
     }
+  }
+
+  function setScheduleSaveStatus(text, state){
+    var el = document.getElementById('scheduleSaveStatus');
+    if(!el) return;
+    el.textContent = text;
+    el.className = 'schedule-save-status'+(state ? ' '+state : '');
+  }
+
+  function collectScheduleForm(){
+    var checked = document.querySelectorAll('#staffCheckList input[type=checkbox]:checked');
+    var ids = Array.prototype.map.call(checked, function(cb){ return cb.getAttribute('data-staff-id'); });
+    var date = document.getElementById('onDutyDate').value.trim() || todayKey();
+    return {date:date, staffIds:ids, updatedAt:Date.now()};
+  }
+
+  function persistSchedule(data){
+    if(!isConfigured) return Promise.resolve();
+    setScheduleSaveStatus('正在同步至預約頁…', 'saving');
+    var writes = [staffSchedulesRef.child(data.date).set(data)];
+    if(data.date===todayKey()) writes.push(todayStaffRef.set(data));
+    return Promise.all(writes).then(function(){
+      setScheduleSaveStatus('已自動儲存並同步', 'saved');
+    }).catch(function(){
+      setScheduleSaveStatus('同步失敗，請按「立即儲存」重試', 'error');
+    });
+  }
+
+  function queueScheduleAutoSave(){
+    var data = collectScheduleForm();
+    renderDutySummary(data.staffIds, data.date);
+    setScheduleSaveStatus('變更尚未送出…', 'saving');
+    if(scheduleSaveTimer) clearTimeout(scheduleSaveTimer);
+    scheduleSaveTimer = setTimeout(function(){ persistSchedule(data); }, 450);
   }
 
   function renderStaffCheckList(){
@@ -1895,6 +1940,9 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
         + '</div>';
     });
     el.innerHTML = html;
+    el.querySelectorAll('input[type=checkbox][data-staff-id]').forEach(function(cb){
+      cb.addEventListener('change', queueScheduleAutoSave);
+    });
   }
 
   document.getElementById('addStaff').addEventListener('click', function(){
@@ -1918,17 +1966,15 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   });
 
   document.getElementById('updateTodayStaff').addEventListener('click', function(){
-    if(!isConfigured) return;
-    var checked = document.querySelectorAll('#staffCheckList input[type=checkbox]:checked');
-    var ids = Array.prototype.map.call(checked, function(cb){ return cb.getAttribute('data-staff-id'); });
-    var dateInput = document.getElementById('onDutyDate').value.trim();
-    var date = dateInput || todayKey();
-    var data = { date:date, staffIds:ids, updatedAt:Date.now() };
-    staffSchedulesRef.child(date).set(data);
-    if(date===todayKey()) todayStaffRef.set(data);
+    if(scheduleSaveTimer){ clearTimeout(scheduleSaveTimer); scheduleSaveTimer = null; }
+    persistSchedule(collectScheduleForm());
   });
 
-  document.getElementById('onDutyDate').addEventListener('change', renderStaffCheckList);
+  document.getElementById('onDutyDate').addEventListener('change', function(){
+    if(scheduleSaveTimer){ clearTimeout(scheduleSaveTimer); scheduleSaveTimer = null; }
+    setScheduleSaveStatus('勾選後會自動儲存', '');
+    renderStaffCheckList();
+  });
 
   // ---------- photo cropper ----------
   var photoEditStaffId = null;
