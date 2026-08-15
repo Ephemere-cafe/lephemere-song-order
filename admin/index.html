@@ -673,6 +673,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   var staffRoster = {};
   var todayStaff = {};
   var staffSchedules = {};
+  var legacyStaffSchedules = {};
 
   var STATUS_LABEL = { pending:'待接單', preparing:'服務中', served:'服務中', completed:'已完成', cancelled:'已取消' };
   var NEXT_STATUS = { pending:'preparing', preparing:'completed', served:'completed' };
@@ -886,6 +887,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
     todayStaffRef.on('value', function(snap){
       todayStaff = snap.val() || {};
+      rebuildStaffSchedules();
       var dateInput = document.getElementById('onDutyDate');
       if(dateInput && !dateInput.value){
         dateInput.value = todayStaff.date || todayKey();
@@ -896,7 +898,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     });
 
     staffSchedulesRef.on('value', function(snap){
-      staffSchedules = snap.val() || {};
+      legacyStaffSchedules = snap.val() || {};
+      rebuildStaffSchedules();
       renderStaffCheckList();
     });
 
@@ -1802,6 +1805,13 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   });
 
   // ---------- staff roster / on-duty ----------
+  function rebuildStaffSchedules(){
+    var embedded = todayStaff && todayStaff.schedules && typeof todayStaff.schedules === 'object'
+      ? todayStaff.schedules
+      : {};
+    staffSchedules = Object.assign({}, legacyStaffSchedules, embedded);
+  }
+
   function staffSortKeys(){
     var original = Object.keys(staffRoster);
     return original.slice().sort(function(a,b){
@@ -1902,12 +1912,19 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   function persistSchedule(data){
     if(!isConfigured) return Promise.resolve();
     setScheduleSaveStatus('正在同步至預約頁…', 'saving');
-    var writes = [staffSchedulesRef.child(data.date).set(data)];
-    if(data.date===todayKey()) writes.push(todayStaffRef.set(data));
-    return Promise.all(writes).then(function(){
+    var updates = {};
+    updates['schedules/'+data.date] = data;
+    if(data.date===todayKey()){
+      updates.date = data.date;
+      updates.staffIds = data.staffIds;
+      updates.updatedAt = data.updatedAt;
+    }
+    return todayStaffRef.update(updates).then(function(){
       setScheduleSaveStatus('已自動儲存並同步', 'saved');
-    }).catch(function(){
-      setScheduleSaveStatus('同步失敗，請按「立即儲存」重試', 'error');
+    }).catch(function(err){
+      console.error('Schedule sync failed', err);
+      var denied = err && (err.code === 'PERMISSION_DENIED' || /permission/i.test(String(err.message || '')));
+      setScheduleSaveStatus(denied ? '登入權限已失效，請重新登入後重試' : '同步失敗，請按「立即儲存」重試', 'error');
     });
   }
 
