@@ -741,7 +741,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     </div>
     <input type="file" id="photoFileInput" accept="image/*" style="font-size:12px;margin-bottom:8px;width:100%;">
     <input type="range" id="photoZoomSlider" min="100" max="400" value="100">
-    <p style="font-size:11px;color:var(--parchment-dim);margin:-8px 0 12px;">選好照片後，拖曳可移動位置，滑桿可縮放</p>
+    <p style="font-size:11px;color:var(--parchment-dim);margin:-8px 0 12px;line-height:1.65;">選好照片後，拖曳可移動位置，滑桿可縮放。照片將以 1200 × 1200 高畫質儲存；舊照片需重新上傳一次才會套用。</p>
     <div class="photo-modal-actions">
       <button class="btn ghost" id="photoModalCancel">取消</button>
       <button class="btn primary" id="photoModalSave">儲存頭貼</button>
@@ -2498,6 +2498,9 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   });
 
   // ---------- photo cropper ----------
+  var PHOTO_PREVIEW_SIZE = 260;
+  var PHOTO_OUTPUT_SIZE = 1200;
+  var PHOTO_OUTPUT_QUALITY = 0.90;
   var photoEditStaffId = null;
   var photoImg = null;
   var photoScale = 1, photoBaseScale = 1, photoOffX = 0, photoOffY = 0;
@@ -2510,7 +2513,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     photoImg = null;
     document.getElementById('photoFileInput').value = '';
     document.getElementById('photoZoomSlider').value = 100;
-    if(photoCtx) photoCtx.clearRect(0,0,260,260);
+    if(photoCtx) photoCtx.clearRect(0,0,PHOTO_PREVIEW_SIZE,PHOTO_PREVIEW_SIZE);
     var existing = staffRoster[staffId] && staffRoster[staffId].photo;
     if(existing){
       var im = new Image();
@@ -2526,19 +2529,19 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   }
   function fitPhotoToStage(){
     if(!photoImg) return;
-    photoBaseScale = Math.max(260/photoImg.width, 260/photoImg.height);
+    photoBaseScale = Math.max(PHOTO_PREVIEW_SIZE/photoImg.width, PHOTO_PREVIEW_SIZE/photoImg.height);
     photoScale = 1;
     photoOffX = 0; photoOffY = 0;
     document.getElementById('photoZoomSlider').value = 100;
   }
   function drawPhotoCanvas(){
     if(!photoCtx) return;
-    photoCtx.clearRect(0,0,260,260);
+    photoCtx.clearRect(0,0,PHOTO_PREVIEW_SIZE,PHOTO_PREVIEW_SIZE);
     if(!photoImg) return;
     var s = photoBaseScale * photoScale;
     var w = photoImg.width * s, h = photoImg.height * s;
-    var x = (260 - w)/2 + photoOffX;
-    var y = (260 - h)/2 + photoOffY;
+    var x = (PHOTO_PREVIEW_SIZE - w)/2 + photoOffX;
+    var y = (PHOTO_PREVIEW_SIZE - h)/2 + photoOffY;
     photoCtx.drawImage(photoImg, x, y, w, h);
   }
   var fileInputEl = document.getElementById('photoFileInput');
@@ -2594,16 +2597,38 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   if(saveBtn) saveBtn.addEventListener('click', function(){
     if(!photoEditStaffId || !photoImg){ closePhotoEditor(); return; }
     var out = document.createElement('canvas');
-    out.width = 300; out.height = 300;
+    out.width = PHOTO_OUTPUT_SIZE; out.height = PHOTO_OUTPUT_SIZE;
     var octx = out.getContext('2d');
-    var s = photoBaseScale * photoScale * (300/260);
+    octx.imageSmoothingEnabled = true;
+    octx.imageSmoothingQuality = 'high';
+    var outputRatio = PHOTO_OUTPUT_SIZE / PHOTO_PREVIEW_SIZE;
+    var s = photoBaseScale * photoScale * outputRatio;
     var w = photoImg.width * s, h = photoImg.height * s;
-    var x = (300 - w)/2 + photoOffX * (300/260);
-    var y = (300 - h)/2 + photoOffY * (300/260);
+    var x = (PHOTO_OUTPUT_SIZE - w)/2 + photoOffX * outputRatio;
+    var y = (PHOTO_OUTPUT_SIZE - h)/2 + photoOffY * outputRatio;
     octx.drawImage(photoImg, x, y, w, h);
-    var dataUrl = out.toDataURL('image/webp', 0.85);
-    staffRosterRef.child(photoEditStaffId).child('photo').set(dataUrl);
-    closePhotoEditor();
+    var dataUrl = out.toDataURL('image/webp', PHOTO_OUTPUT_QUALITY);
+    if(dataUrl.length > 2500000){
+      var compact = document.createElement('canvas');
+      compact.width = 960; compact.height = 960;
+      var compactCtx = compact.getContext('2d');
+      compactCtx.imageSmoothingEnabled = true;
+      compactCtx.imageSmoothingQuality = 'high';
+      compactCtx.drawImage(out, 0, 0, compact.width, compact.height);
+      dataUrl = compact.toDataURL('image/webp', 0.86);
+    }
+    var staffId = photoEditStaffId;
+    saveBtn.disabled = true;
+    saveBtn.textContent = '儲存高畫質照片中…';
+    staffRosterRef.child(staffId).child('photo').set(dataUrl).then(function(){
+      saveBtn.disabled = false;
+      saveBtn.textContent = '儲存頭貼';
+      closePhotoEditor();
+    }).catch(function(error){
+      saveBtn.disabled = false;
+      saveBtn.textContent = '儲存頭貼';
+      alert('照片儲存失敗，請稍後再試。' + (error && error.message ? '\n' + error.message : ''));
+    });
   });
 
   // ---------- open dates ----------
