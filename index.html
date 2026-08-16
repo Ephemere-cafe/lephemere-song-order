@@ -42,6 +42,8 @@ body{margin:0;background:#241f30;font-family:'Noto Sans TC',sans-serif;}
 
 .panel{position:relative;z-index:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px;}
 .panel-title{font-size:12px;color:var(--mist);letter-spacing:0.06em;margin:0 0 10px;text-transform:uppercase;}
+.menu-sync-status{font-size:10.5px;color:var(--sage);margin:-4px 0 9px;letter-spacing:.02em;}
+.menu-sync-status.error{color:var(--rose);}
 .cat-title{font-family:'Noto Serif TC',serif;font-weight:600;font-size:14px;color:var(--gold);margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line);}
 .cat-title:first-child{margin-top:0;}
 .category-notice{
@@ -133,6 +135,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   <div id="orderFlow">
     <div class="panel">
       <p class="panel-title">菜單</p>
+      <div class="menu-sync-status" id="menuSyncStatus" aria-live="polite">正在同步最新菜單…</div>
       <div id="menuList"><span class="empty">菜單載入中...</span></div>
     </div>
 
@@ -182,6 +185,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   var db, ordersRef, nextOrderNumberRef, webhookRef, menuRef, operationStatusRef;
   var webhookUrl = '';
   var operationStatus = { isOpen:true };
+  var menuSyncTimer = null;
+  var menuSyncBusy = false;
 
   function petals(){
     var wrap = document.getElementById('wrap');
@@ -227,18 +232,16 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       renderMenu();
     });
 
-    menuRef.on('value', function(snap){
-      menuItems = snap.val() || {};
-      syncCartWithMenu();
-      categoryOrder = [];
-      Object.keys(menuItems).sort(function(a,b){
-        return Number(menuItems[a].sortOrder||0)-Number(menuItems[b].sortOrder||0);
-      }).forEach(function(id){
-        var cat = menuItems[id].category || '其他';
-        if(categoryOrder.indexOf(cat) === -1) categoryOrder.push(cat);
-      });
-      renderMenu();
-      renderCart();
+    menuRef.on('value', applyMenuSnapshot, function(){
+      setMenuSyncStatus('即時連線中斷，正在重新取得菜單…', true);
+    });
+
+    refreshMenuSnapshot();
+    menuSyncTimer = setInterval(refreshMenuSnapshot, 6000);
+    window.addEventListener('focus', refreshMenuSnapshot);
+    window.addEventListener('online', refreshMenuSnapshot);
+    document.addEventListener('visibilitychange', function(){
+      if(!document.hidden) refreshMenuSnapshot();
     });
   }
 
@@ -261,6 +264,40 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
   function itemStockRemaining(item){
     return Math.max(0, Math.floor(Number(item && item.stockRemaining || 0)));
+  }
+
+  function setMenuSyncStatus(message, isError){
+    var el = document.getElementById('menuSyncStatus');
+    if(!el) return;
+    el.textContent = message;
+    el.className = 'menu-sync-status' + (isError ? ' error' : '');
+  }
+
+  function applyMenuSnapshot(snap){
+    menuItems = snap.val() || {};
+    syncCartWithMenu();
+    categoryOrder = [];
+    Object.keys(menuItems).sort(function(a,b){
+      return Number(menuItems[a].sortOrder||0)-Number(menuItems[b].sortOrder||0);
+    }).forEach(function(id){
+      var cat = menuItems[id].category || '其他';
+      if(categoryOrder.indexOf(cat) === -1) categoryOrder.push(cat);
+    });
+    renderMenu();
+    renderCart();
+    setMenuSyncStatus('菜單已同步・' + new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'}), false);
+  }
+
+  function refreshMenuSnapshot(){
+    if(!menuRef || menuSyncBusy) return Promise.resolve();
+    menuSyncBusy = true;
+    return menuRef.once('value').then(function(snap){
+      applyMenuSnapshot(snap);
+    }).catch(function(){
+      setMenuSyncStatus('菜單同步失敗，將自動重試', true);
+    }).then(function(){
+      menuSyncBusy = false;
+    });
   }
 
   function syncCartWithMenu(){
