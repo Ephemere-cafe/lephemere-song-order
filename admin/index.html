@@ -682,6 +682,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
       <div class="panel">
         <p class="admin-section-label">📖 目前菜單</p>
+        <p id="menuSaveStatus" class="menu-sort-note" aria-live="polite">菜單變更會在儲存後同步至主人點餐頁。</p>
         <div id="menuManageList">尚未設定菜單</div>
         <div class="row" style="margin-top:12px;">
           <button class="btn ghost small" id="syncMenuPrices">套用內建預設價格</button>
@@ -2381,15 +2382,38 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     data.stockEnabled = stockEnabled;
     if(stockEnabled) data.stockRemaining = stockRemaining;
     else delete data.stockRemaining;
+    data.updatedAt = Date.now();
 
     var saveBtn = document.getElementById('menuEditSave');
+    var statusEl = document.getElementById('menuSaveStatus');
     var id = editingMenuItemId;
     saveBtn.disabled = true;
     saveBtn.textContent = '儲存中…';
+    if(statusEl){
+      statusEl.textContent = '正在儲存並確認前台同步資料…';
+      statusEl.style.color = 'var(--gold)';
+    }
     menuRef.child(id).set(data).then(function(){
+      return menuRef.child(id).once('value');
+    }).then(function(snap){
+      var saved = snap.val() || {};
+      var verified = saved.name === name &&
+        Number(saved.price) === price &&
+        saved.available === available &&
+        saved.stockEnabled === stockEnabled &&
+        (!stockEnabled || Number(saved.stockRemaining) === stockRemaining);
+      if(!verified) throw new Error('menu-verify-failed');
+      if(statusEl){
+        statusEl.textContent = '已同步完成・' + new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+        statusEl.style.color = 'var(--sage)';
+      }
       closeMenuEditor();
-    }).catch(function(){
-      alert('菜單修改儲存失敗，請確認網路後再試一次。');
+    }).catch(function(err){
+      if(statusEl){
+        statusEl.textContent = '同步失敗，資料尚未確認寫入，請再試一次。';
+        statusEl.style.color = 'var(--rose)';
+      }
+      alert(err && err.message === 'menu-verify-failed' ? '資料已送出，但讀回結果不一致，請重新整理後再試一次。' : '菜單修改儲存失敗，請確認網路後再試一次。');
     }).finally(function(){
       saveBtn.disabled = false;
       saveBtn.textContent = '儲存修改';
