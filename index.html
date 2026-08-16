@@ -547,10 +547,14 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       if(index>=limited.length) return Promise.resolve(reservations);
       var ordered = limited[index];
       var qty = Number(ordered.qty||0);
-      return menuRef.child(ordered.id).transaction(function(item){
-        if(!item || !itemIsAvailable(item) || !itemHasStockLimit(item) || itemStockRemaining(item)<qty) return;
-        item.stockRemaining = itemStockRemaining(item)-qty;
-        return item;
+      var latestItem = menuItems[ordered.id];
+      if(!latestItem || !itemIsAvailable(latestItem) || !itemHasStockLimit(latestItem) || itemStockRemaining(latestItem)<qty){
+        return Promise.reject(new Error('stock-unavailable'));
+      }
+      return menuRef.child(ordered.id).child('stockRemaining').transaction(function(current){
+        var remaining = Math.max(0, Math.floor(Number(current||0)));
+        if(remaining<qty) return;
+        return remaining-qty;
       }).then(function(result){
         if(!result.committed) throw new Error('stock-unavailable');
         reservations[ordered.id] = qty;
@@ -646,9 +650,12 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     }).catch(function(err){
       var release = Object.keys(reservedStock).length ? releaseLimitedStock(reservedStock) : Promise.resolve();
       release.catch(function(){});
+      var permissionDenied = err && (err.code==='PERMISSION_DENIED' || /permission_denied|permission denied/i.test(String(err.message||'')));
       errEl.textContent = err && err.message==='stock-unavailable'
         ? '部分限量服務剛好額滿，請重新確認菜單後再送出'
-        : '送出失敗，請稍後再試一次';
+        : permissionDenied
+          ? '限量品項庫存更新被拒絕，請通知店員檢查 Firebase 權限'
+          : '送出失敗，請稍後再試一次';
       errEl.style.display = 'block';
       submitBtn.disabled = false;
       submitBtn.textContent = '送出訂單';
