@@ -132,6 +132,20 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 .access-owner-note{font-size:10.5px;color:var(--gold);text-align:right;}
 .access-message{font-size:11.5px;color:var(--sage);margin:10px 0 0;min-height:1.6em;}
 .access-message.error{color:var(--rose);}
+.site-music-grid{display:grid;grid-template-columns:minmax(180px,.7fr) minmax(300px,1.3fr);gap:12px;margin-top:12px;}
+.site-music-field{display:flex;flex-direction:column;gap:6px;min-width:0;}
+.site-music-field.wide{grid-column:1/-1;}
+.site-music-field label{font-size:11.5px;color:var(--parchment-dim);}
+.site-music-field input[type=text]{width:100%;}
+.site-music-volume{display:flex;align-items:center;gap:10px;min-height:38px;padding:0 2px;}
+.site-music-volume input{flex:1;accent-color:var(--gold);}
+.site-music-volume output{min-width:42px;color:var(--gold);font-size:12px;text-align:right;}
+.site-music-toggle{display:flex;align-items:center;gap:9px;min-height:38px;padding:8px 11px;border:1px solid var(--line);border-radius:7px;background:var(--ink-deep);color:var(--parchment);font-size:12px;}
+.site-music-toggle input{width:17px;height:17px;accent-color:var(--gold);}
+.site-music-help{font-size:11.5px;color:var(--parchment-dim);line-height:1.75;margin:10px 0 0;}
+.site-music-status{font-size:11.5px;color:var(--parchment-dim);min-height:1.6em;margin:9px 0 0;}
+.site-music-status.saved{color:var(--sage);}
+.site-music-status.error{color:var(--rose);}
 
 /* order sub-tabs */
 .tabs{display:flex;gap:5px;flex-wrap:wrap;margin:0;}
@@ -374,6 +388,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 .schedule-save-status.saved{color:var(--sage);}
 .schedule-save-status.error{color:var(--rose);}
 @media(max-width:620px){.staff-editor-grid{grid-template-columns:1fr;}.staff-editor-grid .wide{grid-column:auto;}}
+@media(max-width:620px){.site-music-grid{grid-template-columns:1fr;}.site-music-field.wide{grid-column:auto;}}
 
 .photo-modal-overlay{
   display:none;position:fixed;inset:0;background:rgba(10,8,16,0.72);z-index:200;
@@ -434,6 +449,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       <div class="main-tab manager-only" data-main="menu" data-manager-only>菜單</div>
       <div class="main-tab manager-only" data-main="staff" data-manager-only>店員</div>
       <div class="main-tab manager-only" data-main="reservations" data-manager-only>預約</div>
+      <div class="main-tab manager-only" data-main="site" data-manager-only>官網</div>
       <div class="main-tab manager-only" data-main="access" data-manager-only>權限</div>
       <span class="access-badge" id="currentAccessBadge">權限確認中</span>
       <button class="btn ghost small" id="adminLogoutBtn" style="margin-left:auto;">登出</button>
@@ -657,11 +673,47 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
     </div>
 
+    <!-- ============ 官網設定 ============ -->
+    <div id="siteSettingsTab" class="manager-only" data-manager-only style="display:none;">
+      <div class="panel">
+        <p class="admin-section-label">♪ 官網背景音樂</p>
+        <p class="panel-title">店歌播放設定</p>
+        <div class="site-music-grid">
+          <div class="site-music-field">
+            <label for="siteMusicTitle">官網顯示名稱</label>
+            <input type="text" id="siteMusicTitle" placeholder="例如：曇時店歌">
+          </div>
+          <div class="site-music-field">
+            <label>是否在官網顯示播放器</label>
+            <label class="site-music-toggle"><input type="checkbox" id="siteMusicEnabled">啟用背景音樂</label>
+          </div>
+          <div class="site-music-field wide">
+            <label for="siteMusicUrl">音樂檔網址</label>
+            <input type="text" id="siteMusicUrl" inputmode="url" placeholder="https://…/ephemere-theme.mp3">
+          </div>
+          <div class="site-music-field wide">
+            <label for="siteMusicVolume">主人第一次播放時的預設音量</label>
+            <div class="site-music-volume">
+              <input type="range" id="siteMusicVolume" min="5" max="100" value="30">
+              <output id="siteMusicVolumeValue" for="siteMusicVolume">30%</output>
+            </div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px;">
+          <button class="btn primary" id="saveSiteMusic">儲存並同步官網</button>
+          <button class="btn ghost" id="previewSiteMusic">試播</button>
+          <button class="btn ghost" id="stopSiteMusicPreview">停止試播</button>
+        </div>
+        <p class="site-music-status" id="siteMusicStatus" aria-live="polite">尚未讀取官網音樂設定</p>
+        <p class="site-music-help">請先把 MP3、M4A 或 OGG 音樂檔上傳到官網的 GitHub 儲存庫，再將可公開播放的 HTTPS 網址貼在這裡。瀏覽器不允許網站直接自動播放有聲音，因此主人仍需先按一次播放鍵。</p>
+      </div>
+    </div>
+
     <!-- ============ 權限管理 ============ -->
     <div id="accessTab" class="manager-only" data-manager-only style="display:none;">
       <div class="panel">
         <p class="admin-section-label">🔐 後台帳號權限</p>
-        <p class="access-intro">新帳號第一次登入後會自動列在這裡，預設只能使用「訂單管理」。將帳號改成「管理人員」後，才可使用菜單、店員、預約與權限設定。</p>
+        <p class="access-intro">新帳號第一次登入後會自動列在這裡，預設只能使用「訂單管理」。將帳號改成「管理人員」後，才可使用菜單、店員、預約、官網與權限設定。</p>
         <div id="accessUserList" class="access-list"><span class="empty">正在讀取帳號…</span></div>
         <p id="accessMessage" class="access-message" aria-live="polite"></p>
       </div>
@@ -769,7 +821,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   if(!isConfigured){ document.getElementById('configWarn').style.display = 'block'; }
 
   var db;
-  var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, staffSchedulesRef, menuRef, nextOrderNumberRef, webhookRef, operationStatusRef, dailyReportsRef, adminUsersRef, adminOwnerUidRef;
+  var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, staffSchedulesRef, menuRef, nextOrderNumberRef, webhookRef, operationStatusRef, dailyReportsRef, adminUsersRef, adminOwnerUidRef, siteMusicRef;
 
   var orders = {};
   var currentOrderFilter = 'active';
@@ -791,6 +843,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   var adminOwnerUid = '';
   var adminUsers = {};
   var accessListListening = false;
+  var siteMusicSettings = { enabled:false, title:'曇時店歌', url:'', volume:0.3 };
+  var siteMusicPreviewAudio = null;
   var PRIMARY_MANAGER_EMAILS = ['tanjicafe@gmail.com'];
   try{ soundEnabled = localStorage.getItem('lephemereOrderSound') === 'on'; }catch(e){}
   try{ soundPreset = localStorage.getItem('lephemereOrderSoundPreset') || 'chime'; }catch(e){}
@@ -973,6 +1027,52 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     playBuiltInSound();
   }
 
+  function normalizeSiteMusicSettings(value){
+    value = value && typeof value === 'object' ? value : {};
+    return {
+      enabled:value.enabled === true,
+      title:String(value.title || '曇時店歌').trim() || '曇時店歌',
+      url:String(value.url || '').trim(),
+      volume:Math.min(1,Math.max(.05,Number(value.volume || .3)))
+    };
+  }
+
+  function setSiteMusicStatus(text,state){
+    var el = document.getElementById('siteMusicStatus');
+    if(!el) return;
+    el.textContent = text || '';
+    el.className = 'site-music-status'+(state ? ' '+state : '');
+  }
+
+  function renderSiteMusicSettings(){
+    var title = document.getElementById('siteMusicTitle');
+    var url = document.getElementById('siteMusicUrl');
+    var enabled = document.getElementById('siteMusicEnabled');
+    var volume = document.getElementById('siteMusicVolume');
+    var volumeValue = document.getElementById('siteMusicVolumeValue');
+    if(title) title.value = siteMusicSettings.title;
+    if(url) url.value = siteMusicSettings.url;
+    if(enabled) enabled.checked = siteMusicSettings.enabled;
+    if(volume) volume.value = String(Math.round(siteMusicSettings.volume*100));
+    if(volumeValue) volumeValue.textContent = Math.round(siteMusicSettings.volume*100)+'%';
+    setSiteMusicStatus(siteMusicSettings.url
+      ? (siteMusicSettings.enabled ? '官網背景音樂目前已啟用' : '音樂資料已儲存，但官網播放器目前關閉')
+      : '尚未設定音樂檔網址', siteMusicSettings.url ? 'saved' : '');
+  }
+
+  function stopSiteMusicPreview(){
+    if(siteMusicPreviewAudio){
+      siteMusicPreviewAudio.pause();
+      siteMusicPreviewAudio.removeAttribute('src');
+      siteMusicPreviewAudio.load();
+      siteMusicPreviewAudio = null;
+    }
+  }
+
+  function validMusicUrl(value){
+    try{ return new URL(value).protocol === 'https:'; }catch(e){ return false; }
+  }
+
   function formatRulesText(text){
     var lines = text.split('\n');
     var html = '';
@@ -1000,6 +1100,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     document.getElementById('menuTab').style.display = 'none';
     document.getElementById('staffTab').style.display = 'none';
     document.getElementById('reservationsTab').style.display = 'none';
+    document.getElementById('siteSettingsTab').style.display = 'none';
     document.getElementById('accessTab').style.display = 'none';
   }
 
@@ -1147,6 +1248,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     dailyReportsRef = db.ref('lephemere/dailyReports');
     adminUsersRef = todayStaffRef.child('_access/users');
     adminOwnerUidRef = todayStaffRef.child('_access/ownerUid');
+    siteMusicRef = todayStaffRef.child('_site/backgroundMusic');
 
     db.ref('.info/connected').on('value', function(snap){
       isDatabaseConnected = snap.val()===true;
@@ -1272,6 +1374,11 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       renderOpenDateManageList();
       renderAdminReservations();
     });
+
+    siteMusicRef.on('value', function(snap){
+      siteMusicSettings = normalizeSiteMusicSettings(snap.val());
+      renderSiteMusicSettings();
+    });
   }
 
   document.getElementById('adminLoginBtn').addEventListener('click', function(){
@@ -1341,7 +1448,74 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     document.getElementById('menuTab').style.display = target==='menu' ? 'block' : 'none';
     document.getElementById('staffTab').style.display = target==='staff' ? 'block' : 'none';
     document.getElementById('reservationsTab').style.display = target==='reservations' ? 'block' : 'none';
+    document.getElementById('siteSettingsTab').style.display = target==='site' ? 'block' : 'none';
     document.getElementById('accessTab').style.display = target==='access' ? 'block' : 'none';
+  });
+
+  document.getElementById('siteMusicVolume').addEventListener('input', function(e){
+    document.getElementById('siteMusicVolumeValue').textContent = String(e.target.value)+'%';
+    if(siteMusicPreviewAudio) siteMusicPreviewAudio.volume = Math.min(1,Math.max(.05,Number(e.target.value||30)/100));
+  });
+
+  document.getElementById('previewSiteMusic').addEventListener('click', function(){
+    var url = document.getElementById('siteMusicUrl').value.trim();
+    if(!validMusicUrl(url)){
+      setSiteMusicStatus('請先填入可公開播放的 HTTPS 音樂網址。','error');
+      return;
+    }
+    stopSiteMusicPreview();
+    siteMusicPreviewAudio = new Audio(url);
+    siteMusicPreviewAudio.loop = true;
+    siteMusicPreviewAudio.volume = Math.min(1,Math.max(.05,Number(document.getElementById('siteMusicVolume').value||30)/100));
+    siteMusicPreviewAudio.play().then(function(){
+      setSiteMusicStatus('正在試播；確認無誤後請記得儲存設定。','saved');
+    }).catch(function(){
+      stopSiteMusicPreview();
+      setSiteMusicStatus('無法試播，請確認網址能直接開啟音樂檔。','error');
+    });
+  });
+
+  document.getElementById('stopSiteMusicPreview').addEventListener('click', function(){
+    stopSiteMusicPreview();
+    setSiteMusicStatus('已停止試播。','');
+  });
+
+  document.getElementById('saveSiteMusic').addEventListener('click', function(){
+    if(!isManager() || !siteMusicRef) return;
+    var btn = this;
+    var next = normalizeSiteMusicSettings({
+      enabled:document.getElementById('siteMusicEnabled').checked,
+      title:document.getElementById('siteMusicTitle').value,
+      url:document.getElementById('siteMusicUrl').value,
+      volume:Number(document.getElementById('siteMusicVolume').value||30)/100
+    });
+    if(next.url && !validMusicUrl(next.url)){
+      setSiteMusicStatus('音樂網址必須以 https:// 開頭。','error');
+      return;
+    }
+    if(next.enabled && !next.url){
+      setSiteMusicStatus('啟用前請先填入音樂檔網址。','error');
+      return;
+    }
+    stopSiteMusicPreview();
+    btn.disabled = true;
+    btn.textContent = '同步中…';
+    setSiteMusicStatus('正在同步至官網…','');
+    siteMusicRef.set({
+      enabled:next.enabled,
+      title:next.title,
+      url:next.url,
+      volume:next.volume,
+      updatedAt:Date.now()
+    }).then(function(){
+      setSiteMusicStatus('已儲存，官網播放器會立即更新。','saved');
+    }).catch(function(err){
+      console.error('Site music sync failed',err);
+      setSiteMusicStatus('同步失敗，請確認登入權限後再試。','error');
+    }).then(function(){
+      btn.disabled = false;
+      btn.textContent = '儲存並同步官網';
+    });
   });
 
   // ================= 訂單管理 =================
