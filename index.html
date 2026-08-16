@@ -251,6 +251,18 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   }
 
   // ---------- menu rendering ----------
+  function itemIsAvailable(item){
+    return !!item && item.available!==false && item.available!=='false' && item.available!==0;
+  }
+
+  function itemHasStockLimit(item){
+    return !!item && (item.stockEnabled===true || item.stockEnabled==='true' || item.stockEnabled===1);
+  }
+
+  function itemStockRemaining(item){
+    return Math.max(0, Math.floor(Number(item && item.stockRemaining || 0)));
+  }
+
   function syncCartWithMenu(){
     var syncedCart = {};
     var syncedAddons = {};
@@ -266,10 +278,10 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         latest = newId ? menuItems[newId] : null;
       }
       if(!latest) return;
-      if(latest.available===false) return;
+      if(!itemIsAvailable(latest)) return;
       var allowedQty = Number(line.qty||0);
-      if(latest.stockEnabled===true){
-        allowedQty = Math.min(allowedQty, Number(latest.stockRemaining||0));
+      if(itemHasStockLimit(latest)){
+        allowedQty = Math.min(allowedQty, itemStockRemaining(latest));
       }
       if(allowedQty<=0) return;
 
@@ -345,12 +357,12 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       }
       items.forEach(function(item){
         var qty = cart[item.id] ? cart[item.id].qty : 0;
-        var soldOut = item.available===false || (item.stockEnabled===true && Number(item.stockRemaining||0)<=0);
+        var soldOut = !itemIsAvailable(item) || (itemHasStockLimit(item) && itemStockRemaining(item)<=0);
         var orderingDisabled = soldOut || operationStatus.isOpen===false;
         var availability = '';
-        if(item.available===false) availability = '<span class="availability soldout">暫停供應</span>';
-        else if(item.stockEnabled===true && Number(item.stockRemaining||0)<=0) availability = '<span class="availability soldout">本次額滿</span>';
-        else if(item.stockEnabled===true) availability = '<span class="availability">剩餘 '+Number(item.stockRemaining||0)+' 份</span>';
+        if(!itemIsAvailable(item)) availability = '<span class="availability soldout">暫停供應</span>';
+        else if(itemHasStockLimit(item) && itemStockRemaining(item)<=0) availability = '<span class="availability soldout">本次額滿</span>';
+        else if(itemHasStockLimit(item)) availability = '<span class="availability">剩餘 '+itemStockRemaining(item)+' 份</span>';
         html += '<div class="item-row '+(soldOut?'unavailable':'')+'">'
           + '<div class="item-name">'+escapeHtml(item.name)
           + (item.note && !isPolaroidLimitNote(item.note) ? '<span class="item-note">'+escapeHtml(item.note)+'</span>' : '')
@@ -390,11 +402,11 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   function changeQty(id, delta){
     var item = menuItems[id];
     if(!item) return;
-    if(delta>0 && (operationStatus.isOpen===false || item.available===false)) return;
+    if(delta>0 && (operationStatus.isOpen===false || !itemIsAvailable(item))) return;
     var current = cart[id] ? cart[id].qty : 0;
     var next = Math.max(0, current + delta);
-    if(delta>0 && item.stockEnabled===true){
-      next = Math.min(next, Number(item.stockRemaining||0));
+    if(delta>0 && itemHasStockLimit(item)){
+      next = Math.min(next, itemStockRemaining(item));
     }
     if(next === 0){
       delete cart[id];
@@ -464,7 +476,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   }
 
   function reserveLimitedStock(items){
-    var limited = items.filter(function(item){ return menuItems[item.id] && menuItems[item.id].stockEnabled===true; });
+    var limited = items.filter(function(item){ return itemHasStockLimit(menuItems[item.id]); });
     var reservations = {};
     var applied = [];
     function reserveAt(index){
@@ -472,8 +484,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       var ordered = limited[index];
       var qty = Number(ordered.qty||0);
       return menuRef.child(ordered.id).transaction(function(item){
-        if(!item || item.available===false || item.stockEnabled!==true || Number(item.stockRemaining||0)<qty) return;
-        item.stockRemaining = Number(item.stockRemaining||0)-qty;
+        if(!item || !itemIsAvailable(item) || !itemHasStockLimit(item) || itemStockRemaining(item)<qty) return;
+        item.stockRemaining = itemStockRemaining(item)-qty;
         return item;
       }).then(function(result){
         if(!result.committed) throw new Error('stock-unavailable');
