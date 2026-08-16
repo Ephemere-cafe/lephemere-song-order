@@ -2403,8 +2403,22 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
         saved.stockEnabled === stockEnabled &&
         (!stockEnabled || Number(saved.stockRemaining) === stockRemaining);
       if(!verified) throw new Error('menu-verify-failed');
+      var publicItemUrl = firebaseConfig.databaseURL.replace(/\/$/, '') + '/lephemere/menu/' + encodeURIComponent(id) + '.json';
+      return fetch(publicItemUrl, {cache:'no-store'}).then(function(response){
+        if(!response.ok) throw new Error('menu-public-read-failed');
+        return response.json();
+      }).then(function(publicItem){
+        publicItem = publicItem || {};
+        var publicVerified = publicItem.name === name &&
+          Number(publicItem.price) === price &&
+          publicItem.available === available &&
+          publicItem.stockEnabled === stockEnabled &&
+          (!stockEnabled || Number(publicItem.stockRemaining) === stockRemaining);
+        if(!publicVerified) throw new Error('menu-public-verify-failed');
+      });
+    }).then(function(){
       if(statusEl){
-        statusEl.textContent = '已同步完成・' + new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+        statusEl.textContent = '已寫入並通過公開菜單驗證・' + new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
         statusEl.style.color = 'var(--sage)';
       }
       closeMenuEditor();
@@ -2413,7 +2427,11 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
         statusEl.textContent = '同步失敗，資料尚未確認寫入，請再試一次。';
         statusEl.style.color = 'var(--rose)';
       }
-      alert(err && err.message === 'menu-verify-failed' ? '資料已送出，但讀回結果不一致，請重新整理後再試一次。' : '菜單修改儲存失敗，請確認網路後再試一次。');
+      var message = '菜單修改儲存失敗，請確認網路後再試一次。';
+      if(err && err.message === 'menu-verify-failed') message = 'Firebase 寫入後讀回結果不一致，請重新整理後再試一次。';
+      if(err && err.message === 'menu-public-read-failed') message = '資料已寫入，但無法從公開菜單讀回；請檢查 Firebase Database Rules 的讀取權限。';
+      if(err && err.message === 'menu-public-verify-failed') message = '後台資料已寫入，但公開菜單仍是舊值；請檢查 Firebase Database Rules 或代理快取。';
+      alert(message);
     }).finally(function(){
       saveBtn.disabled = false;
       saveBtn.textContent = '儲存修改';
