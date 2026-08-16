@@ -104,7 +104,9 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 .main-tabs{
   display:flex;align-items:center;gap:4px;margin-bottom:18px;padding:5px;
   border:1px solid var(--line);border-radius:11px;background:rgba(25,20,32,.58);
+  scrollbar-width:none;
 }
+.main-tabs::-webkit-scrollbar{display:none;}
 .main-tab{
   padding:9px 17px;border-radius:7px;border:1px solid transparent;font-size:13px;
   cursor:pointer;color:var(--parchment-dim);transition:.18s ease;
@@ -120,6 +122,40 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 .access-badge.manager::before{background:var(--gold);}
 .main-tabs #adminLogoutBtn{margin-left:auto!important;border-color:transparent;}
 .main-tabs .access-badge+#adminLogoutBtn{margin-left:0!important;}
+.page-heading{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:4px 0 14px;
+}
+.page-heading-copy{min-width:0;}
+.page-eyebrow{display:block;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--mist);margin-bottom:5px;}
+.page-heading h2{font-family:'Noto Serif TC',serif;font-size:19px;font-weight:600;color:var(--parchment);margin:0 0 4px;}
+.page-heading p{font-size:11.5px;line-height:1.7;color:var(--parchment-dim);margin:0;}
+.order-console{padding:0;overflow:hidden;margin-bottom:16px;}
+.order-console-head{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,.75fr);gap:18px;align-items:center;
+  padding:18px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,rgba(202,160,107,.07),rgba(167,155,196,.035));
+}
+.order-console-head h2{font-family:'Noto Serif TC',serif;font-size:17px;margin:0 0 4px;color:var(--parchment);}
+.order-console-head p{font-size:11px;line-height:1.65;color:var(--parchment-dim);margin:0;}
+.order-console .identity-panel{
+  padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:rgba(25,20,32,.55);
+}
+.order-filter-bar{display:grid;grid-template-columns:minmax(0,auto) minmax(260px,1fr);gap:14px;align-items:center;padding:14px 18px;}
+.order-list-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 9px;}
+.order-list-heading h3{font-family:'Noto Serif TC',serif;font-size:13px;color:var(--parchment-dim);font-weight:500;margin:0;}
+.order-list-heading span{font-size:10.5px;color:var(--mist);}
+.special-page-intro{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(202,160,107,.24);
+  border-radius:9px;background:rgba(202,160,107,.055);color:var(--parchment-dim);font-size:11px;line-height:1.6;
+}
+.special-page-intro::before{content:'✦';color:var(--gold);font-size:12px;}
+.operations-section{margin-bottom:16px;}
+.operations-section>.panel{margin-bottom:0;}
+.operations-section-title{font-family:'Noto Serif TC',serif;font-size:13px;color:var(--gold);margin:0 0 8px 2px;}
+.operations-section-note{font-size:10.5px;color:var(--parchment-dim);margin:-3px 0 9px 2px;}
+.operations-tools-panel{padding:0;overflow:hidden;}
+.operations-tools-panel.operation-tools{margin-top:0;border-top:0;}
+.operations-tools-panel.operation-tools>summary{padding:14px 16px;}
+.operations-tools-panel .operation-tools-content{padding:0 16px 16px;border-top:1px solid var(--line);}
 .access-intro{font-size:12px;line-height:1.8;color:var(--parchment-dim);margin:0;}
 .access-list{display:grid;gap:8px;margin-top:12px;}
 .access-user{
@@ -226,6 +262,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   .order-tools{width:100%;}
   .sound-control-panel{grid-template-columns:1fr;gap:12px;}
   .sound-settings{grid-template-columns:1fr 1fr auto auto;}
+  .order-console-head{grid-template-columns:1fr;}
+  .order-filter-bar{grid-template-columns:1fr;}
 }
 
 .order-card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:var(--ink-deep);}
@@ -323,6 +361,10 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   .header{margin-bottom:12px;padding-bottom:12px;}
   .main-tabs{overflow-x:auto;flex-wrap:nowrap;position:sticky;top:0;z-index:90;background:rgba(25,20,32,.96);backdrop-filter:blur(12px);}
   .main-tab{flex:none;padding:9px 13px;}
+  .page-heading{align-items:flex-start;flex-direction:column;gap:10px;}
+  .order-console-head{padding:15px 13px;}
+  .order-filter-bar{padding:12px 13px;gap:12px;}
+  .order-console .identity-panel{padding:10px;}
   .access-badge{display:none;}
   .stats-row{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;}
   .stat:last-child{grid-column:1/-1;}
@@ -439,13 +481,15 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       <button class="btn primary" id="adminLoginBtn">登入</button>
     </div>
     <p id="loginError" style="font-size:12px;color:var(--rose);margin:8px 0 0;display:none;">帳號或密碼錯誤</p>
-    <p class="login-help">登入後會依帳號權限顯示可使用的功能。訂單人員只會看到訂單工作區；管理人員可使用完整後台。</p>
+    <p class="login-help">登入後會依帳號權限顯示可使用的功能。訂單人員可處理一般訂單與特殊服務；管理人員可使用營業、菜單與網站設定。</p>
   </div>
 
   <div id="adminArea" style="display:none;">
 
     <div class="main-tabs" id="mainTabs">
       <div class="main-tab active" data-main="orders">訂單</div>
+      <div class="main-tab" data-main="special">特殊服務</div>
+      <div class="main-tab manager-only" data-main="operations" data-manager-only>營業</div>
       <div class="main-tab manager-only" data-main="menu" data-manager-only>菜單</div>
       <div class="main-tab manager-only" data-main="staff" data-manager-only>店員</div>
       <div class="main-tab manager-only" data-main="reservations" data-manager-only>預約</div>
@@ -457,23 +501,117 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
     <!-- ============ 訂單管理 ============ -->
     <div id="ordersTab">
-      <div class="panel overview-panel">
-        <div class="overview-head">
+      <div class="page-heading">
+        <div class="page-heading-copy">
+          <span class="page-eyebrow">Order Queue</span>
+          <h2>即時訂單</h2>
+          <p>選擇目前身分後，依序處理待接單、服務中與已完成的訂單。</p>
+        </div>
+      </div>
+
+      <div class="panel order-console">
+        <div class="order-console-head">
           <div>
-            <span class="overview-kicker">Live Operations</span>
-            <h2>今日營業總覽</h2>
-            <p id="overviewDate">即時整理今天的訂單與待處理事項</p>
+            <h2>訂單工作區</h2>
+            <p>此頁只保留接單、指派、搜尋與訂單處理；營業設定已移至「營業」。</p>
           </div>
-          <div class="overview-actions">
-            <button class="btn ghost small manager-only" data-manager-only id="viewDailyReport">查看今日日報</button>
-            <button class="btn primary small manager-only" data-manager-only id="operationToggle">結束營業並產生日報</button>
+          <div class="identity-panel">
+            <label for="currentStaffSelect">操作店員</label>
+            <select id="currentStaffSelect" aria-label="選擇目前操作的店員"><option value="">請先選擇店員</option></select>
+            <span class="identity-help">選擇後可使用「由我接待」</span>
           </div>
         </div>
-        <div class="sound-control-panel" aria-label="新訂單提示音設定">
+        <div class="order-filter-bar">
+          <div class="tabs" id="orderSubTabs">
+            <div class="tab active" data-filter="active">進行中</div>
+            <div class="tab" data-filter="mine">我的訂單</div>
+            <div class="tab" data-filter="unassigned">待指派</div>
+            <div class="tab" data-filter="completed">已完成</div>
+            <div class="tab" data-filter="cancelled">已取消</div>
+            <div class="tab" data-filter="all">全部</div>
+          </div>
+          <div class="order-tools">
+            <input type="search" id="orderSearch" placeholder="搜尋編號、主人、餐點或店員">
+            <span class="order-search-hint" id="orderSearchHint"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="order-list-heading"><h3>訂單佇列</h3><span>最新訂單會優先顯示</span></div>
+      <div id="orderList"></div>
+    </div>
+
+    <!-- ============ 特殊服務 ============ -->
+    <div id="specialServicesTab" style="display:none;">
+      <div class="page-heading">
+        <div class="page-heading-copy">
+          <span class="page-eyebrow">Special Services</span>
+          <h2>特殊服務</h2>
+          <p>拍立得與 Lens 個人攝影獨立追蹤，避免和餐點訂單混在一起。</p>
+        </div>
+        <div class="special-page-intro">服務狀態會同步回原訂單，完成後不必再重複操作。</div>
+      </div>
+      <div class="panel special-workspace" id="specialServiceWorkspace">
+        <div class="special-workspace-head">
+          <div><h2>今日待辦</h2><p>依服務類型分開查看目前進度與負責店員。</p></div>
+        </div>
+        <div class="special-queue-grid">
+          <section class="special-queue-column" aria-labelledby="polaroidQueueTitle">
+            <div class="special-queue-title"><span id="polaroidQueueTitle">📷 拍立得</span><span class="special-queue-count" id="polaroidQueueCount">0</span></div>
+            <div id="polaroidQueue" class="special-queue-list"><div class="special-queue-empty">目前沒有待處理服務</div></div>
+          </section>
+          <section class="special-queue-column" aria-labelledby="lensQueueTitle">
+            <div class="special-queue-title"><span id="lensQueueTitle">✦ Lens 個人攝影</span><span class="special-queue-count" id="lensQueueCount">0</span></div>
+            <div id="lensQueue" class="special-queue-list"><div class="special-queue-empty">目前沒有待處理服務</div></div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 營業管理 ============ -->
+    <div id="operationsTab" class="manager-only" data-manager-only style="display:none;">
+      <div class="page-heading">
+        <div class="page-heading-copy">
+          <span class="page-eyebrow">Operations</span>
+          <h2>營業管理</h2>
+          <p>集中查看今日營業狀態、產生日報，以及調整這台裝置的通知設定。</p>
+        </div>
+      </div>
+
+      <section class="operations-section">
+        <h3 class="operations-section-title">今日概況</h3>
+        <div class="panel overview-panel">
+          <div class="overview-head">
+            <div>
+              <span class="overview-kicker">Live Operations</span>
+              <h2>今日營業總覽</h2>
+              <p id="overviewDate">即時整理今天的訂單與待處理事項</p>
+            </div>
+            <div class="overview-actions">
+              <button class="btn ghost small manager-only" data-manager-only id="viewDailyReport">查看今日日報</button>
+              <button class="btn primary small manager-only" data-manager-only id="operationToggle">結束營業並產生日報</button>
+            </div>
+          </div>
+          <div class="stats-row">
+            <div class="stat"><b id="statPending">0</b>待接單</div>
+            <div class="stat attention"><b id="statUnassigned">0</b>待指派</div>
+            <div class="stat caution"><b id="statOverdue">0</b>等待逾 10 分鐘</div>
+            <div class="stat"><b id="statSpecialPending">0</b>特殊服務待完成</div>
+            <div class="stat"><b id="statPreparing">0</b>服務中</div>
+            <div class="stat"><b id="statCompleted">0</b>今日完成</div>
+            <div class="stat"><b id="statTotalGil">0</b>今日訂單總額</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="operations-section">
+        <h3 class="operations-section-title">新訂單通知</h3>
+        <p class="operations-section-note">提示音設定只保存在目前使用的裝置。</p>
+        <div class="panel sound-control-panel" aria-label="新訂單提示音設定">
           <div class="sound-control-main">
             <span class="sound-control-icon" aria-hidden="true">🔔</span>
             <div class="sound-control-copy">
-              <strong>新訂單提醒</strong>
+              <strong>提示音</strong>
               <span id="soundCurrentLabel">提示音目前關閉</span>
             </div>
             <button class="btn sound-master-toggle" id="soundToggle">開啟提醒</button>
@@ -499,19 +637,14 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
             <div class="sound-file-note" id="customSoundStatus">可上傳 1.5 MB 內的短音效，設定只保存在這台裝置。</div>
           </div>
         </div>
-        <div class="stats-row">
-          <div class="stat"><b id="statPending">0</b>待接單</div>
-          <div class="stat attention"><b id="statUnassigned">0</b>待指派</div>
-          <div class="stat caution"><b id="statOverdue">0</b>等待逾 10 分鐘</div>
-          <div class="stat"><b id="statSpecialPending">0</b>特別服務待完成</div>
-          <div class="stat"><b id="statPreparing">0</b>服務中</div>
-          <div class="stat"><b id="statCompleted">0</b>今日完成</div>
-          <div class="stat"><b id="statTotalGil">0</b>今日訂單總額</div>
-        </div>
-        <details class="operation-tools">
-          <summary>系統狀態與營業工具</summary>
+      </section>
+
+      <section class="operations-section">
+        <h3 class="operations-section-title">系統與進階工具</h3>
+        <details class="panel operation-tools operations-tools-panel">
+          <summary>查看連線狀態與低頻率操作</summary>
           <div class="operation-tools-content">
-            <div class="row">
+            <div class="row" style="margin-top:14px;">
               <button class="btn ghost small manager-only" data-manager-only id="resetOrderNumber" style="border-color:var(--rose-dim);color:var(--rose);">重置訂單編號</button>
               <button class="btn ghost small" id="clearCustomSound">恢復內建提示音</button>
             </div>
@@ -524,52 +657,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
             </div>
           </div>
         </details>
-      </div>
-
-      <div class="panel order-workspace">
-        <div class="workspace-title-row">
-          <div><h2>訂單工作區</h2><p>先選擇身分，再處理目前需要服務的訂單</p></div>
-        </div>
-        <div class="workspace-controls">
-          <div class="identity-panel">
-            <label for="currentStaffSelect">操作店員</label>
-            <select id="currentStaffSelect" aria-label="選擇目前操作的店員"><option value="">請先選擇店員</option></select>
-            <span class="identity-help">選擇後可使用「由我接待」</span>
-          </div>
-        </div>
-        <div class="workspace-browse">
-          <div class="tabs" id="orderSubTabs">
-            <div class="tab active" data-filter="active">進行中</div>
-            <div class="tab" data-filter="mine">我的訂單</div>
-            <div class="tab" data-filter="unassigned">待指派</div>
-            <div class="tab" data-filter="completed">已完成</div>
-            <div class="tab" data-filter="cancelled">已取消</div>
-            <div class="tab" data-filter="all">全部</div>
-          </div>
-          <div class="order-tools">
-            <input type="search" id="orderSearch" placeholder="搜尋編號、主人、餐點或店員">
-            <span class="order-search-hint" id="orderSearchHint"></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel special-workspace" id="specialServiceWorkspace">
-        <div class="special-workspace-head">
-          <div><h2>特殊服務工作區</h2><p>拍立得與 Lens 個人攝影集中在這裡處理，不與一般餐點混在一起。</p></div>
-        </div>
-        <div class="special-queue-grid">
-          <section class="special-queue-column" aria-labelledby="polaroidQueueTitle">
-            <div class="special-queue-title"><span id="polaroidQueueTitle">📷 拍立得</span><span class="special-queue-count" id="polaroidQueueCount">0</span></div>
-            <div id="polaroidQueue" class="special-queue-list"><div class="special-queue-empty">目前沒有待處理服務</div></div>
-          </section>
-          <section class="special-queue-column" aria-labelledby="lensQueueTitle">
-            <div class="special-queue-title"><span id="lensQueueTitle">✦ Lens 個人攝影</span><span class="special-queue-count" id="lensQueueCount">0</span></div>
-            <div id="lensQueue" class="special-queue-list"><div class="special-queue-empty">目前沒有待處理服務</div></div>
-          </section>
-        </div>
-      </div>
-
-      <div id="orderList"></div>
+      </section>
     </div>
 
     <!-- ============ 菜單管理 ============ -->
@@ -1097,6 +1185,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     var ordersMainTab = document.querySelector('.main-tab[data-main="orders"]');
     if(ordersMainTab) ordersMainTab.classList.add('active');
     document.getElementById('ordersTab').style.display = 'block';
+    document.getElementById('specialServicesTab').style.display = 'none';
+    document.getElementById('operationsTab').style.display = 'none';
     document.getElementById('menuTab').style.display = 'none';
     document.getElementById('staffTab').style.display = 'none';
     document.getElementById('reservationsTab').style.display = 'none';
@@ -1438,13 +1528,15 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     var tab = e.target.closest('.main-tab');
     if(!tab) return;
     var target = tab.getAttribute('data-main');
-    if(target!=='orders' && !isManager()){
+    if(target!=='orders' && target!=='special' && !isManager()){
       showOrdersTab();
       return;
     }
     document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
     tab.classList.add('active');
     document.getElementById('ordersTab').style.display = target==='orders' ? 'block' : 'none';
+    document.getElementById('specialServicesTab').style.display = target==='special' ? 'block' : 'none';
+    document.getElementById('operationsTab').style.display = target==='operations' ? 'block' : 'none';
     document.getElementById('menuTab').style.display = target==='menu' ? 'block' : 'none';
     document.getElementById('staffTab').style.display = target==='staff' ? 'block' : 'none';
     document.getElementById('reservationsTab').style.display = target==='reservations' ? 'block' : 'none';
