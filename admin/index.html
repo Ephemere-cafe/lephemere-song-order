@@ -1989,7 +1989,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
           : '';
         return '<div>'+escapeHtml(it.name)+' × '+it.qty+extra+'</div>';
       }).join('');
-      if(!itemsHtml) itemsHtml = '<div class="order-items-empty">此單為特殊服務，請至上方「特殊服務工作區」處理。</div>';
+      if(!itemsHtml) itemsHtml = '<div class="order-items-empty">此單為特殊服務，請至「特殊服務」分頁處理。</div>';
       var elapsedStart = o.status==='pending' ? o.createdAt : (o.statusUpdatedAt||o.createdAt);
       var elapsedHtml = (o.status==='pending' || o.status==='preparing' || o.status==='served') && elapsedStart
         ? '<span class="order-elapsed" data-elapsed-start="'+elapsedStart+'" data-elapsed-status="'+o.status+'"></span>'
