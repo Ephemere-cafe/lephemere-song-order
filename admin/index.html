@@ -456,24 +456,33 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 .empty{font-size:12.5px;color:var(--parchment-dim);}
 
 /* reception queue */
+.main-tabs{position:sticky;top:8px;z-index:80;box-shadow:0 10px 26px rgba(10,8,16,.24);backdrop-filter:blur(12px);}
 .reception-console{padding:0;overflow:hidden;background:linear-gradient(145deg,rgba(55,46,66,.98),rgba(42,36,52,.98));}
 .reception-console-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(310px,.72fr);gap:18px;align-items:center;padding:17px 18px;border-bottom:1px solid var(--line);}
 .reception-identity{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:rgba(25,20,32,.58);}
 .reception-identity label{display:block;font-size:10.5px;color:var(--parchment-dim);margin-bottom:5px;}.reception-identity select{width:100%;}
+.reception-identity-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}.reception-identity-actions .btn{height:38px;}
 .presence-row{display:flex;gap:6px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid var(--line);}
 .presence-btn{padding:7px 11px;border:1px solid var(--line);border-radius:18px;background:transparent;color:var(--parchment-dim);font:inherit;font-size:11px;cursor:pointer;}
 .presence-btn.active{border-color:var(--sage-dim);color:var(--sage);background:rgba(143,166,136,.1);}
-.reception-grid{display:grid;grid-template-columns:minmax(250px,.8fr) minmax(300px,1fr) minmax(250px,.75fr);gap:14px;margin:14px 0;}
+.reception-overview{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:14px 0;}
+.reception-metric{padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);}
+.reception-metric-label{font-size:10px;color:var(--parchment-dim);letter-spacing:.05em;}.reception-metric-value{display:block;margin-top:3px;font-family:'Noto Serif TC',serif;font-size:24px;color:var(--gold);}.reception-metric-note{font-size:9.5px;color:var(--mist);}
+.reception-alerts{display:none;margin-bottom:14px;padding:0;overflow:hidden;border-color:rgba(192,123,138,.42);}.reception-alerts.visible{display:block;}.reception-alert-head{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;background:rgba(192,123,138,.09);font-size:11px;color:var(--rose);}.reception-alert-item{display:flex;justify-content:space-between;gap:12px;padding:9px 13px;border-top:1px solid var(--line);font-size:11px;color:var(--parchment-dim);}.reception-alert-item strong{color:var(--parchment);font-weight:500;}
+.reception-grid{display:grid;grid-template-columns:minmax(270px,.72fr) minmax(430px,1.28fr);gap:14px;margin:14px 0;align-items:start;}
 .reception-column{min-width:0;}.reception-column-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 8px;font-family:'Noto Serif TC',serif;font-size:13px;color:var(--parchment-dim);}
 .reception-count{min-width:25px;text-align:center;padding:2px 7px;border-radius:15px;background:rgba(167,155,196,.12);color:var(--mist);font:11px 'Noto Sans TC',sans-serif;}
-.visit-card{padding:13px 14px;margin-bottom:9px;border:1px solid var(--line);border-radius:10px;background:var(--card);}.visit-card.next{border-color:rgba(202,160,107,.42);box-shadow:inset 3px 0 0 var(--gold-dim);}.visit-card.mine{border-color:rgba(143,166,136,.34);}
+.visit-card{padding:13px 14px;margin-bottom:9px;border:1px solid var(--line);border-radius:10px;background:var(--card);}.visit-card.next{border-color:rgba(202,160,107,.42);box-shadow:inset 3px 0 0 var(--gold-dim);}.visit-card.mine{border-color:rgba(143,166,136,.34);}.visit-card.warning{border-color:rgba(202,160,107,.55);}.visit-card.urgent{border-color:rgba(192,123,138,.65);box-shadow:inset 3px 0 0 var(--rose-dim);}
 .visit-card-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}.visit-number{font-family:'Noto Serif TC',serif;font-size:20px;color:var(--gold);line-height:1;}.visit-name{font-size:14px;margin-top:5px;color:var(--parchment);}.visit-wait{font-size:10.5px;color:var(--rose);white-space:nowrap;}
 .visit-meta{margin-top:8px;font-size:10.5px;line-height:1.65;color:var(--parchment-dim);}.visit-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}.visit-tag{padding:3px 7px;border-radius:12px;background:rgba(167,155,196,.1);color:var(--mist);font-size:9.5px;}.visit-tag.reservation{background:rgba(202,160,107,.1);color:var(--gold);}
 .visit-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}.visit-actions select{max-width:150px;padding:5px 7px;font-size:11px;}
-.team-staff{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;border-bottom:1px solid var(--line);font-size:12px;}.team-staff:last-child{border-bottom:0;}.team-state{font-size:10px;color:var(--parchment-dim);}
+.guest-overview{margin-top:12px;padding-top:11px;border-top:1px solid var(--line);}.guest-overview-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;font-size:10.5px;color:var(--mist);}.guest-order-list{display:grid;gap:6px;}.guest-order{padding:8px 9px;border-radius:7px;background:var(--ink-deep);border:1px solid rgba(243,236,225,.07);}.guest-order-top{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;color:var(--gold);}.guest-order-items{font-size:10.5px;color:var(--parchment-dim);line-height:1.65;margin-top:4px;}.guest-order-alert{color:var(--rose);}.guest-order-empty{font-size:10.5px;color:var(--parchment-dim);padding:7px 0;}
+.guest-note{margin-top:9px;}.guest-note summary{cursor:pointer;font-size:10.5px;color:var(--mist);}.guest-note textarea{min-height:62px;margin-top:7px;font-size:11.5px;}.guest-note-actions{display:flex;justify-content:flex-end;margin-top:6px;}
+.team-section{grid-column:1/-1;}.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;}.team-staff{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 11px;border:1px solid var(--line);border-radius:8px;background:var(--card);font-size:12px;}.team-state{font-size:10px;color:var(--parchment-dim);}
+.copy-toast{position:fixed;right:22px;bottom:22px;z-index:240;padding:10px 14px;border-radius:8px;background:var(--sage-dim);color:var(--parchment);font-size:11.5px;box-shadow:0 10px 30px rgba(0,0,0,.28);opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s ease;}.copy-toast.show{opacity:1;transform:translateY(0);}
 .queue-empty{padding:18px 12px;text-align:center;border:1px dashed var(--line);border-radius:9px;color:var(--parchment-dim);font-size:11px;line-height:1.7;}
-@media(max-width:900px){.reception-grid{grid-template-columns:1fr 1fr}.reception-column.team{grid-column:1/-1}.reception-console-head{grid-template-columns:1fr}}
-@media(max-width:620px){.reception-grid{grid-template-columns:1fr}.reception-column.team{grid-column:auto}.reception-identity{grid-template-columns:1fr}.main-tabs{overflow-x:auto}.main-tab{flex:none}}
+@media(max-width:900px){.reception-grid{grid-template-columns:1fr}.reception-console-head{grid-template-columns:1fr}.reception-overview{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.reception-overview{grid-template-columns:1fr 1fr}.reception-identity{grid-template-columns:1fr}.main-tabs{overflow-x:auto}.main-tab{flex:none}.reception-alert-item{flex-direction:column;gap:3px}}
 </style>
 </head>
 <body>
@@ -528,15 +537,23 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       <div class="panel reception-console">
         <div class="reception-console-head">
           <div><span class="page-eyebrow">Your Station</span><h2 style="font-family:'Noto Serif TC',serif;font-size:17px;margin:0 0 5px;">我的接待台</h2><p style="font-size:11px;color:var(--parchment-dim);margin:0;line-height:1.7;">一位主人只會有一位負責女僕；需要換手時請使用正式轉交。</p></div>
-          <div class="reception-identity"><div><label for="receptionStaffSelect">目前操作女僕</label><select id="receptionStaffSelect"><option value="">請先選擇女僕</option></select></div><button class="btn primary" id="claimNextVisit" type="button">接待下一組</button></div>
+          <div class="reception-identity"><div><label for="receptionStaffSelect">目前操作女僕</label><select id="receptionStaffSelect"><option value="">請先選擇女僕</option></select></div><div class="reception-identity-actions"><button class="btn primary" id="claimNextVisit" type="button">接待下一組</button><button class="btn ghost manager-only" data-manager-only id="resetVisitQueue" type="button" style="border-color:var(--rose-dim);color:var(--rose);">重置今日候位</button></div></div>
         </div>
         <div class="presence-row" id="presenceButtons"><button class="presence-btn" data-presence="available">可接待</button><button class="presence-btn" data-presence="serving">接待中</button><button class="presence-btn" data-presence="photo">拍照中</button><button class="presence-btn" data-presence="away">暫離</button></div>
       </div>
-      <div class="reception-grid">
-        <section class="reception-column"><div class="reception-column-title"><span>下一組與候位</span><span class="reception-count" id="visitWaitingCount">0</span></div><div id="visitWaitingList"></div></section>
-        <section class="reception-column"><div class="reception-column-title"><span>我的主人</span><span class="reception-count" id="myVisitCount">0</span></div><div id="myVisitList"></div></section>
-        <section class="reception-column team"><div class="reception-column-title"><span>今日女僕狀態</span></div><div class="panel" id="staffPresenceList" style="padding:0;"></div></section>
+      <div class="reception-overview" aria-label="今日接待概況">
+        <div class="reception-metric"><span class="reception-metric-label">正在候位</span><strong class="reception-metric-value" id="receptionWaitingMetric">0</strong><span class="reception-metric-note">依序等待接待</span></div>
+        <div class="reception-metric"><span class="reception-metric-label">接待進行中</span><strong class="reception-metric-value" id="receptionActiveMetric">0</strong><span class="reception-metric-note">已有負責女僕</span></div>
+        <div class="reception-metric"><span class="reception-metric-label">可接待女僕</span><strong class="reception-metric-value" id="receptionAvailableMetric">0</strong><span class="reception-metric-note">目前狀態為可接待</span></div>
+        <div class="reception-metric"><span class="reception-metric-label">需要留意</span><strong class="reception-metric-value" id="receptionAlertMetric">0</strong><span class="reception-metric-note">候位或訂單已超時</span></div>
       </div>
+      <div class="panel reception-alerts" id="receptionAlerts"><div class="reception-alert-head"><span>需要優先處理</span><span id="receptionAlertCount">0 項</span></div><div id="receptionAlertList"></div></div>
+      <div class="reception-grid">
+        <section class="reception-column"><div class="reception-column-title"><span>候位隊列</span><span class="reception-count" id="visitWaitingCount">0</span></div><div id="visitWaitingList"></div></section>
+        <section class="reception-column"><div class="reception-column-title"><span>接待中主人總覽</span><span class="reception-count" id="myVisitCount">0</span></div><div id="myVisitList"></div></section>
+        <section class="reception-column team-section"><div class="reception-column-title"><span>今日女僕狀態</span></div><div class="team-grid" id="staffPresenceList"></div></section>
+      </div>
+      <div class="copy-toast" id="copyToast" role="status" aria-live="polite">叫號文字已複製</div>
     </div>
 
     <!-- ============ 訂單管理 ============ -->
@@ -951,7 +968,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
   var db;
   var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, staffSchedulesRef, menuRef, nextOrderNumberRef, webhookRef, operationStatusRef, dailyReportsRef, adminUsersRef, adminOwnerUidRef, siteMusicRef;
-  var visitsRef, staffPresenceRef, assignmentHistoryRef;
+  var visitsRef, visitQueueCounterRef, staffPresenceRef, assignmentHistoryRef;
 
   var orders = {};
   var visits = {};
@@ -1400,6 +1417,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     adminOwnerUidRef = todayStaffRef.child('_access/ownerUid');
     siteMusicRef = todayStaffRef.child('_site/backgroundMusic');
     visitsRef = db.ref('lephemere/visits');
+    visitQueueCounterRef = db.ref('lephemere/visitQueueCounter');
     staffPresenceRef = db.ref('lephemere/staffPresence');
     assignmentHistoryRef = db.ref('lephemere/assignmentHistory');
 
@@ -1457,6 +1475,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       orders = nextOrders;
       renderStats();
       renderOrders();
+      renderReception();
     });
 
     visitsRef.on('value', function(snap){
@@ -1529,6 +1548,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       });
       renderMenuManageList();
       renderOrders();
+      renderReception();
     });
 
     openDatesRef.on('value', function(snap){
@@ -1820,7 +1840,63 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     return '<option value="">轉交給…</option>'+ids.map(function(id){ return '<option value="'+escapeAttr(id)+'">'+escapeHtml(staffRoster[id].name||'未命名女僕')+'</option>'; }).join('');
   }
 
+  function ordersForVisit(visitId){
+    return Object.keys(orders).map(function(id){ return Object.assign({id:id},orders[id]||{}); }).filter(function(o){ return o.visitId===visitId; }).sort(function(a,b){ return Number(b.createdAt||0)-Number(a.createdAt||0); });
+  }
+
+  function visitUrgency(v,linkedOrders){
+    var level='';
+    if(v.status==='waiting'){
+      var waiting=waitMinutes(v.createdAt);
+      if(waiting>=20) level='urgent'; else if(waiting>=10) level='warning';
+    }else if(v.status==='assigned'){
+      var assigned=waitMinutes(v.assignedAt||v.updatedAt);
+      if(assigned>=10) level='urgent'; else if(assigned>=5) level='warning';
+    }
+    (linkedOrders||[]).forEach(function(o){
+      if(o.status!=='pending') return;
+      var minutes=waitMinutes(o.createdAt);
+      if(minutes>=20) level='urgent'; else if(minutes>=10 && level!=='urgent') level='warning';
+    });
+    return level;
+  }
+
+  function guestOrdersHtml(v){
+    var linked=ordersForVisit(v.id);
+    if(!linked.length) return '<div class="guest-order-empty">目前尚未送出訂單</div>';
+    return linked.map(function(o){
+      var items=(o.items||[]).map(function(item){ return escapeHtml(item.name||'品項')+' × '+Number(item.qty||1); }).join('、');
+      var overdue=o.status==='pending' && waitMinutes(o.createdAt)>=10;
+      var specialText=collectSpecialTags(o.items||[]).map(function(tag){
+        var state=o.specialServices&&o.specialServices[tag.key]&&o.specialServices[tag.key].status||'pending';
+        return tag.label+'：'+(state==='completed'?'完成':(state==='preparing'?'進行中':'待處理'));
+      }).join('・');
+      return '<div class="guest-order"><div class="guest-order-top"><span>#'+escapeHtml(o.orderNumber||'—')+'・'+escapeHtml(STATUS_LABEL[o.status]||o.status||'處理中')+'</span><span class="'+(overdue?'guest-order-alert':'')+'">'+(overdue?'待處理 '+waitMinutes(o.createdAt)+' 分':'')+(o.total?' '+fmtGil(o.total):'')+'</span></div><div class="guest-order-items">'+(items||'未列出品項')+(specialText?'<br>'+escapeHtml(specialText):'')+'</div></div>';
+    }).join('');
+  }
+
+  function receptionAlertsData(waiting,active){
+    var alerts=[];
+    waiting.forEach(function(v){
+      var minutes=waitMinutes(v.createdAt);
+      if(minutes>=10) alerts.push({title:(v.queueNumber||'候位')+' '+(v.characterName||'未填角色名'),detail:'已候位 '+minutes+' 分鐘，請確認是否仍在店內'});
+    });
+    active.forEach(function(v){
+      if(v.status==='assigned'){
+        var minutes=waitMinutes(v.assignedAt||v.updatedAt);
+        if(minutes>=5) alerts.push({title:(v.queueNumber||'候位')+' '+(v.characterName||'未填角色名'),detail:'已認領 '+minutes+' 分鐘，尚未按開始接待'});
+      }
+    });
+    Object.keys(orders).forEach(function(id){
+      var o=orders[id]||{};
+      if(o.status==='pending' && isToday(o.createdAt) && waitMinutes(o.createdAt)>=10) alerts.push({title:'訂單 #'+(o.orderNumber||'—')+' '+(o.name||''),detail:'已等待處理 '+waitMinutes(o.createdAt)+' 分鐘'});
+    });
+    return alerts;
+  }
+
   function visitCard(v,index,isMine){
+    var linkedOrders=ordersForVisit(v.id);
+    var urgency=visitUrgency(v,linkedOrders);
     var tags='';
     if(v.visitKind==='reservation') tags+='<span class="visit-tag reservation">預約'+(v.reservationRef?'｜'+escapeHtml(v.reservationRef):'')+'</span>';
     if(v.preferredStaffName) tags+='<span class="visit-tag">希望 '+escapeHtml(v.preferredStaffName)+'</span>';
@@ -1828,23 +1904,42 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     var actions='';
     if(isMine){
       if(v.status==='assigned') actions+='<button class="btn primary small" data-start-visit="'+v.id+'">開始接待</button>';
+      actions+='<button class="btn ghost small" data-copy-call="'+v.id+'">複製接待文字</button>';
       actions+='<button class="btn ghost small" data-complete-visit="'+v.id+'">結束接待</button>';
       actions+='<select data-transfer-visit="'+v.id+'">'+transferOptions(currentStaffId)+'</select>';
-    }else{
+    }else if(v.status==='waiting'){
+      actions+='<button class="btn primary small" data-copy-call="'+v.id+'">複製叫號</button>';
       actions+='<button class="btn ghost small" data-no-show-visit="'+v.id+'">叫號未到</button>';
+    }else{
+      actions+='<button class="btn ghost small" data-copy-call="'+v.id+'">複製接待文字</button>';
     }
-    return '<article class="visit-card '+(index===0&&!isMine?'next ':'')+(isMine?'mine':'')+'"><div class="visit-card-top"><div><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':'由你接待')+'</span></div><div class="visit-meta">'+(v.status==='waiting'?'依序候位中':'狀態｜'+(v.status==='serving'?'接待進行中':'等待你招呼'))+'</div><div class="visit-tags">'+tags+'</div>'+(actions?'<div class="visit-actions">'+actions+'</div>':'')+'</article>';
+    var noteAction=isMine?'<div class="guest-note-actions"><button class="btn ghost small" data-edit-visit-note="'+v.id+'">編輯備註</button></div>':'';
+    var overview=v.status!=='waiting'?'<div class="guest-overview"><div class="guest-overview-head"><span>訂單與服務</span><span>'+linkedOrders.length+' 筆訂單</span></div><div class="guest-order-list">'+guestOrdersHtml(v)+'</div><details class="guest-note"><summary>店內交接備註｜'+escapeHtml(v.internalNote||'尚未填寫')+'</summary>'+noteAction+'</details></div>':'';
+    return '<article class="visit-card '+(index===0&&v.status==='waiting'?'next ':'')+(isMine?'mine ':'')+urgency+'"><div class="visit-card-top"><div><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':(v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分'))+'</span></div><div class="visit-meta">'+(v.status==='waiting'?'依序候位中':'負責｜'+escapeHtml(v.assignedStaffName||'未命名女僕')+'・'+(v.status==='serving'?'接待進行中':'等待開始接待'))+'</div><div class="visit-tags">'+tags+'</div>'+(actions?'<div class="visit-actions">'+actions+'</div>':'')+overview+'</article>';
   }
 
   function renderReception(){
     var waiting=visitRows(['waiting']);
-    var mine=currentStaffId ? visitRows(['assigned','serving']).filter(function(v){ return v.assignedStaffId===currentStaffId; }) : [];
-    document.getElementById('visitWaitingCount').textContent=waiting.length;
-    document.getElementById('myVisitCount').textContent=mine.length;
-    document.getElementById('visitWaitingList').innerHTML=waiting.length?waiting.map(function(v,i){return visitCard(v,i,false);}).join(''):'<div class="queue-empty">目前沒有人候位。<br>自由參觀的客人不會出現在這裡。</div>';
-    document.getElementById('myVisitList').innerHTML=!currentStaffId?'<div class="queue-empty">請先選擇目前操作女僕。</div>':(mine.length?mine.map(function(v,i){return visitCard(v,i,true);}).join(''):'<div class="queue-empty">你目前沒有負責的主人。<br>有空時可接待下一組。</div>');
+    var active=visitRows(['assigned','serving']);
+    active.sort(function(a,b){
+      var am=currentStaffId && a.assignedStaffId===currentStaffId?0:1, bm=currentStaffId && b.assignedStaffId===currentStaffId?0:1;
+      return am!==bm?am-bm:Number(a.assignedAt||0)-Number(b.assignedAt||0);
+    });
     var duty=todayStaff.staffIds||[];
     var ids=(duty.length?duty:Object.keys(staffRoster)).filter(function(id){return staffRoster[id];});
+    var available=ids.filter(function(id){return (staffPresence[id]||{}).status==='available';}).length;
+    var alerts=receptionAlertsData(waiting,active);
+    document.getElementById('visitWaitingCount').textContent=waiting.length;
+    document.getElementById('myVisitCount').textContent=active.length;
+    document.getElementById('receptionWaitingMetric').textContent=waiting.length;
+    document.getElementById('receptionActiveMetric').textContent=active.length;
+    document.getElementById('receptionAvailableMetric').textContent=available;
+    document.getElementById('receptionAlertMetric').textContent=alerts.length;
+    document.getElementById('receptionAlertCount').textContent=alerts.length+' 項';
+    document.getElementById('receptionAlerts').classList.toggle('visible',alerts.length>0);
+    document.getElementById('receptionAlertList').innerHTML=alerts.map(function(a){return '<div class="reception-alert-item"><strong>'+escapeHtml(a.title)+'</strong><span>'+escapeHtml(a.detail)+'</span></div>';}).join('');
+    document.getElementById('visitWaitingList').innerHTML=waiting.length?waiting.map(function(v,i){return visitCard(v,i,false);}).join(''):'<div class="queue-empty">目前沒有人候位。<br>自由參觀的客人不會出現在這裡。</div>';
+    document.getElementById('myVisitList').innerHTML=active.length?active.map(function(v,i){return visitCard(v,i,!!currentStaffId&&v.assignedStaffId===currentStaffId);}).join(''):'<div class="queue-empty">目前沒有進行中的接待。<br>有空時可接待下一組。</div>';
     var label={available:'可接待',serving:'接待中',photo:'拍照中',away:'暫離'};
     document.getElementById('staffPresenceList').innerHTML=ids.length?ids.map(function(id){
       var state=(staffPresence[id]||{}).status||'away';
@@ -1882,12 +1977,68 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     });
   }
 
+  function visitCallText(v){
+    var guest=String(v.characterName||'主人').replace(/\s+/g,' ').trim();
+    var number=v.queueNumber||'目前號碼';
+    if(v.assignedStaffName) return '/sh '+guest+' 主人您好，候位號碼 '+number+'，現在由 '+v.assignedStaffName+' 女僕為您接待，請留意遊戲內的招呼。';
+    return '/sh '+guest+' 主人您好，候位號碼 '+number+' 已輪到您，請留意女僕前來接待。';
+  }
+
+  var copyToastTimer=null;
+  function showCopyToast(){
+    var toast=document.getElementById('copyToast');
+    toast.classList.add('show');
+    clearTimeout(copyToastTimer);
+    copyToastTimer=setTimeout(function(){toast.classList.remove('show');},1800);
+  }
+
+  function copyReceptionText(text){
+    var fallback=function(){
+      var area=document.createElement('textarea');
+      area.value=text; area.setAttribute('readonly',''); area.style.position='fixed'; area.style.opacity='0';
+      document.body.appendChild(area); area.select();
+      try{document.execCommand('copy');showCopyToast();}catch(err){prompt('請複製以下叫號文字：',text);}
+      document.body.removeChild(area);
+    };
+    if(navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(showCopyToast).catch(fallback);
+    else fallback();
+  }
+
+  document.getElementById('receptionTab').addEventListener('click',function(e){
+    var btn=e.target.closest('[data-copy-call]');
+    if(!btn) return;
+    var visit=visits[btn.getAttribute('data-copy-call')];
+    if(visit) copyReceptionText(visitCallText(visit));
+  });
+
   document.getElementById('receptionStaffSelect').addEventListener('change',function(){ setCurrentStaff(this.value); });
   document.getElementById('claimNextVisit').addEventListener('click',function(){
     if(!currentStaffId){ alert('請先選擇目前操作女僕。'); return; }
     var next=visitRows(['waiting']).find(function(v){ return !v.preferredStaffId || v.preferredStaffId===currentStaffId; });
     if(!next){ alert('目前沒有可由你接待的候位主人；指定其他女僕的主人會保留在原隊列。'); return; }
     claimVisit(next);
+  });
+  document.getElementById('resetVisitQueue').addEventListener('click',function(){
+    if(!isManager()) return;
+    var active=visitRows(['waiting','assigned','serving']);
+    var message='確定重置今天的候位號碼嗎？\n\n下一位客人會從 A001 重新開始。';
+    if(active.length) message+='\n目前 '+active.length+' 組進行中的候位會一併標記為取消，避免產生重複號碼。';
+    message+='\n已完成的接待與既有訂單不會刪除。';
+    if(!confirm(message)) return;
+    var updates={};
+    active.forEach(function(v){
+      updates[v.id+'/status']='cancelled';
+      updates[v.id+'/cancelledAt']=Date.now();
+      updates[v.id+'/updatedAt']=Date.now();
+      updates[v.id+'/cancelReason']='manager_queue_reset';
+    });
+    var resetVisits=Object.keys(updates).length ? visitsRef.update(updates) : Promise.resolve();
+    Promise.all([resetVisits,visitQueueCounterRef.child(todayKey()).set(0),recordVisitAssignment('',currentStaffId,'','reset-daily-queue')]).then(function(){
+      alert('今日候位已重置，下一位客人將取得 A001。');
+    }).catch(function(err){
+      console.error('Reset visit queue failed',err);
+      alert('候位重置失敗，請確認 Firebase 規則已更新。');
+    });
   });
   document.getElementById('presenceButtons').addEventListener('click',function(e){
     var btn=e.target.closest('[data-presence]'); if(!btn) return;
@@ -1902,6 +2053,14 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     visitsRef.child(id).update({status:'no_show',noShowAt:Date.now(),updatedAt:Date.now()});
   });
   document.getElementById('myVisitList').addEventListener('click',function(e){
+    var edit=e.target.closest('[data-edit-visit-note]');
+    if(edit){
+      var noteId=edit.getAttribute('data-edit-visit-note'), noteVisit=visits[noteId];
+      if(!noteVisit || noteVisit.assignedStaffId!==currentStaffId) return;
+      var nextNote=prompt('輸入這組主人的店內交接備註：',noteVisit.internalNote||'');
+      if(nextNote!==null) visitsRef.child(noteId).update({internalNote:nextNote.trim().slice(0,240)||null,internalNoteUpdatedAt:Date.now(),updatedAt:Date.now()});
+      return;
+    }
     var start=e.target.closest('[data-start-visit]'), complete=e.target.closest('[data-complete-visit]');
     var id=start?start.getAttribute('data-start-visit'):(complete?complete.getAttribute('data-complete-visit'):'');
     if(!id || !visits[id] || visits[id].assignedStaffId!==currentStaffId) return;
