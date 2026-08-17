@@ -101,7 +101,9 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 .visit-assignee{font-family:'Noto Serif TC',serif;color:var(--sage);font-size:18px;margin-top:8px;}
 .visit-help{font-size:11.5px;line-height:1.75;color:var(--parchment-dim);margin:10px 0 0;}
 .browse-badge{display:inline-flex;padding:4px 9px;border:1px solid rgba(167,155,196,.35);border-radius:20px;color:var(--mist);font-size:10.5px;}
+.visit-recovery-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
 @media(max-width:560px){.visit-choice-grid,.visit-form-row{grid-template-columns:1fr;}}
+@media(max-width:520px){.visit-recovery-actions{grid-template-columns:1fr;}}
 .row{display:flex;gap:8px;flex-wrap:wrap;}
 
 .btn{background:transparent;border:1px solid var(--gold-dim);color:var(--gold);border-radius:7px;padding:9px 16px;font-size:13px;font-family:inherit;cursor:pointer;white-space:nowrap;}
@@ -182,6 +184,17 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <button class="btn ghost" id="browseMenuBtn" type="button" style="margin-top:8px;width:100%;">瀏覽本日菜單</button>
   </div>
 
+  <div id="visitRecoveryPanel" class="panel visit-status-card" style="display:none;">
+    <div class="visit-status-label">找到尚未結束的候位</div>
+    <div class="visit-ticket" id="recoveryTicketNumber">A000</div>
+    <div id="recoveryVisitName" style="font-family:'Noto Serif TC',serif;font-size:16px;"></div>
+    <p class="visit-help">這個瀏覽器上次離開時仍有候位紀錄。請先確認是不是你的號碼，系統不會因重新開啟網頁而自動重排。</p>
+    <div class="visit-recovery-actions">
+      <button class="btn primary" id="resumeVisit" type="button">繼續這次候位</button>
+      <button class="btn ghost" id="forgetRecoveredVisit" type="button">這不是我的號碼</button>
+    </div>
+  </div>
+
   <div id="visitStatusPanel" class="panel visit-status-card" style="display:none;">
     <div class="visit-status-label" id="visitStatusBadge">等待接待</div>
     <div class="visit-ticket" id="visitTicketNumber">A000</div>
@@ -190,6 +203,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <div class="visit-meta" id="visitStatusMeta"></div>
     <p class="visit-help" id="visitStatusHelp">請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。</p>
     <button class="btn ghost" id="cancelVisitQueue" type="button" style="margin-top:12px;">取消候位／改為自由參觀</button>
+    <button class="btn ghost" id="forgetVisitSession" type="button" style="margin-top:8px;border:0;width:100%;font-size:11px;">這不是我的候位號碼</button>
   </div>
 
   <div id="successBox" class="success-box" style="display:none;">
@@ -262,6 +276,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   var todayStaff = {};
   var activeVisit = null;
   var activeVisitId = localStorage.getItem('lephemereActiveVisitId') || '';
+  var activeVisitSessionId = sessionStorage.getItem('lephemereActiveVisitSessionId') || '';
+  var visitRecoveryPending = !!activeVisitId && activeVisitSessionId!==activeVisitId;
   var browseMode = false;
   var menuSyncTimer = null;
   var menuSyncBusy = false;
@@ -348,7 +364,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   }
 
   function setVisitView(view){
-    ['visitGate','visitRegister','browsePanel','visitStatusPanel'].forEach(function(id){
+    ['visitGate','visitRegister','browsePanel','visitRecoveryPanel','visitStatusPanel'].forEach(function(id){
       document.getElementById(id).style.display = id===view ? 'block' : 'none';
     });
   }
@@ -377,7 +393,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   function updateVisitStatus(){
     activeVisit = activeVisitId && visits[activeVisitId] ? Object.assign({id:activeVisitId}, visits[activeVisitId]) : null;
     if(!activeVisit){
-      if(activeVisitId){ localStorage.removeItem('lephemereActiveVisitId'); activeVisitId=''; }
+      if(activeVisitId){ localStorage.removeItem('lephemereActiveVisitId'); sessionStorage.removeItem('lephemereActiveVisitSessionId'); activeVisitId=''; }
+      visitRecoveryPending=false;
       if(!browseMode) setVisitView('visitGate');
       document.getElementById('orderFlow').style.display = browseMode ? 'block' : 'none';
       renderOperationStatus();
@@ -386,7 +403,9 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     }
     if(activeVisit.businessDate!==visitDateKey()){
       localStorage.removeItem('lephemereActiveVisitId');
+      sessionStorage.removeItem('lephemereActiveVisitSessionId');
       activeVisitId=''; activeVisit=null; browseMode=false;
+      visitRecoveryPending=false;
       setVisitView('visitGate');
       document.getElementById('orderFlow').style.display='none';
       renderOperationStatus();
@@ -395,9 +414,21 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     }
     if(['completed','cancelled','no_show'].indexOf(activeVisit.status)!==-1){
       localStorage.removeItem('lephemereActiveVisitId');
+      sessionStorage.removeItem('lephemereActiveVisitSessionId');
       activeVisitId=''; activeVisit=null; browseMode=true;
+      visitRecoveryPending=false;
       setVisitView('browsePanel');
       showBrowseMenu(false);
+      renderOperationStatus();
+      renderMenu();
+      return;
+    }
+    if(visitRecoveryPending){
+      browseMode=false;
+      setVisitView('visitRecoveryPanel');
+      document.getElementById('orderFlow').style.display='none';
+      document.getElementById('recoveryTicketNumber').textContent=activeVisit.queueNumber||'候位中';
+      document.getElementById('recoveryVisitName').textContent=(activeVisit.characterName||'未填角色名')+(activeVisit.world?' @ '+activeVisit.world:'');
       renderOperationStatus();
       renderMenu();
       return;
@@ -446,6 +477,29 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     document.getElementById('visitReservation').style.display = this.value==='reservation' ? 'block' : 'none';
   });
 
+  function forgetLocalVisit(){
+    localStorage.removeItem('lephemereActiveVisitId');
+    sessionStorage.removeItem('lephemereActiveVisitSessionId');
+    activeVisitId=''; activeVisitSessionId=''; activeVisit=null; visitRecoveryPending=false; browseMode=false;
+    document.getElementById('successBox').style.display='none';
+    document.getElementById('orderFlow').style.display='none';
+    setVisitView('visitGate');
+    renderOperationStatus();
+    renderMenu();
+  }
+
+  document.getElementById('resumeVisit').addEventListener('click',function(){
+    if(!activeVisitId) return;
+    activeVisitSessionId=activeVisitId;
+    sessionStorage.setItem('lephemereActiveVisitSessionId',activeVisitId);
+    visitRecoveryPending=false;
+    updateVisitStatus();
+  });
+  document.getElementById('forgetRecoveredVisit').addEventListener('click',forgetLocalVisit);
+  document.getElementById('forgetVisitSession').addEventListener('click',function(){
+    if(confirm('確定這不是你的候位號碼嗎？\n這只會清除此裝置的顯示，不會取消後台中的候位。')) forgetLocalVisit();
+  });
+
   document.getElementById('joinVisitQueue').addEventListener('click', function(){
     var err = document.getElementById('visitError');
     var name = document.getElementById('visitCharacter').value.trim();
@@ -478,6 +532,9 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       return visitsRef.child(id).set(visitRecord).then(function(){
         activeVisitId=id;
         localStorage.setItem('lephemereActiveVisitId',id);
+        activeVisitSessionId=id;
+        sessionStorage.setItem('lephemereActiveVisitSessionId',id);
+        visitRecoveryPending=false;
         visits[id]=visitRecord;
         updateVisitStatus();
       });
@@ -498,7 +555,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     var closed = operationStatus.isOpen===false;
     document.getElementById('operationBanner').style.display = closed ? 'block' : 'none';
     var btn = document.getElementById('submitOrder');
-    var canOrder = !!activeVisit && (activeVisit.status==='assigned' || activeVisit.status==='serving');
+    var canOrder = !!activeVisit && !visitRecoveryPending && (activeVisit.status==='assigned' || activeVisit.status==='serving');
     btn.disabled = closed || !canOrder;
     btn.textContent = closed ? '目前未開放點餐' : (canOrder ? '送出訂單' : '接待後即可點餐');
   }
