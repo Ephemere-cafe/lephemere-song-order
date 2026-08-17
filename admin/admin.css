@@ -417,6 +417,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 .staff-editor-body{padding:12px;border-top:1px solid var(--line);}
 .staff-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .staff-editor-grid .wide{grid-column:1/-1;}
+.staff-editor-grid .staff-call-template{min-height:76px;font-size:12px;line-height:1.65;}
+.staff-template-help{margin:0;color:var(--parchment-dim);font-size:10.5px;line-height:1.6;}
 .staff-editor-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
 .staff-help{font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;line-height:1.65;}
 .schedule-save-status{font-size:11.5px;color:var(--parchment-dim);}

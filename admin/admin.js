@@ -1077,13 +1077,27 @@
     });
   }
 
+  var DEFAULT_VISIT_CALL_TEMPLATE='/t {角色名}@{伺服器} 主人您好，候位號碼 {候位號碼} 已輪到您，請留意女僕前來接待。';
+
   function visitCallText(v){
     var guest=String(v.characterName||'主人').replace(/\s+/g,' ').trim();
     var world=String(v.world||'').replace(/\s+/g,'').trim();
     var number=v.queueNumber||'目前號碼';
-    var command=world ? '/t '+guest+'@'+world+' ' : '/sh '+guest+' ';
-    if(v.assignedStaffName) return command+'主人您好，候位號碼 '+number+' 已輪到您，現在由 '+v.assignedStaffName+' 女僕為您接待，請留意遊戲內的招呼。';
-    return command+'主人您好，候位號碼 '+number+' 已輪到您，請留意女僕前來接待。';
+    var staffId=v.assignedStaffId||currentStaffId||'';
+    if(!staffId && v.assignedStaffName){
+      staffId=Object.keys(staffRoster).find(function(id){return String((staffRoster[id]||{}).name||'')===String(v.assignedStaffName||'');})||'';
+    }
+    var staff=staffRoster[staffId]||{};
+    var staffName=String(staff.name||v.assignedStaffName||'女僕').trim();
+    var template=String(staff.callTemplate||DEFAULT_VISIT_CALL_TEMPLATE).trim()||DEFAULT_VISIT_CALL_TEMPLATE;
+    if(!world && template===DEFAULT_VISIT_CALL_TEMPLATE){
+      return '/sh '+guest+' 主人您好，候位號碼 '+number+' 已輪到您，請留意女僕前來接待。';
+    }
+    return template
+      .replace(/\{角色名\}/g,guest)
+      .replace(/\{伺服器\}/g,world)
+      .replace(/\{候位號碼\}/g,number)
+      .replace(/\{女僕名\}/g,staffName);
   }
 
   var copyToastTimer=null;
@@ -2181,6 +2195,8 @@
         + '<input type="text" data-staff-field="role" value="'+escapeAttr(s.role || '')+'" placeholder="職位（如：女僕／樂手）">'
         + '<input class="wide" type="text" data-staff-field="quote" value="'+escapeAttr(s.quote || '')+'" placeholder="官網個人介紹（選填）">'
         + '<input class="wide" type="url" data-staff-field="threads" value="'+escapeAttr(s.threads || '')+'" placeholder="Threads 網址（選填）">'
+        + '<textarea class="wide staff-call-template" data-staff-field="callTemplate" maxlength="300" placeholder="個人叫號文字模板">'+escapeHtml(s.callTemplate || DEFAULT_VISIT_CALL_TEMPLATE)+'</textarea>'
+        + '<p class="wide staff-template-help">可用變數：{角色名}、{伺服器}、{候位號碼}、{女僕名}。請保留 FF14 指令開頭，例如 /t {角色名}@{伺服器}</p>'
         + '</div><div class="staff-editor-actions">'
         + '<button class="btn primary small" data-save-staff="'+k+'">儲存修改</button>'
         + '<button class="btn ghost small" data-photo-staff="'+k+'">設定頭貼</button>'
@@ -2196,9 +2212,12 @@
         var role = card.querySelector('[data-staff-field="role"]').value.trim();
         var quote = card.querySelector('[data-staff-field="quote"]').value.trim();
         var threads = card.querySelector('[data-staff-field="threads"]').value.trim();
+        var callTemplate = card.querySelector('[data-staff-field="callTemplate"]').value.trim();
         if(!name){ alert('請填寫店員名稱。'); return; }
         if(threads && !/^https:\/\//i.test(threads)){ alert('Threads 網址請以 https:// 開頭。'); return; }
-        staffRosterRef.child(id).update({name:name, role:role, quote:quote, threads:threads, updatedAt:Date.now()});
+        if(callTemplate && callTemplate.indexOf('{角色名}')===-1){ alert('叫號文字模板需要包含 {角色名}。'); return; }
+        if(callTemplate && callTemplate.indexOf('{候位號碼}')===-1){ alert('叫號文字模板需要包含 {候位號碼}。'); return; }
+        staffRosterRef.child(id).update({name:name, role:role, quote:quote, threads:threads, callTemplate:callTemplate||DEFAULT_VISIT_CALL_TEMPLATE, updatedAt:Date.now()});
       });
     });
     el.querySelectorAll('[data-photo-staff]').forEach(function(btn){
