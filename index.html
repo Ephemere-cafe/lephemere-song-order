@@ -569,12 +569,26 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         activeVisitSessionId=id;
         sessionStorage.setItem('lephemereActiveVisitSessionId',id);
         visitRecoveryPending=false;
-        visits[id]=visitRecord;
         watchActiveVisit(id);
+        // watchActiveVisit 會先清空舊快照；要在啟動監聽後再放回剛建立的資料，
+        // 否則下一行更新畫面時會誤判候位不存在並清除新號碼。
+        visits[id]=visitRecord;
         updateVisitStatus();
       });
-    }).catch(function(){
-      err.textContent='候位登記失敗，請請店員協助登記'; err.style.display='block';
+    }).catch(function(error){
+      console.error('候位登記失敗', error);
+      var code=String((error&&error.code)||'').toLowerCase();
+      var message=String((error&&error.message)||'').toLowerCase();
+      if(code.indexOf('permission')!==-1 || message.indexOf('permission')!==-1){
+        err.textContent='候位寫入被 Firebase 權限拒絕，請店員確認 Realtime Database 規則已發布';
+      }else if(code.indexOf('network')!==-1 || message.indexOf('network')!==-1){
+        err.textContent='目前網路連線不穩定，請確認連線後再試一次';
+      }else if(message.indexOf('queue-number')!==-1){
+        err.textContent='候位號碼建立失敗，請店員協助登記';
+      }else{
+        err.textContent='候位登記失敗，請店員協助登記';
+      }
+      err.style.display='block';
     }).finally(function(){ btn.disabled=false; btn.textContent='領取候位號碼'; renderOperationStatus(); });
   });
 
