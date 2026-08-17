@@ -1079,9 +1079,11 @@
 
   function visitCallText(v){
     var guest=String(v.characterName||'主人').replace(/\s+/g,' ').trim();
+    var world=String(v.world||'').replace(/\s+/g,'').trim();
     var number=v.queueNumber||'目前號碼';
-    if(v.assignedStaffName) return '/sh '+guest+' 主人您好，候位號碼 '+number+'，現在由 '+v.assignedStaffName+' 女僕為您接待，請留意遊戲內的招呼。';
-    return '/sh '+guest+' 主人您好，候位號碼 '+number+' 已輪到您，請留意女僕前來接待。';
+    var command=world ? '/t '+guest+'@'+world+' ' : '/sh '+guest+' ';
+    if(v.assignedStaffName) return command+'主人您好，候位號碼 '+number+' 已輪到您，現在由 '+v.assignedStaffName+' 女僕為您接待，請留意遊戲內的招呼。';
+    return command+'主人您好，候位號碼 '+number+' 已輪到您，請留意女僕前來接待。';
   }
 
   var copyToastTimer=null;
