@@ -162,7 +162,16 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <div class="visit-form">
       <div class="visit-form-row">
         <input type="text" id="visitCharacter" maxlength="40" placeholder="角色名稱，例如 Alice Example">
-        <input type="text" id="visitWorld" maxlength="24" placeholder="伺服器">
+        <select id="visitWorld" aria-label="選擇伺服器">
+          <option value="">請選擇伺服器</option>
+          <option value="利維坦">利維坦</option>
+          <option value="伊弗利特">伊弗利特</option>
+          <option value="鳳凰">鳳凰</option>
+          <option value="迦樓羅">迦樓羅</option>
+          <option value="奧汀">奧汀</option>
+          <option value="巴哈姆特">巴哈姆特</option>
+          <option value="泰坦">泰坦</option>
+        </select>
       </div>
       <div class="visit-form-row">
         <label>本次同行人數<select id="visitPartySize"><option value="1">1 人</option><option value="2">2 人</option><option value="3">3 人</option><option value="4">4 人以上</option></select></label>
@@ -245,6 +254,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 <script>
 (function(){
@@ -267,9 +277,10 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
   var cart = {}; // id -> {name, price, qty, addon:{label,price}|null}
   var pendingAddons = {}; // remembers add-ons selected before the base item is added
-  var db, ordersRef, nextOrderNumberRef, webhookRef, menuRef, operationStatusRef;
+  var db, ordersRef, nextOrderNumberRef, menuRef, operationStatusRef;
   var visitsRef, visitQueueCounterRef, staffRosterRef, todayStaffRef;
-  var webhookUrl = '';
+  var currentVisitorUid = '';
+  var activeVisitListenerRef = null;
   var operationStatus = { isOpen:true };
   var visits = {};
   var staffRoster = {};
@@ -310,7 +321,6 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     db = firebase.database();
     ordersRef = db.ref('lephemere/orders');
     nextOrderNumberRef = db.ref('lephemere/nextOrderNumber');
-    webhookRef = db.ref('lephemere/webhookUrl');
     menuRef = db.ref('lephemere/menu');
     operationStatusRef = db.ref('lephemere/operationStatus');
     visitsRef = db.ref('lephemere/visits');
@@ -322,17 +332,22 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       document.getElementById('connDot').className = snap.val()===true ? 'dot online' : 'dot offline';
     });
 
-    webhookRef.on('value', function(snap){ webhookUrl = snap.val() || ''; });
-
     operationStatusRef.on('value', function(snap){
       operationStatus = snap.val() || { isOpen:true };
       renderOperationStatus();
       renderMenu();
     });
 
-    visitsRef.on('value', function(snap){
-      visits = snap.val() || {};
-      updateVisitStatus();
+    firebase.auth().onAuthStateChanged(function(user){
+      if(user){
+        currentVisitorUid=user.uid;
+        watchActiveVisit(activeVisitId);
+      }else{
+        firebase.auth().signInAnonymously().catch(function(){
+          document.getElementById('configWarn').textContent='無法建立安全訪客身分，請通知店員檢查 Firebase 匿名登入設定。';
+          document.getElementById('configWarn').style.display='block';
+        });
+      }
     });
 
     staffRosterRef.on('value', function(snap){
@@ -361,6 +376,21 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   function visitDateKey(){
     var d = new Date();
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  function watchActiveVisit(id){
+    if(activeVisitListenerRef) activeVisitListenerRef.off();
+    activeVisitListenerRef=null;
+    visits={};
+    if(!id || !visitsRef){ updateVisitStatus(); return; }
+    activeVisitListenerRef=visitsRef.child(id);
+    activeVisitListenerRef.on('value',function(snap){
+      visits={};
+      if(snap.exists()) visits[id]=snap.val();
+      updateVisitStatus();
+    },function(){
+      forgetLocalVisit();
+    });
   }
 
   function setVisitView(view){
@@ -436,15 +466,13 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     browseMode=false;
     setVisitView('visitStatusPanel');
     document.getElementById('visitTicketNumber').textContent = activeVisit.queueNumber || '候位中';
-    var queue = waitingVisits();
-    var position = queue.findIndex(function(v){ return v.id===activeVisitId; });
     var assigned = activeVisit.status==='assigned' || activeVisit.status==='serving';
     document.getElementById('visitStatusBadge').textContent = assigned ? (activeVisit.status==='serving'?'接待進行中':'已安排接待') : '等待接待';
     document.getElementById('visitStatusTitle').textContent = assigned ? '女僕已接下您的接待' : '女僕正在依序為大家準備';
     document.getElementById('visitAssignee').textContent = assigned ? '負責女僕｜'+(activeVisit.assignedStaffName||'店員') : '';
     document.getElementById('visitStatusMeta').textContent = assigned
       ? '請留意遊戲內的招呼；接待開始後即可在下方點餐。'
-      : (position>=0 ? '目前前方約有 '+position+' 組｜同行 '+Number(activeVisit.partySize||1)+' 人' : '正在更新候位狀態…');
+      : '候位號碼已登記｜同行 '+Number(activeVisit.partySize||1)+' 人';
     document.getElementById('visitStatusHelp').textContent = assigned
       ? '若需要離開、轉交其他女僕或結束接待，請直接告知負責女僕。'
       : (activeVisit.preferredStaffName ? '您希望由 '+activeVisit.preferredStaffName+' 接待，因此等待時間可能較長。' : '請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。');
@@ -481,6 +509,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     localStorage.removeItem('lephemereActiveVisitId');
     sessionStorage.removeItem('lephemereActiveVisitSessionId');
     activeVisitId=''; activeVisitSessionId=''; activeVisit=null; visitRecoveryPending=false; browseMode=false;
+    if(activeVisitListenerRef){activeVisitListenerRef.off();activeVisitListenerRef=null;}
+    visits={};
     document.getElementById('successBox').style.display='none';
     document.getElementById('orderFlow').style.display='none';
     setVisitView('visitGate');
@@ -504,6 +534,9 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     var err = document.getElementById('visitError');
     var name = document.getElementById('visitCharacter').value.trim();
     if(!name){ err.textContent='請填寫遊戲角色名稱'; err.style.display='block'; return; }
+    if(!document.getElementById('visitWorld').value){ err.textContent='請選擇角色所在伺服器'; err.style.display='block'; return; }
+    if(operationStatus.isOpen===false){ err.textContent='本日接待已結束，目前無法領取候位號碼'; err.style.display='block'; return; }
+    if(!currentVisitorUid){ err.textContent='正在建立安全訪客身分，請稍後再試'; err.style.display='block'; return; }
     if(!visitsRef){ err.textContent='系統尚未連線，請稍後再試'; err.style.display='block'; return; }
     err.style.display='none';
     var btn=this; btn.disabled=true; btn.textContent='正在領號…';
@@ -524,6 +557,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         reservationRef:document.getElementById('visitReservation').value.trim(),
         preferredStaffId:staffId,
         preferredStaffName:staffName,
+        ownerUid:currentVisitorUid,
         status:'waiting',
         businessDate:day,
         createdAt:now,
@@ -536,11 +570,12 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         sessionStorage.setItem('lephemereActiveVisitSessionId',id);
         visitRecoveryPending=false;
         visits[id]=visitRecord;
+        watchActiveVisit(id);
         updateVisitStatus();
       });
     }).catch(function(){
       err.textContent='候位登記失敗，請請店員協助登記'; err.style.display='block';
-    }).finally(function(){ btn.disabled=false; btn.textContent='領取候位號碼'; });
+    }).finally(function(){ btn.disabled=false; btn.textContent='領取候位號碼'; renderOperationStatus(); });
   });
 
   document.getElementById('cancelVisitQueue').addEventListener('click', function(){
@@ -554,6 +589,11 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   function renderOperationStatus(){
     var closed = operationStatus.isOpen===false;
     document.getElementById('operationBanner').style.display = closed ? 'block' : 'none';
+    document.getElementById('chooseService').disabled=closed;
+    document.getElementById('browseToQueue').disabled=closed;
+    var queueBtn=document.getElementById('joinVisitQueue');
+    if(closed){queueBtn.disabled=true;queueBtn.textContent='本日接待已結束';}
+    else if(queueBtn.textContent!=='正在領號…'){queueBtn.disabled=false;queueBtn.textContent='領取候位號碼';}
     var btn = document.getElementById('submitOrder');
     var canOrder = !!activeVisit && !visitRecoveryPending && (activeVisit.status==='assigned' || activeVisit.status==='serving');
     btn.disabled = closed || !canOrder;
@@ -824,15 +864,6 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   }
 
   // ---------- submit ----------
-  function sendDiscordNotification(text){
-    if(!webhookUrl) return;
-    fetch(webhookUrl, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({content:text})
-    }).catch(function(){});
-  }
-
   function releaseLimitedStock(reservations){
     return Promise.all(Object.keys(reservations||{}).map(function(id){
       var qty = Number(reservations[id]||0);
@@ -913,7 +944,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
     var items = ids.map(function(id){
       var line = cart[id];
-      return { id:id, name:line.name, price:line.price, qty:line.qty, addon: line.addon };
+      return { id:id, name:line.name, price:line.price, qty:line.qty, serviceType:(menuItems[id]&&menuItems[id].serviceType)||'food', addon: line.addon };
     });
 
     var reservedStock = {};
@@ -925,6 +956,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       var orderId = ordersRef.push().key;
       return ordersRef.child(orderId).set({
         orderNumber: orderNumber,
+        ownerUid: currentVisitorUid,
         visitId: activeVisitId,
         queueNumber: activeVisit.queueNumber || '',
         assignedStaffId: activeVisit.assignedStaffId || '',
@@ -938,14 +970,6 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         stockReleased: false,
         createdAt: Date.now()
       }).then(function(){
-        var lines = items.map(function(item){
-          var extra = item.addon ? '（＋'+item.addon.label+' × '+item.qty+'）' : '';
-          return '・'+item.name+' × '+item.qty+extra;
-        }).join('\n');
-        sendDiscordNotification('新的點餐訂單 #'+orderNumber+'\n'
-          +name+(note?'（'+note+'）':'')+'\n'
-          +lines+'\n總計：'+fmtGil(total));
-
         document.getElementById('successNumber').textContent = '#'+orderNumber;
         document.getElementById('orderFlow').style.display = 'none';
         document.getElementById('successBox').style.display = 'block';
