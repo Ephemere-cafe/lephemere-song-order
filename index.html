@@ -84,6 +84,24 @@ input[type=text]{
 }
 input::placeholder{color:var(--parchment-dim);}
 input:focus{outline:none;border-color:var(--gold-dim);}
+.visit-choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.visit-choice{padding:16px 14px;text-align:left;border:1px solid var(--line);border-radius:9px;background:var(--ink-deep);color:var(--parchment);cursor:pointer;font-family:inherit;}
+.visit-choice:hover{border-color:var(--gold-dim);}
+.visit-choice strong{display:block;color:var(--gold);font-family:'Noto Serif TC',serif;font-size:15px;margin-bottom:5px;}
+.visit-choice span{display:block;color:var(--parchment-dim);font-size:11.5px;line-height:1.65;}
+.visit-form{display:grid;gap:9px;}
+.visit-form select,.visit-form input{background:var(--ink-deep);border:1px solid var(--line);color:var(--parchment);border-radius:7px;padding:9px 11px;font-size:13px;font-family:inherit;width:100%;}
+.visit-form label{font-size:11.5px;color:var(--parchment-dim);}
+.visit-form-row{display:grid;grid-template-columns:1.3fr .7fr;gap:8px;}
+.visit-status-card{text-align:center;padding:20px 16px;}
+.visit-ticket{font-family:'Noto Serif TC',serif;font-size:34px;color:var(--gold);margin:7px 0;letter-spacing:.06em;}
+.visit-status-label{display:inline-flex;padding:4px 10px;border-radius:20px;border:1px solid var(--gold-dim);color:var(--gold);font-size:11px;}
+.visit-status-label.assigned{border-color:var(--sage-dim);color:var(--sage);}
+.visit-meta{font-size:12px;color:var(--parchment-dim);line-height:1.8;margin-top:10px;}
+.visit-assignee{font-family:'Noto Serif TC',serif;color:var(--sage);font-size:18px;margin-top:8px;}
+.visit-help{font-size:11.5px;line-height:1.75;color:var(--parchment-dim);margin:10px 0 0;}
+.browse-badge{display:inline-flex;padding:4px 9px;border:1px solid rgba(167,155,196,.35);border-radius:20px;color:var(--mist);font-size:10.5px;}
+@media(max-width:560px){.visit-choice-grid,.visit-form-row{grid-template-columns:1fr;}}
 .row{display:flex;gap:8px;flex-wrap:wrap;}
 
 .btn{background:transparent;border:1px solid var(--gold-dim);color:var(--gold);border-radius:7px;padding:9px 16px;font-size:13px;font-family:inherit;cursor:pointer;white-space:nowrap;}
@@ -128,6 +146,52 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     目前已結束線上點餐，菜單仍可瀏覽。若您已在店內，請直接詢問女僕。
   </div>
 
+  <div id="visitGate" class="panel">
+    <p class="panel-title">Welcome Home｜入店方式</p>
+    <div class="visit-choice-grid">
+      <button class="visit-choice" id="chooseService" type="button"><strong>需要女僕接待</strong><span>準備用餐、聊天或體驗服務，登記後依序候位。</span></button>
+      <button class="visit-choice" id="chooseBrowse" type="button"><strong>自由參觀</strong><span>只想看看裝潢、拍照、等朋友或自由交流，不占接待名額。</span></button>
+    </div>
+    <p class="visit-help">一組同行主人只需由一位代表登記。若之後想接受服務，可隨時加入候位。</p>
+  </div>
+
+  <div id="visitRegister" class="panel" style="display:none;">
+    <p class="panel-title">接待候位登記</p>
+    <div class="visit-form">
+      <div class="visit-form-row">
+        <input type="text" id="visitCharacter" maxlength="40" placeholder="角色名稱，例如 Alice Example">
+        <input type="text" id="visitWorld" maxlength="24" placeholder="伺服器">
+      </div>
+      <div class="visit-form-row">
+        <label>本次同行人數<select id="visitPartySize"><option value="1">1 人</option><option value="2">2 人</option><option value="3">3 人</option><option value="4">4 人以上</option></select></label>
+        <label>來店類型<select id="visitKind"><option value="walkin">一般來店</option><option value="reservation">已有預約</option></select></label>
+      </div>
+      <input type="text" id="visitReservation" maxlength="60" placeholder="預約名稱／預約碼（一般來店可留空）" style="display:none;">
+      <label>接待偏好<select id="visitPreference"><option value="">任何有空的女僕皆可（等待較短）</option></select></label>
+      <p id="visitError" style="font-size:12px;color:var(--rose);margin:0;display:none;"></p>
+      <button class="btn primary" id="joinVisitQueue" type="button">領取候位號碼</button>
+      <button class="btn ghost" id="backVisitChoice" type="button">返回</button>
+    </div>
+  </div>
+
+  <div id="browsePanel" class="panel" style="display:none;">
+    <span class="browse-badge">自由參觀</span>
+    <h2 style="font-family:'Noto Serif TC',serif;font-size:17px;margin:10px 0 5px;">歡迎自在探索曇時</h2>
+    <p class="visit-help">您目前不在接待隊列中，可以自由參觀、拍照或等待朋友。若想開始用餐或接受女僕服務，再加入候位即可。</p>
+    <button class="btn primary" id="browseToQueue" type="button" style="margin-top:12px;">我想接受接待</button>
+    <button class="btn ghost" id="browseMenuBtn" type="button" style="margin-top:8px;width:100%;">瀏覽本日菜單</button>
+  </div>
+
+  <div id="visitStatusPanel" class="panel visit-status-card" style="display:none;">
+    <div class="visit-status-label" id="visitStatusBadge">等待接待</div>
+    <div class="visit-ticket" id="visitTicketNumber">A000</div>
+    <div id="visitStatusTitle" style="font-family:'Noto Serif TC',serif;font-size:16px;">女僕正在為您準備</div>
+    <div class="visit-assignee" id="visitAssignee"></div>
+    <div class="visit-meta" id="visitStatusMeta"></div>
+    <p class="visit-help" id="visitStatusHelp">請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。</p>
+    <button class="btn ghost" id="cancelVisitQueue" type="button" style="margin-top:12px;">取消候位／改為自由參觀</button>
+  </div>
+
   <div id="successBox" class="success-box" style="display:none;">
     <div style="font-size:12px;color:var(--parchment-dim);letter-spacing:0.06em;">訂單已送出</div>
     <div class="num" id="successNumber"></div>
@@ -136,8 +200,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <button class="btn ghost" id="newOrderBtn" style="margin-top:12px;">繼續加點</button>
   </div>
 
-  <div id="orderFlow">
-    <div class="panel">
+  <div id="orderFlow" style="display:none;">
+    <div class="panel" id="cartPanel">
       <p class="panel-title">菜單</p>
       <div class="menu-sync-row">
         <div class="menu-sync-status" id="menuSyncStatus" aria-live="polite">正在同步最新菜單…</div>
@@ -146,12 +210,12 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       <div id="menuList"><span class="empty">菜單載入中...</span></div>
     </div>
 
-    <div class="panel">
+    <div class="panel" id="orderDataPanel">
       <p class="panel-title">已選品項</p>
       <div id="cartList"><span class="empty-cart">尚未選擇餐點</span></div>
     </div>
 
-    <div class="panel">
+    <div class="panel" id="orderSubmitPanel">
       <p class="panel-title">訂購資料</p>
       <div class="row">
         <input type="text" id="custName" maxlength="40" autocomplete="name" placeholder="角色名／稱呼">
@@ -190,8 +254,15 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   var cart = {}; // id -> {name, price, qty, addon:{label,price}|null}
   var pendingAddons = {}; // remembers add-ons selected before the base item is added
   var db, ordersRef, nextOrderNumberRef, webhookRef, menuRef, operationStatusRef;
+  var visitsRef, visitQueueCounterRef, staffRosterRef, todayStaffRef;
   var webhookUrl = '';
   var operationStatus = { isOpen:true };
+  var visits = {};
+  var staffRoster = {};
+  var todayStaff = {};
+  var activeVisit = null;
+  var activeVisitId = localStorage.getItem('lephemereActiveVisitId') || '';
+  var browseMode = false;
   var menuSyncTimer = null;
   var menuSyncBusy = false;
 
@@ -226,6 +297,10 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     webhookRef = db.ref('lephemere/webhookUrl');
     menuRef = db.ref('lephemere/menu');
     operationStatusRef = db.ref('lephemere/operationStatus');
+    visitsRef = db.ref('lephemere/visits');
+    visitQueueCounterRef = db.ref('lephemere/visitQueueCounter');
+    staffRosterRef = db.ref('lephemere/staffRoster');
+    todayStaffRef = db.ref('lephemere/todayStaff/staffIds');
 
     db.ref('.info/connected').on('value', function(snap){
       document.getElementById('connDot').className = snap.val()===true ? 'dot online' : 'dot offline';
@@ -237,6 +312,21 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       operationStatus = snap.val() || { isOpen:true };
       renderOperationStatus();
       renderMenu();
+    });
+
+    visitsRef.on('value', function(snap){
+      visits = snap.val() || {};
+      updateVisitStatus();
+    });
+
+    staffRosterRef.on('value', function(snap){
+      staffRoster = snap.val() || {};
+      renderVisitPreference();
+    });
+
+    todayStaffRef.on('value', function(snap){
+      todayStaff = { staffIds:snap.val() || [] };
+      renderVisitPreference();
     });
 
     menuRef.on('value', applyMenuSnapshot, function(){
@@ -252,12 +342,165 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     });
   }
 
+  function visitDateKey(){
+    var d = new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  function setVisitView(view){
+    ['visitGate','visitRegister','browsePanel','visitStatusPanel'].forEach(function(id){
+      document.getElementById(id).style.display = id===view ? 'block' : 'none';
+    });
+  }
+
+  function renderVisitPreference(){
+    var select = document.getElementById('visitPreference');
+    if(!select) return;
+    var selected = select.value;
+    var duty = Array.isArray(todayStaff.staffIds) ? todayStaff.staffIds : [];
+    var ids = duty.length ? duty.filter(function(id){ return staffRoster[id]; }) : Object.keys(staffRoster);
+    ids.sort(function(a,b){
+      return String((staffRoster[a]||{}).name||'').localeCompare(String((staffRoster[b]||{}).name||''),'zh-Hant');
+    });
+    select.innerHTML = '<option value="">任何有空的女僕皆可（等待較短）</option>' + ids.map(function(id){
+      return '<option value="'+escapeHtml(id)+'">希望由 '+escapeHtml((staffRoster[id]||{}).name||'未命名女僕')+' 接待（可能等候較久）</option>';
+    }).join('');
+    if(ids.indexOf(selected)!==-1) select.value = selected;
+  }
+
+  function waitingVisits(){
+    return Object.keys(visits).map(function(id){ return Object.assign({id:id}, visits[id]||{}); }).filter(function(v){
+      return v.businessDate===visitDateKey() && v.status==='waiting';
+    }).sort(function(a,b){ return Number(a.createdAt||0)-Number(b.createdAt||0); });
+  }
+
+  function updateVisitStatus(){
+    activeVisit = activeVisitId && visits[activeVisitId] ? Object.assign({id:activeVisitId}, visits[activeVisitId]) : null;
+    if(!activeVisit){
+      if(activeVisitId){ localStorage.removeItem('lephemereActiveVisitId'); activeVisitId=''; }
+      if(!browseMode) setVisitView('visitGate');
+      document.getElementById('orderFlow').style.display = browseMode ? 'block' : 'none';
+      renderOperationStatus();
+      renderMenu();
+      return;
+    }
+    if(activeVisit.businessDate!==visitDateKey()){
+      localStorage.removeItem('lephemereActiveVisitId');
+      activeVisitId=''; activeVisit=null; browseMode=false;
+      setVisitView('visitGate');
+      document.getElementById('orderFlow').style.display='none';
+      renderOperationStatus();
+      renderMenu();
+      return;
+    }
+    if(['completed','cancelled','no_show'].indexOf(activeVisit.status)!==-1){
+      localStorage.removeItem('lephemereActiveVisitId');
+      activeVisitId=''; activeVisit=null; browseMode=true;
+      setVisitView('browsePanel');
+      showBrowseMenu(false);
+      renderOperationStatus();
+      renderMenu();
+      return;
+    }
+    browseMode=false;
+    setVisitView('visitStatusPanel');
+    document.getElementById('visitTicketNumber').textContent = activeVisit.queueNumber || '候位中';
+    var queue = waitingVisits();
+    var position = queue.findIndex(function(v){ return v.id===activeVisitId; });
+    var assigned = activeVisit.status==='assigned' || activeVisit.status==='serving';
+    document.getElementById('visitStatusBadge').textContent = assigned ? (activeVisit.status==='serving'?'接待進行中':'已安排接待') : '等待接待';
+    document.getElementById('visitStatusTitle').textContent = assigned ? '女僕已接下您的接待' : '女僕正在依序為大家準備';
+    document.getElementById('visitAssignee').textContent = assigned ? '負責女僕｜'+(activeVisit.assignedStaffName||'店員') : '';
+    document.getElementById('visitStatusMeta').textContent = assigned
+      ? '請留意遊戲內的招呼；接待開始後即可在下方點餐。'
+      : (position>=0 ? '目前前方約有 '+position+' 組｜同行 '+Number(activeVisit.partySize||1)+' 人' : '正在更新候位狀態…');
+    document.getElementById('visitStatusHelp').textContent = assigned
+      ? '若需要離開、轉交其他女僕或結束接待，請直接告知負責女僕。'
+      : (activeVisit.preferredStaffName ? '您希望由 '+activeVisit.preferredStaffName+' 接待，因此等待時間可能較長。' : '請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。');
+    document.getElementById('cancelVisitQueue').style.display = activeVisit.status==='waiting' ? 'block' : 'none';
+    document.getElementById('orderFlow').style.display = assigned ? 'block' : 'none';
+    if(assigned){
+      document.getElementById('cartPanel').style.display='block';
+      document.getElementById('orderDataPanel').style.display='block';
+      document.getElementById('orderSubmitPanel').style.display='block';
+      if(!document.getElementById('custName').value) document.getElementById('custName').value=activeVisit.characterName||'';
+    }
+    renderOperationStatus();
+    renderMenu();
+  }
+
+  function showBrowseMenu(show){
+    document.getElementById('orderFlow').style.display = show ? 'block' : 'none';
+    document.getElementById('cartPanel').style.display = show ? 'block' : 'none';
+    document.getElementById('orderDataPanel').style.display='none';
+    document.getElementById('orderSubmitPanel').style.display='none';
+    renderMenu();
+  }
+
+  document.getElementById('chooseService').addEventListener('click', function(){ setVisitView('visitRegister'); });
+  document.getElementById('chooseBrowse').addEventListener('click', function(){ browseMode=true; setVisitView('browsePanel'); showBrowseMenu(false); });
+  document.getElementById('backVisitChoice').addEventListener('click', function(){ setVisitView('visitGate'); });
+  document.getElementById('browseToQueue').addEventListener('click', function(){ browseMode=false; showBrowseMenu(false); setVisitView('visitRegister'); });
+  document.getElementById('browseMenuBtn').addEventListener('click', function(){ showBrowseMenu(document.getElementById('orderFlow').style.display==='none'); });
+  document.getElementById('visitKind').addEventListener('change', function(){
+    document.getElementById('visitReservation').style.display = this.value==='reservation' ? 'block' : 'none';
+  });
+
+  document.getElementById('joinVisitQueue').addEventListener('click', function(){
+    var err = document.getElementById('visitError');
+    var name = document.getElementById('visitCharacter').value.trim();
+    if(!name){ err.textContent='請填寫遊戲角色名稱'; err.style.display='block'; return; }
+    if(!visitsRef){ err.textContent='系統尚未連線，請稍後再試'; err.style.display='block'; return; }
+    err.style.display='none';
+    var btn=this; btn.disabled=true; btn.textContent='正在領號…';
+    var day=visitDateKey();
+    visitQueueCounterRef.child(day).transaction(function(current){ return Number(current||0)+1; }).then(function(result){
+      if(!result.committed) throw new Error('queue-number');
+      var number=Number(result.snapshot.val()||0);
+      var id=visitsRef.push().key;
+      var staffId=document.getElementById('visitPreference').value;
+      var staffName=staffId && staffRoster[staffId] ? staffRoster[staffId].name||'' : '';
+      var now=Date.now();
+      var visitRecord={
+        queueNumber:'A'+String(number).padStart(3,'0'),
+        characterName:name,
+        world:document.getElementById('visitWorld').value.trim(),
+        partySize:Number(document.getElementById('visitPartySize').value||1),
+        visitKind:document.getElementById('visitKind').value,
+        reservationRef:document.getElementById('visitReservation').value.trim(),
+        preferredStaffId:staffId,
+        preferredStaffName:staffName,
+        status:'waiting',
+        businessDate:day,
+        createdAt:now,
+        updatedAt:now
+      };
+      return visitsRef.child(id).set(visitRecord).then(function(){
+        activeVisitId=id;
+        localStorage.setItem('lephemereActiveVisitId',id);
+        visits[id]=visitRecord;
+        updateVisitStatus();
+      });
+    }).catch(function(){
+      err.textContent='候位登記失敗，請請店員協助登記'; err.style.display='block';
+    }).finally(function(){ btn.disabled=false; btn.textContent='領取候位號碼'; });
+  });
+
+  document.getElementById('cancelVisitQueue').addEventListener('click', function(){
+    if(!activeVisitId || !visitsRef) return;
+    if(!confirm('確定取消候位並改為自由參觀嗎？')) return;
+    visitsRef.child(activeVisitId).update({status:'cancelled',cancelledAt:Date.now(),updatedAt:Date.now()});
+  });
+
+  setInterval(function(){ if(activeVisit) updateVisitStatus(); },30000);
+
   function renderOperationStatus(){
     var closed = operationStatus.isOpen===false;
     document.getElementById('operationBanner').style.display = closed ? 'block' : 'none';
     var btn = document.getElementById('submitOrder');
-    btn.disabled = closed;
-    btn.textContent = closed ? '目前未開放點餐' : '送出訂單';
+    var canOrder = !!activeVisit && (activeVisit.status==='assigned' || activeVisit.status==='serving');
+    btn.disabled = closed || !canOrder;
+    btn.textContent = closed ? '目前未開放點餐' : (canOrder ? '送出訂單' : '接待後即可點餐');
   }
 
   // ---------- menu rendering ----------
@@ -422,7 +665,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       items.forEach(function(item){
         var qty = cart[item.id] ? cart[item.id].qty : 0;
         var soldOut = !itemIsAvailable(item) || (itemHasStockLimit(item) && itemStockRemaining(item)<=0);
-        var orderingDisabled = soldOut || operationStatus.isOpen===false;
+        var canOrder = !!activeVisit && (activeVisit.status==='assigned' || activeVisit.status==='serving');
+        var orderingDisabled = soldOut || operationStatus.isOpen===false || !canOrder;
         var availability = '';
         if(!itemIsAvailable(item)) availability = '<span class="availability soldout">暫停供應</span>';
         else if(itemHasStockLimit(item) && itemStockRemaining(item)<=0) availability = '<span class="availability soldout">本次額滿</span>';
@@ -466,7 +710,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   function changeQty(id, delta){
     var item = menuItems[id];
     if(!item) return;
-    if(delta>0 && (operationStatus.isOpen===false || !itemIsAvailable(item))) return;
+    if(delta>0 && (operationStatus.isOpen===false || !itemIsAvailable(item) || !activeVisit || (activeVisit.status!=='assigned' && activeVisit.status!=='serving'))) return;
     var current = cart[id] ? cart[id].qty : 0;
     var next = Math.max(0, current + delta);
     if(delta>0 && itemHasStockLimit(item)){
@@ -582,6 +826,12 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       return;
     }
 
+    if(!activeVisit || (activeVisit.status!=='assigned' && activeVisit.status!=='serving')){
+      errEl.textContent = '請先完成候位，並由女僕接下您的接待後再點餐';
+      errEl.style.display = 'block';
+      return;
+    }
+
     if(!name){
       errEl.textContent = '請填寫角色名／稱呼';
       errEl.style.display = 'block';
@@ -618,6 +868,10 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       var orderId = ordersRef.push().key;
       return ordersRef.child(orderId).set({
         orderNumber: orderNumber,
+        visitId: activeVisitId,
+        queueNumber: activeVisit.queueNumber || '',
+        assignedStaffId: activeVisit.assignedStaffId || '',
+        assignedStaffName: activeVisit.assignedStaffName || '',
         name: name,
         note: note,
         items: items,
