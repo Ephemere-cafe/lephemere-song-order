@@ -454,6 +454,26 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 .login-box{max-width:390px;margin:60px auto;}
 .login-help{font-size:11.5px;color:var(--parchment-dim);line-height:1.7;margin:10px 0 0;}
 .empty{font-size:12.5px;color:var(--parchment-dim);}
+
+/* reception queue */
+.reception-console{padding:0;overflow:hidden;background:linear-gradient(145deg,rgba(55,46,66,.98),rgba(42,36,52,.98));}
+.reception-console-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(310px,.72fr);gap:18px;align-items:center;padding:17px 18px;border-bottom:1px solid var(--line);}
+.reception-identity{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:rgba(25,20,32,.58);}
+.reception-identity label{display:block;font-size:10.5px;color:var(--parchment-dim);margin-bottom:5px;}.reception-identity select{width:100%;}
+.presence-row{display:flex;gap:6px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid var(--line);}
+.presence-btn{padding:7px 11px;border:1px solid var(--line);border-radius:18px;background:transparent;color:var(--parchment-dim);font:inherit;font-size:11px;cursor:pointer;}
+.presence-btn.active{border-color:var(--sage-dim);color:var(--sage);background:rgba(143,166,136,.1);}
+.reception-grid{display:grid;grid-template-columns:minmax(250px,.8fr) minmax(300px,1fr) minmax(250px,.75fr);gap:14px;margin:14px 0;}
+.reception-column{min-width:0;}.reception-column-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 8px;font-family:'Noto Serif TC',serif;font-size:13px;color:var(--parchment-dim);}
+.reception-count{min-width:25px;text-align:center;padding:2px 7px;border-radius:15px;background:rgba(167,155,196,.12);color:var(--mist);font:11px 'Noto Sans TC',sans-serif;}
+.visit-card{padding:13px 14px;margin-bottom:9px;border:1px solid var(--line);border-radius:10px;background:var(--card);}.visit-card.next{border-color:rgba(202,160,107,.42);box-shadow:inset 3px 0 0 var(--gold-dim);}.visit-card.mine{border-color:rgba(143,166,136,.34);}
+.visit-card-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}.visit-number{font-family:'Noto Serif TC',serif;font-size:20px;color:var(--gold);line-height:1;}.visit-name{font-size:14px;margin-top:5px;color:var(--parchment);}.visit-wait{font-size:10.5px;color:var(--rose);white-space:nowrap;}
+.visit-meta{margin-top:8px;font-size:10.5px;line-height:1.65;color:var(--parchment-dim);}.visit-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}.visit-tag{padding:3px 7px;border-radius:12px;background:rgba(167,155,196,.1);color:var(--mist);font-size:9.5px;}.visit-tag.reservation{background:rgba(202,160,107,.1);color:var(--gold);}
+.visit-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}.visit-actions select{max-width:150px;padding:5px 7px;font-size:11px;}
+.team-staff{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;border-bottom:1px solid var(--line);font-size:12px;}.team-staff:last-child{border-bottom:0;}.team-state{font-size:10px;color:var(--parchment-dim);}
+.queue-empty{padding:18px 12px;text-align:center;border:1px dashed var(--line);border-radius:9px;color:var(--parchment-dim);font-size:11px;line-height:1.7;}
+@media(max-width:900px){.reception-grid{grid-template-columns:1fr 1fr}.reception-column.team{grid-column:1/-1}.reception-console-head{grid-template-columns:1fr}}
+@media(max-width:620px){.reception-grid{grid-template-columns:1fr}.reception-column.team{grid-column:auto}.reception-identity{grid-template-columns:1fr}.main-tabs{overflow-x:auto}.main-tab{flex:none}}
 </style>
 </head>
 <body>
@@ -487,7 +507,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   <div id="adminArea" style="display:none;">
 
     <div class="main-tabs" id="mainTabs">
-      <div class="main-tab active" data-main="orders">訂單</div>
+      <div class="main-tab active" data-main="reception">接待</div>
+      <div class="main-tab" data-main="orders">訂單</div>
       <div class="main-tab" data-main="special">特殊服務</div>
       <div class="main-tab manager-only" data-main="operations" data-manager-only>營業</div>
       <div class="main-tab manager-only" data-main="menu" data-manager-only>菜單</div>
@@ -499,8 +520,27 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       <button class="btn ghost small" id="adminLogoutBtn" style="margin-left:auto;">登出</button>
     </div>
 
+    <!-- ============ 接待候位 ============ -->
+    <div id="receptionTab">
+      <div class="page-heading">
+        <div class="page-heading-copy"><span class="page-eyebrow">Guest Reception</span><h2>接待候位</h2><p>客人先領號；有空的女僕按「接待下一組」，系統會依順序鎖定歸屬。</p></div>
+      </div>
+      <div class="panel reception-console">
+        <div class="reception-console-head">
+          <div><span class="page-eyebrow">Your Station</span><h2 style="font-family:'Noto Serif TC',serif;font-size:17px;margin:0 0 5px;">我的接待台</h2><p style="font-size:11px;color:var(--parchment-dim);margin:0;line-height:1.7;">一位主人只會有一位負責女僕；需要換手時請使用正式轉交。</p></div>
+          <div class="reception-identity"><div><label for="receptionStaffSelect">目前操作女僕</label><select id="receptionStaffSelect"><option value="">請先選擇女僕</option></select></div><button class="btn primary" id="claimNextVisit" type="button">接待下一組</button></div>
+        </div>
+        <div class="presence-row" id="presenceButtons"><button class="presence-btn" data-presence="available">可接待</button><button class="presence-btn" data-presence="serving">接待中</button><button class="presence-btn" data-presence="photo">拍照中</button><button class="presence-btn" data-presence="away">暫離</button></div>
+      </div>
+      <div class="reception-grid">
+        <section class="reception-column"><div class="reception-column-title"><span>下一組與候位</span><span class="reception-count" id="visitWaitingCount">0</span></div><div id="visitWaitingList"></div></section>
+        <section class="reception-column"><div class="reception-column-title"><span>我的主人</span><span class="reception-count" id="myVisitCount">0</span></div><div id="myVisitList"></div></section>
+        <section class="reception-column team"><div class="reception-column-title"><span>今日女僕狀態</span></div><div class="panel" id="staffPresenceList" style="padding:0;"></div></section>
+      </div>
+    </div>
+
     <!-- ============ 訂單管理 ============ -->
-    <div id="ordersTab">
+    <div id="ordersTab" style="display:none;">
       <div class="page-heading">
         <div class="page-heading-copy">
           <span class="page-eyebrow">Order Queue</span>
@@ -911,8 +951,11 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
   var db;
   var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, staffSchedulesRef, menuRef, nextOrderNumberRef, webhookRef, operationStatusRef, dailyReportsRef, adminUsersRef, adminOwnerUidRef, siteMusicRef;
+  var visitsRef, staffPresenceRef, assignmentHistoryRef;
 
   var orders = {};
+  var visits = {};
+  var staffPresence = {};
   var currentOrderFilter = 'active';
   var orderSearchTerm = '';
   var webhookUrl = '';
@@ -1048,7 +1091,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
   }
   tickClock();
   setInterval(tickClock,15000);
-  setInterval(function(){ updateElapsedLabels(); renderStats(); },30000);
+  setInterval(function(){ updateElapsedLabels(); renderStats(); renderReception(); },30000);
 
   function updateSoundButton(){
     var btn = document.getElementById('soundToggle');
@@ -1185,7 +1228,23 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
     var ordersMainTab = document.querySelector('.main-tab[data-main="orders"]');
     if(ordersMainTab) ordersMainTab.classList.add('active');
+    document.getElementById('receptionTab').style.display = 'none';
     document.getElementById('ordersTab').style.display = 'block';
+    document.getElementById('specialServicesTab').style.display = 'none';
+    document.getElementById('operationsTab').style.display = 'none';
+    document.getElementById('menuTab').style.display = 'none';
+    document.getElementById('staffTab').style.display = 'none';
+    document.getElementById('reservationsTab').style.display = 'none';
+    document.getElementById('siteSettingsTab').style.display = 'none';
+    document.getElementById('accessTab').style.display = 'none';
+  }
+
+  function showReceptionTab(){
+    document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
+    var tab = document.querySelector('.main-tab[data-main="reception"]');
+    if(tab) tab.classList.add('active');
+    document.getElementById('receptionTab').style.display = 'block';
+    document.getElementById('ordersTab').style.display = 'none';
     document.getElementById('specialServicesTab').style.display = 'none';
     document.getElementById('operationsTab').style.display = 'none';
     document.getElementById('menuTab').style.display = 'none';
@@ -1220,7 +1279,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       badge.textContent = manager ? '管理人員' : '訂單人員';
       badge.className = 'access-badge'+(manager ? ' manager' : '');
     }
-    if(!manager) showOrdersTab();
+    if(!manager) showReceptionTab();
     syncAccessListListener();
     if(attached) renderOrders();
   }
@@ -1340,6 +1399,9 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     adminUsersRef = todayStaffRef.child('_access/users');
     adminOwnerUidRef = todayStaffRef.child('_access/ownerUid');
     siteMusicRef = todayStaffRef.child('_site/backgroundMusic');
+    visitsRef = db.ref('lephemere/visits');
+    staffPresenceRef = db.ref('lephemere/staffPresence');
+    assignmentHistoryRef = db.ref('lephemere/assignmentHistory');
 
     db.ref('.info/connected').on('value', function(snap){
       isDatabaseConnected = snap.val()===true;
@@ -1397,6 +1459,16 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       renderOrders();
     });
 
+    visitsRef.on('value', function(snap){
+      visits = snap.val() || {};
+      renderReception();
+    });
+
+    staffPresenceRef.on('value', function(snap){
+      staffPresence = snap.val() || {};
+      renderReception();
+    });
+
     webhookRef.on('value', function(snap){
       webhookUrl = snap.val() || '';
       renderSystemStatus();
@@ -1421,6 +1493,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       renderStaffManageList();
       renderStaffCheckList();
       renderCurrentStaffSelect();
+      renderReceptionStaffSelect();
+      renderReception();
       renderOrders();
     });
 
@@ -1433,6 +1507,8 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       }
       renderStaffCheckList();
       renderCurrentStaffSelect();
+      renderReceptionStaffSelect();
+      renderReception();
       renderOrders();
     });
 
@@ -1503,7 +1579,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     if(restricted && !isManager()){
       e.preventDefault();
       e.stopImmediatePropagation();
-      showOrdersTab();
+      showReceptionTab();
     }
   }, true);
 
@@ -1529,12 +1605,13 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     var tab = e.target.closest('.main-tab');
     if(!tab) return;
     var target = tab.getAttribute('data-main');
-    if(target!=='orders' && target!=='special' && !isManager()){
-      showOrdersTab();
+    if(target!=='reception' && target!=='orders' && target!=='special' && !isManager()){
+      showReceptionTab();
       return;
     }
     document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
     tab.classList.add('active');
+    document.getElementById('receptionTab').style.display = target==='reception' ? 'block' : 'none';
     document.getElementById('ordersTab').style.display = target==='orders' ? 'block' : 'none';
     document.getElementById('specialServicesTab').style.display = target==='special' ? 'block' : 'none';
     document.getElementById('operationsTab').style.display = target==='operations' ? 'block' : 'none';
@@ -1701,13 +1778,155 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
     select.innerHTML = html;
   }
 
-  document.getElementById('currentStaffSelect').addEventListener('change', function(e){
-    currentStaffId = e.target.value;
+  function setCurrentStaff(id){
+    currentStaffId = id || '';
     try{
       if(currentStaffId) localStorage.setItem('lephemereCurrentStaffId', currentStaffId);
       else localStorage.removeItem('lephemereCurrentStaffId');
     }catch(err){}
+    var orderSelect=document.getElementById('currentStaffSelect');
+    var receptionSelect=document.getElementById('receptionStaffSelect');
+    if(orderSelect) orderSelect.value=currentStaffId;
+    if(receptionSelect) receptionSelect.value=currentStaffId;
     renderOrders();
+    renderReception();
+  }
+
+  function renderReceptionStaffSelect(){
+    var select=document.getElementById('receptionStaffSelect');
+    if(!select) return;
+    var duty=todayStaff.staffIds||[];
+    var ids=Object.keys(staffRoster).sort(function(a,b){
+      var ad=duty.indexOf(a)>-1?0:1, bd=duty.indexOf(b)>-1?0:1;
+      if(ad!==bd) return ad-bd;
+      return String((staffRoster[a]||{}).name||'').localeCompare(String((staffRoster[b]||{}).name||''),'zh-Hant');
+    });
+    select.innerHTML='<option value="">請先選擇女僕</option>'+ids.map(function(id){
+      return '<option value="'+escapeAttr(id)+'" '+(id===currentStaffId?'selected':'')+'>'+escapeHtml((staffRoster[id]||{}).name||'未命名女僕')+(duty.indexOf(id)>-1?'（今日值班）':'')+'</option>';
+    }).join('');
+  }
+
+  function visitRows(statuses){
+    return Object.keys(visits).map(function(id){ return Object.assign({id:id},visits[id]||{}); }).filter(function(v){
+      return v.businessDate===todayKey() && statuses.indexOf(v.status)>-1;
+    }).sort(function(a,b){ return Number(a.createdAt||0)-Number(b.createdAt||0); });
+  }
+
+  function waitMinutes(ts){ return Math.max(0,Math.floor((Date.now()-Number(ts||Date.now()))/60000)); }
+
+  function transferOptions(currentId){
+    var duty=todayStaff.staffIds||[];
+    var ids=(duty.length?duty:Object.keys(staffRoster)).filter(function(id){ return staffRoster[id] && id!==currentId; });
+    return '<option value="">轉交給…</option>'+ids.map(function(id){ return '<option value="'+escapeAttr(id)+'">'+escapeHtml(staffRoster[id].name||'未命名女僕')+'</option>'; }).join('');
+  }
+
+  function visitCard(v,index,isMine){
+    var tags='';
+    if(v.visitKind==='reservation') tags+='<span class="visit-tag reservation">預約'+(v.reservationRef?'｜'+escapeHtml(v.reservationRef):'')+'</span>';
+    if(v.preferredStaffName) tags+='<span class="visit-tag">希望 '+escapeHtml(v.preferredStaffName)+'</span>';
+    tags+='<span class="visit-tag">'+Number(v.partySize||1)+' 人同行</span>';
+    var actions='';
+    if(isMine){
+      if(v.status==='assigned') actions+='<button class="btn primary small" data-start-visit="'+v.id+'">開始接待</button>';
+      actions+='<button class="btn ghost small" data-complete-visit="'+v.id+'">結束接待</button>';
+      actions+='<select data-transfer-visit="'+v.id+'">'+transferOptions(currentStaffId)+'</select>';
+    }else{
+      actions+='<button class="btn ghost small" data-no-show-visit="'+v.id+'">叫號未到</button>';
+    }
+    return '<article class="visit-card '+(index===0&&!isMine?'next ':'')+(isMine?'mine':'')+'"><div class="visit-card-top"><div><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':'由你接待')+'</span></div><div class="visit-meta">'+(v.status==='waiting'?'依序候位中':'狀態｜'+(v.status==='serving'?'接待進行中':'等待你招呼'))+'</div><div class="visit-tags">'+tags+'</div>'+(actions?'<div class="visit-actions">'+actions+'</div>':'')+'</article>';
+  }
+
+  function renderReception(){
+    var waiting=visitRows(['waiting']);
+    var mine=currentStaffId ? visitRows(['assigned','serving']).filter(function(v){ return v.assignedStaffId===currentStaffId; }) : [];
+    document.getElementById('visitWaitingCount').textContent=waiting.length;
+    document.getElementById('myVisitCount').textContent=mine.length;
+    document.getElementById('visitWaitingList').innerHTML=waiting.length?waiting.map(function(v,i){return visitCard(v,i,false);}).join(''):'<div class="queue-empty">目前沒有人候位。<br>自由參觀的客人不會出現在這裡。</div>';
+    document.getElementById('myVisitList').innerHTML=!currentStaffId?'<div class="queue-empty">請先選擇目前操作女僕。</div>':(mine.length?mine.map(function(v,i){return visitCard(v,i,true);}).join(''):'<div class="queue-empty">你目前沒有負責的主人。<br>有空時可接待下一組。</div>');
+    var duty=todayStaff.staffIds||[];
+    var ids=(duty.length?duty:Object.keys(staffRoster)).filter(function(id){return staffRoster[id];});
+    var label={available:'可接待',serving:'接待中',photo:'拍照中',away:'暫離'};
+    document.getElementById('staffPresenceList').innerHTML=ids.length?ids.map(function(id){
+      var state=(staffPresence[id]||{}).status||'away';
+      var count=visitRows(['assigned','serving']).filter(function(v){return v.assignedStaffId===id;}).length;
+      return '<div class="team-staff"><span>'+escapeHtml(staffRoster[id].name||'未命名女僕')+'</span><span class="team-state">'+(label[state]||'暫離')+(count?'・'+count+' 組':'')+'</span></div>';
+    }).join(''):'<div class="queue-empty">尚未設定今日值班女僕</div>';
+    document.querySelectorAll('[data-presence]').forEach(function(btn){ btn.classList.toggle('active',!!currentStaffId && ((staffPresence[currentStaffId]||{}).status===btn.getAttribute('data-presence'))); });
+    document.getElementById('claimNextVisit').disabled=!currentStaffId;
+  }
+
+  function syncVisitOrdersAssignee(visitId,staffId,staffName){
+    var jobs=[];
+    Object.keys(orders).forEach(function(id){
+      var o=orders[id]||{};
+      if(o.visitId===visitId && o.status!=='completed' && o.status!=='cancelled') jobs.push(ordersRef.child(id).update({assignedStaffId:staffId,assignedStaffName:staffName,assignedAt:Date.now()}));
+    });
+    return Promise.all(jobs);
+  }
+
+  function recordVisitAssignment(visitId,fromId,toId,action){
+    if(!assignmentHistoryRef) return Promise.resolve();
+    return assignmentHistoryRef.push({visitId:visitId,fromStaffId:fromId||'',toStaffId:toId||'',action:action,byUid:currentAuthUser?currentAuthUser.uid:'',createdAt:Date.now()});
+  }
+
+  function claimVisit(v){
+    var staff=staffRoster[currentStaffId];
+    if(!staff){ alert('請先選擇目前操作女僕。'); return Promise.resolve(); }
+    return visitsRef.child(v.id).transaction(function(current){
+      if(!current || current.status!=='waiting' || current.assignedStaffId) return;
+      current.status='assigned'; current.assignedStaffId=currentStaffId; current.assignedStaffName=staff.name||'未命名女僕'; current.assignedAt=Date.now(); current.updatedAt=Date.now();
+      return current;
+    }).then(function(result){
+      if(!result.committed){ alert('這組主人剛剛已被其他女僕接下。'); return; }
+      return Promise.all([staffPresenceRef.child(currentStaffId).set({status:'serving',updatedAt:Date.now()}),recordVisitAssignment(v.id,'',currentStaffId,'claim')]);
+    });
+  }
+
+  document.getElementById('receptionStaffSelect').addEventListener('change',function(){ setCurrentStaff(this.value); });
+  document.getElementById('claimNextVisit').addEventListener('click',function(){
+    if(!currentStaffId){ alert('請先選擇目前操作女僕。'); return; }
+    var next=visitRows(['waiting']).find(function(v){ return !v.preferredStaffId || v.preferredStaffId===currentStaffId; });
+    if(!next){ alert('目前沒有可由你接待的候位主人；指定其他女僕的主人會保留在原隊列。'); return; }
+    claimVisit(next);
+  });
+  document.getElementById('presenceButtons').addEventListener('click',function(e){
+    var btn=e.target.closest('[data-presence]'); if(!btn) return;
+    if(!currentStaffId){ alert('請先選擇目前操作女僕。'); return; }
+    staffPresenceRef.child(currentStaffId).set({status:btn.getAttribute('data-presence'),updatedAt:Date.now()});
+  });
+  document.getElementById('visitWaitingList').addEventListener('click',function(e){
+    var btn=e.target.closest('[data-no-show-visit]'); if(!btn) return;
+    var id=btn.getAttribute('data-no-show-visit'), visit=visits[id];
+    if(!visit || visit.status!=='waiting') return;
+    if(!confirm('已在遊戲內叫號，但 '+(visit.queueNumber||'這組')+' 沒有回應嗎？\n確認後會移出候位隊列。')) return;
+    visitsRef.child(id).update({status:'no_show',noShowAt:Date.now(),updatedAt:Date.now()});
+  });
+  document.getElementById('myVisitList').addEventListener('click',function(e){
+    var start=e.target.closest('[data-start-visit]'), complete=e.target.closest('[data-complete-visit]');
+    var id=start?start.getAttribute('data-start-visit'):(complete?complete.getAttribute('data-complete-visit'):'');
+    if(!id || !visits[id] || visits[id].assignedStaffId!==currentStaffId) return;
+    if(start) visitsRef.child(id).update({status:'serving',serviceStartedAt:Date.now(),updatedAt:Date.now()});
+    if(complete){
+      if(!confirm('確定結束 '+(visits[id].queueNumber||'這組')+' 的接待嗎？')) return;
+      visitsRef.child(id).update({status:'completed',completedAt:Date.now(),updatedAt:Date.now()}).then(function(){
+        var other=visitRows(['assigned','serving']).some(function(v){return v.id!==id&&v.assignedStaffId===currentStaffId;});
+        if(!other) staffPresenceRef.child(currentStaffId).set({status:'available',updatedAt:Date.now()});
+      });
+    }
+  });
+  document.getElementById('myVisitList').addEventListener('change',function(e){
+    var select=e.target.closest('[data-transfer-visit]'); if(!select || !select.value) return;
+    var id=select.getAttribute('data-transfer-visit'), target=select.value, targetStaff=staffRoster[target];
+    if(!visits[id] || visits[id].assignedStaffId!==currentStaffId || !targetStaff) return;
+    if(!confirm('確定把 '+(visits[id].queueNumber||'這組')+' 轉交給 '+(targetStaff.name||'這位女僕')+' 嗎？')){select.value='';return;}
+    var from=currentStaffId, name=targetStaff.name||'未命名女僕';
+    visitsRef.child(id).update({assignedStaffId:target,assignedStaffName:name,transferredAt:Date.now(),updatedAt:Date.now()}).then(function(){
+      return Promise.all([syncVisitOrdersAssignee(id,target,name),staffPresenceRef.child(target).set({status:'serving',updatedAt:Date.now()}),recordVisitAssignment(id,from,target,'transfer')]);
+    });
+  });
+
+  document.getElementById('currentStaffSelect').addEventListener('change', function(e){
+    setCurrentStaff(e.target.value);
   });
 
   document.addEventListener('pointerdown', function unlockOrderAudio(){
@@ -1942,7 +2161,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
         var itemText = (o.items||[]).map(function(item){
           return (item.name||'')+' '+(item.addon && item.addon.label || '');
         }).join(' ');
-        var haystack = [o.orderNumber, o.name, o.note, o.internalNote, o.assignedStaffName, itemText].join(' ').toLowerCase();
+        var haystack = [o.orderNumber, o.queueNumber, o.name, o.note, o.internalNote, o.assignedStaffName, itemText].join(' ').toLowerCase();
         return haystack.indexOf(orderSearchTerm) > -1;
       });
     }
@@ -2044,7 +2263,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 
       html += '<div class="order-card">'
         + '<div class="order-top">'
-        + '<div><span class="order-num">#'+o.orderNumber+'</span> <span class="status-badge status-'+o.status+'">'+STATUS_LABEL[o.status]+'</span>'
+        + '<div><span class="order-num">#'+o.orderNumber+'</span> '+(o.queueNumber?'<span class="visit-tag">候位 '+escapeHtml(o.queueNumber)+'</span> ':'')+'<span class="status-badge status-'+o.status+'">'+STATUS_LABEL[o.status]+'</span>'
         + '<div class="order-name">'+escapeHtml(o.name||'')+'</div>'
         + (o.note ? '<div class="order-note">備註：'+escapeHtml(o.note)+'</div>' : '')
         + '</div>'
@@ -2077,7 +2296,13 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
       select.addEventListener('change', function(){
         var id = select.getAttribute('data-assignee');
         var staffId = select.value;
+        var linkedVisitId = (orders[id] || {}).visitId || '';
         if(!staffId){
+          if(linkedVisitId){
+            alert('已建立接待歸屬的訂單不能在訂單頁解除指派；請到「接待」頁正式轉交。');
+            renderOrders();
+            return;
+          }
           ordersRef.child(id).update({
             assignedStaffId: null,
             assignedStaffName: null,
@@ -2089,6 +2314,13 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
           return;
         }
         var staff = staffRoster[staffId] || {};
+        if(linkedVisitId && visits[linkedVisitId]){
+          var previous=visits[linkedVisitId].assignedStaffId||'';
+          visitsRef.child(linkedVisitId).update({assignedStaffId:staffId,assignedStaffName:staff.name||'未命名店員',transferredAt:Date.now(),updatedAt:Date.now()}).then(function(){
+            return Promise.all([syncVisitOrdersAssignee(linkedVisitId,staffId,staff.name||'未命名店員'),recordVisitAssignment(linkedVisitId,previous,staffId,'order-page-transfer')]);
+          });
+          return;
+        }
         ordersRef.child(id).update({
           assignedStaffId: staffId,
           assignedStaffName: staff.name || '未命名店員',
