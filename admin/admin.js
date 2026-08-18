@@ -2266,7 +2266,7 @@
 
   var scheduleSaveTimer = null;
 
-  function renderDutySummary(overrideIds, overrideDate){
+  function renderDutySummary(overrideIds, overrideDate, overrideReservationIds){
     var el = document.getElementById('dutySummaryText');
     if(!el) return;
     var selectedDate = overrideDate || document.getElementById('onDutyDate').value.trim() || todayKey();
@@ -2274,11 +2274,14 @@
     var ids = Array.isArray(overrideIds)
       ? overrideIds
       : (schedule && schedule.staffIds ? schedule.staffIds : (todayStaff.date===selectedDate ? (todayStaff.staffIds||[]) : []));
+    var reservationIds = Array.isArray(overrideReservationIds)
+      ? overrideReservationIds
+      : (schedule && Array.isArray(schedule.reservationStaffIds) ? schedule.reservationStaffIds : ids);
     var names = ids.map(function(id){
       return staffRoster[id] && staffRoster[id].name;
     }).filter(Boolean);
     if(names.length){
-      el.textContent = selectedDate+'：'+names.join('、');
+      el.textContent = selectedDate+'：'+names.join('、')+'｜可指名 '+reservationIds.length+' 位';
     }else if(ids.length){
       el.textContent = selectedDate+'：已選擇 '+ids.length+' 位店員';
     }else{
@@ -2296,8 +2299,11 @@
   function collectScheduleForm(){
     var checked = document.querySelectorAll('#staffCheckList input[type=checkbox]:checked');
     var ids = Array.prototype.map.call(checked, function(cb){ return cb.getAttribute('data-staff-id'); });
+    var reservationChecked = document.querySelectorAll('#reservationStaffCheckList input[type=checkbox]:checked');
+    var reservationIds = Array.prototype.map.call(reservationChecked, function(cb){ return cb.getAttribute('data-reservation-staff-id'); })
+      .filter(function(id){ return ids.indexOf(id)>-1; });
     var date = document.getElementById('onDutyDate').value.trim() || todayKey();
-    return {date:date, staffIds:ids, updatedAt:Date.now()};
+    return {date:date, staffIds:ids, reservationStaffIds:reservationIds, updatedAt:Date.now()};
   }
 
   function persistSchedule(data){
@@ -2326,7 +2332,7 @@
 
   function queueScheduleAutoSave(){
     var data = collectScheduleForm();
-    renderDutySummary(data.staffIds, data.date);
+    renderDutySummary(data.staffIds, data.date, data.reservationStaffIds);
     setScheduleSaveStatus('變更尚未送出…', 'saving');
     if(scheduleSaveTimer) clearTimeout(scheduleSaveTimer);
     scheduleSaveTimer = setTimeout(function(){ persistSchedule(data); }, 450);
@@ -2335,25 +2341,52 @@
   function renderStaffCheckList(){
     renderDutySummary();
     var el = document.getElementById('staffCheckList');
+    var reservationEl = document.getElementById('reservationStaffCheckList');
     var keys = staffSortKeys();
-    if(keys.length===0){ el.innerHTML = '尚未建立店員名單'; return; }
+    if(keys.length===0){
+      el.innerHTML = '尚未建立店員名單';
+      if(reservationEl) reservationEl.innerHTML = '尚未建立店員名單';
+      return;
+    }
     var selectedDate = document.getElementById('onDutyDate').value.trim() || todayKey();
     var selectedSchedule = staffSchedules[selectedDate];
     var currentOnDuty = selectedSchedule && selectedSchedule.staffIds
       ? selectedSchedule.staffIds
       : (todayStaff.date===selectedDate ? (todayStaff.staffIds||[]) : []);
+    var currentReservation = selectedSchedule && Array.isArray(selectedSchedule.reservationStaffIds)
+      ? selectedSchedule.reservationStaffIds
+      : currentOnDuty.slice();
     var html = '';
+    var reservationHtml = '';
     keys.forEach(function(k){
       var s = staffRoster[k];
       var checked = currentOnDuty.indexOf(k) > -1 ? 'checked' : '';
+      var canReserve = currentOnDuty.indexOf(k) > -1;
+      var reservationChecked = canReserve && currentReservation.indexOf(k) > -1 ? 'checked' : '';
       var photoInner = s.photo ? '<img src="'+escapeAttr(s.photo)+'" alt="">' : escapeHtml((s.name || '?').slice(0,1));
       html += '<div class="staff-check"><input type="checkbox" data-staff-id="'+k+'" '+checked+'>'
         + '<div class="staff-check-photo">'+photoInner+'</div>'
         + '<label>'+escapeHtml(s.name)+' <span style="color:var(--parchment-dim);font-size:11px;">· '+escapeHtml(s.role||'')+'</span></label>'
         + '</div>';
+      reservationHtml += '<div class="staff-check '+(canReserve?'':'is-disabled')+'"><input type="checkbox" data-reservation-staff-id="'+k+'" '+reservationChecked+' '+(canReserve?'':'disabled')+'>'
+        + '<div class="staff-check-photo">'+photoInner+'</div>'
+        + '<label>'+escapeHtml(s.name)+' <span style="color:var(--parchment-dim);font-size:11px;">· '+(canReserve?'可設定':'未排入當日出勤')+'</span></label>'
+        + '</div>';
     });
     el.innerHTML = html;
+    if(reservationEl) reservationEl.innerHTML = reservationHtml;
     el.querySelectorAll('input[type=checkbox][data-staff-id]').forEach(function(cb){
+      cb.addEventListener('change', function(){
+        var reservationCb = document.querySelector('#reservationStaffCheckList [data-reservation-staff-id="'+cb.getAttribute('data-staff-id')+'"]');
+        if(reservationCb){
+          reservationCb.disabled = !cb.checked;
+          reservationCb.closest('.staff-check').classList.toggle('is-disabled', !cb.checked);
+          if(!cb.checked) reservationCb.checked = false;
+        }
+        queueScheduleAutoSave();
+      });
+    });
+    if(reservationEl) reservationEl.querySelectorAll('input[type=checkbox][data-reservation-staff-id]').forEach(function(cb){
       cb.addEventListener('change', queueScheduleAutoSave);
     });
   }

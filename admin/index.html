@@ -292,12 +292,17 @@
           <div class="row" style="margin-bottom:10px;">
             <input type="text" id="onDutyDate" placeholder="日期 YYYY-MM-DD" style="min-width:150px;">
           </div>
-          <div id="staffCheckList" style="margin-bottom:10px;">尚未建立店員名單</div>
+          <p class="schedule-list-label">① 當日出勤店員</p>
+          <p class="schedule-list-help">用於接待操作身分、訂單指派、主人點餐與官網首頁出勤名單。</p>
+          <div id="staffCheckList" style="margin-bottom:14px;">尚未建立店員名單</div>
+          <p class="schedule-list-label">② 可接受預約指名</p>
+          <p class="schedule-list-help">只有勾選為當日出勤的女僕才能開放指名；取消勾選後，預約頁仍可選擇「不指定」。</p>
+          <div id="reservationStaffCheckList" style="margin-bottom:10px;">請先設定當日出勤店員</div>
           <div class="row">
             <button class="btn primary" id="updateTodayStaff">立即儲存</button>
             <span class="schedule-save-status" id="scheduleSaveStatus">勾選後會自動儲存</span>
           </div>
-          <p style="font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;">排班儲存後會同步至接待身分、訂單指派、主人點餐、預約頁及官網首頁出勤名單。</p>
+          <p style="font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;">兩份名單會一起儲存：出勤名單同步至店內與官網，預約頁只讀取「可接受預約指名」名單。</p>
         </div>
       </details>
 
