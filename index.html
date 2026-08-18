@@ -278,13 +278,14 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   var cart = {}; // id -> {name, price, qty, addon:{label,price}|null}
   var pendingAddons = {}; // remembers add-ons selected before the base item is added
   var db, ordersRef, nextOrderNumberRef, menuRef, operationStatusRef;
-  var visitsRef, visitQueueCounterRef, staffRosterRef, todayStaffRef;
+  var visitsRef, visitQueueCounterRef, staffRosterRef, todayStaffRef, legacyTodayStaffRef;
   var currentVisitorUid = '';
   var activeVisitListenerRef = null;
   var operationStatus = { isOpen:true };
   var visits = {};
   var staffRoster = {};
   var todayStaff = {};
+  var canonicalTodayScheduleLoaded = false;
   var activeVisit = null;
   var activeVisitId = localStorage.getItem('lephemereActiveVisitId') || '';
   var activeVisitSessionId = sessionStorage.getItem('lephemereActiveVisitSessionId') || '';
@@ -326,7 +327,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     visitsRef = db.ref('lephemere/visits');
     visitQueueCounterRef = db.ref('lephemere/visitQueueCounter');
     staffRosterRef = db.ref('lephemere/staffRoster');
-    todayStaffRef = db.ref('lephemere/todayStaff/staffIds');
+    todayStaffRef = db.ref('lephemere/staffSchedules/'+visitDateKey());
+    legacyTodayStaffRef = db.ref('lephemere/todayStaff/staffIds');
 
     db.ref('.info/connected').on('value', function(snap){
       document.getElementById('connDot').className = snap.val()===true ? 'dot online' : 'dot offline';
@@ -356,7 +358,15 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     });
 
     todayStaffRef.on('value', function(snap){
-      todayStaff = { staffIds:snap.val() || [] };
+      var schedule = snap.val();
+      canonicalTodayScheduleLoaded = !!(schedule && Array.isArray(schedule.staffIds));
+      todayStaff = { staffIds:canonicalTodayScheduleLoaded ? schedule.staffIds : [] };
+      renderVisitPreference();
+    });
+
+    legacyTodayStaffRef.on('value', function(snap){
+      if(canonicalTodayScheduleLoaded) return;
+      todayStaff = { staffIds:Array.isArray(snap.val()) ? snap.val() : [] };
       renderVisitPreference();
     });
 
@@ -404,7 +414,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     if(!select) return;
     var selected = select.value;
     var duty = Array.isArray(todayStaff.staffIds) ? todayStaff.staffIds : [];
-    var ids = duty.length ? duty.filter(function(id){ return staffRoster[id]; }) : Object.keys(staffRoster);
+    var ids = duty.filter(function(id){ return staffRoster[id]; });
     ids.sort(function(a,b){
       return String((staffRoster[a]||{}).name||'').localeCompare(String((staffRoster[b]||{}).name||''),'zh-Hant');
     });
