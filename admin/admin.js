@@ -623,6 +623,10 @@
       legacyStaffSchedules = snap.val() || {};
       rebuildStaffSchedules();
       renderStaffCheckList();
+      renderCurrentStaffSelect();
+      renderReceptionStaffSelect();
+      renderReception();
+      renderOrders();
       migrateLegacySchedules();
     });
 
@@ -868,20 +872,36 @@
   });
   updateSoundButton();
 
+  function scheduleForDate(date){
+    var schedule = staffSchedules && staffSchedules[date];
+    if(schedule && Array.isArray(schedule.staffIds)) return schedule;
+    if(todayStaff && todayStaff.date===date && Array.isArray(todayStaff.staffIds)) return todayStaff;
+    return null;
+  }
+
+  function dutyIdsForDate(date){
+    var schedule = scheduleForDate(date);
+    return schedule ? schedule.staffIds.filter(function(id){ return !!staffRoster[id]; }) : [];
+  }
+
+  function todayDutyIds(){ return dutyIdsForDate(todayKey()); }
+
   function renderCurrentStaffSelect(){
     var select = document.getElementById('globalStaffSelect');
     if(!select) return;
-    var onDutyIds = todayStaff.staffIds || [];
-    var ids = Object.keys(staffRoster);
+    var todaySchedule = scheduleForDate(todayKey());
+    var onDutyIds = todayDutyIds();
+    var ids = todaySchedule ? onDutyIds.slice() : Object.keys(staffRoster);
     ids.sort(function(a,b){
-      var aDuty = onDutyIds.indexOf(a) > -1 ? 0 : 1;
-      var bDuty = onDutyIds.indexOf(b) > -1 ? 0 : 1;
-      if(aDuty!==bDuty) return aDuty-bDuty;
       return String(staffRoster[a].name||'').localeCompare(String(staffRoster[b].name||''), 'zh-Hant');
     });
-    var html = '<option value="">請先選擇店員</option>';
+    if(todaySchedule && currentStaffId && onDutyIds.indexOf(currentStaffId)===-1){
+      currentStaffId = '';
+      try{ localStorage.removeItem('lephemereCurrentStaffId'); }catch(e){}
+    }
+    var html = '<option value="">'+(todaySchedule && !ids.length ? '今日尚未安排值班店員' : '請先選擇店員')+'</option>';
     ids.forEach(function(id){
-      var duty = onDutyIds.indexOf(id) > -1 ? '（今日值班）' : '';
+      var duty = todaySchedule ? '（今日值班）' : '';
       html += '<option value="'+id+'" '+(id===currentStaffId?'selected':'')+'>'+escapeHtml(staffRoster[id].name||'未命名店員')+duty+'</option>';
     });
     select.innerHTML = html;
@@ -918,8 +938,9 @@
   function waitMinutes(ts){ return Math.max(0,Math.floor((Date.now()-Number(ts||Date.now()))/60000)); }
 
   function transferOptions(currentId){
-    var duty=todayStaff.staffIds||[];
-    var ids=(duty.length?duty:Object.keys(staffRoster)).filter(function(id){ return staffRoster[id] && id!==currentId; });
+    var schedule=scheduleForDate(todayKey());
+    var duty=todayDutyIds();
+    var ids=(schedule?duty:Object.keys(staffRoster)).filter(function(id){ return staffRoster[id] && id!==currentId; });
     return '<option value="">轉交給…</option>'+ids.map(function(id){ return '<option value="'+escapeAttr(id)+'">'+escapeHtml(staffRoster[id].name||'未命名女僕')+'</option>'; }).join('');
   }
 
@@ -1008,8 +1029,9 @@
       var am=currentStaffId && a.assignedStaffId===currentStaffId?0:1, bm=currentStaffId && b.assignedStaffId===currentStaffId?0:1;
       return am!==bm?am-bm:Number(a.assignedAt||0)-Number(b.assignedAt||0);
     });
-    var duty=todayStaff.staffIds||[];
-    var ids=(duty.length?duty:Object.keys(staffRoster)).filter(function(id){return staffRoster[id];});
+    var schedule=scheduleForDate(todayKey());
+    var duty=todayDutyIds();
+    var ids=(schedule?duty:Object.keys(staffRoster)).filter(function(id){return staffRoster[id];});
     var available=ids.filter(function(id){return (staffPresence[id]||{}).status==='available';}).length;
     var alerts=receptionAlertsData(waiting,active);
     document.getElementById('visitWaitingCount').textContent=waiting.length;
@@ -1520,8 +1542,10 @@
       }
       if(isManager()) actionsHtml += '<button class="btn ghost small" data-delete-order="'+o.id+'" style="border-color:var(--rose-dim);color:var(--rose);">刪除</button>';
 
-      var staffIds = Object.keys(staffRoster);
-      var onDutyIds = todayStaff.staffIds || [];
+      var todaySchedule = scheduleForDate(todayKey());
+      var onDutyIds = todayDutyIds();
+      var staffIds = todaySchedule ? onDutyIds.slice() : Object.keys(staffRoster);
+      if(assignedId && staffRoster[assignedId] && staffIds.indexOf(assignedId)===-1) staffIds.push(assignedId);
       staffIds.sort(function(a,b){
         var aDuty = onDutyIds.indexOf(a) > -1 ? 0 : 1;
         var bDuty = onDutyIds.indexOf(b) > -1 ? 0 : 1;
@@ -2152,18 +2176,26 @@
     var embedded = todayStaff && todayStaff.schedules && typeof todayStaff.schedules === 'object'
       ? todayStaff.schedules
       : {};
-    staffSchedules = Object.assign({}, legacyStaffSchedules, embedded);
+    staffSchedules = Object.assign({}, embedded, legacyStaffSchedules);
   }
 
   function migrateLegacySchedules(){
     if(legacySchedulesMigrated||!isManager()||!todayStaffRef) return;
-    var legacyKeys=Object.keys(legacyStaffSchedules||{});
-    if(!legacyKeys.length) return;
     var embedded=todayStaff&&todayStaff.schedules&&typeof todayStaff.schedules==='object'?todayStaff.schedules:{};
-    var updates={};
-    legacyKeys.forEach(function(date){if(!embedded[date]) updates[date]=legacyStaffSchedules[date];});
+    var toEmbedded={};
+    var toCanonical={};
+    Object.keys(legacyStaffSchedules||{}).forEach(function(date){
+      if(!embedded[date]) toEmbedded[date]=legacyStaffSchedules[date];
+    });
+    Object.keys(embedded).forEach(function(date){
+      if(!legacyStaffSchedules[date]) toCanonical[date]=embedded[date];
+    });
+    if(!Object.keys(toEmbedded).length && !Object.keys(toCanonical).length) return;
     legacySchedulesMigrated=true;
-    if(Object.keys(updates).length) todayStaffRef.child('schedules').update(updates).catch(function(){legacySchedulesMigrated=false;});
+    var jobs=[];
+    if(Object.keys(toEmbedded).length) jobs.push(todayStaffRef.child('schedules').update(toEmbedded));
+    if(Object.keys(toCanonical).length) jobs.push(staffSchedulesRef.update(toCanonical));
+    Promise.all(jobs).catch(function(){ legacySchedulesMigrated=false; });
   }
 
   function staffSortKeys(){
@@ -2270,16 +2302,21 @@
 
   function persistSchedule(data){
     if(!isConfigured) return Promise.resolve();
-    setScheduleSaveStatus('正在同步至預約頁…', 'saving');
+    setScheduleSaveStatus('正在同步至所有頁面…', 'saving');
     var updates = {};
-    updates['schedules/'+data.date] = data;
+    updates['staffSchedules/'+data.date] = data;
+    updates['todayStaff/schedules/'+data.date] = data;
     if(data.date===todayKey()){
-      updates.date = data.date;
-      updates.staffIds = data.staffIds;
-      updates.updatedAt = data.updatedAt;
+      updates['todayStaff/date'] = data.date;
+      updates['todayStaff/staffIds'] = data.staffIds;
+      updates['todayStaff/updatedAt'] = data.updatedAt;
     }
-    return todayStaffRef.update(updates).then(function(){
-      setScheduleSaveStatus('已自動儲存並同步', 'saved');
+    return db.ref('lephemere').update(updates).then(function(){
+      staffSchedules[data.date] = data;
+      setScheduleSaveStatus('已同步至所有頁面', 'saved');
+      renderCurrentStaffSelect();
+      renderReception();
+      renderOrders();
     }).catch(function(err){
       console.error('Schedule sync failed', err);
       var denied = err && (err.code === 'PERMISSION_DENIED' || /permission/i.test(String(err.message || '')));
