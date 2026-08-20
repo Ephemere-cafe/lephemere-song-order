@@ -153,6 +153,18 @@
     var d = new Date();
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   }
+  var SCHEDULE_DATE_STORAGE_KEY = 'lephemereAdminScheduleDate';
+  function isScheduleDate(value){ return /^\d{4}-\d{2}-\d{2}$/.test(String(value || '')); }
+  function rememberedScheduleDate(){
+    try{
+      var value = localStorage.getItem(SCHEDULE_DATE_STORAGE_KEY) || '';
+      return isScheduleDate(value) ? value : '';
+    }catch(err){ return ''; }
+  }
+  function rememberScheduleDate(value){
+    if(!isScheduleDate(value)) return;
+    try{ localStorage.setItem(SCHEDULE_DATE_STORAGE_KEY, value); }catch(err){}
+  }
 
   function setSystemPill(id, text, state){
     var el = document.getElementById(id);
@@ -609,7 +621,8 @@
       rebuildStaffSchedules();
       var dateInput = document.getElementById('onDutyDate');
       if(dateInput && !dateInput.value){
-        dateInput.value = todayStaff.date || todayKey();
+        dateInput.value = rememberedScheduleDate() || todayStaff.date || todayKey();
+        rememberScheduleDate(dateInput.value);
       }
       renderStaffCheckList();
       renderCurrentStaffSelect();
@@ -2308,6 +2321,7 @@
 
   function persistSchedule(data){
     if(!isConfigured) return Promise.resolve();
+    rememberScheduleDate(data.date);
     setScheduleSaveStatus('正在同步至所有頁面…', 'saving');
     var updates = {};
     updates['staffSchedules/'+data.date] = data;
@@ -2418,6 +2432,12 @@
 
   document.getElementById('onDutyDate').addEventListener('change', function(){
     if(scheduleSaveTimer){ clearTimeout(scheduleSaveTimer); scheduleSaveTimer = null; }
+    var selectedDate = this.value.trim();
+    if(!isScheduleDate(selectedDate)){
+      selectedDate = rememberedScheduleDate() || todayKey();
+      this.value = selectedDate;
+    }
+    rememberScheduleDate(selectedDate);
     setScheduleSaveStatus('勾選後會自動儲存', '');
     renderStaffCheckList();
   });
