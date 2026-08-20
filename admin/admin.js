@@ -13,10 +13,10 @@
   var isConfigured = firebaseConfig.apiKey.indexOf('貼上') === -1;
   if(!isConfigured){ document.getElementById('configWarn').style.display = 'block'; }
 
-  var db, storage;
-  var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, staffSchedulesRef, menuRef, nextOrderNumberRef, webhookRef, operationStatusRef, dailyReportsRef, adminUsersRef, adminOwnerUidRef, siteMusicRef;
+  var db, storage, functionsClient, retryDiscordNotificationFn;
+  var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, staffSchedulesRef, menuRef, nextOrderNumberRef, operationStatusRef, dailyReportsRef, adminUsersRef, adminOwnerUidRef, siteMusicRef;
   var visitsRef, visitQueueCounterRef, staffPresenceRef, assignmentHistoryRef;
-  var recentOrdersQuery, todayVisitsQuery;
+  var recentOrdersQuery, todayVisitsQuery, currentVisitsBusinessDate = '';
 
   var orders = {};
   var visits = {};
@@ -24,7 +24,6 @@
   var assignmentHistory = {};
   var currentOrderFilter = 'active';
   var orderSearchTerm = '';
-  var webhookUrl = '';
   var knownOrderIds = {};
   var ordersSnapshotReady = false;
   var soundEnabled = false;
@@ -36,7 +35,7 @@
   var currentStaffId = '';
   var adminSessionId = 'admin-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);
   var isDatabaseConnected = false;
-  var operationStatus = { isOpen:true };
+  var operationStatus = { isOpen:false, businessDate:'' };
   var currentAuthUser = null;
   var currentAccessRole = 'orders';
   var adminOwnerUid = '';
@@ -77,7 +76,6 @@
   var todayStaff = {};
   var staffSchedules = {};
   var legacyStaffSchedules = {};
-  var legacySchedulesMigrated = false;
 
   var STATUS_LABEL = { pending:'待接單', preparing:'服務中', served:'服務中', completed:'已完成', cancelled:'已取消' };
   var NEXT_STATUS = { pending:'preparing', preparing:'completed', served:'completed' };
@@ -102,56 +100,16 @@
     var text = key.replace(/-/g,' / ');
     return key===todayKey() ? '今天・'+text : text;
   }
-  function discordFieldValue(value){
-    var text = String(value || '—');
-    return text.length > 1024 ? text.slice(0,1023)+'…' : text;
-  }
-  function sendDiscordAssignmentUpdate(order, staffName){
-    if(!webhookUrl) return Promise.resolve();
-    var assigned = !!staffName;
-    return fetch(webhookUrl, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        username:'曇時 Cafe｜接待通知',
-        allowed_mentions:{parse:[]},
-        embeds:[{
-          title:assigned ? '👥 接待店員已更新' : '↩️ 接待指派已取消',
-          color:assigned ? 13279339 : 12614538,
-          fields:[
-            {name:'訂單編號',value:'#'+discordFieldValue(order.orderNumber),inline:true},
-            {name:'主人',value:discordFieldValue(order.name||'未填寫'),inline:true},
-            {name:'目前服務店員',value:discordFieldValue(staffName||'尚未指派'),inline:false}
-          ],
-          footer:{text:"曇時 Cafe l'Éphémère｜點餐後台"},
-          timestamp:new Date().toISOString()
-        }]
-      })
-    }).catch(function(err){ console.warn('Discord update failed', err); });
-  }
-  function sendDiscordNewOrder(order){
-    function deliver(url){
-      if(!url) return Promise.resolve();
-      var items=(order.items||[]).map(function(item){return (item.name||'品項')+' × '+Number(item.qty||1);}).join('\n');
-      return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-        username:'曇時 Cafe｜新訂單',allowed_mentions:{parse:[]},embeds:[{
-          title:'🍽️ 新的點餐訂單 #'+discordFieldValue(order.orderNumber),color:13279339,
-          fields:[
-            {name:'主人',value:discordFieldValue(order.name||'未填寫'),inline:true},
-            {name:'候位',value:discordFieldValue(order.queueNumber||'—'),inline:true},
-            {name:'負責女僕',value:discordFieldValue(order.assignedStaffName||'尚未指派'),inline:true},
-            {name:'品項',value:discordFieldValue(items||'未列出品項'),inline:false},
-            {name:'合計',value:discordFieldValue(fmtGil(Number(order.total||0))),inline:false}
-          ],footer:{text:"曇時 Cafe l'Éphémère｜安全後台通知"},timestamp:new Date().toISOString()
-        }]})
-      }).catch(function(err){console.warn('Discord new order failed',err);});
-    }
-    if(webhookUrl) return deliver(webhookUrl);
-    return webhookRef.once('value').then(function(snap){webhookUrl=snap.val()||'';return deliver(webhookUrl);});
-  }
   function todayKey(){
     var d = new Date();
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  function currentBusinessDate(){
+    var value = operationStatus && operationStatus.businessDate;
+    return isScheduleDate(value) ? value : todayKey();
+  }
+  function businessDateText(){
+    return currentBusinessDate().replace(/-/g,' / ');
   }
   var SCHEDULE_DATE_STORAGE_KEY = 'lephemereAdminScheduleDate';
   function isScheduleDate(value){ return /^\d{4}-\d{2}-\d{2}$/.test(String(value || '')); }
@@ -175,14 +133,25 @@
 
   function renderSystemStatus(){
     setSystemPill('systemDatabase', isDatabaseConnected ? '訂單連線正常' : '訂單連線中斷', isDatabaseConnected ? 'ok' : 'bad');
-    setSystemPill('systemOrdering', operationStatus.isOpen===false ? '線上點餐已打烊' : '線上點餐開放中', operationStatus.isOpen===false ? 'warn' : 'ok');
-    setSystemPill('systemDiscord', webhookUrl ? 'Discord 已設定' : 'Discord 未設定', webhookUrl ? 'ok' : 'warn');
+    setSystemPill('systemOrdering', operationStatus.isOpen===false ? businessDateText()+' 已打烊' : businessDateText()+' 點餐開放中', operationStatus.isOpen===false ? 'warn' : 'ok');
+    setSystemPill('systemDiscord', 'Discord 雲端通知', 'ok');
     setSystemPill('systemSound', soundEnabled ? '提示音開啟' : '提示音關閉', soundEnabled ? 'ok' : 'warn');
     var toggle = document.getElementById('operationToggle');
     if(toggle){
       toggle.textContent = operationStatus.isOpen===false ? '開始營業' : '結束營業並產生日報';
       toggle.className = operationStatus.isOpen===false ? 'btn primary small' : 'btn primary small';
     }
+    var dateInput = document.getElementById('businessDateInput');
+    if(dateInput){
+      if(document.activeElement!==dateInput || operationStatus.isOpen!==false) dateInput.value = currentBusinessDate();
+      dateInput.disabled = operationStatus.isOpen!==false;
+    }
+    var title = document.getElementById('businessSessionTitle');
+    var help = document.getElementById('businessSessionHelp');
+    if(title) title.textContent = operationStatus.isOpen===false ? businessDateText()+' 已打烊' : businessDateText()+' 營業中';
+    if(help) help.textContent = operationStatus.isOpen===false
+      ? '可調整上方日期後按「開始營業」；開店後日期會鎖定，直到本場打烊。'
+      : '目前場次已鎖定，不會在午夜自動換日；請於本場結束後再打烊。';
   }
 
   function tickClock(){
@@ -490,6 +459,8 @@
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
     storage = firebase.storage();
+    functionsClient = firebase.app().functions('asia-southeast1');
+    retryDiscordNotificationFn = functionsClient.httpsCallable('retryDiscordNotification');
     ordersRef = db.ref('lephemere/orders');
     nextOrderNumberRef = db.ref('lephemere/nextOrderNumber');
     openDatesRef = db.ref('lephemere/openDates');
@@ -499,7 +470,6 @@
     todayStaffRef = db.ref('lephemere/todayStaff');
     staffSchedulesRef = db.ref('lephemere/staffSchedules');
     menuRef = db.ref('lephemere/menu');
-    webhookRef = db.ref('lephemere/webhookUrl');
     operationStatusRef = db.ref('lephemere/operationStatus');
     dailyReportsRef = db.ref('lephemere/dailyReports');
     adminUsersRef = todayStaffRef.child('_access/users');
@@ -510,7 +480,7 @@
     staffPresenceRef = db.ref('lephemere/staffPresence');
     assignmentHistoryRef = db.ref('lephemere/assignmentHistory');
     recentOrdersQuery = ordersRef.orderByChild('createdAt').startAt(Date.now()-30*86400000);
-    todayVisitsQuery = visitsRef.orderByChild('businessDate').equalTo(todayKey());
+    todayVisitsQuery = null;
 
     db.ref('.info/connected').on('value', function(snap){
       isDatabaseConnected = snap.val()===true;
@@ -548,6 +518,21 @@
   }
 
   var attached = false;
+  function watchBusinessVisits(date){
+    if(!visitsRef || !isScheduleDate(date) || currentVisitsBusinessDate===date) return;
+    if(todayVisitsQuery) todayVisitsQuery.off();
+    currentVisitsBusinessDate = date;
+    todayVisitsQuery = visitsRef.orderByChild('businessDate').equalTo(date);
+    todayVisitsQuery.on('value', function(snap){
+      visits = snap.val() || {};
+      renderReception();
+    }, function(err){
+      console.error('Business visit sync failed', err);
+      visits = {};
+      renderReception();
+    });
+  }
+
   function attachData(){
     if(attached) return;
     attached = true;
@@ -560,7 +545,6 @@
         });
         if(newOrderIds.length){
           playOrderSound();
-          newOrderIds.forEach(function(id){sendDiscordNewOrder(nextOrders[id]);});
         }
       }
       knownOrderIds = {};
@@ -572,10 +556,7 @@
       renderReception();
     });
 
-    todayVisitsQuery.on('value', function(snap){
-      visits = snap.val() || {};
-      renderReception();
-    });
+    watchBusinessVisits(currentBusinessDate());
 
     staffPresenceRef.on('value', function(snap){
       staffPresence = snap.val() || {};
@@ -587,14 +568,20 @@
       renderAssignmentHistory();
     });
 
-    webhookRef.on('value', function(snap){
-      webhookUrl = snap.val() || '';
-      renderSystemStatus();
-    });
-
     operationStatusRef.on('value', function(snap){
-      operationStatus = snap.val() || { isOpen:true };
+      operationStatus = snap.val() || { isOpen:false, businessDate:todayKey() };
+      if(!isScheduleDate(operationStatus.businessDate)){
+        operationStatus.businessDate = todayKey();
+        if(operationStatus.isOpen===true && isManager()){
+          operationStatusRef.update({businessDate:operationStatus.businessDate, sessionId:operationStatus.sessionId||('session-'+operationStatus.businessDate+'-'+Date.now()), updatedAt:Date.now()});
+        }
+      }
+      watchBusinessVisits(currentBusinessDate());
       renderSystemStatus();
+      renderCurrentStaffSelect();
+      renderReception();
+      renderOrders();
+      renderStats();
     });
 
     rulesRef.on('value', function(snap){
@@ -618,18 +605,12 @@
 
     todayStaffRef.on('value', function(snap){
       todayStaff = snap.val() || {};
-      rebuildStaffSchedules();
       var dateInput = document.getElementById('onDutyDate');
       if(dateInput && !dateInput.value){
-        dateInput.value = rememberedScheduleDate() || todayStaff.date || todayKey();
+        dateInput.value = rememberedScheduleDate() || currentBusinessDate();
         rememberScheduleDate(dateInput.value);
       }
       renderStaffCheckList();
-      renderCurrentStaffSelect();
-      renderReceptionStaffSelect();
-      renderReception();
-      migrateLegacySchedules();
-      renderOrders();
     });
 
     staffSchedulesRef.on('value', function(snap){
@@ -640,7 +621,6 @@
       renderReceptionStaffSelect();
       renderReception();
       renderOrders();
-      migrateLegacySchedules();
     });
 
     menuRef.on('value', function(snap){
@@ -898,10 +878,7 @@
   }
 
   function activeDutyDate(){
-    var dateInput = document.getElementById('onDutyDate');
-    var selectedDate = dateInput && dateInput.value ? dateInput.value.trim() : '';
-    if(isScheduleDate(selectedDate)) return selectedDate;
-    return rememberedScheduleDate() || todayKey();
+    return currentBusinessDate();
   }
 
   function activeDutyIds(){ return dutyIdsForDate(activeDutyDate()); }
@@ -934,7 +911,7 @@
     });
     select.innerHTML = html;
     var hint = document.getElementById('globalDutyDateHint');
-    if(hint) hint.textContent = '目前使用 '+dutyDate.replace(/-/g,' / ')+' 的值班名單；此身分會套用接待、訂單、特殊服務與交接紀錄。';
+    if(hint) hint.textContent = '目前營業場次 '+dutyDate.replace(/-/g,' / ')+'；此身分會套用接待、訂單、特殊服務與交接紀錄。';
     var name=currentStaffId&&staffRoster[currentStaffId]?staffRoster[currentStaffId].name||'未命名女僕':'尚未選擇';
     document.getElementById('receptionStaffDisplay').textContent=name;
     document.getElementById('orderStaffDisplay').textContent=name;
@@ -961,7 +938,7 @@
 
   function visitRows(statuses){
     return Object.keys(visits).map(function(id){ return Object.assign({id:id},visits[id]||{}); }).filter(function(v){
-      return v.businessDate===todayKey() && statuses.indexOf(v.status)>-1;
+      return v.businessDate===currentBusinessDate() && statuses.indexOf(v.status)>-1;
     }).sort(function(a,b){ return Number(a.createdAt||0)-Number(b.createdAt||0); });
   }
 
@@ -1023,7 +1000,7 @@
     });
     Object.keys(orders).forEach(function(id){
       var o=orders[id]||{};
-      if(o.status==='pending' && isToday(o.createdAt) && waitMinutes(o.createdAt)>=10) alerts.push({title:'訂單 #'+(o.orderNumber||'—')+' '+(o.name||''),detail:'已等待處理 '+waitMinutes(o.createdAt)+' 分鐘'});
+      if(o.status==='pending' && orderBelongsToBusiness(o) && waitMinutes(o.createdAt)>=10) alerts.push({title:'訂單 #'+(o.orderNumber||'—')+' '+(o.name||''),detail:'已等待處理 '+waitMinutes(o.createdAt)+' 分鐘'});
     });
     return alerts;
   }
@@ -1202,8 +1179,8 @@
       updates[v.id+'/cancelReason']='manager_queue_reset';
     });
     var resetVisits=Object.keys(updates).length ? visitsRef.update(updates) : Promise.resolve();
-    Promise.all([resetVisits,visitQueueCounterRef.child(todayKey()).set(0),recordVisitAssignment('',currentStaffId,'','reset-daily-queue')]).then(function(){
-      alert('今日候位已重置，下一位客人將取得 A001。');
+    Promise.all([resetVisits,visitQueueCounterRef.child(currentBusinessDate()).set(0),recordVisitAssignment('',currentStaffId,'','reset-daily-queue')]).then(function(){
+      alert('本場候位已重置，下一位客人將取得 A001。');
     }).catch(function(err){
       console.error('Reset visit queue failed',err);
       alert('候位重置失敗，請確認 Firebase 規則已更新。');
@@ -1270,16 +1247,49 @@
     if(orderAudioContext.state==='suspended') orderAudioContext.resume().catch(function(){});
   }, {once:true});
 
-  function isToday(ts){
-    var d = new Date(ts), now = new Date();
-    return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+  function orderBusinessDate(order){
+    return order && order.businessDate ? order.businessDate : orderDateKey(order && order.createdAt);
+  }
+
+  function orderBelongsToBusiness(order, date){
+    return orderBusinessDate(order) === (date || currentBusinessDate());
+  }
+
+  function notificationHtml(record, type, id){
+    var notice = record && record.notification || {};
+    var status = notice.status || 'pending';
+    var label = status==='sent' ? 'Discord 已通知' : (status==='failed' ? 'Discord 通知失敗' : (status==='sending' ? 'Discord 通知中' : 'Discord 等待通知'));
+    var detail = status==='failed' && notice.error ? ' title="'+escapeAttr(notice.error)+'"' : '';
+    var stalePending = status==='pending' && record && record.createdAt && Date.now()-Number(record.createdAt)>120000;
+    var retry = (status==='failed' || stalePending) && retryDiscordNotificationFn
+      ? '<button class="notification-retry" data-retry-notification="'+escapeAttr(type)+'" data-notification-id="'+escapeAttr(id)+'">重試通知</button>'
+      : '';
+    return '<span class="notification-state '+status+'"'+detail+'>'+label+'</span>'+retry;
+  }
+
+  function bindNotificationRetries(root){
+    if(!root || !retryDiscordNotificationFn) return;
+    root.querySelectorAll('[data-retry-notification]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var original = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '重試中…';
+        retryDiscordNotificationFn({type:btn.getAttribute('data-retry-notification'), id:btn.getAttribute('data-notification-id')})
+          .then(function(){ btn.textContent = '已送出'; })
+          .catch(function(err){
+            btn.disabled = false;
+            btn.textContent = original;
+            alert('Discord 通知重試失敗：'+((err && err.message) || '請稍後再試'));
+          });
+      });
+    });
   }
 
   function renderStats(){
     var pending=0, preparing=0, completed=0, gil=0, unassigned=0, overdue=0, specialPending=0;
     Object.keys(orders).forEach(function(id){
       var o = orders[id];
-      if(!isToday(o.createdAt)) return;
+      if(!orderBelongsToBusiness(o)) return;
       if(o.status==='pending') pending++;
       if(o.status==='preparing' || o.status==='served') preparing++;
       if(o.status==='completed') completed++;
@@ -1300,7 +1310,7 @@
     document.getElementById('statPreparing').textContent = preparing;
     document.getElementById('statCompleted').textContent = completed;
     document.getElementById('statTotalGil').textContent = fmtGil(gil);
-    document.getElementById('overviewDate').textContent = todayKey().replace(/-/g,' / ')+'・即時整理今天的訂單與待處理事項';
+    document.getElementById('overviewDate').textContent = currentBusinessDate().replace(/-/g,' / ')+'・即時整理本場訂單與待處理事項';
   }
 
   function addSpecialTag(tags, key, label){
@@ -1361,7 +1371,7 @@
     var activeOrders = Object.keys(orders).map(function(id){
       var order = orders[id];
       return Object.assign({id:id}, order);
-    }).filter(function(order){ return order.status!=='cancelled' && isToday(order.createdAt); });
+    }).filter(function(order){ return order.status!=='cancelled' && orderBelongsToBusiness(order); });
     activeOrders.sort(function(a,b){
       function weight(order){
         var states = order.specialServices || {};
@@ -1421,16 +1431,12 @@
       var id = keys[index];
       var qty = Number(reservations[id]||0);
       if(!qty) return changeAt(index+1);
-      return menuRef.child(id).transaction(function(item){
-        if(!item) return;
-        if(direction < 0){
-          if(item.available===false || item.stockEnabled!==true || Number(item.stockRemaining||0)<qty) return;
-          item.stockRemaining = Number(item.stockRemaining||0)-qty;
-        }else{
-          if(item.stockRemaining===undefined && item.stockEnabled!==true) return item;
-          item.stockRemaining = Number(item.stockRemaining||0)+qty;
-        }
-        return item;
+      var knownItem = menuItems[id] || {};
+      if(knownItem.stockEnabled!==true) return changeAt(index+1);
+      return menuRef.child(id).child('stockRemaining').transaction(function(current){
+        var remaining = Math.max(0, Number(current||0));
+        if(direction < 0 && remaining<qty) return;
+        return remaining + direction*qty;
       }).then(function(result){
         if(!result.committed) throw new Error('stock-unavailable');
         applied.push(id);
@@ -1515,7 +1521,7 @@
     var dayStats = {};
     if(groupByDate){
       arr.forEach(function(o){
-        var key = orderDateKey(o.createdAt);
+        var key = orderBusinessDate(o);
         if(!dayStats[key]) dayStats[key] = { count:0, gil:0 };
         dayStats[key].count++;
         if(o.status!=='cancelled') dayStats[key].gil += (o.total||0);
@@ -1527,7 +1533,7 @@
     var dayIndex = 0;
     arr.forEach(function(o){
       if(groupByDate){
-        var dateKey = orderDateKey(o.createdAt);
+        var dateKey = orderBusinessDate(o);
         if(dateKey!==openDay){
           if(openDay!==null) html += '</div></details>';
           var stat = dayStats[dateKey];
@@ -1607,6 +1613,7 @@
       html += '<div class="order-card">'
         + '<div class="order-top">'
         + '<div><span class="order-num">#'+escapeHtml(String(o.orderNumber||'—'))+'</span> '+(o.queueNumber?'<span class="visit-tag">候位 '+escapeHtml(o.queueNumber)+'</span> ':'')+'<span class="status-badge status-'+safeStatus+'">'+STATUS_LABEL[safeStatus]+'</span>'
+        + '<div>'+notificationHtml(o, 'order', o.id)+'</div>'
         + '<div class="order-name">'+escapeHtml(o.name||'')+'</div>'
         + (o.note ? '<div class="order-note">備註：'+escapeHtml(o.note)+'</div>' : '')
         + '</div>'
@@ -1623,6 +1630,7 @@
     if(groupByDate && openDay!==null) html += '</div></details>';
     el.innerHTML = html;
     updateElapsedLabels();
+    bindNotificationRetries(el);
 
     el.querySelectorAll('[data-special-progress]').forEach(function(select){
       select.addEventListener('change', function(){
@@ -1650,9 +1658,6 @@
             assignedStaffId: null,
             assignedStaffName: null,
             assignedAt: null
-          }).then(function(){
-            var order = orders[id] || {};
-            return sendDiscordAssignmentUpdate(order, null);
           });
           return;
         }
@@ -1668,9 +1673,6 @@
           assignedStaffId: staffId,
           assignedStaffName: staff.name || '未命名店員',
           assignedAt: Date.now()
-        }).then(function(){
-          var order = orders[id] || {};
-          return sendDiscordAssignmentUpdate(order, staff.name||'未命名店員');
         });
       });
     });
@@ -1684,7 +1686,7 @@
           assignedStaffId: currentStaffId,
           assignedStaffName: staff.name || '未命名店員',
           assignedAt: Date.now()
-        }).then(function(){ return sendDiscordAssignmentUpdate(orders[id]||{}, staff.name||'未命名店員'); });
+        });
       });
     });
 
@@ -1751,8 +1753,8 @@
   }
 
   function buildDailyReport(){
-    var date = todayKey();
-    var list = Object.keys(orders).map(function(id){ return orders[id]; }).filter(function(o){ return isToday(o.createdAt); });
+    var date = currentBusinessDate();
+    var list = Object.keys(orders).map(function(id){ return orders[id]; }).filter(function(o){ return orderBelongsToBusiness(o, date); });
     var active=0, completed=0, cancelled=0, totalGil=0;
     var staffCounts = {};
     var special = { total:0, completed:0 };
@@ -1796,7 +1798,10 @@
   document.getElementById('viewDailyReport').addEventListener('click', function(){ showDailyReport(false); });
   document.getElementById('operationToggle').addEventListener('click', function(){
     if(operationStatus.isOpen===false){
-      operationStatusRef.set({ isOpen:true, label:'營業中', updatedAt:Date.now() });
+      var input = document.getElementById('businessDateInput');
+      var businessDate = input && input.value.trim();
+      if(!isScheduleDate(businessDate)){ alert('請先選擇這一場的營業日期。'); return; }
+      operationStatusRef.set({ isOpen:true, label:'營業中', businessDate:businessDate, sessionId:'session-'+businessDate+'-'+Date.now(), openedAt:Date.now(), updatedAt:Date.now() });
       return;
     }
     var preview = buildDailyReport();
@@ -1808,7 +1813,7 @@
     var visitUpdates={};
     waitingVisits.forEach(function(v){visitUpdates[v.id+'/status']='cancelled';visitUpdates[v.id+'/cancelledAt']=Date.now();visitUpdates[v.id+'/updatedAt']=Date.now();visitUpdates[v.id+'/cancelReason']='business_closed';});
     var closeWaiting=Object.keys(visitUpdates).length?visitsRef.update(visitUpdates):Promise.resolve();
-    closeWaiting.then(function(){return operationStatusRef.set({ isOpen:false, label:'已打烊', updatedAt:Date.now(), reportDate:report.data.date });});
+    closeWaiting.then(function(){return operationStatusRef.set({ isOpen:false, label:'已打烊', businessDate:currentBusinessDate(), sessionId:operationStatus.sessionId||'', updatedAt:Date.now(), reportDate:report.data.date });});
   });
   document.getElementById('reportClose').addEventListener('click', function(){ document.getElementById('reportOverlay').classList.remove('open'); });
   document.getElementById('reportOverlay').addEventListener('click', function(e){ if(e.target===this) this.classList.remove('open'); });
@@ -2204,29 +2209,7 @@
 
   // ---------- staff roster / on-duty ----------
   function rebuildStaffSchedules(){
-    var embedded = todayStaff && todayStaff.schedules && typeof todayStaff.schedules === 'object'
-      ? todayStaff.schedules
-      : {};
-    staffSchedules = Object.assign({}, embedded, legacyStaffSchedules);
-  }
-
-  function migrateLegacySchedules(){
-    if(legacySchedulesMigrated||!isManager()||!todayStaffRef) return;
-    var embedded=todayStaff&&todayStaff.schedules&&typeof todayStaff.schedules==='object'?todayStaff.schedules:{};
-    var toEmbedded={};
-    var toCanonical={};
-    Object.keys(legacyStaffSchedules||{}).forEach(function(date){
-      if(!embedded[date]) toEmbedded[date]=legacyStaffSchedules[date];
-    });
-    Object.keys(embedded).forEach(function(date){
-      if(!legacyStaffSchedules[date]) toCanonical[date]=embedded[date];
-    });
-    if(!Object.keys(toEmbedded).length && !Object.keys(toCanonical).length) return;
-    legacySchedulesMigrated=true;
-    var jobs=[];
-    if(Object.keys(toEmbedded).length) jobs.push(todayStaffRef.child('schedules').update(toEmbedded));
-    if(Object.keys(toCanonical).length) jobs.push(staffSchedulesRef.update(toCanonical));
-    Promise.all(jobs).catch(function(){ legacySchedulesMigrated=false; });
+    staffSchedules = Object.assign({}, legacyStaffSchedules);
   }
 
   function staffSortKeys(){
@@ -2304,7 +2287,7 @@
     var schedule = staffSchedules[selectedDate];
     var ids = Array.isArray(overrideIds)
       ? overrideIds
-      : (schedule && schedule.staffIds ? schedule.staffIds : (todayStaff.date===selectedDate ? (todayStaff.staffIds||[]) : []));
+      : (schedule && schedule.staffIds ? schedule.staffIds : []);
     var reservationIds = Array.isArray(overrideReservationIds)
       ? overrideReservationIds
       : (schedule && Array.isArray(schedule.reservationStaffIds) ? schedule.reservationStaffIds : ids);
@@ -2341,20 +2324,14 @@
     if(!isConfigured) return Promise.resolve();
     rememberScheduleDate(data.date);
     setScheduleSaveStatus('正在同步至所有頁面…', 'saving');
-    var updates = {};
-    updates['staffSchedules/'+data.date] = data;
-    updates['todayStaff/schedules/'+data.date] = data;
-    if(data.date===todayKey()){
-      updates['todayStaff/date'] = data.date;
-      updates['todayStaff/staffIds'] = data.staffIds;
-      updates['todayStaff/updatedAt'] = data.updatedAt;
-    }
-    return db.ref('lephemere').update(updates).then(function(){
+    return staffSchedulesRef.child(data.date).set(data).then(function(){
       staffSchedules[data.date] = data;
       setScheduleSaveStatus('已同步至所有頁面', 'saved');
-      renderCurrentStaffSelect();
-      renderReception();
-      renderOrders();
+      if(data.date===currentBusinessDate()){
+        renderCurrentStaffSelect();
+        renderReception();
+        renderOrders();
+      }
     }).catch(function(err){
       console.error('Schedule sync failed', err);
       var denied = err && (err.code === 'PERMISSION_DENIED' || /permission/i.test(String(err.message || '')));
@@ -2382,9 +2359,7 @@
     }
     var selectedDate = document.getElementById('onDutyDate').value.trim() || todayKey();
     var selectedSchedule = staffSchedules[selectedDate];
-    var currentOnDuty = selectedSchedule && selectedSchedule.staffIds
-      ? selectedSchedule.staffIds
-      : (todayStaff.date===selectedDate ? (todayStaff.staffIds||[]) : []);
+    var currentOnDuty = selectedSchedule && selectedSchedule.staffIds ? selectedSchedule.staffIds : [];
     var currentReservation = selectedSchedule && Array.isArray(selectedSchedule.reservationStaffIds)
       ? selectedSchedule.reservationStaffIds
       : currentOnDuty.slice();
@@ -2458,9 +2433,6 @@
     rememberScheduleDate(selectedDate);
     setScheduleSaveStatus('勾選後會自動儲存', '');
     renderStaffCheckList();
-    renderCurrentStaffSelect();
-    renderReception();
-    renderOrders();
   });
 
   // ---------- photo cropper ----------
@@ -2632,13 +2604,14 @@
       html += '<div style="border-bottom:1px solid var(--line);padding-bottom:8px;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;">'
         + '<span>'+r.date+' · '+escapeHtml(r.name)+' · '+r.size+'位'+(r.maid?' · 指名：'+escapeHtml(r.maid):'')+(r.note?' · '+escapeHtml(r.note):'')+'</span>'
-        + '<button class="icon-btn" data-cancel-reservation="'+r.id+'" title="取消預約">✕</button>'
+        + '<span>'+notificationHtml(r, 'reservation', r.id)+' <button class="icon-btn" data-cancel-reservation="'+r.id+'" title="取消預約">✕</button></span>'
         + '</div>'
         + '<div style="font-size:11.5px;color:var(--parchment-dim);margin-top:3px;">點歌：'+escapeHtml(songs)+'</div>'
         + '</div>';
     });
     html += '</div>';
     el.innerHTML = html;
+    bindNotificationRetries(el);
     el.querySelectorAll('[data-cancel-reservation]').forEach(function(btn){
       btn.addEventListener('click', function(){ reservationsRef.child(btn.getAttribute('data-cancel-reservation')).remove(); });
     });

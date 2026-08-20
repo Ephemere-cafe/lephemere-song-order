@@ -168,16 +168,30 @@
       </div>
 
       <section class="operations-section">
-        <h3 class="operations-section-title">今日概況</h3>
+        <h3 class="operations-section-title">目前營業場次</h3>
+        <div class="panel business-session-panel">
+          <div>
+            <label for="businessDateInput" class="admin-section-label">營業日期</label>
+            <input type="date" id="businessDateInput" aria-label="目前營業場次日期">
+          </div>
+          <div class="business-session-copy">
+            <strong id="businessSessionTitle">正在確認營業場次</strong>
+            <span id="businessSessionHelp">營業日期不會在午夜自動跳日；打烊後再由管理人員開啟下一場。</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="operations-section">
+        <h3 class="operations-section-title">場次概況</h3>
         <div class="panel overview-panel">
           <div class="overview-head">
             <div>
               <span class="overview-kicker">Live Operations</span>
-              <h2>今日營業總覽</h2>
-              <p id="overviewDate">即時整理今天的訂單與待處理事項</p>
+              <h2>本場營業總覽</h2>
+              <p id="overviewDate">即時整理目前場次的訂單與待處理事項</p>
             </div>
             <div class="overview-actions">
-              <button class="btn ghost small manager-only" data-manager-only id="viewDailyReport">查看今日日報</button>
+              <button class="btn ghost small manager-only" data-manager-only id="viewDailyReport">查看本場日報</button>
               <button class="btn primary small manager-only" data-manager-only id="operationToggle">結束營業並產生日報</button>
             </div>
           </div>
@@ -187,8 +201,8 @@
             <div class="stat caution"><b id="statOverdue">0</b>等待逾 10 分鐘</div>
             <div class="stat"><b id="statSpecialPending">0</b>特殊服務待完成</div>
             <div class="stat"><b id="statPreparing">0</b>服務中</div>
-            <div class="stat"><b id="statCompleted">0</b>今日完成</div>
-            <div class="stat"><b id="statTotalGil">0</b>今日訂單總額</div>
+            <div class="stat"><b id="statCompleted">0</b>本場完成</div>
+            <div class="stat"><b id="statTotalGil">0</b>本場訂單總額</div>
           </div>
         </div>
       </section>
@@ -492,6 +506,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js"></script>
 <script src="admin.js"></script>
 
 </body>
