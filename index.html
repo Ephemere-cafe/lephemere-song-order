@@ -256,6 +256,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js"></script>
 <script>
 (function(){
 
@@ -277,15 +278,15 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
   var cart = {}; // id -> {name, price, qty, addon:{label,price}|null}
   var pendingAddons = {}; // remembers add-ons selected before the base item is added
-  var db, ordersRef, nextOrderNumberRef, menuRef, operationStatusRef;
-  var visitsRef, visitQueueCounterRef, staffRosterRef, todayStaffRef, legacyTodayStaffRef;
+  var db, menuRef, operationStatusRef, functionsClient, submitOrderFn;
+  var visitsRef, visitQueueCounterRef, staffRosterRef, todayStaffRef;
   var currentVisitorUid = '';
   var activeVisitListenerRef = null;
-  var operationStatus = { isOpen:true };
+  var operationStatus = { isOpen:false, businessDate:'' };
+  var operationStatusLoaded = false;
   var visits = {};
   var staffRoster = {};
   var todayStaff = {};
-  var canonicalTodayScheduleLoaded = false;
   var activeVisit = null;
   var activeVisitId = localStorage.getItem('lephemereActiveVisitId') || '';
   var activeVisitSessionId = sessionStorage.getItem('lephemereActiveVisitSessionId') || '';
@@ -320,24 +321,25 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   if(isConfigured){
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
-    ordersRef = db.ref('lephemere/orders');
-    nextOrderNumberRef = db.ref('lephemere/nextOrderNumber');
+    functionsClient = firebase.app().functions('asia-southeast1');
+    submitOrderFn = functionsClient.httpsCallable('submitOrder');
     menuRef = db.ref('lephemere/menu');
     operationStatusRef = db.ref('lephemere/operationStatus');
     visitsRef = db.ref('lephemere/visits');
     visitQueueCounterRef = db.ref('lephemere/visitQueueCounter');
     staffRosterRef = db.ref('lephemere/staffRoster');
-    todayStaffRef = db.ref('lephemere/staffSchedules/'+visitDateKey());
-    legacyTodayStaffRef = db.ref('lephemere/todayStaff/staffIds');
 
     db.ref('.info/connected').on('value', function(snap){
       document.getElementById('connDot').className = snap.val()===true ? 'dot online' : 'dot offline';
     });
 
     operationStatusRef.on('value', function(snap){
-      operationStatus = snap.val() || { isOpen:true };
+      operationStatus = snap.val() || { isOpen:false, businessDate:'' };
+      operationStatusLoaded = true;
+      watchDutySchedule(visitDateKey());
       renderOperationStatus();
       renderMenu();
+      if(activeVisit) updateVisitStatus();
     });
 
     firebase.auth().onAuthStateChanged(function(user){
@@ -357,19 +359,6 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       renderVisitPreference();
     });
 
-    todayStaffRef.on('value', function(snap){
-      var schedule = snap.val();
-      canonicalTodayScheduleLoaded = !!(schedule && Array.isArray(schedule.staffIds));
-      todayStaff = { staffIds:canonicalTodayScheduleLoaded ? schedule.staffIds : [] };
-      renderVisitPreference();
-    });
-
-    legacyTodayStaffRef.on('value', function(snap){
-      if(canonicalTodayScheduleLoaded) return;
-      todayStaff = { staffIds:Array.isArray(snap.val()) ? snap.val() : [] };
-      renderVisitPreference();
-    });
-
     menuRef.on('value', applyMenuSnapshot, function(){
       setMenuSyncStatus('即時連線中斷，正在重新取得菜單…', true);
     });
@@ -384,8 +373,22 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   }
 
   function visitDateKey(){
+    if(operationStatus && /^\d{4}-\d{2}-\d{2}$/.test(operationStatus.businessDate||'')) return operationStatus.businessDate;
     var d = new Date();
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  function watchDutySchedule(date){
+    if(!db || !date) return;
+    var nextRef = db.ref('lephemere/staffSchedules/'+date);
+    if(todayStaffRef && todayStaffRef.toString()===nextRef.toString()) return;
+    if(todayStaffRef) todayStaffRef.off();
+    todayStaffRef = nextRef;
+    todayStaffRef.on('value', function(snap){
+      var schedule = snap.val();
+      todayStaff = { staffIds:schedule && Array.isArray(schedule.staffIds) ? schedule.staffIds : [] };
+      renderVisitPreference();
+    });
   }
 
   function watchActiveVisit(id){
@@ -441,7 +444,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       renderMenu();
       return;
     }
-    if(activeVisit.businessDate!==visitDateKey()){
+    if(operationStatusLoaded && (activeVisit.businessDate!==visitDateKey() || (operationStatus.sessionId && activeVisit.sessionId && activeVisit.sessionId!==operationStatus.sessionId))){
       localStorage.removeItem('lephemereActiveVisitId');
       sessionStorage.removeItem('lephemereActiveVisitSessionId');
       activeVisitId=''; activeVisit=null; browseMode=false;
@@ -545,7 +548,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     var name = document.getElementById('visitCharacter').value.trim();
     if(!name){ err.textContent='請填寫遊戲角色名稱'; err.style.display='block'; return; }
     if(!document.getElementById('visitWorld').value){ err.textContent='請選擇角色所在伺服器'; err.style.display='block'; return; }
-    if(operationStatus.isOpen===false){ err.textContent='本日接待已結束，目前無法領取候位號碼'; err.style.display='block'; return; }
+    if(operationStatus.isOpen===false){ err.textContent='本場接待已結束，目前無法領取候位號碼'; err.style.display='block'; return; }
     if(!currentVisitorUid){ err.textContent='正在建立安全訪客身分，請稍後再試'; err.style.display='block'; return; }
     if(!visitsRef){ err.textContent='系統尚未連線，請稍後再試'; err.style.display='block'; return; }
     err.style.display='none';
@@ -570,6 +573,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         ownerUid:currentVisitorUid,
         status:'waiting',
         businessDate:day,
+        sessionId:operationStatus.sessionId||'',
         createdAt:now,
         updatedAt:now
       };
@@ -616,7 +620,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     document.getElementById('chooseService').disabled=closed;
     document.getElementById('browseToQueue').disabled=closed;
     var queueBtn=document.getElementById('joinVisitQueue');
-    if(closed){queueBtn.disabled=true;queueBtn.textContent='本日接待已結束';}
+    if(closed){queueBtn.disabled=true;queueBtn.textContent='本場接待已結束';}
     else if(queueBtn.textContent!=='正在領號…'){queueBtn.disabled=false;queueBtn.textContent='領取候位號碼';}
     var btn = document.getElementById('submitOrder');
     var canOrder = !!activeVisit && !visitRecoveryPending && (activeVisit.status==='assigned' || activeVisit.status==='serving');
@@ -888,41 +892,52 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   }
 
   // ---------- submit ----------
-  function releaseLimitedStock(reservations){
-    return Promise.all(Object.keys(reservations||{}).map(function(id){
-      var qty = Number(reservations[id]||0);
-      return menuRef.child(id).child('stockRemaining').transaction(function(current){ return Number(current||0)+qty; });
-    }));
+  function simpleHash(text){
+    var hash = 2166136261;
+    for(var i=0;i<text.length;i++){
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash>>>0).toString(36);
   }
 
-  function reserveLimitedStock(items){
-    var limited = items.filter(function(item){ return itemHasStockLimit(menuItems[item.id]); });
-    var reservations = {};
-    var applied = [];
-    function reserveAt(index){
-      if(index>=limited.length) return Promise.resolve(reservations);
-      var ordered = limited[index];
-      var qty = Number(ordered.qty||0);
-      var latestItem = menuItems[ordered.id];
-      if(!latestItem || !itemIsAvailable(latestItem) || !itemHasStockLimit(latestItem) || itemStockRemaining(latestItem)<qty){
-        return Promise.reject(new Error('stock-unavailable'));
-      }
-      return menuRef.child(ordered.id).child('stockRemaining').transaction(function(current){
-        var remaining = Math.max(0, Math.floor(Number(current||0)));
-        if(remaining<qty) return;
-        return remaining-qty;
-      }).then(function(result){
-        if(!result.committed) throw new Error('stock-unavailable');
-        reservations[ordered.id] = qty;
-        applied.push(ordered.id);
-        return reserveAt(index+1);
-      });
+  function submissionFingerprint(name, note, items){
+    return JSON.stringify({visitId:activeVisitId,sessionId:operationStatus.sessionId||'',name:name,note:note,items:items});
+  }
+
+  function pendingRequest(fingerprint){
+    var key = 'lephemerePendingOrder:'+activeVisitId;
+    try{
+      var existing = JSON.parse(localStorage.getItem(key)||'null');
+      if(existing && existing.fingerprint===fingerprint && existing.requestId) return existing;
+      var requestId = 'req-'+simpleHash(fingerprint+'|'+Math.floor(Date.now()/300000));
+      var created = {requestId:requestId,fingerprint:fingerprint,createdAt:Date.now()};
+      localStorage.setItem(key, JSON.stringify(created));
+      return created;
+    }catch(e){
+      return {requestId:'req-'+simpleHash(fingerprint+'|'+Math.floor(Date.now()/300000)),fingerprint:fingerprint};
     }
-    return reserveAt(0).catch(function(err){
-      var rollback = {};
-      applied.forEach(function(id){ rollback[id]=reservations[id]; });
-      return releaseLimitedStock(rollback).then(function(){ throw err; });
-    });
+  }
+
+  function clearPendingRequest(){
+    try{ localStorage.removeItem('lephemerePendingOrder:'+activeVisitId); }catch(e){}
+  }
+
+  function orderFailureText(error){
+    var details = error && error.details || {};
+    var reason = details.reason || '';
+    if(reason==='BUSINESS_CLOSED') return '本場點餐已結束，請直接詢問女僕。';
+    if(reason==='SESSION_CHANGED') return '營業場次已更新，請重新整理頁面後再送單。';
+    if(reason==='VISIT_NOT_FOUND') return '找不到您的候位資料，請重新領號或詢問女僕。';
+    if(reason==='VISIT_NOT_ASSIGNED') return '尚未由女僕接待，目前不能送出訂單。';
+    if(reason==='ITEM_UNAVAILABLE') return (details.itemName||'部分餐點')+'目前暫停供應，請重新確認菜單。';
+    if(reason==='OUT_OF_STOCK') return (details.itemName||'限量餐點')+'剩餘 '+Number(details.remaining||0)+' 份，請調整數量後重試。';
+    if(reason==='MINIMUM_NOT_MET') return '雲端重新計價後未達低消，目前合計 '+fmtGil(Number(details.total||0))+'。';
+    if(reason==='TRANSACTION_RETRY') return '同時有其他客人送單，庫存正在更新；請按「重試送單」。';
+    if(reason==='AUTH_NOT_READY') return '訪客身分尚未建立完成，請稍候幾秒再重試。';
+    var code = String(error && error.code || '');
+    if(/unavailable|deadline-exceeded|internal/.test(code)) return '連線中斷或雲端暫時忙碌。請按「重試送單」；系統會沿用同一識別碼，不會重複扣庫存。';
+    return (error && error.message) ? '送出失敗：'+error.message : '送出失敗，請按「重試送單」。';
   }
 
   document.getElementById('submitOrder').addEventListener('click', function(){
@@ -960,64 +975,41 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       errEl.style.display = 'block';
       return;
     }
-    errEl.style.display = 'none';
+    errEl.textContent = '準備送出：雲端將重新驗證價格與限量庫存…';
+    errEl.style.color = 'var(--gold)';
+    errEl.style.display = 'block';
 
     var submitBtn = document.getElementById('submitOrder');
     submitBtn.disabled = true;
-    submitBtn.textContent = '送出中...';
+    submitBtn.textContent = '雲端驗價中…';
 
     var items = ids.map(function(id){
       var line = cart[id];
-      return { id:id, name:line.name, price:line.price, qty:line.qty, serviceType:(menuItems[id]&&menuItems[id].serviceType)||'food', addon: line.addon };
+      return { id:id, qty:line.qty, addonSelected:!!line.addon };
     });
+    var fingerprint = submissionFingerprint(name, note, items);
+    var pending = pendingRequest(fingerprint);
 
-    var reservedStock = {};
-    reserveLimitedStock(items).then(function(reservations){
-      reservedStock = reservations;
-      return nextOrderNumberRef.transaction(function(current){ return (current || 0) + 1; });
-    }).then(function(result){
-      var orderNumber = result.snapshot.val();
-      var orderId = ordersRef.push().key;
-      return ordersRef.child(orderId).set({
-        orderNumber: orderNumber,
-        ownerUid: currentVisitorUid,
-        visitId: activeVisitId,
-        queueNumber: activeVisit.queueNumber || '',
-        assignedStaffId: activeVisit.assignedStaffId || '',
-        assignedStaffName: activeVisit.assignedStaffName || '',
-        name: name,
-        note: note,
-        items: items,
-        total: total,
-        status: 'pending',
-        stockReservations: reservedStock,
-        stockReleased: false,
-        createdAt: Date.now()
-      }).then(function(){
-        document.getElementById('successNumber').textContent = '#'+orderNumber;
-        document.getElementById('orderFlow').style.display = 'none';
-        document.getElementById('successBox').style.display = 'block';
-
-        cart = {};
-        pendingAddons = {};
-        document.getElementById('custNote').value = '';
-        renderMenu();
-        renderCart();
-        submitBtn.disabled = false;
-        submitBtn.textContent = '送出訂單';
-      });
-    }).catch(function(err){
-      var release = Object.keys(reservedStock).length ? releaseLimitedStock(reservedStock) : Promise.resolve();
-      release.catch(function(){});
-      var permissionDenied = err && (err.code==='PERMISSION_DENIED' || /permission_denied|permission denied/i.test(String(err.message||'')));
-      errEl.textContent = err && err.message==='stock-unavailable'
-        ? '部分限量服務剛好額滿，請重新確認菜單後再送出'
-        : permissionDenied
-          ? '限量品項庫存更新被拒絕，請通知店員檢查 Firebase 權限'
-          : '送出失敗，請稍後再試一次';
-      errEl.style.display = 'block';
+    submitOrderFn({requestId:pending.requestId,visitId:activeVisitId,name:name,note:note,items:items}).then(function(result){
+      var data = result && result.data || {};
+      errEl.textContent = '訂單已建立，Discord 通知狀態：'+(data.notificationStatus==='sent'?'已送出':'雲端處理中');
+      document.getElementById('successNumber').textContent = '#'+(data.orderNumber||'—');
+      document.getElementById('orderFlow').style.display = 'none';
+      document.getElementById('successBox').style.display = 'block';
+      clearPendingRequest();
+      cart = {};
+      pendingAddons = {};
+      document.getElementById('custNote').value = '';
+      renderMenu();
+      renderCart();
       submitBtn.disabled = false;
       submitBtn.textContent = '送出訂單';
+    }).catch(function(err){
+      errEl.textContent = orderFailureText(err);
+      errEl.style.color = 'var(--rose)';
+      errEl.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = '重試送單';
     });
   });
 
