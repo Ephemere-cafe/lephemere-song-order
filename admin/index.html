@@ -52,7 +52,13 @@
       <span class="access-badge" id="currentAccessBadge">權限確認中</span>
       <button class="btn ghost small" id="adminLogoutBtn" style="margin-left:auto;">登出</button>
     </div>
-    <div class="global-identity"><div class="global-identity-copy"><strong>目前操作身分</strong>此身分會套用接待、訂單、特殊服務與交接紀錄，不需每頁重新選擇。</div><select id="globalStaffSelect" aria-label="選擇目前操作女僕"><option value="">請先選擇女僕</option></select></div>
+    <div class="global-identity">
+      <div class="global-identity-copy">
+        <strong>目前操作身分</strong>
+        <span id="globalDutyDateHint">依目前排班日期載入值班人員；此身分會套用接待、訂單、特殊服務與交接紀錄。</span>
+      </div>
+      <select id="globalStaffSelect" aria-label="選擇目前操作女僕"><option value="">請先選擇女僕</option></select>
+    </div>
 
     <!-- ============ 接待候位 ============ -->
     <div id="receptionTab">

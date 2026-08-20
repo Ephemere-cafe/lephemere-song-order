@@ -897,27 +897,44 @@
     return schedule ? schedule.staffIds.filter(function(id){ return !!staffRoster[id]; }) : [];
   }
 
-  function todayDutyIds(){ return dutyIdsForDate(todayKey()); }
+  function activeDutyDate(){
+    var dateInput = document.getElementById('onDutyDate');
+    var selectedDate = dateInput && dateInput.value ? dateInput.value.trim() : '';
+    if(isScheduleDate(selectedDate)) return selectedDate;
+    return rememberedScheduleDate() || todayKey();
+  }
+
+  function activeDutyIds(){ return dutyIdsForDate(activeDutyDate()); }
+
+  function dutyDateLabel(date){
+    var parts = String(date || '').split('-');
+    if(parts.length!==3) return String(date || '目前日期');
+    return Number(parts[1])+'/'+Number(parts[2]);
+  }
 
   function renderCurrentStaffSelect(){
     var select = document.getElementById('globalStaffSelect');
     if(!select) return;
-    var todaySchedule = scheduleForDate(todayKey());
-    var onDutyIds = todayDutyIds();
-    var ids = todaySchedule ? onDutyIds.slice() : Object.keys(staffRoster);
+    var dutyDate = activeDutyDate();
+    var activeSchedule = scheduleForDate(dutyDate);
+    var onDutyIds = activeDutyIds();
+    var ids = activeSchedule ? onDutyIds.slice() : Object.keys(staffRoster);
     ids.sort(function(a,b){
       return String(staffRoster[a].name||'').localeCompare(String(staffRoster[b].name||''), 'zh-Hant');
     });
-    if(todaySchedule && currentStaffId && onDutyIds.indexOf(currentStaffId)===-1){
+    if(activeSchedule && currentStaffId && onDutyIds.indexOf(currentStaffId)===-1){
       currentStaffId = '';
       try{ localStorage.removeItem('lephemereCurrentStaffId'); }catch(e){}
     }
-    var html = '<option value="">'+(todaySchedule && !ids.length ? '今日尚未安排值班店員' : '請先選擇店員')+'</option>';
+    var dateLabel = dutyDateLabel(dutyDate);
+    var html = '<option value="">'+(activeSchedule && !ids.length ? dateLabel+' 尚未安排值班店員' : '請先選擇店員')+'</option>';
     ids.forEach(function(id){
-      var duty = todaySchedule ? '（今日值班）' : '';
+      var duty = activeSchedule ? '（'+dateLabel+' 值班）' : '';
       html += '<option value="'+id+'" '+(id===currentStaffId?'selected':'')+'>'+escapeHtml(staffRoster[id].name||'未命名店員')+duty+'</option>';
     });
     select.innerHTML = html;
+    var hint = document.getElementById('globalDutyDateHint');
+    if(hint) hint.textContent = '目前使用 '+dutyDate.replace(/-/g,' / ')+' 的值班名單；此身分會套用接待、訂單、特殊服務與交接紀錄。';
     var name=currentStaffId&&staffRoster[currentStaffId]?staffRoster[currentStaffId].name||'未命名女僕':'尚未選擇';
     document.getElementById('receptionStaffDisplay').textContent=name;
     document.getElementById('orderStaffDisplay').textContent=name;
@@ -951,8 +968,8 @@
   function waitMinutes(ts){ return Math.max(0,Math.floor((Date.now()-Number(ts||Date.now()))/60000)); }
 
   function transferOptions(currentId){
-    var schedule=scheduleForDate(todayKey());
-    var duty=todayDutyIds();
+    var schedule=scheduleForDate(activeDutyDate());
+    var duty=activeDutyIds();
     var ids=(schedule?duty:Object.keys(staffRoster)).filter(function(id){ return staffRoster[id] && id!==currentId; });
     return '<option value="">轉交給…</option>'+ids.map(function(id){ return '<option value="'+escapeAttr(id)+'">'+escapeHtml(staffRoster[id].name||'未命名女僕')+'</option>'; }).join('');
   }
@@ -1042,8 +1059,8 @@
       var am=currentStaffId && a.assignedStaffId===currentStaffId?0:1, bm=currentStaffId && b.assignedStaffId===currentStaffId?0:1;
       return am!==bm?am-bm:Number(a.assignedAt||0)-Number(b.assignedAt||0);
     });
-    var schedule=scheduleForDate(todayKey());
-    var duty=todayDutyIds();
+    var schedule=scheduleForDate(activeDutyDate());
+    var duty=activeDutyIds();
     var ids=(schedule?duty:Object.keys(staffRoster)).filter(function(id){return staffRoster[id];});
     var available=ids.filter(function(id){return (staffPresence[id]||{}).status==='available';}).length;
     var alerts=receptionAlertsData(waiting,active);
@@ -1065,7 +1082,7 @@
       var state=stale?'stale':(presence.status||'away');
       var count=visitRows(['assigned','serving']).filter(function(v){return v.assignedStaffId===id;}).length;
       return '<div class="team-staff"><span>'+escapeHtml(staffRoster[id].name||'未命名女僕')+'</span><span class="team-state">'+(state==='stale'?'狀態可能已過期':(label[state]||'暫離'))+(count?'・'+count+' 組':'')+'</span></div>';
-    }).join(''):'<div class="queue-empty">尚未設定今日值班女僕</div>';
+    }).join(''):'<div class="queue-empty">尚未設定 '+escapeHtml(dutyDateLabel(activeDutyDate()))+' 值班女僕</div>';
     document.querySelectorAll('[data-presence]').forEach(function(btn){ btn.classList.toggle('active',!!currentStaffId && ((staffPresence[currentStaffId]||{}).status===btn.getAttribute('data-presence'))); });
     document.getElementById('claimNextVisit').disabled=!currentStaffId;
     renderAssignmentHistory();
@@ -1555,9 +1572,10 @@
       }
       if(isManager()) actionsHtml += '<button class="btn ghost small" data-delete-order="'+o.id+'" style="border-color:var(--rose-dim);color:var(--rose);">刪除</button>';
 
-      var todaySchedule = scheduleForDate(todayKey());
-      var onDutyIds = todayDutyIds();
-      var staffIds = todaySchedule ? onDutyIds.slice() : Object.keys(staffRoster);
+      var dutyDate = activeDutyDate();
+      var activeSchedule = scheduleForDate(dutyDate);
+      var onDutyIds = activeDutyIds();
+      var staffIds = activeSchedule ? onDutyIds.slice() : Object.keys(staffRoster);
       if(assignedId && staffRoster[assignedId] && staffIds.indexOf(assignedId)===-1) staffIds.push(assignedId);
       staffIds.sort(function(a,b){
         var aDuty = onDutyIds.indexOf(a) > -1 ? 0 : 1;
@@ -1568,7 +1586,7 @@
       var staffOptions = '<option value="">尚未指派</option>';
       staffIds.forEach(function(staffId){
         var staff = staffRoster[staffId] || {};
-        var dutyMark = onDutyIds.indexOf(staffId) > -1 ? '（今日值班）' : '';
+        var dutyMark = onDutyIds.indexOf(staffId) > -1 ? '（'+dutyDateLabel(dutyDate)+' 值班）' : '';
         staffOptions += '<option value="'+staffId+'" '+(assignedId===staffId?'selected':'')+'>'
           +escapeHtml(staff.name||'未命名店員')+dutyMark+'</option>';
       });
@@ -2440,6 +2458,9 @@
     rememberScheduleDate(selectedDate);
     setScheduleSaveStatus('勾選後會自動儲存', '');
     renderStaffCheckList();
+    renderCurrentStaffSelect();
+    renderReception();
+    renderOrders();
   });
 
   // ---------- photo cropper ----------
