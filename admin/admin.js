@@ -978,9 +978,9 @@
     return linked.map(function(o){
       var items=(o.items||[]).map(function(item){ return escapeHtml(item.name||'品項')+' × '+Number(item.qty||1); }).join('、');
       var overdue=o.status==='pending' && waitMinutes(o.createdAt)>=10;
-      var specialText=collectSpecialTags(o.items||[]).map(function(tag){
-        var state=o.specialServices&&o.specialServices[tag.key]&&o.specialServices[tag.key].status||'pending';
-        return tag.label+'：'+(state==='completed'?'完成':(state==='preparing'?'進行中':'待處理'));
+      var specialText=collectSpecialTasks(o.items||[]).map(function(task){
+        var state=specialTaskState(o,task);
+        return task.label+'：'+(state==='completed'?'完成':((state==='preparing'||state==='in_progress')?'進行中':'待處理'));
       }).join('・');
       return '<div class="guest-order"><div class="guest-order-top"><span>#'+escapeHtml(o.orderNumber||'—')+'・'+escapeHtml(STATUS_LABEL[o.status]||o.status||'處理中')+'</span><span class="'+(overdue?'guest-order-alert':'')+'">'+(overdue?'待處理 '+waitMinutes(o.createdAt)+' 分':'')+(o.total?' '+fmtGil(o.total):'')+'</span></div><div class="guest-order-items">'+(items||'未列出品項')+(specialText?'<br>'+escapeHtml(specialText):'')+'</div></div>';
     }).join('');
@@ -1214,8 +1214,7 @@
     if(complete){
       var unfinished=ordersForVisit(id).filter(function(order){
         if(order.status!=='completed'&&order.status!=='cancelled') return true;
-        var states=order.specialServices||{};
-        return collectSpecialTags(order.items||[]).some(function(tag){return !states[tag.key]||states[tag.key].status!=='completed';});
+        return collectSpecialTasks(order.items||[]).some(function(task){return specialTaskState(order,task)!=='completed';});
       });
       if(unfinished.length){
         alert('這組主人還有 '+unfinished.length+' 筆未完成的訂單或特殊服務，請先處理完成後再結束接待。');
@@ -1297,9 +1296,8 @@
       if((o.status==='pending' || o.status==='preparing' || o.status==='served') && !o.assignedStaffId) unassigned++;
       if(o.status==='pending' && o.createdAt && Date.now()-o.createdAt >= 600000) overdue++;
       if(o.status==='pending' || o.status==='preparing' || o.status==='served'){
-        var states = o.specialServices || {};
-        collectSpecialTags(o.items||[]).forEach(function(tag){
-          if(!states[tag.key] || states[tag.key].status!=='completed') specialPending++;
+        collectSpecialTasks(o.items||[]).forEach(function(task){
+          if(specialTaskState(o,task)!=='completed') specialPending++;
         });
       }
     });
@@ -1350,17 +1348,47 @@
     return '';
   }
 
-  function specialQueueCard(order, type){
-    var items = (order.items||[]).filter(function(item){ return standaloneSpecialType(item)===type; });
-    if(!items.length) return '';
-    var state = order.specialServices && order.specialServices[type] && order.specialServices[type].status || 'pending';
-    var itemText = items.map(function(item){ return (item.name||'特殊服務')+(Number(item.qty||1)>1?' × '+Number(item.qty):''); }).join('、');
+  function specialItemKey(type,item,index){
+    var source=String(item&&item.id||'item-'+index).replace(/[.#$\[\]\/]/g,'_');
+    return type+'__'+source+'__'+index;
+  }
+
+  function collectSpecialTasks(items){
+    var tasks=[];
+    (items||[]).forEach(function(item,index){
+      var type=standaloneSpecialType(item);
+      if(type!=='polaroid'&&type!=='lens') return;
+      tasks.push({
+        key:specialItemKey(type,item,index),
+        type:type,
+        label:(type==='polaroid'?'📷 ':'✦ ')+(item.name|| (type==='polaroid'?'拍立得':'個人攝影')),
+        item:item,
+        index:index
+      });
+    });
+    if(collectSpecialTags(items).some(function(tag){return tag.key==='magic';})){
+      tasks.push({key:'magic',type:'magic',label:'♥ 蛋包飯魔法'});
+    }
+    return tasks;
+  }
+
+  function specialTaskState(order,task){
+    var states=order.specialServices||{};
+    if(states[task.key]&&states[task.key].status) return states[task.key].status;
+    if(task.key!==task.type&&states[task.type]&&states[task.type].status) return states[task.type].status;
+    return 'pending';
+  }
+
+  function specialQueueCard(order, task){
+    var state = specialTaskState(order,task);
+    var item = task.item||{};
+    var itemText = (item.name||'特殊服務')+(Number(item.qty||1)>1?' × '+Number(item.qty):'');
     return '<div class="special-queue-card '+(state==='completed'?'is-completed':'')+'">'
       +'<div><div class="special-queue-order">訂單 #'+escapeHtml(order.orderNumber||'—')+'</div>'
       +'<div class="special-queue-name">'+escapeHtml(order.name||'未填寫主人名稱')+'</div>'
       +'<div class="special-queue-items">'+escapeHtml(itemText)+'</div>'
       +'<div class="special-queue-staff">接待：'+escapeHtml(order.assignedStaffName||'尚未指派')+'</div></div>'
-      +'<select data-special-queue="'+escapeAttr(order.id)+'" data-special-key="'+type+'" aria-label="更新訂單 #'+escapeAttr(order.orderNumber||'')+' 特殊服務進度">'
+      +'<select data-special-queue="'+escapeAttr(order.id)+'" data-special-key="'+escapeAttr(task.key)+'" aria-label="更新訂單 #'+escapeAttr(order.orderNumber||'')+' '+escapeAttr(item.name||'特殊服務')+'進度">'
       +'<option value="pending" '+(state==='pending'?'selected':'')+'>待處理</option>'
       +'<option value="in_progress" '+(state==='in_progress'?'selected':'')+'>進行中</option>'
       +'<option value="completed" '+(state==='completed'?'selected':'')+'>已完成</option>'
@@ -1387,14 +1415,21 @@
       var el = document.getElementById(type+'Queue');
       var countEl = document.getElementById(type+'QueueCount');
       if(!el || !countEl) return;
-      var matching = activeOrders.filter(function(order){
-        return (order.items||[]).some(function(item){ return standaloneSpecialType(item)===type; });
+      var matching = [];
+      activeOrders.forEach(function(order){
+        collectSpecialTasks(order.items||[]).filter(function(task){return task.type===type;}).forEach(function(task){
+          matching.push({order:order,task:task});
+        });
       });
-      var pendingCount = matching.filter(function(order){
-        return !(order.specialServices && order.specialServices[type] && order.specialServices[type].status==='completed');
+      matching.sort(function(a,b){
+        function taskWeight(entry){var state=specialTaskState(entry.order,entry.task);return state==='in_progress'?0:(state==='pending'?1:2);}
+        return taskWeight(a)-taskWeight(b)||Number(a.order.createdAt||0)-Number(b.order.createdAt||0);
+      });
+      var pendingCount = matching.filter(function(entry){
+        return specialTaskState(entry.order,entry.task)!=='completed';
       }).length;
       countEl.textContent = String(pendingCount);
-      el.innerHTML = matching.length ? matching.map(function(order){ return specialQueueCard(order,type); }).join('') : '<div class="special-queue-empty">目前沒有待處理服務</div>';
+      el.innerHTML = matching.length ? matching.map(function(entry){ return specialQueueCard(entry.order,entry.task); }).join('') : '<div class="special-queue-empty">目前沒有待處理服務</div>';
     });
 
     document.querySelectorAll('[data-special-queue]').forEach(function(select){
@@ -1767,10 +1802,9 @@
         if(o.assignedStaffName) staffCounts[o.assignedStaffName] = (staffCounts[o.assignedStaffName]||0)+1;
       }
       if(o.status!=='cancelled'){
-        var states = o.specialServices || {};
-        collectSpecialTags(o.items||[]).forEach(function(tag){
+        collectSpecialTasks(o.items||[]).forEach(function(task){
           special.total++;
-          if(states[tag.key] && states[tag.key].status==='completed') special.completed++;
+          if(specialTaskState(o,task)==='completed') special.completed++;
         });
       }
     });
