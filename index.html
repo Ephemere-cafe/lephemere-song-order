@@ -549,7 +549,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     document.getElementById('visitStatusHelp').textContent = assigned
       ? '若需要離開、轉交其他女僕或結束接待，請直接告知負責女僕。'
       : (activeVisit.preferredStaffName ? '您希望由 '+activeVisit.preferredStaffName+' 接待，因此等待時間可能較長。' : '請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。');
-    document.getElementById('cancelVisitQueue').style.display = activeVisit.status==='waiting' ? 'block' : 'none';
+    document.getElementById('cancelVisitQueue').style.display = activeVisit.status==='waiting' ? 'inline-block' : 'none';
     document.getElementById('orderFlow').style.display = assigned ? 'block' : 'none';
     if(assigned){
       document.getElementById('cartPanel').style.display='block';
