@@ -72,6 +72,14 @@
         </div>
         <div class="presence-row" id="presenceButtons"><button class="presence-btn" data-presence="available">可接待</button><button class="presence-btn" data-presence="serving">接待中</button><button class="presence-btn" data-presence="photo">拍照中</button><button class="presence-btn" data-presence="away">暫離</button></div>
       </div>
+      <details class="panel reception-template-panel">
+        <summary><span>✉ 我的接待文字</span><span>員工可自行調整</span></summary>
+        <div class="reception-template-body">
+          <textarea id="receptionCallTemplate" maxlength="300" placeholder="請先在上方選擇目前操作女僕"></textarea>
+          <p>可用變數：{角色名}、{伺服器}、{候位號碼}、{女僕名}。請保留 FF14 密語格式，例如：/t {角色名}@{伺服器}</p>
+          <div class="reception-template-actions"><span id="receptionCallTemplateStatus" aria-live="polite"></span><button class="btn primary small" id="saveReceptionCallTemplate" type="button">儲存我的接待文字</button></div>
+        </div>
+      </details>
       <div class="reception-overview" aria-label="今日接待概況">
         <div class="reception-metric"><span class="reception-metric-label">正在候位</span><strong class="reception-metric-value" id="receptionWaitingMetric">0</strong><span class="reception-metric-note">依序等待接待</span></div>
         <div class="reception-metric"><span class="reception-metric-label">接待進行中</span><strong class="reception-metric-value" id="receptionActiveMetric">0</strong><span class="reception-metric-note">已有負責女僕</span></div>
@@ -81,7 +89,8 @@
       <div class="panel reception-alerts" id="receptionAlerts"><div class="reception-alert-head"><span>需要優先處理</span><span id="receptionAlertCount">0 項</span></div><div id="receptionAlertList"></div></div>
       <div class="reception-grid">
         <section class="reception-column"><div class="reception-column-title"><span>候位隊列</span><span class="reception-count" id="visitWaitingCount">0</span></div><div id="visitWaitingList"></div></section>
-        <section class="reception-column"><div class="reception-column-title"><span>接待中主人總覽</span><span class="reception-count" id="myVisitCount">0</span></div><div id="myVisitList"></div></section>
+        <section class="reception-column my-visits-column"><div class="reception-column-title"><span>我的接待</span><span class="reception-count" id="myVisitCount">0</span></div><div id="myVisitList"></div></section>
+        <details class="reception-column team-visits-panel"><summary class="reception-column-title"><span>其他女僕接待中</span><span class="reception-count" id="teamVisitCount">0</span></summary><div id="teamVisitList"></div></details>
         <section class="reception-column team-section"><div class="reception-column-title"><span>今日女僕狀態</span></div><div class="team-grid" id="staffPresenceList"></div></section>
       </div>
       <details class="panel"><summary style="cursor:pointer;color:var(--mist);font-size:12px;">最近接待操作紀錄</summary><div class="audit-list" id="assignmentHistoryList"><div class="queue-empty">尚無操作紀錄</div></div></details>

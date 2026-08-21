@@ -76,6 +76,7 @@
   var todayStaff = {};
   var staffSchedules = {};
   var legacyStaffSchedules = {};
+  var DEFAULT_VISIT_CALL_TEMPLATE='/t {角色名}@{伺服器} 主人您好，候位號碼 {候位號碼} 已輪到您，請留意女僕前來接待。';
 
   var STATUS_LABEL = { pending:'待接單', preparing:'服務中', served:'服務中', completed:'已完成', cancelled:'已取消' };
   var NEXT_STATUS = { pending:'preparing', preparing:'completed', served:'completed' };
@@ -915,6 +916,20 @@
     var name=currentStaffId&&staffRoster[currentStaffId]?staffRoster[currentStaffId].name||'未命名女僕':'尚未選擇';
     document.getElementById('receptionStaffDisplay').textContent=name;
     document.getElementById('orderStaffDisplay').textContent=name;
+    renderReceptionCallTemplate();
+  }
+
+  function renderReceptionCallTemplate(){
+    var editor=document.getElementById('receptionCallTemplate');
+    var button=document.getElementById('saveReceptionCallTemplate');
+    var status=document.getElementById('receptionCallTemplateStatus');
+    if(!editor||!button) return;
+    var staff=currentStaffId&&staffRoster[currentStaffId];
+    editor.disabled=!staff;
+    button.disabled=!staff;
+    editor.value=staff?String(staff.callTemplate||DEFAULT_VISIT_CALL_TEMPLATE):'';
+    editor.placeholder=staff?'輸入自己的接待文字':'請先在上方選擇目前操作女僕';
+    if(status) status.textContent=staff?'目前編輯：'+(staff.name||'未命名女僕'):'請先選擇操作女僕';
   }
 
   function setCurrentStaff(id){
@@ -928,6 +943,7 @@
     var name=currentStaffId&&staffRoster[currentStaffId]?staffRoster[currentStaffId].name||'未命名女僕':'尚未選擇';
     document.getElementById('receptionStaffDisplay').textContent=name;
     document.getElementById('orderStaffDisplay').textContent=name;
+    renderReceptionCallTemplate();
     renderOrders();
     renderReception();
   }
@@ -1026,7 +1042,7 @@
     }
     var noteAction=isMine?'<div class="guest-note-actions"><button class="btn ghost small" data-edit-visit-note="'+v.id+'">編輯備註</button></div>':'';
     var overview=v.status!=='waiting'?'<div class="guest-overview"><div class="guest-overview-head"><span>訂單與服務</span><span>'+linkedOrders.length+' 筆訂單</span></div><div class="guest-order-list">'+guestOrdersHtml(v)+'</div><details class="guest-note"><summary>店內交接備註｜'+escapeHtml(v.internalNote||'尚未填寫')+'</summary>'+noteAction+'</details></div>':'';
-    return '<article class="visit-card '+(index===0&&v.status==='waiting'?'next ':'')+(isMine?'mine ':'')+urgency+'"><div class="visit-card-top"><div><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':(v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分'))+'</span></div><div class="visit-meta">'+(v.status==='waiting'?'依序候位中':'負責｜'+escapeHtml(v.assignedStaffName||'未命名女僕')+'・'+(v.status==='serving'?'接待進行中':'等待開始接待'))+'</div><div class="visit-tags">'+tags+'</div>'+(actions?'<div class="visit-actions">'+actions+'</div>':'')+overview+'</article>';
+    return '<article class="visit-card '+(index===0&&v.status==='waiting'?'next ':'')+(isMine?'mine ':'')+urgency+'"><div class="visit-card-top"><div><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':(v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分'))+'</span></div><div class="visit-meta">'+(isMine?'<span class="visit-owner-badge">我的接待</span>':'')+(v.status==='waiting'?'依序候位中':'負責｜'+escapeHtml(v.assignedStaffName||'未命名女僕')+'・'+(v.status==='serving'?'接待進行中':'等待開始接待'))+'</div><div class="visit-tags">'+tags+'</div>'+(actions?'<div class="visit-actions">'+actions+'</div>':'')+overview+'</article>';
   }
 
   function renderReception(){
@@ -1042,7 +1058,10 @@
     var available=ids.filter(function(id){return (staffPresence[id]||{}).status==='available';}).length;
     var alerts=receptionAlertsData(waiting,active);
     document.getElementById('visitWaitingCount').textContent=waiting.length;
-    document.getElementById('myVisitCount').textContent=active.length;
+    var mine=currentStaffId?active.filter(function(v){return v.assignedStaffId===currentStaffId;}):[];
+    var teammates=active.filter(function(v){return !currentStaffId||v.assignedStaffId!==currentStaffId;});
+    document.getElementById('myVisitCount').textContent=mine.length;
+    document.getElementById('teamVisitCount').textContent=teammates.length;
     document.getElementById('receptionWaitingMetric').textContent=waiting.length;
     document.getElementById('receptionActiveMetric').textContent=active.length;
     document.getElementById('receptionAvailableMetric').textContent=available;
@@ -1051,7 +1070,8 @@
     document.getElementById('receptionAlerts').classList.toggle('visible',alerts.length>0);
     document.getElementById('receptionAlertList').innerHTML=alerts.map(function(a){return '<div class="reception-alert-item"><strong>'+escapeHtml(a.title)+'</strong><span>'+escapeHtml(a.detail)+'</span></div>';}).join('');
     document.getElementById('visitWaitingList').innerHTML=waiting.length?waiting.map(function(v,i){return visitCard(v,i,false);}).join(''):'<div class="queue-empty">目前沒有人候位。<br>自由參觀的客人不會出現在這裡。</div>';
-    document.getElementById('myVisitList').innerHTML=active.length?active.map(function(v,i){return visitCard(v,i,!!currentStaffId&&v.assignedStaffId===currentStaffId);}).join(''):'<div class="queue-empty">目前沒有進行中的接待。<br>有空時可接待下一組。</div>';
+    document.getElementById('myVisitList').innerHTML=mine.length?mine.map(function(v,i){return visitCard(v,i,true);}).join(''):'<div class="queue-empty">你目前沒有接待中的主人。<br>有空時可接待下一組。</div>';
+    document.getElementById('teamVisitList').innerHTML=teammates.length?teammates.map(function(v,i){return visitCard(v,i,false);}).join(''):'<div class="queue-empty">其他女僕目前沒有接待中的主人。</div>';
     var label={available:'可接待',serving:'接待中',photo:'拍照中',away:'暫離'};
     document.getElementById('staffPresenceList').innerHTML=ids.length?ids.map(function(id){
       var presence=staffPresence[id]||{};
@@ -1106,8 +1126,6 @@
     });
   }
 
-  var DEFAULT_VISIT_CALL_TEMPLATE='/t {角色名}@{伺服器} 主人您好，候位號碼 {候位號碼} 已輪到您，請留意女僕前來接待。';
-
   function visitCallText(v){
     var guest=String(v.characterName||'主人').replace(/\s+/g,' ').trim();
     var world=String(v.world||'').replace(/\s+/g,'').trim();
@@ -1157,6 +1175,21 @@
   });
 
   document.getElementById('globalStaffSelect').addEventListener('change',function(){ setCurrentStaff(this.value); });
+  document.getElementById('saveReceptionCallTemplate').addEventListener('click',function(){
+    if(!currentStaffId||!staffRoster[currentStaffId]){alert('請先選擇目前操作女僕。');return;}
+    var editor=document.getElementById('receptionCallTemplate');
+    var status=document.getElementById('receptionCallTemplateStatus');
+    var template=editor.value.trim()||DEFAULT_VISIT_CALL_TEMPLATE;
+    if(template.indexOf('{角色名}')===-1){alert('接待文字需要包含 {角色名}。');return;}
+    if(template.indexOf('{候位號碼}')===-1){alert('接待文字需要包含 {候位號碼}。');return;}
+    this.disabled=true;
+    var button=this;
+    staffRosterRef.child(currentStaffId).child('callTemplate').set(template).then(function(){
+      if(status) status.textContent='已儲存，下一次複製立即套用';
+    }).catch(function(){
+      if(status) status.textContent='儲存失敗，請確認 Firebase 規則已更新';
+    }).then(function(){button.disabled=false;});
+  });
   document.getElementById('claimNextVisit').addEventListener('click',function(){
     if(!currentStaffId){ alert('請先選擇目前操作女僕。'); return; }
     var next=visitRows(['waiting']).find(function(v){ return !v.preferredStaffId || v.preferredStaffId===currentStaffId; });
@@ -2275,8 +2308,6 @@
         + '<input type="text" data-staff-field="role" value="'+escapeAttr(s.role || '')+'" placeholder="職位（如：女僕／樂手）">'
         + '<input class="wide" type="text" data-staff-field="quote" value="'+escapeAttr(s.quote || '')+'" placeholder="官網個人介紹（選填）">'
         + '<input class="wide" type="url" data-staff-field="threads" value="'+escapeAttr(s.threads || '')+'" placeholder="Threads 網址（選填）">'
-        + '<textarea class="wide staff-call-template" data-staff-field="callTemplate" maxlength="300" placeholder="個人叫號文字模板">'+escapeHtml(s.callTemplate || DEFAULT_VISIT_CALL_TEMPLATE)+'</textarea>'
-        + '<p class="wide staff-template-help">可用變數：{角色名}、{伺服器}、{候位號碼}、{女僕名}。請保留 FF14 指令開頭，例如 /t {角色名}@{伺服器}</p>'
         + '</div><div class="staff-editor-actions">'
         + '<button class="btn primary small" data-save-staff="'+k+'">儲存修改</button>'
         + '<button class="btn ghost small" data-photo-staff="'+k+'">設定頭貼</button>'
@@ -2292,12 +2323,9 @@
         var role = card.querySelector('[data-staff-field="role"]').value.trim();
         var quote = card.querySelector('[data-staff-field="quote"]').value.trim();
         var threads = card.querySelector('[data-staff-field="threads"]').value.trim();
-        var callTemplate = card.querySelector('[data-staff-field="callTemplate"]').value.trim();
         if(!name){ alert('請填寫店員名稱。'); return; }
         if(threads && !/^https:\/\//i.test(threads)){ alert('Threads 網址請以 https:// 開頭。'); return; }
-        if(callTemplate && callTemplate.indexOf('{角色名}')===-1){ alert('叫號文字模板需要包含 {角色名}。'); return; }
-        if(callTemplate && callTemplate.indexOf('{候位號碼}')===-1){ alert('叫號文字模板需要包含 {候位號碼}。'); return; }
-        staffRosterRef.child(id).update({name:name, role:role, quote:quote, threads:threads, callTemplate:callTemplate||DEFAULT_VISIT_CALL_TEMPLATE, updatedAt:Date.now()});
+        staffRosterRef.child(id).update({name:name, role:role, quote:quote, threads:threads, updatedAt:Date.now()});
       });
     });
     el.querySelectorAll('[data-photo-staff]').forEach(function(btn){
