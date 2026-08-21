@@ -306,6 +306,7 @@ textarea{width:100%;min-height:110px;background:var(--ink-deep);border:1px solid
 .order-items-empty{color:var(--mist);font-size:11.5px;font-style:italic;}
 .order-items{margin:8px 0;font-size:13px;color:var(--parchment-dim);}
 .order-items div{padding:2px 0;}
+.order-item-assignment{font-size:10.5px;color:var(--mist);padding:1px 0 5px 12px!important;}
 .order-total{font-size:13px;color:var(--gold-dim);margin-top:4px;}
 .order-service{
   display:flex;align-items:center;gap:10px;margin-top:10px;padding:9px 10px;

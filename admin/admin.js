@@ -971,6 +971,16 @@
     return Object.keys(orders).map(function(id){ return Object.assign({id:id},orders[id]||{}); }).filter(function(o){ return o.visitId===visitId; }).sort(function(a,b){ return Number(b.createdAt||0)-Number(a.createdAt||0); });
   }
 
+  function itemAssignmentSummary(item){
+    if(!item || !Array.isArray(item.assignments) || !item.assignments.length) return '';
+    var counts={};
+    item.assignments.forEach(function(name){
+      var label=String(name||'尚未指定').trim()||'尚未指定';
+      counts[label]=(counts[label]||0)+1;
+    });
+    return Object.keys(counts).map(function(name){ return name+(counts[name]>1?' × '+counts[name]:''); }).join('、');
+  }
+
   function visitUrgency(v,linkedOrders){
     var level='';
     if(v.status==='waiting'){
@@ -992,7 +1002,10 @@
     var linked=ordersForVisit(v.id);
     if(!linked.length) return '<div class="guest-order-empty">目前尚未送出訂單</div>';
     return linked.map(function(o){
-      var items=(o.items||[]).map(function(item){ return escapeHtml(item.name||'品項')+' × '+Number(item.qty||1); }).join('、');
+      var items=(o.items||[]).map(function(item){
+        var assigned=itemAssignmentSummary(item);
+        return escapeHtml(item.name||'品項')+' × '+Number(item.qty||1)+(assigned?'〔'+escapeHtml(assigned)+'〕':'');
+      }).join('、');
       var overdue=o.status==='pending' && waitMinutes(o.createdAt)>=10;
       var specialText=collectSpecialTasks(o.items||[]).map(function(task){
         var state=specialTaskState(o,task);
@@ -1028,6 +1041,9 @@
     if(v.visitKind==='reservation') tags+='<span class="visit-tag reservation">預約'+(v.reservationRef?'｜'+escapeHtml(v.reservationRef):'')+'</span>';
     if(v.preferredStaffName) tags+='<span class="visit-tag">希望 '+escapeHtml(v.preferredStaffName)+'</span>';
     tags+='<span class="visit-tag">'+Number(v.partySize||1)+' 人同行</span>';
+    if(Array.isArray(v.partyMembers) && v.partyMembers.length>1){
+      tags+='<span class="visit-tag">成員｜'+escapeHtml(v.partyMembers.join('・'))+'</span>';
+    }
     var actions='';
     if(isMine){
       if(v.status==='assigned') actions+='<button class="btn primary small" data-start-visit="'+v.id+'">開始接待</button>';
@@ -1381,9 +1397,9 @@
     return '';
   }
 
-  function specialItemKey(type,item,index){
+  function specialItemKey(type,item,index,unitIndex){
     var source=String(item&&item.id||'item-'+index).replace(/[.#$\[\]\/]/g,'_');
-    return type+'__'+source+'__'+index;
+    return type+'__'+source+'__'+index+(unitIndex==null?'':'__unit'+unitIndex);
   }
 
   function collectSpecialTasks(items){
@@ -1391,13 +1407,29 @@
     (items||[]).forEach(function(item,index){
       var type=standaloneSpecialType(item);
       if(type!=='polaroid'&&type!=='lens') return;
-      tasks.push({
-        key:specialItemKey(type,item,index),
-        type:type,
-        label:(type==='polaroid'?'📷 ':'✦ ')+(item.name|| (type==='polaroid'?'拍立得':'個人攝影')),
-        item:item,
-        index:index
-      });
+      var assignments=Array.isArray(item.assignments)&&item.assignments.length ? item.assignments : null;
+      if(assignments){
+        var qty=Math.max(1,Number(item.qty||1));
+        for(var unit=0;unit<qty;unit++){
+          tasks.push({
+            key:specialItemKey(type,item,index,unit),
+            type:type,
+            label:(type==='polaroid'?'📷 ':'✦ ')+(item.name|| (type==='polaroid'?'拍立得':'個人攝影')),
+            item:item,
+            index:index,
+            unitIndex:unit,
+            dinerName:assignments[unit]||'尚未指定'
+          });
+        }
+      }else{
+        tasks.push({
+          key:specialItemKey(type,item,index),
+          type:type,
+          label:(type==='polaroid'?'📷 ':'✦ ')+(item.name|| (type==='polaroid'?'拍立得':'個人攝影')),
+          item:item,
+          index:index
+        });
+      }
     });
     if(collectSpecialTags(items).some(function(tag){return tag.key==='magic';})){
       tasks.push({key:'magic',type:'magic',label:'♥ 蛋包飯魔法'});
@@ -1415,7 +1447,8 @@
   function specialQueueCard(order, task){
     var state = specialTaskState(order,task);
     var item = task.item||{};
-    var itemText = (item.name||'特殊服務')+(Number(item.qty||1)>1?' × '+Number(item.qty):'');
+    var itemText = (item.name||'特殊服務')+(task.unitIndex==null && Number(item.qty||1)>1?' × '+Number(item.qty):'');
+    if(task.dinerName) itemText += '｜服務對象：'+task.dinerName;
     return '<div class="special-queue-card '+(state==='completed'?'is-completed':'')+'">'
       +'<div><div class="special-queue-order">訂單 #'+escapeHtml(order.orderNumber||'—')+'</div>'
       +'<div class="special-queue-name">'+escapeHtml(order.name||'未填寫主人名稱')+'</div>'
@@ -1572,9 +1605,9 @@
     if(orderSearchTerm){
       arr = arr.filter(function(o){
         var itemText = (o.items||[]).map(function(item){
-          return (item.name||'')+' '+(item.addon && item.addon.label || '');
+          return (item.name||'')+' '+(item.addon && item.addon.label || '')+' '+(Array.isArray(item.assignments)?item.assignments.join(' '):'');
         }).join(' ');
-        var haystack = [o.orderNumber, o.queueNumber, o.name, o.note, o.internalNote, o.assignedStaffName, itemText].join(' ').toLowerCase();
+        var haystack = [o.orderNumber, o.queueNumber, o.name, o.note, o.internalNote, o.assignedStaffName, Array.isArray(o.diners)?o.diners.join(' '):'', itemText].join(' ').toLowerCase();
         return haystack.indexOf(orderSearchTerm) > -1;
       });
     }
@@ -1620,7 +1653,9 @@
         var extra = it.addon
           ? '（＋'+escapeHtml(it.addon.label)+' × '+addonQty+'　'+fmtGil(it.addon.price*addonQty)+'）'
           : '';
-        return '<div>'+escapeHtml(it.name)+' × '+escapeHtml(String(Number(it.qty)||0))+extra+'</div>';
+        var assigned=itemAssignmentSummary(it);
+        return '<div>'+escapeHtml(it.name)+' × '+escapeHtml(String(Number(it.qty)||0))+extra+'</div>'
+          +(assigned?'<div class="order-item-assignment">歸屬：'+escapeHtml(assigned)+'</div>':'');
       }).join('');
       if(!itemsHtml) itemsHtml = '<div class="order-items-empty">此單為特殊服務，請至「特殊服務」分頁處理。</div>';
       var elapsedStart = o.status==='pending' ? o.createdAt : (o.statusUpdatedAt||o.createdAt);
