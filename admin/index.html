@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>曇時 管理後台</title>
 <link rel="stylesheet" href="admin.css">
-<link rel="stylesheet" href="site-content-admin.css?v=20260825b">
+<link rel="stylesheet" href="site-content-admin.css?v=20260825c">
 <link rel="stylesheet" href="unified-admin-ui.css?v=20260825">
 <link rel="stylesheet" href="admin-workspace.css?v=20260825">
 </head>
@@ -467,6 +467,7 @@
             <label class="site-range-field">水平焦點 <output id="heroDesktopFocalXValue">50%</output><input type="range" id="heroDesktopFocalX" min="0" max="100" value="50"></label>
             <label class="site-range-field">垂直焦點 <output id="heroDesktopFocalYValue">50%</output><input type="range" id="heroDesktopFocalY" min="0" max="100" value="50"></label>
             <label class="site-range-field">照片縮放 <output id="heroDesktopZoomValue">100%</output><input type="range" id="heroDesktopZoom" min="100" max="180" step="1" value="100"></label>
+            <p class="site-hero-editor-note">照片與框同比例時，100% 沒有裁切空間；移動焦點會自動調整為 110%，讓位置變化立即可見。</p>
             <div class="site-hero-presets" aria-label="桌機照片快速定位">
               <button class="btn ghost" type="button" data-hero-device="Desktop" data-hero-x="35">人物靠左</button>
               <button class="btn ghost" type="button" data-hero-device="Desktop" data-hero-x="50">置中</button>
@@ -484,6 +485,7 @@
             <label class="site-range-field">水平焦點 <output id="heroMobileFocalXValue">50%</output><input type="range" id="heroMobileFocalX" min="0" max="100" value="50"></label>
             <label class="site-range-field">垂直焦點 <output id="heroMobileFocalYValue">50%</output><input type="range" id="heroMobileFocalY" min="0" max="100" value="50"></label>
             <label class="site-range-field">照片縮放 <output id="heroMobileZoomValue">100%</output><input type="range" id="heroMobileZoom" min="100" max="180" step="1" value="100"></label>
+            <p class="site-hero-editor-note">照片與框同比例時，100% 沒有裁切空間；移動焦點會自動調整為 110%，讓位置變化立即可見。</p>
             <div class="site-hero-presets" aria-label="手機照片快速定位">
               <button class="btn ghost" type="button" data-hero-device="Mobile" data-hero-x="35">人物靠左</button>
               <button class="btn ghost" type="button" data-hero-device="Mobile" data-hero-x="50">置中</button>
@@ -623,7 +625,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js"></script>
 <script src="admin.js"></script>
-<script src="site-content-admin.js?v=20260825b"></script>
+<script src="site-content-admin.js?v=20260825c"></script>
 <script src="admin-workspace-preview.js?v=20260825"></script>
 
 </body>

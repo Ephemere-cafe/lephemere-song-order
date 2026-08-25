@@ -126,6 +126,7 @@
     var scale = clamp(zoom(device).value, 100, 180);
     byId('hero' + device + 'ZoomValue').textContent = scale + '%';
     preview(device).style.objectPosition = x + '% ' + y + '%';
+    preview(device).style.transformOrigin = x + '% ' + y + '%';
     preview(device).style.transform = 'scale(' + (scale / 100) + ')';
   }
   function setHeroControls(data){
@@ -144,7 +145,10 @@
     refreshPreview('Mobile');
   }
   function bindHeroPreview(device, inputId){
-    ['X','Y'].forEach(function(axis){ focal(device, axis).addEventListener('input', function(){ refreshPreview(device); }); });
+    ['X','Y'].forEach(function(axis){ focal(device, axis).addEventListener('input', function(){
+      if(Number(this.value) !== 50 && Number(zoom(device).value) === 100) zoom(device).value = 110;
+      refreshPreview(device);
+    }); });
     zoom(device).addEventListener('input', function(){ refreshPreview(device); });
     byId(inputId).addEventListener('change', function(){
       var file = this.files && this.files[0];
@@ -162,6 +166,7 @@
       button.addEventListener('click', function(){
         var device = button.dataset.heroDevice;
         focal(device, 'X').value = clamp(button.dataset.heroX, 0, 100);
+        if(Number(button.dataset.heroX) !== 50 && Number(zoom(device).value) === 100) zoom(device).value = 110;
         refreshPreview(device);
       });
     });

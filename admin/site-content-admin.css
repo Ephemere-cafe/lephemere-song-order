@@ -8,12 +8,13 @@
 .site-hero-preview{position:relative;overflow:hidden;background:#171411;border:1px solid rgba(255,255,255,.12)}
 .site-hero-preview-desktop{aspect-ratio:16/9}
 .site-hero-preview-mobile{aspect-ratio:4/5;max-height:360px;margin-inline:auto}
-.site-hero-preview img{width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:scale(1);transition:object-position .18s ease,transform .18s ease}
+.site-hero-preview img{width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:scale(1);transform-origin:50% 50%;transition:object-position .18s ease,transform .18s ease,transform-origin .18s ease}
 .site-hero-obstruction{position:absolute;left:4%;top:12%;width:38%;height:70%;display:grid;place-items:center;padding:8px;border:1px dashed rgba(255,255,255,.6);background:rgba(21,17,14,.68);color:#fff;font-size:10px;letter-spacing:.12em;text-align:center;pointer-events:none}
 .site-hero-preview-mobile .site-hero-obstruction{left:7%;right:7%;top:auto;bottom:5%;width:auto;height:35%}
 .site-upload-field,.site-range-field,.site-polaroid-form label{display:grid;gap:7px;color:var(--parchment-dim);font-size:11px}
 .site-hero-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
 .site-hero-presets .btn{padding:8px 6px;font-size:10.5px}
+.site-hero-editor-note{margin:0;color:var(--parchment-dim);font-size:10px;line-height:1.65}
 .site-upload-field input[type=file]{width:100%;padding:8px;border:1px dashed rgba(255,255,255,.18);background:rgba(0,0,0,.1);color:var(--parchment-dim)}
 .site-upload-field input[type=file]::file-selector-button{margin-right:10px;border:0;padding:7px 10px;background:rgba(255,255,255,.1);color:var(--parchment);cursor:pointer}
 .site-range-field{grid-template-columns:1fr auto;align-items:center}
