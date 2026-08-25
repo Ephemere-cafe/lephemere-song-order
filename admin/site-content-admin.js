@@ -10,6 +10,7 @@
   var auth = firebase.auth();
   var currentUser = null;
   var canManage = false;
+  var siteContentReady = false;
   var heroSettings = {};
   var polaroids = [];
   var pendingHeroUrls = { desktop: '', mobile: '' };
@@ -83,6 +84,26 @@
     status('sitePolaroidStatus', '目前帳號沒有管理網站內容的權限。', 'error');
     return false;
   }
+  function requireSiteContentAccess(){
+    if(!requireManager()) return false;
+    if(siteContentReady) return true;
+    var message = '網站內容權限尚未就緒，已停止上傳；請先發佈 Firebase siteContent 規則後重新整理。';
+    status('siteHeroStatus', message, 'error');
+    status('sitePolaroidStatus', message, 'error');
+    return false;
+  }
+  function setSiteContentActionsDisabled(disabled){
+    ['saveSiteHero','resetSiteHero','addSitePolaroid'].forEach(function(id){
+      var button = byId(id);
+      if(button) button.disabled = !!disabled;
+    });
+  }
+  async function removeUploadedPaths(paths){
+    await Promise.all((paths || []).map(async function(path){
+      try { await storage.ref(path).delete(); }
+      catch(_error){ /* Best effort: never mask the original database error. */ }
+    }));
+  }
 
   function bindSiteContentTab(){
     var tabs = byId('mainTabs');
@@ -130,8 +151,9 @@
     });
   }
   async function saveHero(){
-    if(!requireManager()) return;
+    if(!requireSiteContentAccess()) return;
     var button = byId('saveSiteHero');
+    var uploadedPaths = [];
     setBusy(button, true, '上傳中…');
     status('siteHeroStatus', '正在壓縮並同步首頁照片…', 'busy');
     try {
@@ -147,18 +169,29 @@
       var desktopFile = byId('siteHeroDesktopFile').files[0];
       var mobileFile = byId('siteHeroMobileFile').files[0];
       var version = Date.now() + '-' + currentUser.uid;
-      if(desktopFile) data.desktopUrl = await uploadImage(desktopFile, 'site-content/home/hero-desktop-' + version + '.webp', 2400, .9);
-      if(mobileFile) data.mobileUrl = await uploadImage(mobileFile, 'site-content/home/hero-mobile-' + version + '.webp', 2000, .9);
+      if(desktopFile){
+        var desktopPath = 'site-content/home/hero-desktop-' + version + '.webp';
+        data.desktopUrl = await uploadImage(desktopFile, desktopPath, 2400, .9);
+        uploadedPaths.push(desktopPath);
+      }
+      if(mobileFile){
+        var mobilePath = 'site-content/home/hero-mobile-' + version + '.webp';
+        data.mobileUrl = await uploadImage(mobileFile, mobilePath, 2000, .9);
+        uploadedPaths.push(mobilePath);
+      }
       await db.ref(ROOT + '/homeHero').set(data);
       byId('siteHeroDesktopFile').value = '';
       byId('siteHeroMobileFile').value = '';
       Object.keys(pendingHeroUrls).forEach(function(key){ if(pendingHeroUrls[key]) URL.revokeObjectURL(pendingHeroUrls[key]); pendingHeroUrls[key] = ''; });
       status('siteHeroStatus', '已儲存，官網重新整理後會顯示最新照片與焦點。', 'success');
-    } catch(error){ status('siteHeroStatus', '儲存失敗：' + (error.message || error), 'error'); }
+    } catch(error){
+      await removeUploadedPaths(uploadedPaths);
+      status('siteHeroStatus', '儲存失敗：' + (error.message || error) + '（本次上傳檔案已清理）', 'error');
+    }
     finally { setBusy(button, false); }
   }
   async function resetHero(){
-    if(!requireManager()) return;
+    if(!requireSiteContentAccess()) return;
     if(!window.confirm('要移除自訂首頁設定，恢復官網原本的預設合照嗎？')) return;
     var button = byId('resetSiteHero');
     setBusy(button, true, '處理中…');
@@ -235,7 +268,7 @@
     });
   }
   async function addPolaroid(){
-    if(!requireManager()) return;
+    if(!requireSiteContentAccess()) return;
     var file = byId('sitePolaroidFile').files[0];
     var button = byId('addSitePolaroid');
     try { validImage(file); }
@@ -261,7 +294,10 @@
       ['sitePolaroidFile','sitePolaroidTitle','sitePolaroidCaption','sitePolaroidAlt'].forEach(function(id){ byId(id).value = ''; });
       byId('sitePolaroidVisible').checked = true;
       status('sitePolaroidStatus', '已新增並同步官網。', 'success');
-    } catch(error){ status('sitePolaroidStatus', '新增失敗：' + (error.message || error), 'error'); }
+    } catch(error){
+      await removeUploadedPaths([path]);
+      status('sitePolaroidStatus', '新增失敗：' + (error.message || error) + '（本次上傳檔案已清理）', 'error');
+    }
     finally { setBusy(button, false); }
   }
   async function saveCard(card){
@@ -303,7 +339,7 @@
     byId('sitePolaroidList').addEventListener('click', async function(event){
       var button = event.target.closest('[data-action]');
       var card = event.target.closest('.site-polaroid-card');
-      if(!button || !card || !requireManager()) return;
+      if(!button || !card || !requireSiteContentAccess()) return;
       var item = polaroids.find(function(entry){ return entry.id === card.dataset.id; });
       if(!item) return;
       setBusy(button, true, '處理中…');
@@ -338,8 +374,21 @@
   setHeroControls({});
   auth.onAuthStateChanged(async function(user){
     currentUser = user;
+    siteContentReady = false;
+    setSiteContentActionsDisabled(true);
     try { canManage = await checkManager(user); }
     catch(_error){ canManage = false; }
-    if(user && canManage) subscribe();
+    if(user && canManage){
+      try {
+        await db.ref(ROOT).once('value');
+        siteContentReady = true;
+        setSiteContentActionsDisabled(false);
+        subscribe();
+      } catch(error){
+        var message = '網站內容權限尚未發佈，為避免殘留圖片已停止上傳：' + (error.message || error);
+        status('siteHeroStatus', message, 'error');
+        status('sitePolaroidStatus', message, 'error');
+      }
+    }
   });
 })();
