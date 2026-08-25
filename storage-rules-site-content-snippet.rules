@@ -1,0 +1,12 @@
+// 將下列 match 區塊合併到現有 Firebase Storage rules 的
+// match /b/{bucket}/o { ... } 內；請勿用此片段覆蓋整份既有規則。
+match /site-content/{allPaths=**} {
+  allow read: if true;
+  allow create: if request.auth != null
+                && request.resource != null
+                && request.resource.size < 12 * 1024 * 1024
+                && request.resource.contentType.matches('image/(jpeg|png|webp)');
+  allow update, delete: if request.auth != null
+                        && (request.auth.token.email == 'tanjicafe@gmail.com'
+                            || request.auth.token.siteContentManager == true);
+}

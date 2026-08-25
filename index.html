@@ -136,6 +136,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 .success-note{max-width:540px;margin:8px auto 0;font-size:11.5px;line-height:1.7;color:var(--gold-dim);}
 .empty{font-size:12.5px;color:var(--parchment-dim);}
 </style>
+<link rel="stylesheet" href="assets/unified-cafe-ui.css?v=20260825">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -539,16 +540,17 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     browseMode=false;
     setVisitView('visitStatusPanel');
     document.getElementById('visitTicketNumber').textContent = activeVisit.queueNumber || '候位中';
+    var specialService = activeVisit.status==='special_service';
     var assigned = activeVisit.status==='assigned' || activeVisit.status==='serving';
-    document.getElementById('visitStatusBadge').textContent = assigned ? (activeVisit.status==='serving'?'接待進行中':'已安排接待') : '等待接待';
-    document.getElementById('visitStatusTitle').textContent = assigned ? '女僕已接下您的接待' : '女僕正在依序為大家準備';
-    document.getElementById('visitAssignee').textContent = assigned ? '負責女僕｜'+(activeVisit.assignedStaffName||'店員') : '';
-    document.getElementById('visitStatusMeta').textContent = assigned
-      ? '請留意遊戲內的招呼；接待開始後即可在下方點餐。'
-      : '候位號碼已登記｜同行 '+Number(activeVisit.partySize||1)+' 人';
-    document.getElementById('visitStatusHelp').textContent = assigned
-      ? '若需要離開、轉交其他女僕或結束接待，請直接告知負責女僕。'
-      : (activeVisit.preferredStaffName ? '您希望由 '+activeVisit.preferredStaffName+' 接待，因此等待時間可能較長。' : '請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。');
+    document.getElementById('visitStatusBadge').textContent = specialService ? '特殊服務準備中' : (assigned ? (activeVisit.status==='serving'?'接待進行中':'已安排接待') : '等待接待');
+    document.getElementById('visitStatusTitle').textContent = specialService ? '餐點接待已完成，女僕正在準備您的拍立得' : (assigned ? '女僕已接下您的接待' : '女僕正在依序為大家準備');
+    document.getElementById('visitAssignee').textContent = assigned ? '負責女僕｜'+(activeVisit.assignedStaffName||'店員') : (specialService ? '原接待女僕｜'+(activeVisit.assignedStaffName||'店員') : '');
+    document.getElementById('visitStatusMeta').textContent = specialService
+      ? '拍立得會由各品項指定的女僕分別處理，全部完成後本次接待會自動結案。'
+      : (assigned ? '請留意遊戲內的招呼；接待開始後即可在下方點餐。' : '候位號碼已登記｜同行 '+Number(activeVisit.partySize||1)+' 人');
+    document.getElementById('visitStatusHelp').textContent = specialService
+      ? '若需要確認拍攝順序，請直接詢問現場女僕。此階段無法再新增餐點。'
+      : (assigned ? '若需要離開、轉交其他女僕或結束接待，請直接告知負責女僕。' : (activeVisit.preferredStaffName ? '您希望由 '+activeVisit.preferredStaffName+' 接待，因此等待時間可能較長。' : '請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。'));
     document.getElementById('cancelVisitQueue').style.display = activeVisit.status==='waiting' ? 'inline-block' : 'none';
     document.getElementById('orderFlow').style.display = assigned ? 'block' : 'none';
     if(assigned){
