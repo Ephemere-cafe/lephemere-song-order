@@ -23,6 +23,7 @@
   var staffPresence = {};
   var assignmentHistory = {};
   var currentOrderFilter = 'active';
+  var currentSpecialFilter = 'all';
   var orderSearchTerm = '';
   var knownOrderIds = {};
   var ordersSnapshotReady = false;
@@ -598,6 +599,7 @@
       }
       renderStaffManageList();
       renderStaffCheckList();
+      renderServiceStaffOptions();
       renderCurrentStaffSelect();
       renderReceptionStaffSelect();
       renderReception();
@@ -971,6 +973,40 @@
     return Object.keys(orders).map(function(id){ return Object.assign({id:id},orders[id]||{}); }).filter(function(o){ return o.visitId===visitId; }).sort(function(a,b){ return Number(b.createdAt||0)-Number(a.createdAt||0); });
   }
 
+  function specialAssignmentPlan(visitId){
+    var missing=[];
+    var jobs=[];
+    ordersForVisit(visitId).forEach(function(order){
+      collectSpecialTasks(order.items||[]).forEach(function(task){
+        if(task.type!=='polaroid'&&task.type!=='lens') return;
+        if(specialTaskState(order,task)==='completed') return;
+        var assignment=specialTaskAssignment(order,task);
+        if(!assignment.id){missing.push((task.item&&task.item.name)||task.label||'特殊服務');return;}
+        var record=specialTaskRecord(order,task);
+        if(record.assignedStaffId===assignment.id) return;
+        jobs.push(ordersRef.child(order.id).child('specialServices').child(task.key).update({
+          assignedStaffId:assignment.id,
+          assignedStaffName:assignment.name,
+          assignedAt:Date.now(),
+          updatedAt:Date.now()
+        }));
+      });
+    });
+    return {missing:missing,jobs:jobs};
+  }
+
+  function tryCompleteSpecialVisit(visitId){
+    var visit=visits[visitId];
+    if(!visitId||!visit||visit.status!=='special_service') return Promise.resolve(false);
+    var linked=ordersForVisit(visitId).filter(function(order){return order.status!=='cancelled';});
+    var ready=linked.length>0&&linked.every(function(order){
+      if(order.status!=='completed') return false;
+      return collectSpecialTasks(order.items||[]).every(function(task){return specialTaskState(order,task)==='completed';});
+    });
+    if(!ready) return Promise.resolve(false);
+    return visitsRef.child(visitId).update({status:'completed',completedAt:Date.now(),specialServicesCompletedAt:Date.now(),updatedAt:Date.now()}).then(function(){return true;});
+  }
+
   function itemAssignmentSummary(item){
     if(!item || !Array.isArray(item.assignments) || !item.assignments.length) return '';
     var counts={};
@@ -1048,7 +1084,8 @@
     if(isMine){
       if(v.status==='assigned') actions+='<button class="btn primary small" data-start-visit="'+v.id+'">開始接待</button>';
       actions+='<button class="btn ghost small" data-copy-call="'+v.id+'">複製接待文字</button>';
-      actions+='<button class="btn ghost small" data-complete-visit="'+v.id+'">結束接待</button>';
+      var hasPendingSpecial=linkedOrders.some(function(order){return collectSpecialTasks(order.items||[]).some(function(task){return specialTaskState(order,task)!=='completed';});});
+      actions+='<button class="btn ghost small" data-complete-visit="'+v.id+'">'+(hasPendingSpecial?'桌邊接待完成':'結束接待')+'</button>';
       actions+='<select data-transfer-visit="'+v.id+'">'+transferOptions(currentStaffId)+'</select>';
     }else if(v.status==='waiting'){
       actions+='<button class="btn primary small" data-copy-call="'+v.id+'">複製叫號</button>';
@@ -1261,12 +1298,34 @@
     if(!id || !visits[id] || visits[id].assignedStaffId!==currentStaffId) return;
     if(start) visitsRef.child(id).update({status:'serving',serviceStartedAt:Date.now(),updatedAt:Date.now()});
     if(complete){
-      var unfinished=ordersForVisit(id).filter(function(order){
-        if(order.status!=='completed'&&order.status!=='cancelled') return true;
-        return collectSpecialTasks(order.items||[]).some(function(task){return specialTaskState(order,task)!=='completed';});
-      });
-      if(unfinished.length){
-        alert('這組主人還有 '+unfinished.length+' 筆未完成的訂單或特殊服務，請先處理完成後再結束接待。');
+      var linkedOrders=ordersForVisit(id);
+      var unfinishedOrders=linkedOrders.filter(function(order){return order.status!=='completed'&&order.status!=='cancelled';});
+      if(unfinishedOrders.length){
+        alert('這組主人還有 '+unfinishedOrders.length+' 筆一般訂單尚未完成，請先送餐並完成訂單。');
+        return;
+      }
+      var pendingSpecial=[];
+      var pendingTableService=[];
+      linkedOrders.forEach(function(order){collectSpecialTasks(order.items||[]).forEach(function(task){
+        if(specialTaskState(order,task)==='completed') return;
+        if(task.type==='polaroid'||task.type==='lens') pendingSpecial.push(task); else pendingTableService.push(task);
+      });});
+      if(pendingTableService.length){
+        alert('這組主人還有桌邊特殊服務尚未完成，請先完成蛋包飯魔法等桌邊項目。');
+        return;
+      }
+      if(pendingSpecial.length){
+        var plan=specialAssignmentPlan(id);
+        if(plan.missing.length){
+          alert('以下特殊服務尚未指定負責女僕：\n'+plan.missing.join('、')+'\n\n請先到「特殊服務」指派，或在菜單品項設定預設負責女僕。');
+          return;
+        }
+        Promise.all(plan.jobs).then(function(){
+          return visitsRef.child(id).update({status:'special_service',tableServiceCompletedAt:Date.now(),tableServiceCompletedById:currentStaffId,tableServiceCompletedByName:(staffRoster[currentStaffId]||{}).name||'',updatedAt:Date.now()});
+        }).then(function(){
+          var other=visitRows(['assigned','serving']).some(function(v){return v.id!==id&&v.assignedStaffId===currentStaffId;});
+          if(!other) return staffPresenceRef.child(currentStaffId).set({status:'available',updatedAt:Date.now()});
+        });
         return;
       }
       if(!confirm('確定結束 '+(visits[id].queueNumber||'這組')+' 的接待嗎？')) return;
@@ -1444,16 +1503,66 @@
     return 'pending';
   }
 
+  function specialTaskRecord(order,task){
+    var states=order.specialServices||{};
+    if(states[task.key]) return states[task.key];
+    if(task.key!==task.type&&states[task.type]) return states[task.type];
+    return {};
+  }
+
+  function inferredServiceStaff(task){
+    var item=task.item||{};
+    var menuItem=menuItems[item.id]||{};
+    var configuredId=menuItem.serviceStaffId||item.serviceStaffId||'';
+    if(configuredId){
+      return {id:configuredId,name:(staffRoster[configuredId]&&staffRoster[configuredId].name)||menuItem.serviceStaffName||item.serviceStaffName||'未命名女僕',source:'menu'};
+    }
+    var source=String(item.name||menuItem.name||'').toLowerCase();
+    var matches=Object.keys(staffRoster).filter(function(id){
+      var name=String((staffRoster[id]||{}).name||'').trim();
+      return name && source.indexOf(name.toLowerCase())>-1;
+    }).sort(function(a,b){return String(staffRoster[b].name||'').length-String(staffRoster[a].name||'').length;});
+    if(matches.length===1){
+      return {id:matches[0],name:staffRoster[matches[0]].name||'未命名女僕',source:'name'};
+    }
+    return {id:'',name:'未指派',source:''};
+  }
+
+  function specialTaskAssignment(order,task){
+    var record=specialTaskRecord(order,task);
+    if(record.assignedStaffId){
+      return {id:record.assignedStaffId,name:(staffRoster[record.assignedStaffId]&&staffRoster[record.assignedStaffId].name)||record.assignedStaffName||'未命名女僕',source:'task'};
+    }
+    return inferredServiceStaff(task);
+  }
+
+  function specialStaffOptions(selectedId){
+    var ids=activeDutyIds();
+    if(!ids.length) ids=Object.keys(staffRoster);
+    if(selectedId&&staffRoster[selectedId]&&ids.indexOf(selectedId)===-1) ids.push(selectedId);
+    ids.sort(function(a,b){return String((staffRoster[a]||{}).name||'').localeCompare(String((staffRoster[b]||{}).name||''),'zh-Hant');});
+    var html='<option value="">未指派</option>';
+    ids.forEach(function(id){html+='<option value="'+escapeAttr(id)+'" '+(id===selectedId?'selected':'')+'>'+escapeHtml((staffRoster[id]||{}).name||'未命名女僕')+'</option>';});
+    return html;
+  }
+
+  function findSpecialTask(order,key){
+    return collectSpecialTasks(order&&order.items||[]).filter(function(task){return task.key===key;})[0]||null;
+  }
+
   function specialQueueCard(order, task){
     var state = specialTaskState(order,task);
+    var assignment=specialTaskAssignment(order,task);
     var item = task.item||{};
     var itemText = (item.name||'特殊服務')+(task.unitIndex==null && Number(item.qty||1)>1?' × '+Number(item.qty):'');
     if(task.dinerName) itemText += '｜服務對象：'+task.dinerName;
-    return '<div class="special-queue-card '+(state==='completed'?'is-completed':'')+'">'
+    return '<div class="special-queue-card '+(state==='completed'?'is-completed ':'')+(assignment.id===currentStaffId&&currentStaffId?'is-mine ':'')+(!assignment.id?'is-unassigned':'')+'">'
       +'<div><div class="special-queue-order">訂單 #'+escapeHtml(order.orderNumber||'—')+'</div>'
       +'<div class="special-queue-name">'+escapeHtml(order.name||'未填寫主人名稱')+'</div>'
       +'<div class="special-queue-items">'+escapeHtml(itemText)+'</div>'
-      +'<div class="special-queue-staff">接待：'+escapeHtml(order.assignedStaffName||'尚未指派')+'</div></div>'
+      +'<div class="special-queue-staff">主要接待：'+escapeHtml(order.assignedStaffName||'尚未指派')+'</div>'
+      +'<div class="special-queue-owner">拍立得負責：'+escapeHtml(assignment.name)+'</div></div>'
+      +'<div class="special-queue-assignment"><label>任務負責女僕</label><select data-special-assignee="'+escapeAttr(order.id)+'" data-special-key="'+escapeAttr(task.key)+'" aria-label="指派 '+escapeAttr(item.name||'特殊服務')+' 負責女僕">'+specialStaffOptions(assignment.id)+'</select></div>'
       +'<select data-special-queue="'+escapeAttr(order.id)+'" data-special-key="'+escapeAttr(task.key)+'" aria-label="更新訂單 #'+escapeAttr(order.orderNumber||'')+' '+escapeAttr(item.name||'特殊服務')+'進度">'
       +'<option value="pending" '+(state==='pending'?'selected':'')+'>待處理</option>'
       +'<option value="in_progress" '+(state==='in_progress'?'selected':'')+'>進行中</option>'
@@ -1487,6 +1596,12 @@
           matching.push({order:order,task:task});
         });
       });
+      matching=matching.filter(function(entry){
+        var assignment=specialTaskAssignment(entry.order,entry.task);
+        if(currentSpecialFilter==='mine') return !!currentStaffId&&assignment.id===currentStaffId;
+        if(currentSpecialFilter==='unassigned') return !assignment.id;
+        return true;
+      });
       matching.sort(function(a,b){
         function taskWeight(entry){var state=specialTaskState(entry.order,entry.task);return state==='in_progress'?0:(state==='pending'?1:2);}
         return taskWeight(a)-taskWeight(b)||Number(a.order.createdAt||0)-Number(b.order.createdAt||0);
@@ -1502,10 +1617,42 @@
       select.addEventListener('change', function(){
         var id = select.getAttribute('data-special-queue');
         var key = select.getAttribute('data-special-key');
-        ordersRef.child(id).child('specialServices').child(key).update({status:select.value,updatedAt:Date.now()});
+        var order=orders[id]||{};
+        var task=findSpecialTask(order,key);
+        var assignment=task?specialTaskAssignment(order,task):{id:'',name:''};
+        var update={status:select.value,updatedAt:Date.now()};
+        if(assignment.id){update.assignedStaffId=assignment.id;update.assignedStaffName=assignment.name;}
+        ordersRef.child(id).child('specialServices').child(key).update(update).then(function(){
+          return ordersRef.child(id).once('value');
+        }).then(function(snapshot){
+          orders[id]=snapshot.val()||{};
+          return tryCompleteSpecialVisit(orders[id].visitId||'');
+        });
+      });
+    });
+    document.querySelectorAll('[data-special-assignee]').forEach(function(select){
+      select.addEventListener('change',function(){
+        var id=select.getAttribute('data-special-assignee');
+        var key=select.getAttribute('data-special-key');
+        var staffId=select.value;
+        var staff=staffRoster[staffId]||{};
+        ordersRef.child(id).child('specialServices').child(key).update({
+          assignedStaffId:staffId||null,
+          assignedStaffName:staffId?(staff.name||'未命名女僕'):null,
+          assignedAt:staffId?Date.now():null,
+          updatedAt:Date.now()
+        });
       });
     });
   }
+
+  document.getElementById('specialTaskFilters').addEventListener('click',function(e){
+    var btn=e.target.closest('[data-special-filter]');
+    if(!btn) return;
+    currentSpecialFilter=btn.getAttribute('data-special-filter')||'all';
+    this.querySelectorAll('[data-special-filter]').forEach(function(item){item.classList.toggle('active',item===btn);});
+    renderSpecialServiceWorkspace();
+  });
 
   function specialTagsHtml(order){
     var tags = collectSpecialTags(order.items||[]).filter(function(tag){ return tag.key==='magic'; });
@@ -1969,6 +2116,27 @@
     return data;
   }
 
+  function isAssignableServiceType(type){return type==='polaroid'||type==='lens';}
+
+  function fillServiceStaffSelect(select,type,selectedId){
+    if(!select) return;
+    var enabled=isAssignableServiceType(type);
+    var html='<option value="">'+(enabled?'請選擇負責女僕':'此類型不需指定')+'</option>';
+    Object.keys(staffRoster).sort(function(a,b){return String((staffRoster[a]||{}).name||'').localeCompare(String((staffRoster[b]||{}).name||''),'zh-Hant');}).forEach(function(id){
+      html+='<option value="'+escapeAttr(id)+'">'+escapeHtml((staffRoster[id]||{}).name||'未命名女僕')+'</option>';
+    });
+    select.innerHTML=html;
+    select.disabled=!enabled;
+    if(enabled&&selectedId&&staffRoster[selectedId]) select.value=selectedId;
+  }
+
+  function renderServiceStaffOptions(){
+    var newSelect=document.getElementById('newItemServiceStaff');
+    var editSelect=document.getElementById('editItemServiceStaff');
+    fillServiceStaffSelect(newSelect,document.getElementById('newItemServiceType').value,newSelect&&newSelect.value);
+    fillServiceStaffSelect(editSelect,document.getElementById('editItemServiceType').value,editSelect&&editSelect.value);
+  }
+
   function saveMenuOrder(categoryOrder, groups){
     var updates = {};
     var sortOrder = 1;
@@ -2014,6 +2182,7 @@
     document.getElementById('editItemName').value = item.name || '';
     document.getElementById('editItemPrice').value = Number(item.price || 0);
     document.getElementById('editItemServiceType').value = item.serviceType || 'food';
+    fillServiceStaffSelect(document.getElementById('editItemServiceStaff'),item.serviceType||'food',item.serviceStaffId||'');
     document.getElementById('editItemNote').value = item.note || '';
     document.getElementById('editItemAddonLabel').value = item.addonLabel || '';
     document.getElementById('editItemAddonPrice').value = Number(item.addonPrice || 0);
@@ -2036,6 +2205,7 @@
     var name = document.getElementById('editItemName').value.trim();
     var price = Number(document.getElementById('editItemPrice').value);
     var serviceType = document.getElementById('editItemServiceType').value || 'food';
+    var serviceStaffId = document.getElementById('editItemServiceStaff').value || '';
     var note = document.getElementById('editItemNote').value.trim();
     var addonLabel = document.getElementById('editItemAddonLabel').value.trim();
     var addonPriceText = document.getElementById('editItemAddonPrice').value;
@@ -2061,6 +2231,13 @@
     data.name = name;
     data.price = price;
     data.serviceType = serviceType;
+    if(isAssignableServiceType(serviceType)&&serviceStaffId){
+      data.serviceStaffId=serviceStaffId;
+      data.serviceStaffName=(staffRoster[serviceStaffId]||{}).name||'未命名女僕';
+    }else{
+      delete data.serviceStaffId;
+      delete data.serviceStaffName;
+    }
     if(note) data.note = note; else delete data.note;
     if(addonLabel){
       data.addonLabel = addonLabel;
@@ -2206,6 +2383,7 @@
     var addonLabel = document.getElementById('newItemAddonLabel').value.trim();
     var addonPrice = parseInt(document.getElementById('newItemAddonPrice').value, 10);
     var serviceType = document.getElementById('newItemServiceType').value || 'food';
+    var serviceStaffId = document.getElementById('newItemServiceStaff').value || '';
 
     if(!category || !name || !price || price < 0){
       alert('請至少填寫分類、品名跟價格');
@@ -2213,6 +2391,7 @@
     }
     var maxSortOrder = Object.keys(menuItems).reduce(function(max,id){ return Math.max(max, Number(menuItems[id].sortOrder||0)); }, 0);
     var data = { category:category, name:name, price:price, serviceType:serviceType, available:true, sortOrder:maxSortOrder+1 };
+    if(isAssignableServiceType(serviceType)&&serviceStaffId){data.serviceStaffId=serviceStaffId;data.serviceStaffName=(staffRoster[serviceStaffId]||{}).name||'未命名女僕';}
     if(note) data.note = note;
     if(addonLabel && addonPrice){ data.addonLabel = addonLabel; data.addonPrice = addonPrice; }
 
@@ -2226,7 +2405,11 @@
     document.getElementById('newItemAddonLabel').value = '';
     document.getElementById('newItemAddonPrice').value = '';
     document.getElementById('newItemServiceType').value = 'food';
+    renderServiceStaffOptions();
   });
+
+  document.getElementById('newItemServiceType').addEventListener('change',renderServiceStaffOptions);
+  document.getElementById('editItemServiceType').addEventListener('change',renderServiceStaffOptions);
 
   document.getElementById('menuEditCancel').addEventListener('click', closeMenuEditor);
   document.getElementById('menuEditSave').addEventListener('click', saveMenuItemChanges);

@@ -1,0 +1,353 @@
+/* 曇時管理後台｜墨綠工作台
+   僅調整版面與視覺；資料操作仍完全由原 admin.js 處理。 */
+
+#adminArea.workspace-preview-active {
+  display: grid !important;
+  grid-template-columns: minmax(236px, 272px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+#adminArea.workspace-preview-active > #mainTabs,
+#adminArea.workspace-preview-active > .global-identity {
+  grid-column: 1 / -1;
+}
+
+#adminArea.workspace-preview-active > #mainTabs { grid-row: 1; }
+#adminArea.workspace-preview-active > .global-identity { grid-row: 2; }
+
+#adminArea.workspace-preview-active > .guest-workspace-preview {
+  display: block;
+  grid-column: 1;
+  grid-row: 3;
+}
+
+#adminArea.workspace-preview-active > #receptionTab,
+#adminArea.workspace-preview-active > #ordersTab {
+  grid-column: 2;
+  grid-row: 3;
+  min-width: 0;
+}
+
+.guest-workspace-preview {
+  position: sticky;
+  top: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line, #33413f);
+  border-radius: 16px;
+  background: linear-gradient(155deg, rgba(34,44,44,.98), rgba(19,26,27,.98));
+  box-shadow: 0 16px 42px rgba(0,0,0,.24);
+}
+
+.guest-preview-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 17px 16px 13px;
+  border-bottom: 1px solid rgba(143,160,131,.18);
+}
+
+.guest-preview-kicker {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--gold, #b09267);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.guest-preview-head h2 {
+  margin: 0;
+  color: var(--mist, #e3e3dc);
+  font-family: 'Noto Serif TC', serif;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.guest-preview-live {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border: 1px solid rgba(143,160,131,.26);
+  border-radius: 999px;
+  color: var(--parchment-dim, #9da6a1);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.guest-preview-live i {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: var(--sage, #8fa083);
+  box-shadow: 0 0 0 3px rgba(143,160,131,.13);
+}
+
+.guest-preview-select-label {
+  display: block;
+  padding: 13px 16px 5px;
+  color: var(--parchment-dim, #9da6a1);
+  font-size: 10px;
+  letter-spacing: .08em;
+}
+
+.guest-preview-select {
+  width: calc(100% - 32px);
+  margin: 0 16px 14px;
+  padding: 9px 30px 9px 10px;
+  border-color: rgba(143,160,131,.3);
+  background-color: #151d1e;
+  color: var(--mist, #e3e3dc);
+  font-size: 11px;
+}
+
+.guest-preview-screen {
+  min-height: 286px;
+  margin: 0 12px;
+  padding: 13px;
+  border: 1px solid rgba(176,146,103,.2);
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 84% 8%, rgba(143,160,131,.1), transparent 34%),
+    #101718;
+}
+
+.guest-preview-empty {
+  display: grid;
+  min-height: 256px;
+  place-items: center;
+  color: var(--parchment-dim, #9da6a1);
+  font-size: 11px;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.guest-preview-card { min-width: 0; }
+
+.guest-preview-status {
+  display: inline-flex;
+  padding: 4px 8px;
+  border: 1px solid rgba(143,160,131,.3);
+  border-radius: 999px;
+  color: var(--sage, #8fa083);
+  font-size: 9px;
+}
+
+.guest-preview-ticket {
+  display: block;
+  margin: 17px 0 5px;
+  color: var(--gold, #b09267);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(34px, 4vw, 46px);
+  font-weight: 400;
+  letter-spacing: .02em;
+  line-height: 1;
+}
+
+.guest-preview-card h3 {
+  overflow: hidden;
+  margin: 0;
+  color: var(--mist, #e3e3dc);
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guest-preview-card > p {
+  margin: 5px 0 15px;
+  color: var(--parchment-dim, #9da6a1);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.guest-preview-items {
+  padding-top: 10px;
+  border-top: 1px solid rgba(143,160,131,.15);
+}
+
+.guest-preview-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  color: #cbd0c9;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.guest-preview-item span:first-child {
+  overflow-wrap: anywhere;
+}
+
+.guest-preview-item span:last-child {
+  flex: 0 0 auto;
+  color: var(--parchment-dim, #9da6a1);
+}
+
+.guest-preview-total {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(176,146,103,.22);
+  color: var(--gold, #b09267);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.guest-preview-note {
+  margin: 0;
+  padding: 12px 16px 15px;
+  color: var(--parchment-dim, #9da6a1);
+  font-size: 9px;
+  line-height: 1.65;
+}
+
+/* 工作台資訊層級：桌機維持橫向工具列與清楚的表格式卡片。 */
+#adminArea.workspace-preview-active .page-heading { margin-top: 0; }
+
+#adminArea.workspace-preview-active .reception-overview {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+#adminArea.workspace-preview-active .reception-metric {
+  min-height: 0;
+  padding: 13px 14px;
+}
+
+#adminArea.workspace-preview-active .reception-metric-value { font-size: 25px; }
+
+#adminArea.workspace-preview-active #orderList > .order-card,
+#adminArea.workspace-preview-active .order-day-list > .order-card {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.1fr) minmax(180px, 1.35fr) minmax(130px, .9fr);
+  column-gap: 16px;
+  align-items: start;
+}
+
+#adminArea.workspace-preview-active .order-card > .order-top {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+}
+
+#adminArea.workspace-preview-active .order-card > .order-items,
+#adminArea.workspace-preview-active .order-card > .order-items-empty { grid-column: 2; }
+#adminArea.workspace-preview-active .order-card > .order-total { grid-column: 2; }
+#adminArea.workspace-preview-active .order-card > .order-service { grid-column: 3; grid-row: 1; }
+#adminArea.workspace-preview-active .order-card > .handoff-note { grid-column: 3; }
+#adminArea.workspace-preview-active .order-card > .order-actions { grid-column: 1 / -1; }
+
+@media (max-width: 980px) {
+  #adminArea.workspace-preview-active {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  #adminArea.workspace-preview-active > #mainTabs,
+  #adminArea.workspace-preview-active > .global-identity,
+  #adminArea.workspace-preview-active > .guest-workspace-preview,
+  #adminArea.workspace-preview-active > #receptionTab,
+  #adminArea.workspace-preview-active > #ordersTab {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .guest-workspace-preview { position: static; }
+
+  .guest-preview-screen { min-height: 0; }
+  .guest-preview-empty { min-height: 150px; }
+
+  #adminArea.workspace-preview-active .reception-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #adminArea.workspace-preview-active #orderList > .order-card,
+  #adminArea.workspace-preview-active .order-day-list > .order-card {
+    display: block;
+  }
+}
+
+@media (max-width: 560px) {
+  #adminArea.workspace-preview-active .reception-overview { grid-template-columns: 1fr 1fr; }
+  .guest-preview-head { padding: 15px 14px 12px; }
+  .guest-preview-select { width: calc(100% - 28px); margin-right: 14px; margin-left: 14px; }
+  .guest-preview-screen { margin-right: 10px; margin-left: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guest-workspace-preview * { scroll-behavior: auto !important; }
+}
+
+/* 特殊服務分工：主要接待不再等於拍立得負責人。 */
+.special-workspace-head {
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.special-task-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.special-task-filter {
+  min-height: 34px;
+  padding: 6px 11px;
+  border: 1px solid rgba(143,160,131,.24);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--parchment-dim, #9da6a1);
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.special-task-filter.active {
+  border-color: rgba(143,160,131,.6);
+  background: rgba(143,160,131,.14);
+  color: var(--mist, #e3e3dc);
+}
+
+.special-queue-assignment {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(118px,160px);
+  gap: 8px;
+  align-items: center;
+  margin-top: 9px;
+}
+
+.special-queue-assignment label {
+  color: var(--parchment-dim, #9da6a1);
+  font-size: 10px;
+}
+
+.special-queue-assignment select,
+.special-queue-card > select {
+  width: 100%;
+  min-width: 0;
+}
+
+.special-queue-owner {
+  margin-top: 3px;
+  color: var(--sage, #8fa083);
+  font-size: 10px;
+}
+
+.special-queue-card.is-mine {
+  border-color: rgba(143,160,131,.48);
+  box-shadow: inset 3px 0 0 rgba(143,160,131,.72);
+}
+
+.special-queue-card.is-unassigned {
+  border-color: rgba(176,146,103,.45);
+}
+
+@media (max-width: 560px) {
+  .special-workspace-head { align-items: stretch; }
+  .special-task-filters { width: 100%; }
+  .special-task-filter { flex: 1 1 auto; }
+  .special-queue-assignment { grid-template-columns: 1fr; }
+}

@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>曇時 管理後台</title>
 <link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="site-content-admin.css?v=20260824">
+<link rel="stylesheet" href="unified-admin-ui.css?v=20260825">
+<link rel="stylesheet" href="admin-workspace.css?v=20260825">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -48,6 +51,7 @@
       <div class="main-tab manager-only" data-main="reservations" data-manager-only>預約</div>
       <span class="main-tab-group-label manager-only" data-manager-only>系統</span>
       <div class="main-tab manager-only" data-main="site" data-manager-only>官網</div>
+      <div class="main-tab manager-only" data-main="site-content" data-manager-only>網站內容</div>
       <div class="main-tab manager-only" data-main="access" data-manager-only>權限</div>
       <span class="access-badge" id="currentAccessBadge">權限確認中</span>
       <button class="btn ghost small" id="adminLogoutBtn" style="margin-left:auto;">登出</button>
@@ -59,6 +63,30 @@
       </div>
       <select id="globalStaffSelect" aria-label="選擇目前操作女僕"><option value="">請先選擇女僕</option></select>
     </div>
+
+    <aside class="guest-workspace-preview" id="guestWorkspacePreview" aria-label="主人端唯讀同步摘要" hidden>
+      <div class="guest-preview-head">
+        <div>
+          <span class="guest-preview-kicker">Guest View</span>
+          <h2 id="guestPreviewModeLabel">主人端同步摘要</h2>
+        </div>
+        <span class="guest-preview-live"><i></i> 唯讀同步</span>
+      </div>
+      <label class="guest-preview-select-label" for="guestPreviewRecordSelect">目前預覽</label>
+      <select id="guestPreviewRecordSelect" class="guest-preview-select" aria-label="選擇要預覽的主人或訂單"></select>
+      <div class="guest-preview-screen" id="guestPreviewScreen">
+        <div class="guest-preview-empty" id="guestPreviewEmpty">正在讀取目前資料…</div>
+        <div class="guest-preview-card" id="guestPreviewCard" hidden>
+          <span class="guest-preview-status" id="guestPreviewStatus">處理中</span>
+          <strong class="guest-preview-ticket" id="guestPreviewTicket">—</strong>
+          <h3 id="guestPreviewTitle">—</h3>
+          <p id="guestPreviewMeta">—</p>
+          <div class="guest-preview-items" id="guestPreviewItems"></div>
+          <div class="guest-preview-total" id="guestPreviewTotal"></div>
+        </div>
+      </div>
+      <p class="guest-preview-note">此區只讀取既有 Firebase 資料，用來快速核對主人看見的資訊；不會變更候位、訂單或服務狀態。</p>
+    </aside>
 
     <!-- ============ 接待候位 ============ -->
     <div id="receptionTab">
@@ -151,7 +179,12 @@
       </div>
       <div class="panel special-workspace" id="specialServiceWorkspace">
         <div class="special-workspace-head">
-          <div><h2>今日待辦</h2><p>依服務類型分開查看目前進度與負責店員。</p></div>
+          <div><h2>今日待辦</h2><p>主要接待與拍立得負責人分開追蹤，不需要轉接整位主人。</p></div>
+          <div class="special-task-filters" id="specialTaskFilters" aria-label="特殊服務篩選">
+            <button class="special-task-filter active" type="button" data-special-filter="all">全部</button>
+            <button class="special-task-filter" type="button" data-special-filter="mine">我的任務</button>
+            <button class="special-task-filter" type="button" data-special-filter="unassigned">未指派</button>
+          </div>
         </div>
         <div class="special-queue-grid">
           <section class="special-queue-column" aria-labelledby="polaroidQueueTitle">
@@ -288,6 +321,7 @@
           <input type="text" id="newItemAddonLabel" placeholder="加購項目名稱（選填）" style="flex:1;min-width:140px;">
           <input type="text" id="newItemAddonPrice" placeholder="加購價格" style="width:110px;">
           <select id="newItemServiceType" aria-label="品項類型"><option value="food">一般餐點</option><option value="polaroid">拍立得</option><option value="lens">個人攝影</option><option value="magic">蛋包飯魔法</option></select>
+          <select id="newItemServiceStaff" aria-label="特殊服務負責女僕" disabled><option value="">一般餐點不需指定</option></select>
         </div>
         <button class="btn primary" id="addMenuItem" style="margin-top:10px;">新增到菜單</button>
         <p style="font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;">分類欄位打一樣的名稱會自動歸在同一區。例如想加「小顏 拍立得」「Naipa 拍立得」，分類都打「拍立得」即可。</p>
@@ -415,6 +449,62 @@
       </div>
     </div>
 
+    <!-- ============ 官網內容管理 ============ -->
+    <div id="siteContentTab" class="manager-only" data-manager-only style="display:none;">
+      <div class="panel site-content-panel">
+        <p class="admin-section-label">首頁主視覺</p>
+        <p class="panel-title">店員合照與顯示焦點</p>
+        <p class="site-content-lead">桌機與手機可分別上傳照片；焦點控制可避開左側文字卡，讓店員不再被遮住。只調焦點時不需要重新上傳。</p>
+
+        <div class="site-hero-editor-grid">
+          <section class="site-hero-editor" data-hero-device="desktop">
+            <div class="site-content-heading"><strong>桌機版</strong><span>建議橫式 16:9、1920px 以上</span></div>
+            <div class="site-hero-preview site-hero-preview-desktop">
+              <img id="heroDesktopPreviewImage" alt="桌機版首頁照片預覽">
+              <span class="site-hero-obstruction" aria-hidden="true">首頁文字區</span>
+            </div>
+            <label class="site-upload-field">選擇桌機照片<input type="file" id="siteHeroDesktopFile" accept="image/jpeg,image/png,image/webp"></label>
+            <label class="site-range-field">水平焦點 <output id="heroDesktopFocalXValue">50%</output><input type="range" id="heroDesktopFocalX" min="0" max="100" value="50"></label>
+            <label class="site-range-field">垂直焦點 <output id="heroDesktopFocalYValue">50%</output><input type="range" id="heroDesktopFocalY" min="0" max="100" value="50"></label>
+          </section>
+
+          <section class="site-hero-editor" data-hero-device="mobile">
+            <div class="site-content-heading"><strong>手機版</strong><span>建議直式 4:5、1200px 以上</span></div>
+            <div class="site-hero-preview site-hero-preview-mobile">
+              <img id="heroMobilePreviewImage" alt="手機版首頁照片預覽">
+              <span class="site-hero-obstruction" aria-hidden="true">首頁文字區</span>
+            </div>
+            <label class="site-upload-field">選擇手機照片<input type="file" id="siteHeroMobileFile" accept="image/jpeg,image/png,image/webp"></label>
+            <label class="site-range-field">水平焦點 <output id="heroMobileFocalXValue">50%</output><input type="range" id="heroMobileFocalX" min="0" max="100" value="50"></label>
+            <label class="site-range-field">垂直焦點 <output id="heroMobileFocalYValue">50%</output><input type="range" id="heroMobileFocalY" min="0" max="100" value="50"></label>
+          </section>
+        </div>
+
+        <div class="row site-content-actions">
+          <button class="btn primary" id="saveSiteHero">儲存並同步首頁</button>
+          <button class="btn ghost" id="resetSiteHero">恢復官網預設圖</button>
+        </div>
+        <p class="site-content-status" id="siteHeroStatus" aria-live="polite">正在讀取首頁設定…</p>
+      </div>
+
+      <div class="panel site-content-panel">
+        <p class="admin-section-label">服務頁面</p>
+        <p class="panel-title">拍立得成品範例</p>
+        <p class="site-content-lead">新增後可調整順序、文字與顯示狀態。若尚未新增任何內容，官網會繼續顯示原本兩張範例。</p>
+
+        <div class="site-polaroid-form">
+          <label class="site-upload-field">拍立得圖片<input type="file" id="sitePolaroidFile" accept="image/jpeg,image/png,image/webp"></label>
+          <label>短標題<input type="text" id="sitePolaroidTitle" maxlength="60" placeholder="例如：Memory Sample 03"></label>
+          <label>圖片替代文字<input type="text" id="sitePolaroidAlt" maxlength="120" placeholder="描述照片內容，方便無障礙閱讀"></label>
+          <label class="wide">補充文字（選填）<textarea id="sitePolaroidCaption" maxlength="160" rows="2" placeholder="例如：生日紀念、主題活動成品"></textarea></label>
+          <label class="site-check-field"><input type="checkbox" id="sitePolaroidVisible" checked>立即顯示在官網</label>
+          <button class="btn primary" id="addSitePolaroid">上傳並新增</button>
+        </div>
+        <p class="site-content-status" id="sitePolaroidStatus" aria-live="polite">正在讀取拍立得資料…</p>
+        <div id="sitePolaroidList" class="site-polaroid-list"><span class="empty">正在讀取…</span></div>
+      </div>
+    </div>
+
     <!-- ============ 權限管理 ============ -->
     <div id="accessTab" class="manager-only" data-manager-only style="display:none;">
       <div class="panel">
@@ -448,6 +538,10 @@
       <div class="menu-edit-field full">
         <label for="editItemServiceType">品項類型</label>
         <select id="editItemServiceType"><option value="food">一般餐點</option><option value="polaroid">拍立得</option><option value="lens">個人攝影</option><option value="magic">蛋包飯魔法</option></select>
+      </div>
+      <div class="menu-edit-field full">
+        <label for="editItemServiceStaff">拍立得／攝影負責女僕</label>
+        <select id="editItemServiceStaff" disabled><option value="">此類型不需指定</option></select>
       </div>
       <div class="menu-edit-field full">
         <label for="editItemName">菜單名稱</label>
@@ -517,6 +611,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js"></script>
 <script src="admin.js"></script>
+<script src="site-content-admin.js?v=20260824"></script>
+<script src="admin-workspace-preview.js?v=20260825"></script>
 
 </body>
 </html>

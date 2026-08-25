@@ -1,0 +1,54 @@
+.site-content-panel{overflow:hidden}
+.site-content-lead{margin:-2px 0 18px;color:var(--parchment-dim);font-size:12.5px;line-height:1.8}
+.site-hero-editor-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(260px,.72fr);gap:18px}
+.site-hero-editor{display:grid;gap:12px;padding:14px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025)}
+.site-content-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.site-content-heading strong{font-size:13px;color:var(--parchment)}
+.site-content-heading span{font-size:10.5px;color:var(--parchment-dim);text-align:right}
+.site-hero-preview{position:relative;overflow:hidden;background:#171411;border:1px solid rgba(255,255,255,.12)}
+.site-hero-preview-desktop{aspect-ratio:16/9}
+.site-hero-preview-mobile{aspect-ratio:4/5;max-height:360px;margin-inline:auto}
+.site-hero-preview img{width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transition:object-position .18s ease}
+.site-hero-obstruction{position:absolute;left:4%;top:12%;width:38%;height:70%;display:grid;place-items:center;padding:8px;border:1px dashed rgba(255,255,255,.6);background:rgba(21,17,14,.68);color:#fff;font-size:10px;letter-spacing:.12em;text-align:center;pointer-events:none}
+.site-hero-preview-mobile .site-hero-obstruction{left:7%;right:7%;top:auto;bottom:5%;width:auto;height:35%}
+.site-upload-field,.site-range-field,.site-polaroid-form label{display:grid;gap:7px;color:var(--parchment-dim);font-size:11px}
+.site-upload-field input[type=file]{width:100%;padding:8px;border:1px dashed rgba(255,255,255,.18);background:rgba(0,0,0,.1);color:var(--parchment-dim)}
+.site-upload-field input[type=file]::file-selector-button{margin-right:10px;border:0;padding:7px 10px;background:rgba(255,255,255,.1);color:var(--parchment);cursor:pointer}
+.site-range-field{grid-template-columns:1fr auto;align-items:center}
+.site-range-field input{grid-column:1/-1;width:100%;accent-color:var(--gold,#b39a67)}
+.site-range-field output{font-variant-numeric:tabular-nums;color:var(--parchment)}
+.site-content-actions{margin-top:16px}
+.site-content-status{min-height:1.5em;margin:10px 0 0;color:var(--parchment-dim);font-size:11.5px}
+.site-content-status[data-state=success]{color:#9fd4aa}
+.site-content-status[data-state=error]{color:#f2a7a0}
+.site-content-status[data-state=busy]{color:#e1c68a}
+.site-polaroid-form{display:grid;grid-template-columns:1.15fr 1fr 1.2fr;gap:12px;align-items:end;padding:14px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025)}
+.site-polaroid-form .wide{grid-column:1/3}
+.site-polaroid-form textarea{resize:vertical}
+.site-check-field{display:flex!important;align-items:center;gap:8px!important;min-height:38px}
+.site-polaroid-list{display:grid;gap:10px;margin-top:16px}
+.site-polaroid-card{display:grid;grid-template-columns:92px minmax(0,1fr) auto;gap:14px;align-items:start;padding:12px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025)}
+.site-polaroid-thumb{width:92px;aspect-ratio:1/1;object-fit:cover;background:#16130f}
+.site-polaroid-fields{display:grid;grid-template-columns:1fr 1.3fr;gap:9px}
+.site-polaroid-fields label{display:grid;gap:5px;color:var(--parchment-dim);font-size:10.5px}
+.site-polaroid-fields .wide{grid-column:1/-1}
+.site-polaroid-actions{display:grid;grid-template-columns:repeat(2,minmax(40px,auto));gap:7px}
+.site-polaroid-actions .btn{padding-inline:10px;white-space:nowrap}
+.site-polaroid-hidden{opacity:.58}
+@media(max-width:900px){
+  .site-hero-editor-grid{grid-template-columns:1fr}
+  .site-hero-preview-mobile{width:min(100%,360px)}
+  .site-polaroid-form{grid-template-columns:1fr 1fr}
+  .site-polaroid-form .wide{grid-column:1/-1}
+  .site-polaroid-card{grid-template-columns:74px minmax(0,1fr)}
+  .site-polaroid-thumb{width:74px}
+  .site-polaroid-actions{grid-column:1/-1;grid-template-columns:repeat(4,1fr)}
+}
+@media(max-width:600px){
+  .site-content-heading{align-items:flex-start;flex-direction:column}
+  .site-polaroid-form,.site-polaroid-fields{grid-template-columns:1fr}
+  .site-polaroid-form .wide,.site-polaroid-fields .wide{grid-column:auto}
+  .site-polaroid-card{grid-template-columns:64px minmax(0,1fr);gap:10px}
+  .site-polaroid-thumb{width:64px}
+  .site-polaroid-actions{grid-template-columns:1fr 1fr}
+}
