@@ -116,13 +116,17 @@
     });
   }
   function focal(device, axis){ return byId('hero' + device + 'Focal' + axis); }
+  function zoom(device){ return byId('hero' + device + 'Zoom'); }
   function preview(device){ return byId('hero' + device + 'PreviewImage'); }
   function refreshPreview(device){
     var x = clamp(focal(device, 'X').value, 0, 100);
     var y = clamp(focal(device, 'Y').value, 0, 100);
     byId('hero' + device + 'FocalXValue').textContent = x + '%';
     byId('hero' + device + 'FocalYValue').textContent = y + '%';
+    var scale = clamp(zoom(device).value, 100, 180);
+    byId('hero' + device + 'ZoomValue').textContent = scale + '%';
     preview(device).style.objectPosition = x + '% ' + y + '%';
+    preview(device).style.transform = 'scale(' + (scale / 100) + ')';
   }
   function setHeroControls(data){
     heroSettings = data || {};
@@ -134,11 +138,14 @@
     focal('Desktop', 'Y').value = clamp(heroSettings.desktopFocalY == null ? 50 : heroSettings.desktopFocalY, 0, 100);
     focal('Mobile', 'X').value = clamp(heroSettings.mobileFocalX == null ? 50 : heroSettings.mobileFocalX, 0, 100);
     focal('Mobile', 'Y').value = clamp(heroSettings.mobileFocalY == null ? 50 : heroSettings.mobileFocalY, 0, 100);
+    zoom('Desktop').value = clamp(heroSettings.desktopZoom == null ? 100 : heroSettings.desktopZoom, 100, 180);
+    zoom('Mobile').value = clamp(heroSettings.mobileZoom == null ? 100 : heroSettings.mobileZoom, 100, 180);
     refreshPreview('Desktop');
     refreshPreview('Mobile');
   }
   function bindHeroPreview(device, inputId){
     ['X','Y'].forEach(function(axis){ focal(device, axis).addEventListener('input', function(){ refreshPreview(device); }); });
+    zoom(device).addEventListener('input', function(){ refreshPreview(device); });
     byId(inputId).addEventListener('change', function(){
       var file = this.files && this.files[0];
       if(!file) return;
@@ -148,6 +155,15 @@
       pendingHeroUrls[device.toLowerCase()] = URL.createObjectURL(file);
       preview(device).src = pendingHeroUrls[device.toLowerCase()];
       status('siteHeroStatus', '已載入預覽；按「儲存並同步首頁」才會發佈。', '');
+    });
+  }
+  function bindHeroPresets(){
+    document.querySelectorAll('[data-hero-device][data-hero-x]').forEach(function(button){
+      button.addEventListener('click', function(){
+        var device = button.dataset.heroDevice;
+        focal(device, 'X').value = clamp(button.dataset.heroX, 0, 100);
+        refreshPreview(device);
+      });
     });
   }
   async function saveHero(){
@@ -164,6 +180,8 @@
         desktopFocalY: clamp(focal('Desktop','Y').value, 0, 100),
         mobileFocalX: clamp(focal('Mobile','X').value, 0, 100),
         mobileFocalY: clamp(focal('Mobile','Y').value, 0, 100),
+        desktopZoom: clamp(zoom('Desktop').value, 100, 180),
+        mobileZoom: clamp(zoom('Mobile').value, 100, 180),
         updatedAt: now()
       };
       var desktopFile = byId('siteHeroDesktopFile').files[0];
@@ -249,7 +267,7 @@
       img.alt = '';
       var fields = document.createElement('div');
       fields.className = 'site-polaroid-fields';
-      fields.append(field('短標題', item.title, 'title'));
+      fields.append(field('店員／作品名稱', item.title, 'title'));
       fields.append(field('圖片替代文字', item.alt, 'alt'));
       fields.append(field('補充文字', item.caption, 'caption', true));
       var visibleLabel = document.createElement('label');
@@ -283,7 +301,7 @@
       await recordRef.set({
         imageUrl: imageUrl,
         storagePath: path,
-        title: byId('sitePolaroidTitle').value.trim() || ('Memory Sample ' + String(polaroids.length + 1).padStart(2,'0')),
+        title: byId('sitePolaroidTitle').value.trim() || ('拍立得作品 ' + String(polaroids.length + 1).padStart(2,'0')),
         caption: byId('sitePolaroidCaption').value.trim(),
         alt: byId('sitePolaroidAlt').value.trim() || '曇時 Cafe l’Éphémère 拍立得成品範例',
         visible: byId('sitePolaroidVisible').checked,
@@ -367,6 +385,7 @@
   bindSiteContentTab();
   bindHeroPreview('Desktop', 'siteHeroDesktopFile');
   bindHeroPreview('Mobile', 'siteHeroMobileFile');
+  bindHeroPresets();
   bindPolaroidActions();
   byId('saveSiteHero').addEventListener('click', saveHero);
   byId('resetSiteHero').addEventListener('click', resetHero);
