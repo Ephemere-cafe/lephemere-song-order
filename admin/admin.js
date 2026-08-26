@@ -2836,28 +2836,72 @@
     renderStaffCheckList();
   });
 
-  // ---------- photo cropper ----------
-  var PHOTO_PREVIEW_SIZE = 260;
-  var PHOTO_OUTPUT_SIZE = 1200;
+  // ---------- staff portrait upload + independent website previews ----------
+  var PHOTO_LONG_EDGE = 2000;
   var PHOTO_OUTPUT_QUALITY = 0.90;
   var photoEditStaffId = null;
   var photoImg = null;
-  var photoScale = 1, photoBaseScale = 1, photoOffX = 0, photoOffY = 0;
-  var photoDragging = false, photoDragStartX = 0, photoDragStartY = 0, photoStartOffX = 0, photoStartOffY = 0;
-  var photoCanvas = document.getElementById('photoCropCanvas');
-  var photoCtx = photoCanvas ? photoCanvas.getContext('2d') : null;
+  var photoHasNewFile = false;
+  var photoModes = ['Directory','Profile'];
 
+  function photoNumber(value, fallback, min, max){
+    value = Number(value);
+    if(!isFinite(value)) value = fallback;
+    return Math.max(min, Math.min(max, value));
+  }
+  function photoLayoutFor(entry, mode){
+    var saved = entry && entry.photoLayout && entry.photoLayout[mode.toLowerCase()] || {};
+    return {
+      x:photoNumber(saved.x,50,0,100),
+      y:photoNumber(saved.y,50,0,100),
+      zoom:photoNumber(saved.zoom,100,100,220)
+    };
+  }
+  function setPhotoModeControls(mode, values){
+    document.getElementById('photo'+mode+'X').value = values.x;
+    document.getElementById('photo'+mode+'Y').value = values.y;
+    document.getElementById('photo'+mode+'Zoom').value = values.zoom;
+    updatePhotoPreview(mode);
+  }
+  function currentPhotoMode(mode){
+    return {
+      x:photoNumber(document.getElementById('photo'+mode+'X').value,50,0,100),
+      y:photoNumber(document.getElementById('photo'+mode+'Y').value,50,0,100),
+      zoom:photoNumber(document.getElementById('photo'+mode+'Zoom').value,100,100,220)
+    };
+  }
+  function updatePhotoPreview(mode){
+    var values = currentPhotoMode(mode);
+    var img = document.getElementById('photo'+mode+'Preview');
+    document.getElementById('photo'+mode+'XValue').textContent = values.x+'%';
+    document.getElementById('photo'+mode+'YValue').textContent = values.y+'%';
+    document.getElementById('photo'+mode+'ZoomValue').textContent = values.zoom+'%';
+    img.style.objectPosition = values.x+'% '+values.y+'%';
+    img.style.transformOrigin = values.x+'% '+values.y+'%';
+    img.style.transform = 'scale('+(values.zoom/100)+')';
+  }
+  function showPhotoInPreviews(src){
+    photoModes.forEach(function(mode){
+      var img = document.getElementById('photo'+mode+'Preview');
+      img.src = src || '';
+      img.style.visibility = src ? 'visible' : 'hidden';
+      updatePhotoPreview(mode);
+    });
+  }
   function openPhotoEditor(staffId){
+    var entry = staffRoster[staffId] || {};
     photoEditStaffId = staffId;
     photoImg = null;
+    photoHasNewFile = false;
     document.getElementById('photoFileInput').value = '';
-    document.getElementById('photoZoomSlider').value = 100;
-    if(photoCtx) photoCtx.clearRect(0,0,PHOTO_PREVIEW_SIZE,PHOTO_PREVIEW_SIZE);
-    var existing = staffRoster[staffId] && staffRoster[staffId].photo;
-    if(existing){
+    document.getElementById('photoEditorStaffName').textContent = entry.name || '未命名成員';
+    setPhotoModeControls('Directory',photoLayoutFor(entry,'directory'));
+    setPhotoModeControls('Profile',photoLayoutFor(entry,'profile'));
+    showPhotoInPreviews(entry.photo || '');
+    if(entry.photo){
       var im = new Image();
-      im.onload = function(){ photoImg = im; fitPhotoToStage(); drawPhotoCanvas(); };
-      im.src = existing;
+      im.onload = function(){ photoImg = im; };
+      im.src = entry.photo;
     }
     document.getElementById('photoModalOverlay').classList.add('open');
   }
@@ -2865,101 +2909,62 @@
     document.getElementById('photoModalOverlay').classList.remove('open');
     photoEditStaffId = null;
     photoImg = null;
-  }
-  function fitPhotoToStage(){
-    if(!photoImg) return;
-    photoBaseScale = Math.max(PHOTO_PREVIEW_SIZE/photoImg.width, PHOTO_PREVIEW_SIZE/photoImg.height);
-    photoScale = 1;
-    photoOffX = 0; photoOffY = 0;
-    document.getElementById('photoZoomSlider').value = 100;
-  }
-  function drawPhotoCanvas(){
-    if(!photoCtx) return;
-    photoCtx.clearRect(0,0,PHOTO_PREVIEW_SIZE,PHOTO_PREVIEW_SIZE);
-    if(!photoImg) return;
-    var s = photoBaseScale * photoScale;
-    var w = photoImg.width * s, h = photoImg.height * s;
-    var x = (PHOTO_PREVIEW_SIZE - w)/2 + photoOffX;
-    var y = (PHOTO_PREVIEW_SIZE - h)/2 + photoOffY;
-    photoCtx.drawImage(photoImg, x, y, w, h);
+    photoHasNewFile = false;
   }
   var fileInputEl = document.getElementById('photoFileInput');
   if(fileInputEl) fileInputEl.addEventListener('change', function(e){
     var file = e.target.files && e.target.files[0];
     if(!file) return;
+    if(!/^image\/(jpeg|png|webp)$/i.test(file.type)){ alert('請選擇 JPG、PNG 或 WebP 圖片。'); e.target.value=''; return; }
     var reader = new FileReader();
     reader.onload = function(ev){
       var im = new Image();
-      im.onload = function(){ photoImg = im; fitPhotoToStage(); drawPhotoCanvas(); };
+      im.onload = function(){ photoImg = im; photoHasNewFile = true; showPhotoInPreviews(im.src); };
+      im.onerror = function(){ alert('照片讀取失敗，請改用另一張圖片。'); };
       im.src = ev.target.result;
     };
     reader.readAsDataURL(file);
   });
-  var zoomSliderEl = document.getElementById('photoZoomSlider');
-  if(zoomSliderEl) zoomSliderEl.addEventListener('input', function(e){
-    photoScale = e.target.value / 100;
-    drawPhotoCanvas();
+  photoModes.forEach(function(mode){
+    ['X','Y','Zoom'].forEach(function(part){
+      var input = document.getElementById('photo'+mode+part);
+      if(input) input.addEventListener('input',function(){ updatePhotoPreview(mode); });
+    });
   });
-  var stageEl = document.getElementById('photoCropStage');
-  if(stageEl){
-    stageEl.addEventListener('mousedown', function(e){
-      if(!photoImg) return;
-      photoDragging = true;
-      photoDragStartX = e.clientX; photoDragStartY = e.clientY;
-      photoStartOffX = photoOffX; photoStartOffY = photoOffY;
-    });
-    window.addEventListener('mousemove', function(e){
-      if(!photoDragging) return;
-      photoOffX = photoStartOffX + (e.clientX - photoDragStartX);
-      photoOffY = photoStartOffY + (e.clientY - photoDragStartY);
-      drawPhotoCanvas();
-    });
-    window.addEventListener('mouseup', function(){ photoDragging = false; });
-    stageEl.addEventListener('touchstart', function(e){
-      if(!photoImg || !e.touches[0]) return;
-      photoDragging = true;
-      photoDragStartX = e.touches[0].clientX; photoDragStartY = e.touches[0].clientY;
-      photoStartOffX = photoOffX; photoStartOffY = photoOffY;
-    });
-    stageEl.addEventListener('touchmove', function(e){
-      if(!photoDragging || !e.touches[0]) return;
-      photoOffX = photoStartOffX + (e.touches[0].clientX - photoDragStartX);
-      photoOffY = photoStartOffY + (e.touches[0].clientY - photoDragStartY);
-      drawPhotoCanvas();
-      e.preventDefault();
-    }, {passive:false});
-    stageEl.addEventListener('touchend', function(){ photoDragging = false; });
-  }
   var cancelBtn = document.getElementById('photoModalCancel');
   if(cancelBtn) cancelBtn.addEventListener('click', closePhotoEditor);
   var saveBtn = document.getElementById('photoModalSave');
   if(saveBtn) saveBtn.addEventListener('click', function(){
-    if(!photoEditStaffId || !photoImg){ closePhotoEditor(); return; }
+    if(!photoEditStaffId){ closePhotoEditor(); return; }
+    var staffId = photoEditStaffId;
+    var update = {photoLayout:{directory:currentPhotoMode('Directory'),profile:currentPhotoMode('Profile')},photoLayoutUpdatedAt:Date.now()};
+    saveBtn.disabled = true;
+    saveBtn.textContent = photoHasNewFile ? '上傳原比例照片中…' : '儲存位置中…';
+    function finishSave(promise){
+      promise.then(function(){
+        saveBtn.disabled=false;saveBtn.textContent='儲存照片與位置';closePhotoEditor();
+      }).catch(function(error){
+        saveBtn.disabled=false;saveBtn.textContent='儲存照片與位置';
+        alert('照片設定儲存失敗，請確認 Firebase 權限與網路連線。'+(error&&error.message?'\n'+error.message:''));
+      });
+    }
+    if(!photoHasNewFile){ finishSave(staffRosterRef.child(staffId).update(update)); return; }
+    if(!photoImg){ saveBtn.disabled=false;saveBtn.textContent='儲存照片與位置';alert('照片尚未載入完成。');return; }
+    var ratio = Math.min(1,PHOTO_LONG_EDGE/Math.max(photoImg.naturalWidth||photoImg.width,photoImg.naturalHeight||photoImg.height));
     var out = document.createElement('canvas');
-    out.width = PHOTO_OUTPUT_SIZE; out.height = PHOTO_OUTPUT_SIZE;
+    out.width = Math.max(1,Math.round((photoImg.naturalWidth||photoImg.width)*ratio));
+    out.height = Math.max(1,Math.round((photoImg.naturalHeight||photoImg.height)*ratio));
     var octx = out.getContext('2d');
     octx.imageSmoothingEnabled = true;
     octx.imageSmoothingQuality = 'high';
-    var outputRatio = PHOTO_OUTPUT_SIZE / PHOTO_PREVIEW_SIZE;
-    var s = photoBaseScale * photoScale * outputRatio;
-    var w = photoImg.width * s, h = photoImg.height * s;
-    var x = (PHOTO_OUTPUT_SIZE - w)/2 + photoOffX * outputRatio;
-    var y = (PHOTO_OUTPUT_SIZE - h)/2 + photoOffY * outputRatio;
-    octx.drawImage(photoImg, x, y, w, h);
-    var staffId = photoEditStaffId;
-    saveBtn.disabled = true;
-    saveBtn.textContent = '儲存高畫質照片中…';
+    octx.drawImage(photoImg,0,0,out.width,out.height);
     out.toBlob(function(blob){
-      if(!blob){saveBtn.disabled=false;saveBtn.textContent='儲存頭貼';alert('照片轉換失敗，請改用另一張圖片。');return;}
+      if(!blob){saveBtn.disabled=false;saveBtn.textContent='儲存照片與位置';alert('照片轉換失敗，請改用另一張圖片。');return;}
       var fileRef=storage.ref('staff-photos/'+staffId+'.webp');
       fileRef.put(blob,{contentType:'image/webp',cacheControl:'public,max-age=86400'}).then(function(snapshot){return snapshot.ref.getDownloadURL();}).then(function(url){
-        return staffRosterRef.child(staffId).update({photo:url,photoUpdatedAt:Date.now()});
-      }).then(function(){
-        saveBtn.disabled=false;saveBtn.textContent='儲存頭貼';closePhotoEditor();
-      }).catch(function(error){
-        saveBtn.disabled=false;saveBtn.textContent='儲存頭貼';
-        alert('照片儲存失敗，請確認 Firebase Storage 規則已發布。'+(error&&error.message?'\n'+error.message:''));
-      });
+        update.photo=url;update.photoUpdatedAt=Date.now();
+        return staffRosterRef.child(staffId).update(update);
+      }).then(function(){saveBtn.disabled=false;saveBtn.textContent='儲存照片與位置';closePhotoEditor();}).catch(function(error){saveBtn.disabled=false;saveBtn.textContent='儲存照片與位置';alert('照片儲存失敗，請確認 Firebase Storage 規則已發布。'+(error&&error.message?'\n'+error.message:''));});
     },'image/webp',PHOTO_OUTPUT_QUALITY);
   });
 
