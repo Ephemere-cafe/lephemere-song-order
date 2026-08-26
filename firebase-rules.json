@@ -8,8 +8,20 @@
       "reservations": { ".read": true, ".write": true },
       "webhookUrl": { ".read": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager' || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'orders')", ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager')" },
       "rules": { ".read": true, ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager')" },
-      "staffRoster": { ".read": true, ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager')" },
-      "siteContent": { ".read": true, ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager')" },
+      "staffRoster": {
+        ".read": true,
+        "$staffId": {
+          ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager')",
+          "callTemplate": {
+            ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager' || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'orders')",
+            ".validate": "newData.isString() && newData.val().length <= 300"
+          }
+        }
+      },
+      "siteContent": {
+        ".read": true,
+        ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager')"
+      },
       "todayStaff": {
         ".read": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager' || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'orders')",
         ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager')",
@@ -27,8 +39,8 @@
         ".indexOn": ["createdAt"],
         "$orderId": {
           ".read": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager' || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'orders') || (auth != null && data.child('ownerUid').val() == auth.uid)",
-          ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager' || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'orders') || (auth != null && !data.exists() && newData.child('ownerUid').val() == auth.uid && newData.child('status').val() == 'pending')",
-          ".validate": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager' || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'orders') || (newData.hasChildren(['ownerUid','orderNumber','visitId','queueNumber','name','items','total','status','createdAt']) && newData.child('ownerUid').val() == auth.uid && newData.child('orderNumber').isNumber() && newData.child('name').isString() && newData.child('name').val().length <= 40 && (!newData.child('note').exists() || (newData.child('note').isString() && newData.child('note').val().length <= 120)) && newData.child('total').isNumber() && newData.child('total').val() >= 10000 && newData.child('total').val() <= 1000000000 && newData.child('status').val() == 'pending' && newData.child('createdAt').isNumber())",
+          ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager' || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'orders')",
+          ".validate": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager' || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'orders')",
           "items": {
             "$index": {
               ".validate": "newData.hasChildren(['id','name','price','qty']) && newData.child('id').isString() && newData.child('name').isString() && newData.child('name').val() == root.child('lephemere/menu').child(newData.child('id').val()).child('name').val() && newData.child('price').isNumber() && newData.child('price').val() == root.child('lephemere/menu').child(newData.child('id').val()).child('price').val() && newData.child('qty').isNumber() && newData.child('qty').val() >= 1 && newData.child('qty').val() <= 20"
@@ -36,9 +48,10 @@
           }
         }
       },
+      "orderRequests": { ".read": false, ".write": false },
       "nextOrderNumber": {
         ".read": "auth != null",
-        ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager') || (auth != null && ((!data.exists() && newData.isNumber() && newData.val() == 1) || (data.isNumber() && newData.isNumber() && newData.val() == data.val() + 1)))",
+        ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager')",
         ".validate": "newData.isNumber() && newData.val() >= 0"
       },
       "visitQueueCounter": {
@@ -62,7 +75,7 @@
         "$itemId": {
           ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager')",
           "stockRemaining": {
-            ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager') || (auth != null && data.isNumber() && newData.isNumber() && newData.val() >= 0 && newData.val() < data.val())",
+            ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager' || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'orders')",
             ".validate": "newData.isNumber() && newData.val() >= 0"
           }
         }
@@ -70,4 +83,3 @@
     }
   }
 }
-

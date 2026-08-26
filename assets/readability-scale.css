@@ -1,0 +1,22 @@
+/* 2026-08-26 點餐與號碼牌閱讀尺寸。 */
+html{font-size:115%}
+body{font-size:16px;line-height:1.7}
+.brand h1{font-size:clamp(22px,3vw,29px)}
+.brand p,.clock{font-size:12.5px}
+.panel-title,.cat-title{font-size:14px}
+.menu-sync-status,.menu-refresh-btn,.item-note,.availability,.companion-fields-help,.browse-badge{font-size:12.5px}
+.item-name{font-size:16px;line-height:1.65}
+.item-price,.step-qty,.addon-row{font-size:14px}
+.visit-choice strong{font-size:19px}
+.visit-choice span,.visit-help,.visit-form label,.visit-meta,.diner-roster{font-size:13.5px;line-height:1.8}
+.visit-status-label,.diner-assignment,.diner-assignment select{font-size:13px}
+.cart-line,.cart-line-main,.empty-cart,.success-copy,.success-note,.status-banner{font-size:14px;line-height:1.75}
+.btn,button,input,select,textarea{font-size:15px!important;min-height:42px}
+.btn.primary{font-size:16px!important;min-height:48px}
+
+@media(max-width:600px){
+  html{font-size:112%}
+  .brand h1{font-size:20px}
+  .brand p,.clock{font-size:12px}
+  .btn,button,input,select,textarea{font-size:16px!important}
+}
