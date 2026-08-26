@@ -34,6 +34,11 @@
   var customSoundName = '';
   var orderAudioContext = null;
   var currentStaffId = '';
+  var transferModalVisitId = '';
+  var transferModalTargetId = '';
+  var transferInProgress = false;
+  var knownAssignmentHistoryIds = {};
+  var assignmentHistoryReady = false;
   var adminSessionId = 'admin-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);
   var isDatabaseConnected = false;
   var operationStatus = { isOpen:false, businessDate:'' };
@@ -233,6 +238,14 @@
       }catch(e){}
     }
     playBuiltInSound();
+  }
+
+  function playTransferSound(){
+    if(!soundEnabled) return;
+    var previousPreset=soundPreset;
+    soundPreset='soft';
+    playBuiltInSound();
+    soundPreset=previousPreset;
   }
 
   function normalizeSiteMusicSettings(value){
@@ -566,7 +579,19 @@
     });
 
     assignmentHistoryRef.limitToLast(30).on('value',function(snap){
-      assignmentHistory=snap.val()||{};
+      var nextHistory=snap.val()||{};
+      Object.keys(nextHistory).forEach(function(id){
+        var row=nextHistory[id]||{};
+        if(assignmentHistoryReady && !knownAssignmentHistoryIds[id] && row.action==='transfer' && row.toStaffId===currentStaffId && row.bySessionId!==adminSessionId){
+          var guest=row.queueNumber||((visits[row.visitId]||{}).queueNumber)||'這組主人';
+          var operator=row.byStaffName||'其他店員';
+          showCopyToast(guest+' 已由 '+operator+' 轉交給你',true);
+          playTransferSound();
+        }
+        knownAssignmentHistoryIds[id]=true;
+      });
+      assignmentHistoryReady=true;
+      assignmentHistory=nextHistory;
       renderAssignmentHistory();
     });
 
@@ -918,6 +943,8 @@
     var name=currentStaffId&&staffRoster[currentStaffId]?staffRoster[currentStaffId].name||'未命名女僕':'尚未選擇';
     document.getElementById('receptionStaffDisplay').textContent=name;
     document.getElementById('orderStaffDisplay').textContent=name;
+    var operatorBadge=document.getElementById('operatorLiveBadge');
+    if(operatorBadge){operatorBadge.innerHTML='<i></i> '+escapeHtml(currentStaffId?'本機操作者：'+name:'尚未選擇操作者');operatorBadge.classList.toggle('ready',!!currentStaffId);}
     renderReceptionCallTemplate();
   }
 
@@ -945,6 +972,8 @@
     var name=currentStaffId&&staffRoster[currentStaffId]?staffRoster[currentStaffId].name||'未命名女僕':'尚未選擇';
     document.getElementById('receptionStaffDisplay').textContent=name;
     document.getElementById('orderStaffDisplay').textContent=name;
+    var operatorBadge=document.getElementById('operatorLiveBadge');
+    if(operatorBadge){operatorBadge.innerHTML='<i></i> '+escapeHtml(currentStaffId?'本機操作者：'+name:'尚未選擇操作者');operatorBadge.classList.toggle('ready',!!currentStaffId);}
     renderReceptionCallTemplate();
     renderOrders();
     renderReception();
@@ -1086,16 +1115,17 @@
       actions+='<button class="btn ghost small" data-copy-call="'+v.id+'">複製接待文字</button>';
       var hasPendingSpecial=linkedOrders.some(function(order){return collectSpecialTasks(order.items||[]).some(function(task){return specialTaskState(order,task)!=='completed';});});
       actions+='<button class="btn ghost small" data-complete-visit="'+v.id+'">'+(hasPendingSpecial?'桌邊接待完成':'結束接待')+'</button>';
-      actions+='<select data-transfer-visit="'+v.id+'">'+transferOptions(currentStaffId)+'</select>';
+      actions+='<button class="btn transfer small" data-open-transfer="'+v.id+'">更換主要接待</button>';
     }else if(v.status==='waiting'){
       actions+='<button class="btn primary small" data-copy-call="'+v.id+'">複製叫號</button>';
       actions+='<button class="btn ghost small" data-no-show-visit="'+v.id+'">叫號未到</button>';
     }else{
       actions+='<button class="btn ghost small" data-copy-call="'+v.id+'">複製接待文字</button>';
+      actions+='<button class="btn transfer small" data-open-transfer="'+v.id+'">更換主要接待</button>';
     }
     var noteAction=isMine?'<div class="guest-note-actions"><button class="btn ghost small" data-edit-visit-note="'+v.id+'">編輯備註</button></div>':'';
     var overview=v.status!=='waiting'?'<div class="guest-overview"><div class="guest-overview-head"><span>訂單與服務</span><span>'+linkedOrders.length+' 筆訂單</span></div><div class="guest-order-list">'+guestOrdersHtml(v)+'</div><details class="guest-note"><summary>店內交接備註｜'+escapeHtml(v.internalNote||'尚未填寫')+'</summary>'+noteAction+'</details></div>':'';
-    return '<article class="visit-card '+(index===0&&v.status==='waiting'?'next ':'')+(isMine?'mine ':'')+urgency+'"><div class="visit-card-top"><div><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':(v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分'))+'</span></div><div class="visit-meta">'+(isMine?'<span class="visit-owner-badge">我的接待</span>':'')+(v.status==='waiting'?'依序候位中':'負責｜'+escapeHtml(v.assignedStaffName||'未命名女僕')+'・'+(v.status==='serving'?'接待進行中':'等待開始接待'))+'</div><div class="visit-tags">'+tags+'</div>'+(actions?'<div class="visit-actions">'+actions+'</div>':'')+overview+'</article>';
+    return '<article class="visit-card '+(index===0&&v.status==='waiting'?'next ':'')+(isMine?'mine ':'')+urgency+'"><div class="visit-card-top"><div><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':(v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分'))+'</span></div><div class="visit-owner-line">'+(v.status==='waiting'?'<span>尚未指派</span>':'<span class="visit-owner-label">主要接待</span><strong>'+escapeHtml(v.assignedStaffName||'未命名女僕')+'</strong>')+(isMine?'<span class="visit-owner-badge">我的接待</span>':'')+'</div><div class="visit-meta">'+(v.status==='waiting'?'依序候位中':(v.status==='serving'?'接待進行中':'等待開始接待'))+'</div><div class="visit-tags">'+tags+'</div>'+(actions?'<div class="visit-actions">'+actions+'</div>':'')+overview+'</article>';
   }
 
   function renderReception(){
@@ -1147,6 +1177,85 @@
     return Promise.all(jobs);
   }
 
+  function presenceLabel(id){
+    var labels={available:'可接待',serving:'接待中',photo:'拍照中',away:'暫離'};
+    var presence=staffPresence[id]||{};
+    var stale=presence.lastSeenAt && Date.now()-Number(presence.lastSeenAt)>300000;
+    return stale?'狀態可能已過期':(labels[presence.status]||'暫離');
+  }
+
+  function transferStaffIds(){
+    var schedule=scheduleForDate(activeDutyDate());
+    var ids=(schedule?activeDutyIds():Object.keys(staffRoster)).filter(function(id){return staffRoster[id];});
+    return ids.sort(function(a,b){return String((staffRoster[a]||{}).name||'').localeCompare(String((staffRoster[b]||{}).name||''),'zh-Hant');});
+  }
+
+  function renderTransferModal(){
+    var visit=visits[transferModalVisitId];
+    var overlay=document.getElementById('transferModalOverlay');
+    if(!overlay || !visit){ closeTransferModal(); return; }
+    document.getElementById('transferGuestSummary').innerHTML='<span>'+escapeHtml(visit.queueNumber||'—')+'</span><strong>'+escapeHtml(visit.characterName||'未填角色名')+'</strong><small>目前主要接待：'+escapeHtml(visit.assignedStaffName||'未指派')+'</small>';
+    var ids=transferStaffIds();
+    document.getElementById('transferRoster').innerHTML=ids.map(function(id){
+      var staff=staffRoster[id]||{};
+      var count=visitRows(['assigned','serving']).filter(function(v){return v.assignedStaffId===id;}).length;
+      var current=id===visit.assignedStaffId;
+      var selected=id===transferModalTargetId;
+      return '<button type="button" class="transfer-person'+(current?' current':'')+(selected?' selected':'')+'" data-transfer-target="'+escapeAttr(id)+'" role="radio" aria-checked="'+(selected?'true':'false')+'" '+(current?'disabled':'')+'><span class="transfer-person-mark">'+escapeHtml(String(staff.name||'?').slice(0,1))+'</span><span><strong>'+escapeHtml(staff.name||'未命名女僕')+'</strong><small>'+escapeHtml(presenceLabel(id))+'・目前 '+count+' 組'+(current?'・現任接待':'')+'</small></span></button>';
+    }).join('')||'<div class="queue-empty">目前沒有可選擇的值班人員</div>';
+    var target=staffRoster[transferModalTargetId]||null;
+    document.getElementById('transferModalStatus').textContent=target?'將立即轉交給 '+(target.name||'未命名女僕'):'請選擇新的主要接待';
+    document.getElementById('transferModalConfirm').disabled=!target||transferInProgress;
+  }
+
+  function openTransferModal(visitId){
+    if(!currentStaffId){ alert('請先選擇目前操作女僕，系統才能留下正確的交接紀錄。'); return; }
+    var visit=visits[visitId];
+    if(!visit || (visit.status!=='assigned'&&visit.status!=='serving')) return;
+    transferModalVisitId=visitId; transferModalTargetId=''; transferInProgress=false;
+    var overlay=document.getElementById('transferModalOverlay');
+    overlay.hidden=false; document.body.classList.add('modal-open');
+    renderTransferModal();
+  }
+
+  function closeTransferModal(){
+    var overlay=document.getElementById('transferModalOverlay');
+    if(overlay) overlay.hidden=true;
+    document.body.classList.remove('modal-open');
+    transferModalVisitId=''; transferModalTargetId=''; transferInProgress=false;
+  }
+
+  function transferVisit(visitId,targetId,action){
+    var visit=visits[visitId], target=staffRoster[targetId], fromId=visit&&visit.assignedStaffId||'';
+    if(!visit || !target || !fromId || fromId===targetId) return Promise.reject(new Error('轉交資料已變更，請重新選擇。'));
+    var now=Date.now(), targetName=target.name||'未命名女僕', operator=staffRoster[currentStaffId]||{};
+    var historyKey=assignmentHistoryRef.push().key, updates={};
+    updates['lephemere/visits/'+visitId+'/assignedStaffId']=targetId;
+    updates['lephemere/visits/'+visitId+'/assignedStaffName']=targetName;
+    updates['lephemere/visits/'+visitId+'/transferredAt']=now;
+    updates['lephemere/visits/'+visitId+'/updatedAt']=now;
+    updates['lephemere/visits/'+visitId+'/lastTransferFromStaffId']=fromId;
+    Object.keys(orders).forEach(function(id){
+      var order=orders[id]||{};
+      if(order.visitId!==visitId || order.status==='completed' || order.status==='cancelled') return;
+      updates['lephemere/orders/'+id+'/assignedStaffId']=targetId;
+      updates['lephemere/orders/'+id+'/assignedStaffName']=targetName;
+      updates['lephemere/orders/'+id+'/assignedAt']=now;
+    });
+    var targetStatus=(staffPresence[targetId]||{}).status;
+    if(!targetStatus || targetStatus==='available' || targetStatus==='serving'){
+      updates['lephemere/staffPresence/'+targetId+'/status']='serving';
+      updates['lephemere/staffPresence/'+targetId+'/updatedAt']=now;
+    }
+    var sourceHasOther=visitRows(['assigned','serving']).some(function(row){return row.id!==visitId&&row.assignedStaffId===fromId;});
+    if(!sourceHasOther && (staffPresence[fromId]||{}).status==='serving'){
+      updates['lephemere/staffPresence/'+fromId+'/status']='available';
+      updates['lephemere/staffPresence/'+fromId+'/updatedAt']=now;
+    }
+    updates['lephemere/assignmentHistory/'+historyKey]={visitId:visitId,queueNumber:visit.queueNumber||'',characterName:visit.characterName||'',fromStaffId:fromId,fromStaffName:(staffRoster[fromId]||{}).name||visit.assignedStaffName||'',toStaffId:targetId,toStaffName:targetName,action:action||'transfer',byUid:currentAuthUser?currentAuthUser.uid:'',byStaffId:currentStaffId||'',byStaffName:operator.name||'管理人員',bySessionId:adminSessionId,businessDate:visit.businessDate||currentBusinessDate(),createdAt:now};
+    return db.ref().update(updates);
+  }
+
   function recordVisitAssignment(visitId,fromId,toId,action){
     if(!assignmentHistoryRef) return Promise.resolve();
     return assignmentHistoryRef.push({visitId:visitId,fromStaffId:fromId||'',toStaffId:toId||'',action:action,byUid:currentAuthUser?currentAuthUser.uid:'',createdAt:Date.now()});
@@ -1162,7 +1271,8 @@
       var from=row.fromStaffId&&staffRoster[row.fromStaffId]?staffRoster[row.fromStaffId].name:'';
       var to=row.toStaffId&&staffRoster[row.toStaffId]?staffRoster[row.toStaffId].name:'';
       var detail=from&&to?from+' → '+to:(to||from||'管理人員');
-      return '<div class="audit-row"><span>'+fmtTime(row.createdAt)+'</span><strong>'+escapeHtml(labels[row.action]||row.action||'接待操作')+(visit.queueNumber?'・'+escapeHtml(visit.queueNumber):'')+'</strong><span>'+escapeHtml(detail)+'</span></div>';
+      var operator=row.byStaffName?('・由 '+row.byStaffName+' 操作'):'';
+      return '<div class="audit-row"><span>'+fmtTime(row.createdAt)+'</span><strong>'+escapeHtml(labels[row.action]||row.action||'接待操作')+((row.queueNumber||visit.queueNumber)?'・'+escapeHtml(row.queueNumber||visit.queueNumber):'')+'</strong><span>'+escapeHtml(detail+operator)+'</span></div>';
     }).join('');
   }
 
@@ -1201,8 +1311,10 @@
   }
 
   var copyToastTimer=null;
-  function showCopyToast(){
+  function showCopyToast(message,important){
     var toast=document.getElementById('copyToast');
+    toast.textContent=message||'叫號文字已複製';
+    toast.classList.toggle('important',!!important);
     toast.classList.add('show');
     clearTimeout(copyToastTimer);
     copyToastTimer=setTimeout(function(){toast.classList.remove('show');},1800);
@@ -1221,6 +1333,8 @@
   }
 
   document.getElementById('receptionTab').addEventListener('click',function(e){
+    var transfer=e.target.closest('[data-open-transfer]');
+    if(transfer){ openTransferModal(transfer.getAttribute('data-open-transfer')); return; }
     var btn=e.target.closest('[data-copy-call]');
     if(!btn) return;
     var visit=visits[btn.getAttribute('data-copy-call')];
@@ -1335,16 +1449,25 @@
       });
     }
   });
-  document.getElementById('myVisitList').addEventListener('change',function(e){
-    var select=e.target.closest('[data-transfer-visit]'); if(!select || !select.value) return;
-    var id=select.getAttribute('data-transfer-visit'), target=select.value, targetStaff=staffRoster[target];
-    if(!visits[id] || visits[id].assignedStaffId!==currentStaffId || !targetStaff) return;
-    if(!confirm('確定把 '+(visits[id].queueNumber||'這組')+' 轉交給 '+(targetStaff.name||'這位女僕')+' 嗎？')){select.value='';return;}
-    var from=currentStaffId, name=targetStaff.name||'未命名女僕';
-    visitsRef.child(id).update({assignedStaffId:target,assignedStaffName:name,transferredAt:Date.now(),updatedAt:Date.now()}).then(function(){
-      return Promise.all([syncVisitOrdersAssignee(id,target,name),staffPresenceRef.child(target).set({status:'serving',updatedAt:Date.now()}),recordVisitAssignment(id,from,target,'transfer')]);
+  document.getElementById('transferRoster').addEventListener('click',function(e){
+    var target=e.target.closest('[data-transfer-target]'); if(!target || target.disabled) return;
+    transferModalTargetId=target.getAttribute('data-transfer-target'); renderTransferModal();
+  });
+  document.getElementById('transferModalConfirm').addEventListener('click',function(){
+    if(transferInProgress || !transferModalVisitId || !transferModalTargetId) return;
+    transferInProgress=true; renderTransferModal();
+    transferVisit(transferModalVisitId,transferModalTargetId,'transfer').then(function(){
+      var target=staffRoster[transferModalTargetId]||{};
+      showCopyToast('已轉交給 '+(target.name||'新接待'),true); playTransferSound(); closeTransferModal();
+    }).catch(function(err){
+      transferInProgress=false; renderTransferModal();
+      document.getElementById('transferModalStatus').textContent='轉交失敗：'+((err&&err.message)||'請稍後再試');
     });
   });
+  document.getElementById('transferModalClose').addEventListener('click',closeTransferModal);
+  document.getElementById('transferModalCancel').addEventListener('click',closeTransferModal);
+  document.getElementById('transferModalOverlay').addEventListener('click',function(e){if(e.target===this) closeTransferModal();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&transferModalVisitId) closeTransferModal();});
 
   document.addEventListener('pointerdown', function unlockOrderAudio(){
     if(!soundEnabled) return;
@@ -1914,9 +2037,7 @@
         var staff = staffRoster[staffId] || {};
         if(linkedVisitId && visits[linkedVisitId]){
           var previous=visits[linkedVisitId].assignedStaffId||'';
-          visitsRef.child(linkedVisitId).update({assignedStaffId:staffId,assignedStaffName:staff.name||'未命名店員',transferredAt:Date.now(),updatedAt:Date.now()}).then(function(){
-            return Promise.all([syncVisitOrdersAssignee(linkedVisitId,staffId,staff.name||'未命名店員'),recordVisitAssignment(linkedVisitId,previous,staffId,'order-page-transfer')]);
-          });
+          transferVisit(linkedVisitId,staffId,'order-page-transfer').catch(function(err){alert('轉交失敗：'+((err&&err.message)||'請稍後再試'));renderOrders();});
           return;
         }
         ordersRef.child(id).update({
