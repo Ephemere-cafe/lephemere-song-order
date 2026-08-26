@@ -1,4 +1,4 @@
-.photo-modal{width:min(920px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;padding:24px;background:#172020;border:1px solid var(--line);}
+.photo-modal{width:min(920px,calc(100vw - 32px));max-width:920px;max-height:calc(100vh - 32px);overflow:auto;padding:24px;background:#172020;border:1px solid var(--line);}
 .staff-photo-editor-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line);}
 .photo-modal .staff-photo-editor-head h4{margin:2px 0 0;font-size:20px;}
 .staff-photo-editor-kicker{margin:0;color:var(--gold);font-size:10px;letter-spacing:.24em;}
