@@ -13,6 +13,7 @@
   var siteContentReady = false;
   var heroSettings = {};
   var polaroids = [];
+  var staffRoster = {};
   var pendingHeroUrls = { desktop: '', mobile: '' };
 
   function byId(id){ return document.getElementById(id); }
@@ -244,6 +245,36 @@
     label.appendChild(input);
     return label;
   }
+  function staffSelectField(item){
+    var label=document.createElement('label');
+    label.appendChild(document.createTextNode('所屬女僕'));
+    var select=document.createElement('select');
+    select.dataset.field='staffId';
+    var other=document.createElement('option');
+    other.value='';other.textContent='其他作品／尚未指定';select.appendChild(other);
+    Object.keys(staffRoster).sort(function(a,b){return String((staffRoster[a]||{}).name||'').localeCompare(String((staffRoster[b]||{}).name||''),'zh-Hant');}).forEach(function(id){
+      var option=document.createElement('option');
+      option.value=id;option.textContent=(staffRoster[id]||{}).name||'未命名女僕';
+      if(id===item.staffId) option.selected=true;
+      select.appendChild(option);
+    });
+    if(item.staffId && !staffRoster[item.staffId]){
+      var legacy=document.createElement('option');
+      legacy.value=item.staffId;legacy.textContent=(item.staffName||'已移除的女僕')+'（名單已移除）';legacy.selected=true;select.appendChild(legacy);
+    }
+    label.appendChild(select);
+    return label;
+  }
+  function renderAddStaffOptions(){
+    var select=byId('sitePolaroidStaff');if(!select) return;
+    var current=select.value;
+    select.replaceChildren();
+    var other=document.createElement('option');other.value='';other.textContent='其他作品／尚未指定';select.appendChild(other);
+    Object.keys(staffRoster).sort(function(a,b){return String((staffRoster[a]||{}).name||'').localeCompare(String((staffRoster[b]||{}).name||''),'zh-Hant');}).forEach(function(id){
+      var option=document.createElement('option');option.value=id;option.textContent=(staffRoster[id]||{}).name||'未命名女僕';select.appendChild(option);
+    });
+    if(Array.prototype.some.call(select.options,function(option){return option.value===current;})) select.value=current;
+  }
   function actionButton(text, action, extraClass){
     var button = document.createElement('button');
     button.type = 'button';
@@ -272,7 +303,8 @@
       img.alt = '';
       var fields = document.createElement('div');
       fields.className = 'site-polaroid-fields';
-      fields.append(field('店員／作品名稱', item.title, 'title'));
+      fields.append(staffSelectField(item));
+      fields.append(field('作品名稱', item.title, 'title'));
       fields.append(field('圖片替代文字', item.alt, 'alt'));
       fields.append(field('補充文字', item.caption, 'caption', true));
       var visibleLabel = document.createElement('label');
@@ -303,10 +335,14 @@
     try {
       var imageUrl = await uploadImage(file, path, 1800, .88);
       var maxOrder = polaroids.reduce(function(max, item){ return Math.max(max, Number(item.sortOrder || 0)); }, 0);
+      var selectedStaffId=byId('sitePolaroidStaff').value;
+      var selectedStaff=staffRoster[selectedStaffId]||{};
       await recordRef.set({
         imageUrl: imageUrl,
         storagePath: path,
         title: byId('sitePolaroidTitle').value.trim() || ('拍立得作品 ' + String(polaroids.length + 1).padStart(2,'0')),
+        staffId:selectedStaffId || '',
+        staffName:selectedStaffId ? (selectedStaff.name || '未命名女僕') : '其他作品',
         caption: byId('sitePolaroidCaption').value.trim(),
         alt: byId('sitePolaroidAlt').value.trim() || '曇時 Cafe l’Éphémère 拍立得成品範例',
         visible: byId('sitePolaroidVisible').checked,
@@ -315,6 +351,7 @@
         updatedAt: now()
       });
       ['sitePolaroidFile','sitePolaroidTitle','sitePolaroidCaption','sitePolaroidAlt'].forEach(function(id){ byId(id).value = ''; });
+      byId('sitePolaroidStaff').value='';
       byId('sitePolaroidVisible').checked = true;
       status('sitePolaroidStatus', '已新增並同步官網。', 'success');
     } catch(error){
@@ -325,8 +362,13 @@
   }
   async function saveCard(card){
     var id = card.dataset.id;
+    var existing=polaroids.find(function(item){return item.id===id;})||{};
     var value = function(name){ return card.querySelector('[data-field="' + name + '"]'); };
+    var selectedStaffId=value('staffId').value;
+    var selectedStaff=staffRoster[selectedStaffId]||{};
     await db.ref(ROOT + '/polaroids/' + id).update({
+      staffId:selectedStaffId || '',
+      staffName:selectedStaffId ? (selectedStaff.name || existing.staffName || '未命名女僕') : '其他作品',
       title: value('title').value.trim(),
       alt: value('alt').value.trim(),
       caption: value('caption').value.trim(),
@@ -376,6 +418,11 @@
     });
   }
   function subscribe(){
+    db.ref('lephemere/staffRoster').on('value',function(snapshot){
+      staffRoster=snapshot.val()||{};
+      renderAddStaffOptions();
+      renderPolaroids();
+    },function(error){status('sitePolaroidStatus','店員名單讀取失敗：'+error.message,'error');});
     db.ref(ROOT + '/homeHero').on('value', function(snapshot){
       setHeroControls(snapshot.val() || {});
       status('siteHeroStatus', snapshot.exists() ? '已讀取目前官網設定。' : '目前使用官網預設合照。', '');

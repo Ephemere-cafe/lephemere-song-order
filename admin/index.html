@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>曇時 管理後台</title>
 <link rel="stylesheet" href="admin.css">
-<link rel="stylesheet" href="site-content-admin.css?v=20260825c">
+<link rel="stylesheet" href="site-content-admin.css?v=20260826a">
 <link rel="stylesheet" href="unified-admin-ui.css?v=20260825">
 <link rel="stylesheet" href="admin-workspace.css?v=20260825">
 <link rel="stylesheet" href="readability-scale.css?v=20260826">
@@ -508,11 +508,12 @@
       <div class="panel site-content-panel">
         <p class="admin-section-label">服務頁面</p>
         <p class="panel-title">拍立得成品範例</p>
-        <p class="site-content-lead">請在「店員／作品名稱」填入拍立得所屬店員；官網會用較大的完整圖片與醒目名稱顯示。新增後仍可調整順序、文字與顯示狀態。</p>
+        <p class="site-content-lead">先選擇作品所屬女僕；同一位女僕可新增不限張數。官網會先切換女僕，再以前後按鈕、圓點或手機滑動瀏覽她的作品。</p>
 
         <div class="site-polaroid-form">
           <label class="site-upload-field">拍立得圖片<input type="file" id="sitePolaroidFile" accept="image/jpeg,image/png,image/webp"></label>
-          <label>店員／作品名稱<input type="text" id="sitePolaroidTitle" maxlength="60" placeholder="例如：花音｜生日紀念拍立得"></label>
+          <label>所屬女僕<select id="sitePolaroidStaff"><option value="">其他作品／尚未指定</option></select></label>
+          <label>作品名稱<input type="text" id="sitePolaroidTitle" maxlength="60" placeholder="例如：生日紀念拍立得"></label>
           <label>圖片替代文字<input type="text" id="sitePolaroidAlt" maxlength="120" placeholder="描述照片內容，方便無障礙閱讀"></label>
           <label class="wide">補充文字（選填）<textarea id="sitePolaroidCaption" maxlength="160" rows="2" placeholder="例如：生日紀念、主題活動成品"></textarea></label>
           <label class="site-check-field"><input type="checkbox" id="sitePolaroidVisible" checked>立即顯示在官網</label>
@@ -646,7 +647,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js"></script>
 <script src="admin.js?v=20260826a"></script>
-<script src="site-content-admin.js?v=20260825c"></script>
+<script src="site-content-admin.js?v=20260826a"></script>
 <script src="admin-workspace-preview.js?v=20260825"></script>
 
 </body>
