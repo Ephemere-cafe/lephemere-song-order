@@ -247,6 +247,29 @@ body{
 .order-history-status.is-error{color:var(--rose)}
 .special-queue-actions .special-task-reset{color:var(--rose);border-color:#d8a9ae;background:#fff}
 .special-queue-actions .special-task-reset:hover{color:#8f3f4b;border-color:var(--rose);background:#fff5f6}
+.special-queue-card{
+  grid-template-columns:minmax(0,1fr) minmax(240px,.68fr) minmax(150px,.4fr);
+  gap:12px;
+  align-items:center;
+}
+.special-queue-assignment{
+  display:grid;
+  grid-template-columns:max-content minmax(140px,1fr);
+  gap:10px;
+  align-items:center;
+  min-width:0;
+  margin:0;
+}
+.special-queue-assignment label{
+  color:var(--admin-muted);
+  font-size:12px;
+  line-height:1.4;
+  white-space:nowrap;
+  word-break:keep-all;
+  writing-mode:horizontal-tb;
+}
+.special-queue-assignment select{min-width:0}
+.special-queue-actions{min-width:0;align-self:center}
 .menu-category-head{border-color:var(--line)}
 .access-user-email,.site-content-heading strong{color:var(--ink)}
 .access-user-meta,.access-intro,.menu-sort-note,.site-music-help,.site-music-status,.site-content-lead,.site-content-heading span,.site-upload-field,.site-range-field,.site-polaroid-form label{color:var(--admin-muted)}
@@ -321,6 +344,7 @@ input[type=checkbox],input[type=radio],input[type=range]{accent-color:var(--ivor
   .main-tab-group-label{flex:0 0 auto;margin:0 2px 0 8px}
   .access-badge{flex:0 0 auto;margin:0 4px;padding:7px 9px;border:1px solid rgba(255,255,255,.15);border-radius:999px}
   .main-tabs .btn.ghost{width:auto;margin-left:auto!important}
+  .special-queue-grid{grid-template-columns:1fr}
 }
 
 @media (max-width:700px){
@@ -335,6 +359,8 @@ input[type=checkbox],input[type=radio],input[type=range]{accent-color:var(--ivor
   .page-heading h2{font-size:23px}
   .panel{padding:15px}
   .reception-overview{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .special-queue-card{grid-template-columns:1fr;align-items:stretch}
+  .special-queue-assignment{grid-template-columns:1fr;gap:6px}
 }
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
