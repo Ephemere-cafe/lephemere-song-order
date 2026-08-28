@@ -161,10 +161,12 @@
             <div class="tab" data-filter="completed">已完成</div>
             <div class="tab" data-filter="cancelled">已取消</div>
             <div class="tab" data-filter="all">全部</div>
+            <div class="tab manager-only" data-manager-only data-filter="history">歷史訂單</div>
           </div>
           <div class="order-tools">
             <input type="search" id="orderSearch" placeholder="搜尋編號、主人、餐點或店員">
             <span class="order-search-hint" id="orderSearchHint"></span>
+            <span class="order-history-status" id="orderHistoryStatus">目前載入近 30 天；點「歷史訂單」可查看更早紀錄</span>
           </div>
         </div>
       </div>
@@ -297,9 +299,10 @@
           <div class="operation-tools-content">
             <div class="row" style="margin-top:14px;">
               <button class="btn ghost small manager-only" data-manager-only id="resetOrderNumber" style="border-color:var(--rose-dim);color:var(--rose);">重置訂單編號</button>
+              <button class="btn ghost small manager-only" data-manager-only id="resetTodayOrders" style="border-color:var(--rose-dim);color:var(--rose);">重置本場全部訂單</button>
               <button class="btn ghost small" id="clearCustomSound">恢復內建提示音</button>
             </div>
-            <p class="operation-tools-note">重置後，下一筆新訂單會從 #1 開始編號；既有訂單紀錄不受影響。</p>
+            <p class="operation-tools-note">「重置訂單編號」只改下一筆編號；「重置本場全部訂單」會永久刪除目前營業日期的訂單、歸還限量名額並從 #1 重新計號，不影響其他日期、預約、排班或菜單。</p>
             <div class="system-strip" aria-label="系統狀態">
               <span class="system-pill bad" id="systemDatabase">訂單連線中</span>
               <span class="system-pill warn" id="systemOrdering">點餐狀態確認中</span>

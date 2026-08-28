@@ -229,6 +229,24 @@ body{
 .staff-editor-card{overflow:hidden;box-shadow:none}
 .staff-photo-preview{border-radius:8px;border-color:var(--line);background:var(--ivory-blue-soft)}
 .menu-row,.menu-manage-row,.access-user{color:var(--parchment);background:#fff;border-color:var(--line);border-radius:7px}
+.staff-check{
+  color:var(--parchment);
+  background:#f7fafc;
+  border-color:#cbd6de;
+  box-shadow:0 2px 7px rgba(31,58,78,.04);
+}
+.staff-check label{color:var(--parchment)}
+.staff-check label span{color:var(--parchment-dim)!important}
+#menuManageList .staff-check label{font-weight:600;color:var(--ink)}
+#menuManageList .staff-check label>div{font-weight:400}
+#menuManageList .staff-check label>div[style*="var(--parchment-dim)"],
+#menuManageList .staff-check label>div[style*="var(--mist)"]{color:var(--admin-muted)!important}
+.staff-check-photo{color:var(--ivory-blue);background:var(--ivory-blue-soft);border-color:#bdcad3}
+.order-history-status{color:var(--admin-muted)}
+.order-history-status.is-loading{color:var(--terracotta)}
+.order-history-status.is-error{color:var(--rose)}
+.special-queue-actions .special-task-reset{color:var(--rose);border-color:#d8a9ae;background:#fff}
+.special-queue-actions .special-task-reset:hover{color:#8f3f4b;border-color:var(--rose);background:#fff5f6}
 .menu-category-head{border-color:var(--line)}
 .access-user-email,.site-content-heading strong{color:var(--ink)}
 .access-user-meta,.access-intro,.menu-sort-note,.site-music-help,.site-music-status,.site-content-lead,.site-content-heading span,.site-upload-field,.site-range-field,.site-polaroid-form label{color:var(--admin-muted)}

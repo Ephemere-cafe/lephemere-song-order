@@ -16,7 +16,7 @@
   var db, storage, functionsClient, retryDiscordNotificationFn;
   var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, staffSchedulesRef, menuRef, nextOrderNumberRef, operationStatusRef, dailyReportsRef, adminUsersRef, adminOwnerUidRef, siteMusicRef;
   var visitsRef, visitQueueCounterRef, staffPresenceRef, assignmentHistoryRef;
-  var recentOrdersQuery, todayVisitsQuery, currentVisitsBusinessDate = '';
+  var recentOrdersQuery, ordersQuery, todayVisitsQuery, currentVisitsBusinessDate = '';
 
   var orders = {};
   var visits = {};
@@ -27,6 +27,7 @@
   var orderSearchTerm = '';
   var knownOrderIds = {};
   var ordersSnapshotReady = false;
+  var allOrderHistoryLoaded = false;
   var soundEnabled = false;
   var soundPreset = 'chime';
   var soundVolume = 0.7;
@@ -548,28 +549,61 @@
     });
   }
 
+  function setOrderHistoryStatus(text, state){
+    var el = document.getElementById('orderHistoryStatus');
+    if(!el) return;
+    el.textContent = text;
+    el.classList.toggle('is-loading', state==='loading');
+    el.classList.toggle('is-error', state==='error');
+  }
+
+  function handleOrdersSnapshot(snap){
+    var nextOrders = snap.val() || {};
+    if(ordersSnapshotReady){
+      var newOrderIds = Object.keys(nextOrders).filter(function(id){
+        return !knownOrderIds[id] && nextOrders[id].status==='pending';
+      });
+      if(newOrderIds.length) playOrderSound();
+    }
+    knownOrderIds = {};
+    Object.keys(nextOrders).forEach(function(id){ knownOrderIds[id] = true; });
+    ordersSnapshotReady = true;
+    orders = nextOrders;
+    renderStats();
+    renderOrders();
+    renderReception();
+  }
+
+  function watchOrders(query, mode){
+    if(ordersQuery) ordersQuery.off();
+    ordersQuery = query;
+    ordersSnapshotReady = false;
+    ordersQuery.on('value', function(snap){
+      handleOrdersSnapshot(snap);
+      if(mode==='all'){
+        allOrderHistoryLoaded = true;
+        setOrderHistoryStatus('已載入全部歷史訂單', 'ready');
+      }else{
+        setOrderHistoryStatus('目前載入近 30 天；點「歷史訂單」可查看更早紀錄', 'ready');
+      }
+    }, function(err){
+      console.error('Order sync failed', err);
+      if(mode==='all') allOrderHistoryLoaded = false;
+      setOrderHistoryStatus('訂單載入失敗，請確認登入權限與連線', 'error');
+    });
+  }
+
+  function loadAllOrderHistory(){
+    if(!isManager()) return;
+    setOrderHistoryStatus('正在載入全部歷史訂單…', 'loading');
+    watchOrders(ordersRef.orderByChild('createdAt'), 'all');
+  }
+
   function attachData(){
     if(attached) return;
     attached = true;
 
-    recentOrdersQuery.on('value', function(snap){
-      var nextOrders = snap.val() || {};
-      if(ordersSnapshotReady){
-        var newOrderIds = Object.keys(nextOrders).filter(function(id){
-          return !knownOrderIds[id] && nextOrders[id].status==='pending';
-        });
-        if(newOrderIds.length){
-          playOrderSound();
-        }
-      }
-      knownOrderIds = {};
-      Object.keys(nextOrders).forEach(function(id){ knownOrderIds[id] = true; });
-      ordersSnapshotReady = true;
-      orders = nextOrders;
-      renderStats();
-      renderOrders();
-      renderReception();
-    });
+    watchOrders(recentOrdersQuery, 'recent');
 
     watchBusinessVisits(currentBusinessDate());
 
@@ -829,6 +863,10 @@
     currentOrderFilter = tab.getAttribute('data-filter');
     document.querySelectorAll('#orderSubTabs .tab').forEach(function(t){ t.classList.remove('active'); });
     tab.classList.add('active');
+    if(currentOrderFilter==='history' && !allOrderHistoryLoaded){
+      loadAllOrderHistory();
+      return;
+    }
     renderOrders();
   });
 
@@ -1263,7 +1301,7 @@
 
   function renderAssignmentHistory(){
     var el=document.getElementById('assignmentHistoryList'); if(!el) return;
-    var labels={claim:'認領接待',transfer:'轉交接待','order-page-transfer':'由訂單頁轉交','reset-daily-queue':'重置今日候位'};
+    var labels={claim:'認領接待',transfer:'轉交接待','order-page-transfer':'由訂單頁轉交','reset-daily-queue':'重置今日候位','reset-daily-orders':'重置本場訂單'};
     var rows=Object.keys(assignmentHistory).map(function(id){return assignmentHistory[id]||{};}).sort(function(a,b){return Number(b.createdAt||0)-Number(a.createdAt||0);});
     if(!rows.length){el.innerHTML='<div class="queue-empty">尚無操作紀錄</div>';return;}
     el.innerHTML=rows.map(function(row){
@@ -1686,11 +1724,13 @@
       +'<div class="special-queue-staff">主要接待：'+escapeHtml(order.assignedStaffName||'尚未指派')+'</div>'
       +'<div class="special-queue-owner">拍立得負責：'+escapeHtml(assignment.name)+'</div></div>'
       +'<div class="special-queue-assignment"><label>任務負責女僕</label><select data-special-assignee="'+escapeAttr(order.id)+'" data-special-key="'+escapeAttr(task.key)+'" aria-label="指派 '+escapeAttr(item.name||'特殊服務')+' 負責女僕">'+specialStaffOptions(assignment.id)+'</select></div>'
-      +'<select data-special-queue="'+escapeAttr(order.id)+'" data-special-key="'+escapeAttr(task.key)+'" aria-label="更新訂單 #'+escapeAttr(order.orderNumber||'')+' '+escapeAttr(item.name||'特殊服務')+'進度">'
+      +'<div class="special-queue-actions"><select data-special-queue="'+escapeAttr(order.id)+'" data-special-key="'+escapeAttr(task.key)+'" aria-label="更新訂單 #'+escapeAttr(order.orderNumber||'')+' '+escapeAttr(item.name||'特殊服務')+'進度">'
       +'<option value="pending" '+(state==='pending'?'selected':'')+'>待處理</option>'
       +'<option value="in_progress" '+(state==='in_progress'?'selected':'')+'>進行中</option>'
       +'<option value="completed" '+(state==='completed'?'selected':'')+'>已完成</option>'
-      +'</select></div>';
+      +'</select>'
+      +(isManager()?'<button class="btn ghost small special-task-reset" type="button" data-reset-special="'+escapeAttr(order.id)+'" data-special-key="'+escapeAttr(task.key)+'">重置進度</button>':'')
+      +'</div></div>';
   }
 
   function renderSpecialServiceWorkspace(){
@@ -1764,6 +1804,35 @@
           assignedStaffName:staffId?(staff.name||'未命名女僕'):null,
           assignedAt:staffId?Date.now():null,
           updatedAt:Date.now()
+        });
+      });
+    });
+    document.querySelectorAll('[data-reset-special]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        if(!isManager()) return;
+        var id=btn.getAttribute('data-reset-special');
+        var key=btn.getAttribute('data-special-key');
+        var order=orders[id]||{};
+        var task=findSpecialTask(order,key);
+        var label=task&&task.label||'特殊服務';
+        if(!confirm('確定要把「'+label+'」重置為待處理嗎？\n\n負責女僕會保留；只清除這一項的完成進度。')) return;
+        btn.disabled=true;
+        var reset=ordersRef.child(id).child('specialServices').child(key).update({
+          status:'pending',
+          startedAt:null,
+          completedAt:null,
+          updatedAt:Date.now()
+        });
+        var visitId=order.visitId||'';
+        if(visitId && visits[visitId] && visits[visitId].status==='completed'){
+          reset=reset.then(function(){
+            return visitsRef.child(visitId).update({status:'special_service',completedAt:null,specialServicesCompletedAt:null,updatedAt:Date.now()});
+          });
+        }
+        reset.catch(function(err){
+          console.error('Reset special service failed',err);
+          btn.disabled=false;
+          alert('特殊服務重置失敗，請確認登入權限與連線。');
         });
       });
     });
@@ -1865,11 +1934,12 @@
     var arr = Object.keys(orders).map(function(id){ var o=orders[id]; o.id=id; return o; });
 
     arr = arr.filter(function(o){
-      if(currentOrderFilter==='active') return o.status==='pending' || o.status==='preparing' || o.status==='served';
-      if(currentOrderFilter==='mine') return !!currentStaffId && o.assignedStaffId===currentStaffId && (o.status==='pending' || o.status==='preparing' || o.status==='served');
-      if(currentOrderFilter==='unassigned') return (o.status==='pending' || o.status==='preparing' || o.status==='served') && !o.assignedStaffId;
+      if(currentOrderFilter==='active') return orderBelongsToBusiness(o) && (o.status==='pending' || o.status==='preparing' || o.status==='served');
+      if(currentOrderFilter==='mine') return orderBelongsToBusiness(o) && !!currentStaffId && o.assignedStaffId===currentStaffId && (o.status==='pending' || o.status==='preparing' || o.status==='served');
+      if(currentOrderFilter==='unassigned') return orderBelongsToBusiness(o) && (o.status==='pending' || o.status==='preparing' || o.status==='served') && !o.assignedStaffId;
       if(currentOrderFilter==='completed') return o.status==='completed';
       if(currentOrderFilter==='cancelled') return o.status==='cancelled';
+      if(currentOrderFilter==='history') return !orderBelongsToBusiness(o);
       return true;
     });
     if(orderSearchTerm){
@@ -1882,7 +1952,7 @@
       });
     }
     document.getElementById('orderSearchHint').textContent = orderSearchTerm ? '找到 '+arr.length+' 筆' : '';
-    var groupByDate = currentOrderFilter==='completed' || currentOrderFilter==='cancelled' || currentOrderFilter==='all';
+    var groupByDate = currentOrderFilter==='completed' || currentOrderFilter==='cancelled' || currentOrderFilter==='all' || currentOrderFilter==='history';
     arr.sort(function(a,b){
       return groupByDate ? (b.createdAt||0) - (a.createdAt||0) : (a.createdAt||0) - (b.createdAt||0);
     });
@@ -2210,6 +2280,39 @@
     if(confirm('確定要把訂單編號重置成從 #1 開始嗎？既有的訂單紀錄不會被刪除或更動。')){
       nextOrderNumberRef.set(0);
     }
+  });
+
+  document.getElementById('resetTodayOrders').addEventListener('click', function(){
+    if(!isConfigured || !isManager()) return;
+    if(operationStatus.isOpen!==false){alert('為避免正式營業中的訂單被清除，請先結束營業再重置本場訂單。');return;}
+    var date=currentBusinessDate();
+    var ids=Object.keys(orders).filter(function(id){return orderBelongsToBusiness(orders[id],date);});
+    if(!ids.length){
+      if(confirm('目前營業日期 '+date+' 沒有訂單。是否仍將下一筆訂單編號重置為 #1？')) nextOrderNumberRef.set(0);
+      return;
+    }
+    var message='確定永久刪除 '+date+' 的全部 '+ids.length+' 筆訂單嗎？\n\n此操作會一併清除訂單內的特殊服務進度、歸還尚未歸還的限量名額，並讓下一筆訂單從 #1 開始。\n其他日期、候位、預約、菜單與排班不會更動。此操作無法復原。';
+    if(!confirm(message)) return;
+    var button=this;
+    button.disabled=true;
+    button.textContent='重置中…';
+    Promise.all(ids.map(function(id){return releaseOrderStock(orders[id]);})).then(function(){
+      var removals={};
+      ids.forEach(function(id){removals[id]=null;});
+      return Promise.all([
+        ordersRef.update(removals),
+        nextOrderNumberRef.set(0),
+        recordVisitAssignment('',currentStaffId,'','reset-daily-orders')
+      ]);
+    }).then(function(){
+      alert(date+' 的 '+ids.length+' 筆訂單已重置，下一筆將從 #1 開始。');
+    }).catch(function(err){
+      console.error('Reset daily orders failed',err);
+      alert('本場訂單重置失敗，請確認 Firebase 權限與連線後再試。');
+    }).then(function(){
+      button.disabled=false;
+      button.textContent='重置本場全部訂單';
+    });
   });
 
   // ================= 菜單管理 =================
