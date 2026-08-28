@@ -50,6 +50,19 @@
   var accessListListening = false;
   var siteMusicSettings = { enabled:false, title:'曇時店歌', url:'', volume:0.3 };
   var siteMusicPreviewAudio = null;
+  var payrollState = {
+    businessDate:'',
+    initialized:false,
+    reservationRevenue:0,
+    commonAdjustment:0,
+    commonOverride:'',
+    headcount:1,
+    selectedStaff:{},
+    specialAdjustments:{},
+    specialOverrides:{},
+    slipStaffId:''
+  };
+  var payrollResults = [];
   var PRIMARY_MANAGER_EMAILS = ['tanjicafe@gmail.com'];
   try{ soundEnabled = localStorage.getItem('lephemereOrderSound') === 'on'; }catch(e){}
   try{ soundPreset = localStorage.getItem('lephemereOrderSoundPreset') || 'chime'; }catch(e){}
@@ -325,6 +338,7 @@
     document.getElementById('menuTab').style.display = 'none';
     document.getElementById('staffTab').style.display = 'none';
     document.getElementById('reservationsTab').style.display = 'none';
+    document.getElementById('payrollTab').style.display = 'none';
     document.getElementById('siteSettingsTab').style.display = 'none';
     document.getElementById('accessTab').style.display = 'none';
   }
@@ -340,6 +354,7 @@
     document.getElementById('menuTab').style.display = 'none';
     document.getElementById('staffTab').style.display = 'none';
     document.getElementById('reservationsTab').style.display = 'none';
+    document.getElementById('payrollTab').style.display = 'none';
     document.getElementById('siteSettingsTab').style.display = 'none';
     document.getElementById('accessTab').style.display = 'none';
   }
@@ -572,6 +587,7 @@
     renderStats();
     renderOrders();
     renderReception();
+    renderPayroll();
   }
 
   function watchOrders(query, mode){
@@ -643,6 +659,7 @@
       renderReception();
       renderOrders();
       renderStats();
+      renderPayroll();
     });
 
     rulesRef.on('value', function(snap){
@@ -663,6 +680,7 @@
       renderReceptionStaffSelect();
       renderReception();
       renderOrders();
+      renderPayroll();
     });
 
     todayStaffRef.on('value', function(snap){
@@ -683,6 +701,7 @@
       renderReceptionStaffSelect();
       renderReception();
       renderOrders();
+      renderPayroll();
     });
 
     menuRef.on('value', function(snap){
@@ -697,6 +716,7 @@
       renderMenuManageList();
       renderOrders();
       renderReception();
+      renderPayroll();
     });
 
     openDatesRef.on('value', function(snap){
@@ -786,8 +806,10 @@
     document.getElementById('menuTab').style.display = target==='menu' ? 'block' : 'none';
     document.getElementById('staffTab').style.display = target==='staff' ? 'block' : 'none';
     document.getElementById('reservationsTab').style.display = target==='reservations' ? 'block' : 'none';
+    document.getElementById('payrollTab').style.display = target==='payroll' ? 'block' : 'none';
     document.getElementById('siteSettingsTab').style.display = target==='site' ? 'block' : 'none';
     document.getElementById('accessTab').style.display = target==='access' ? 'block' : 'none';
+    if(target==='payroll') renderPayroll();
   });
 
   document.getElementById('siteMusicVolume').addEventListener('input', function(e){
@@ -1696,6 +1718,216 @@
     }
     return inferredServiceStaff(task);
   }
+
+  function payrollItemUnitPrice(item){
+    var menuItem=menuItems[item&&item.id]||{};
+    var value=item&&item.price!==undefined?item.price:menuItem.price;
+    value=Number(value||0);
+    return isFinite(value)&&value>0?value:0;
+  }
+
+  function payrollOrderFallbackTotal(order){
+    return (order.items||[]).reduce(function(sum,item){
+      var qty=Math.max(1,Number(item.qty||1));
+      var addon=item.addon&&Number(item.addon.price||0)>0?Number(item.addon.price||0)*qty:0;
+      return sum+payrollItemUnitPrice(item)*qty+addon;
+    },0);
+  }
+
+  function payrollCompletedData(){
+    var commonRevenue=0;
+    var specialRevenue=0;
+    var unassignedRevenue=0;
+    var specialByStaff={};
+    var specialStaffNames={};
+    Object.keys(orders).forEach(function(id){
+      var order=orders[id]||{};
+      if(order.status!=='completed'||!orderBelongsToBusiness(order)) return;
+      var tasks=collectSpecialTasks(order.items||[]);
+      var specialBase=0;
+      (order.items||[]).forEach(function(item,index){
+        var type=standaloneSpecialType(item);
+        if(type!=='polaroid'&&type!=='lens') return;
+        var qty=Math.max(1,Number(item.qty||1));
+        var unitPrice=payrollItemUnitPrice(item);
+        var itemSpecial=unitPrice*qty;
+        specialBase+=itemSpecial;
+        specialRevenue+=itemSpecial;
+        var itemTasks=tasks.filter(function(task){return task.index===index&&(task.type==='polaroid'||task.type==='lens');});
+        if(!itemTasks.length){unassignedRevenue+=itemSpecial;return;}
+        var splitByUnit=itemTasks.some(function(task){return task.unitIndex!==undefined&&task.unitIndex!==null;});
+        itemTasks.forEach(function(task,taskIndex){
+          var amount=splitByUnit?unitPrice:(taskIndex===0?itemSpecial:0);
+          if(!amount) return;
+          var assignment=specialTaskAssignment(order,task);
+          if(!assignment.id){unassignedRevenue+=amount;return;}
+          specialByStaff[assignment.id]=(specialByStaff[assignment.id]||0)+amount;
+          specialStaffNames[assignment.id]=assignment.name||((staffRoster[assignment.id]||{}).name)||'未命名女僕';
+        });
+      });
+      var recordedTotal=Number(order.total);
+      var orderTotal=isFinite(recordedTotal)?recordedTotal:payrollOrderFallbackTotal(order);
+      commonRevenue+=Math.max(0,orderTotal-specialBase);
+    });
+    return {commonRevenue:commonRevenue,specialRevenue:specialRevenue,unassignedRevenue:unassignedRevenue,specialByStaff:specialByStaff,specialStaffNames:specialStaffNames};
+  }
+
+  function ensurePayrollDefaults(){
+    var tab=document.getElementById('payrollTab');
+    if(payrollState.initialized||!Object.keys(staffRoster).length||!tab||tab.style.display==='none') return;
+    var ids=activeDutyIds().filter(function(id){return !!staffRoster[id];});
+    if(!ids.length) ids=Object.keys(staffRoster);
+    ids.forEach(function(id){payrollState.selectedStaff[id]=true;});
+    payrollState.headcount=Math.max(1,ids.length);
+    payrollState.slipStaffId=ids[0]||'';
+    payrollState.initialized=true;
+    document.getElementById('payrollHeadcount').value=String(payrollState.headcount);
+  }
+
+  function resetPayrollForBusinessDate(date){
+    if(payrollState.businessDate===date) return;
+    payrollState.businessDate=date;
+    payrollState.initialized=false;
+    payrollState.reservationRevenue=0;
+    payrollState.commonAdjustment=0;
+    payrollState.commonOverride='';
+    payrollState.headcount=1;
+    payrollState.selectedStaff={};
+    payrollState.specialAdjustments={};
+    payrollState.specialOverrides={};
+    payrollState.slipStaffId='';
+    document.getElementById('payrollReservationRevenue').value='0';
+    document.getElementById('payrollCommonAdjustment').value='0';
+    document.getElementById('payrollCommonOverride').value='';
+    document.getElementById('payrollHeadcount').value='1';
+  }
+
+  function payrollNumber(value){
+    value=Number(value||0);
+    return isFinite(value)?value:0;
+  }
+
+  function renderPayrollStaffChecks(){
+    var container=document.getElementById('payrollStaffChecks');
+    if(!container) return;
+    var ids=Object.keys(staffRoster).sort(function(a,b){return String((staffRoster[a]||{}).name||'').localeCompare(String((staffRoster[b]||{}).name||''),'zh-Hant');});
+    if(!ids.length){container.innerHTML='<span class="payroll-count-note">尚未建立店員名單</span>';return;}
+    container.innerHTML=ids.map(function(id){
+      var checked=payrollState.selectedStaff[id]===true?' checked':'';
+      return '<label class="payroll-staff-check"><input type="checkbox" data-payroll-staff="'+escapeAttr(id)+'"'+checked+'><span>'+escapeHtml((staffRoster[id]||{}).name||'未命名女僕')+'</span></label>';
+    }).join('');
+  }
+
+  function renderPayrollSlip(){
+    var select=document.getElementById('payrollSlipStaff');
+    var slip=document.getElementById('payrollSlip');
+    if(!select||!slip) return;
+    var result=payrollResults.filter(function(row){return row.id===select.value;})[0]||payrollResults[0];
+    if(!result){slip.textContent='尚無可顯示資料';return;}
+    payrollState.slipStaffId=result.id;
+    slip.textContent='曇時 Cafe l’Éphémère｜本場薪資條\n'
+      +'日期：'+currentBusinessDate().replace(/-/g,' / ')+'\n'
+      +'女僕：'+result.name+'\n'
+      +'共同營業額分紅：'+fmtGil(result.common)+'\n'
+      +'個人特殊服務收入：'+fmtGil(result.special)+'\n'
+      +'本場薪資合計：'+fmtGil(result.total);
+  }
+
+  function renderPayroll(){
+    var tab=document.getElementById('payrollTab');
+    if(!tab) return;
+    resetPayrollForBusinessDate(currentBusinessDate());
+    ensurePayrollDefaults();
+    var data=payrollCompletedData();
+    var commonOverride=String(payrollState.commonOverride===undefined?'':payrollState.commonOverride).trim();
+    var commonTotal=commonOverride!==''?payrollNumber(commonOverride):data.commonRevenue+payrollNumber(payrollState.reservationRevenue)+payrollNumber(payrollState.commonAdjustment);
+    commonTotal=Math.max(0,commonTotal);
+    var headcount=Math.max(1,Math.round(payrollNumber(payrollState.headcount)||1));
+    var share=Math.round(commonTotal/headcount);
+    var selectedCount=Object.keys(payrollState.selectedStaff).filter(function(id){return payrollState.selectedStaff[id]===true&&!!staffRoster[id];}).length;
+    var allIds=Object.keys(staffRoster);
+    Object.keys(data.specialByStaff).forEach(function(id){if(allIds.indexOf(id)===-1) allIds.push(id);});
+    allIds.sort(function(a,b){
+      var aName=(staffRoster[a]&&staffRoster[a].name)||data.specialStaffNames[a]||'';
+      var bName=(staffRoster[b]&&staffRoster[b].name)||data.specialStaffNames[b]||'';
+      return String(aName).localeCompare(String(bName),'zh-Hant');
+    });
+    payrollResults=allIds.map(function(id){
+      var systemSpecial=payrollNumber(data.specialByStaff[id]);
+      var override=payrollState.specialOverrides[id];
+      var special=override!==undefined&&String(override).trim()!==''?payrollNumber(override):systemSpecial+payrollNumber(payrollState.specialAdjustments[id]);
+      special=Math.max(0,special);
+      var common=payrollState.selectedStaff[id]===true?share:0;
+      return {id:id,name:(staffRoster[id]&&staffRoster[id].name)||data.specialStaffNames[id]||'未命名女僕',common:common,systemSpecial:systemSpecial,special:special,total:common+special};
+    });
+    var adjustedSpecialTotal=payrollResults.reduce(function(sum,row){return sum+row.special;},0)+data.unassignedRevenue;
+    document.getElementById('payrollBusinessDate').textContent=currentBusinessDate().replace(/-/g,' / ');
+    document.getElementById('payrollAutoCommon').value=String(Math.round(data.commonRevenue));
+    document.getElementById('payrollCommonTotal').textContent=fmtGil(Math.round(commonTotal));
+    document.getElementById('payrollShareValue').textContent=fmtGil(share);
+    document.getElementById('payrollSpecialTotal').textContent=fmtGil(Math.round(adjustedSpecialTotal));
+    renderPayrollStaffChecks();
+    var countNote=document.getElementById('payrollCountNote');
+    countNote.textContent=selectedCount===headcount?'已勾選 '+selectedCount+' 人，與平分人數相同。':'已勾選 '+selectedCount+' 人，但目前平分人數為 '+headcount+'；請確認是否正確。';
+    countNote.classList.toggle('is-warning',selectedCount!==headcount);
+    var warning=document.getElementById('payrollUnassignedWarning');
+    warning.hidden=!data.unassignedRevenue;
+    warning.textContent=data.unassignedRevenue?'有 '+fmtGil(data.unassignedRevenue)+' 的特殊服務尚未指定任務負責女僕，因此目前未列入任何人的薪資。':'';
+    var rows=document.getElementById('payrollRows');
+    rows.innerHTML=payrollResults.length?payrollResults.map(function(row){
+      var adjustment=payrollState.specialAdjustments[row.id]===undefined?0:payrollState.specialAdjustments[row.id];
+      var override=payrollState.specialOverrides[row.id]===undefined?'':payrollState.specialOverrides[row.id];
+      return '<tr><td class="payroll-name">'+escapeHtml(row.name)+'</td>'
+        +'<td class="payroll-number">'+fmtGil(row.common)+'</td>'
+        +'<td class="payroll-number">'+fmtGil(row.systemSpecial)+'</td>'
+        +'<td><input type="number" data-payroll-special-adjust="'+escapeAttr(row.id)+'" value="'+escapeAttr(String(adjustment))+'" aria-label="'+escapeAttr(row.name)+'特殊收入調整"></td>'
+        +'<td><input type="number" data-payroll-special-override="'+escapeAttr(row.id)+'" value="'+escapeAttr(String(override))+'" placeholder="留空" min="0" aria-label="'+escapeAttr(row.name)+'特殊收入覆蓋"></td>'
+        +'<td class="payroll-number payroll-final">'+fmtGil(row.total)+'</td>'
+        +'<td><button class="btn ghost small" type="button" data-payroll-slip="'+escapeAttr(row.id)+'">薪資條</button></td></tr>';
+    }).join(''):'<tr><td class="payroll-empty" colspan="7">尚無店員資料</td></tr>';
+    var slipSelect=document.getElementById('payrollSlipStaff');
+    slipSelect.innerHTML=payrollResults.map(function(row){return '<option value="'+escapeAttr(row.id)+'">'+escapeHtml(row.name)+'</option>';}).join('');
+    if(payrollResults.some(function(row){return row.id===payrollState.slipStaffId;})) slipSelect.value=payrollState.slipStaffId;
+    else if(payrollResults[0]){payrollState.slipStaffId=payrollResults[0].id;slipSelect.value=payrollResults[0].id;}
+    renderPayrollSlip();
+  }
+
+  function syncPayrollCommonInput(target){
+    if(target.id==='payrollReservationRevenue') payrollState.reservationRevenue=payrollNumber(target.value);
+    else if(target.id==='payrollCommonAdjustment') payrollState.commonAdjustment=payrollNumber(target.value);
+    else if(target.id==='payrollCommonOverride') payrollState.commonOverride=target.value;
+    else if(target.id==='payrollHeadcount') payrollState.headcount=Math.max(1,Math.round(payrollNumber(target.value)||1));
+    else return false;
+    return true;
+  }
+
+  document.getElementById('payrollTab').addEventListener('input',function(event){
+    if(syncPayrollCommonInput(event.target)) renderPayroll();
+  });
+  document.getElementById('payrollTab').addEventListener('change',function(event){
+    var staffId=event.target.getAttribute('data-payroll-staff');
+    if(staffId){payrollState.selectedStaff[staffId]=event.target.checked;renderPayroll();return;}
+    var adjustId=event.target.getAttribute('data-payroll-special-adjust');
+    if(adjustId){payrollState.specialAdjustments[adjustId]=payrollNumber(event.target.value);renderPayroll();return;}
+    var overrideId=event.target.getAttribute('data-payroll-special-override');
+    if(overrideId){payrollState.specialOverrides[overrideId]=event.target.value;renderPayroll();}
+  });
+  document.getElementById('payrollTab').addEventListener('click',function(event){
+    var slipButton=event.target.closest('[data-payroll-slip]');
+    if(!slipButton) return;
+    payrollState.slipStaffId=slipButton.getAttribute('data-payroll-slip');
+    document.getElementById('payrollSlipStaff').value=payrollState.slipStaffId;
+    renderPayrollSlip();
+  });
+  document.getElementById('payrollSlipStaff').addEventListener('change',renderPayrollSlip);
+  document.getElementById('payrollRecalculate').addEventListener('click',renderPayroll);
+  document.getElementById('payrollCopySlip').addEventListener('click',function(){
+    var button=this;
+    var text=document.getElementById('payrollSlip').textContent||'';
+    function done(){button.textContent='已複製';setTimeout(function(){button.textContent='複製薪資條';},1200);}
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(function(){fallbackCopy(text);done();});
+    else{fallbackCopy(text);done();}
+  });
 
   function specialStaffOptions(selectedId){
     var ids=activeDutyIds();

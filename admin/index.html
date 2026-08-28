@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="readability-scale.css?v=20260826">
 <link rel="stylesheet" href="staff-photo-editor.css?v=20260826b">
 <link rel="stylesheet" href="admin-ivory-blue-theme.css?v=20260828">
+<link rel="stylesheet" href="payroll-admin.css?v=20260829">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -52,6 +53,7 @@
       <div class="main-tab manager-only" data-main="menu" data-manager-only>菜單</div>
       <div class="main-tab manager-only" data-main="staff" data-manager-only>店員</div>
       <div class="main-tab manager-only" data-main="reservations" data-manager-only>預約</div>
+      <div class="main-tab manager-only" data-main="payroll" data-manager-only>薪資</div>
       <span class="main-tab-group-label manager-only" data-manager-only>系統</span>
       <div class="main-tab manager-only" data-main="site" data-manager-only>官網</div>
       <div class="main-tab manager-only" data-main="site-content" data-manager-only>網站內容</div>
@@ -312,6 +314,60 @@
           </div>
         </details>
       </section>
+    </div>
+
+    <!-- ============ 薪資結算 ============ -->
+    <div id="payrollTab" class="manager-only" data-manager-only style="display:none;">
+      <div class="page-heading payroll-page-heading">
+        <div class="page-heading-copy">
+          <span class="page-eyebrow">Payroll</span>
+          <h2>薪資結算</h2>
+          <p>完成訂單自動統計；預約營業額與臨時調整可手動輸入。此頁只供本次檢視與複製，不會寫入 Firebase。</p>
+        </div>
+        <button class="btn primary" type="button" id="payrollRecalculate">重新計算</button>
+      </div>
+
+      <div class="payroll-metrics" aria-live="polite">
+        <div class="payroll-metric"><span>共同營業額</span><strong id="payrollCommonTotal">0 Gil</strong></div>
+        <div class="payroll-metric"><span>每人共同分紅</span><strong id="payrollShareValue">0 Gil</strong></div>
+        <div class="payroll-metric"><span>個人特殊收入合計</span><strong id="payrollSpecialTotal">0 Gil</strong></div>
+      </div>
+
+      <section class="panel payroll-settings-panel">
+        <div class="payroll-panel-head"><h3>本場計算設定</h3><span id="payrollBusinessDate">—</span></div>
+        <div class="payroll-fields">
+          <label>完成訂單共同收入<input class="payroll-readonly" id="payrollAutoCommon" type="number" value="0" readonly></label>
+          <label>預約營業額<input id="payrollReservationRevenue" type="number" value="0" min="0" inputmode="numeric"></label>
+          <label>共同收入加減調整<input id="payrollCommonAdjustment" type="number" value="0" inputmode="numeric"></label>
+          <label>共同收入手動覆蓋<input id="payrollCommonOverride" type="number" placeholder="留空使用自動結果" min="0" inputmode="numeric"></label>
+          <label>平分人數<input id="payrollHeadcount" type="number" value="1" min="1" inputmode="numeric"></label>
+        </div>
+        <div class="payroll-staff-checks" id="payrollStaffChecks" aria-label="參與共同分紅的女僕"></div>
+        <div class="payroll-count-note" id="payrollCountNote">正在載入店員名單…</div>
+        <div class="payroll-warning" id="payrollUnassignedWarning" hidden></div>
+      </section>
+
+      <section class="panel payroll-details-panel">
+        <div class="payroll-panel-head"><h3>個人薪資明細</h3><span>特殊服務以完成訂單的任務負責女僕計入</span></div>
+        <div class="payroll-table-wrap">
+          <table class="payroll-table">
+            <thead><tr><th>女僕</th><th>共同分紅</th><th>系統特殊收入</th><th>特殊收入調整</th><th>特殊收入覆蓋</th><th>最終薪資</th><th></th></tr></thead>
+            <tbody id="payrollRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="payroll-bottom-grid">
+        <section class="panel payroll-help-panel">
+          <div class="payroll-panel-head"><h3>計算說明</h3></div>
+          <p>共同收入優先採用「手動覆蓋」；留空時使用完成訂單＋預約營業額＋加減調整。餐點加購仍列入共同收入，拍立得與純拍等特殊服務列入負責女僕的個人收入。平分結果以四捨五入計算。</p>
+        </section>
+        <section class="panel payroll-slip-panel">
+          <div class="payroll-panel-head"><h3>薪資條預覽</h3><select id="payrollSlipStaff" aria-label="選擇薪資條女僕"></select></div>
+          <div class="payroll-slip" id="payrollSlip" aria-live="polite">尚無可顯示資料</div>
+          <div class="payroll-slip-actions"><button class="btn ghost small" type="button" id="payrollCopySlip">複製薪資條</button></div>
+        </section>
+      </div>
     </div>
 
     <!-- ============ 菜單管理 ============ -->
@@ -666,7 +722,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js"></script>
-<script src="admin.js?v=20260826b"></script>
+<script src="admin.js?v=20260829-payroll"></script>
 <script src="site-content-admin.js?v=20260826a"></script>
 <script src="admin-workspace-preview.js?v=20260825"></script>
 
