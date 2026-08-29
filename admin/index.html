@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="staff-photo-editor.css?v=20260826b">
 <link rel="stylesheet" href="admin-ivory-blue-theme.css?v=20260828">
 <link rel="stylesheet" href="payroll-admin.css?v=20260829">
+<link rel="stylesheet" href="menu-image-admin.css?v=20260829">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -382,6 +383,16 @@
         <div class="row" style="margin-top:8px;">
           <input type="text" id="newItemNote" placeholder="備註（選填，顯示在品名下方）" style="flex:1;min-width:160px;">
         </div>
+        <div class="menu-image-field" style="margin-top:8px;">
+          <label for="newItemImage">料理圖片（選填）</label>
+          <div class="menu-image-picker">
+            <div class="menu-image-preview empty" id="newItemImagePreview"><span>尚未選擇圖片</span></div>
+            <div class="menu-image-controls">
+              <input type="file" id="newItemImage" accept="image/jpeg,image/png,image/webp">
+              <p>支援 JPG、PNG、WebP。系統會轉為 WebP；前台完整顯示，不會裁切。</p>
+            </div>
+          </div>
+        </div>
         <div class="row" style="margin-top:8px;">
           <input type="text" id="newItemAddonLabel" placeholder="加購項目名稱（選填）" style="flex:1;min-width:140px;">
           <input type="text" id="newItemAddonPrice" placeholder="加購價格" style="width:110px;">
@@ -648,6 +659,17 @@
         <label for="editItemNote">備註</label>
         <textarea id="editItemNote" maxlength="180" placeholder="選填；會顯示在品項名稱下方"></textarea>
       </div>
+      <div class="menu-edit-field full menu-image-field">
+        <label for="editItemImage">料理圖片</label>
+        <div class="menu-image-picker">
+          <div class="menu-image-preview empty" id="editItemImagePreview"><span>目前沒有圖片</span></div>
+          <div class="menu-image-controls">
+            <input type="file" id="editItemImage" accept="image/jpeg,image/png,image/webp">
+            <button class="btn ghost small" type="button" id="removeItemImage">移除目前圖片</button>
+            <p>選擇新圖片後按「儲存修改」才會上傳；圖片會完整置中顯示。</p>
+          </div>
+        </div>
+      </div>
       <div class="menu-edit-field">
         <label for="editItemAddonLabel">加購項目名稱</label>
         <input type="text" id="editItemAddonLabel" maxlength="80" placeholder="沒有加購可留空">
@@ -722,7 +744,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js"></script>
-<script src="admin.js?v=20260829-payroll"></script>
+<script src="admin.js?v=20260829-menu-images"></script>
 <script src="site-content-admin.js?v=20260826a"></script>
 <script src="admin-workspace-preview.js?v=20260825"></script>
 

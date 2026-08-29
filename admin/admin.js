@@ -74,6 +74,8 @@
   var menuItems = {};
   var menuCategoryOrder = [];
   var editingMenuItemId = null;
+  var removeEditingMenuImage = false;
+  var menuImagePreviewUrls = [];
 
   var DEFAULT_MENU = [
     { category:'Appetizer 前菜', name:'黑衣森林傘蕈溫沙拉', price:10000 },
@@ -2572,6 +2574,77 @@
     return data;
   }
 
+  function setMenuImagePreview(id, src, emptyText){
+    var el = document.getElementById(id);
+    if(!el) return;
+    if(src){
+      el.classList.remove('empty');
+      el.innerHTML = '';
+      var img = document.createElement('img');
+      img.src = src;
+      img.alt = '料理圖片預覽';
+      el.appendChild(img);
+    }else{
+      el.classList.add('empty');
+      el.innerHTML = '<span>'+escapeHtml(emptyText || '尚未選擇圖片')+'</span>';
+    }
+  }
+
+  function previewMenuImageFile(input, previewId, emptyText){
+    var file = input && input.files && input.files[0];
+    if(!file){ setMenuImagePreview(previewId, '', emptyText); return; }
+    if(!/^image\/(jpeg|png|webp)$/i.test(file.type)){
+      alert('請選擇 JPG、PNG 或 WebP 圖片。');
+      input.value = '';
+      setMenuImagePreview(previewId, '', emptyText);
+      return;
+    }
+    if(file.size > 12 * 1024 * 1024){
+      alert('原始圖片請勿超過 12MB。');
+      input.value = '';
+      setMenuImagePreview(previewId, '', emptyText);
+      return;
+    }
+    var url = URL.createObjectURL(file);
+    menuImagePreviewUrls.push(url);
+    setMenuImagePreview(previewId, url, emptyText);
+  }
+
+  function menuImageBlob(file){
+    return new Promise(function(resolve, reject){
+      if(!file){ resolve(null); return; }
+      if(!/^image\/(jpeg|png|webp)$/i.test(file.type)){ reject(new Error('menu-image-type')); return; }
+      if(file.size > 12 * 1024 * 1024){ reject(new Error('menu-image-size')); return; }
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function(){
+        URL.revokeObjectURL(url);
+        var maxEdge = 1200;
+        var ratio = Math.min(1, maxEdge / Math.max(img.naturalWidth, img.naturalHeight));
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.naturalWidth * ratio));
+        canvas.height = Math.max(1, Math.round(img.naturalHeight * ratio));
+        var context = canvas.getContext('2d');
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+        context.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function(blob){ blob ? resolve(blob) : reject(new Error('menu-image-convert')); }, 'image/webp', .9);
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error('menu-image-load')); };
+      img.src = url;
+    });
+  }
+
+  function uploadMenuImage(itemId, file){
+    if(!file) return Promise.resolve(null);
+    var path = 'menu-images/' + itemId + '.webp';
+    return menuImageBlob(file).then(function(blob){
+      return storage.ref(path).put(blob, {contentType:'image/webp', cacheControl:'public,max-age=3600'});
+    }).then(function(snapshot){
+      return snapshot.ref.getDownloadURL();
+    }).then(function(url){ return {imageUrl:url, imageStoragePath:path}; });
+  }
+
   function isAssignableServiceType(type){return type==='polaroid'||type==='lens';}
 
   function fillServiceStaffSelect(select,type,selectedId){
@@ -2646,12 +2719,18 @@
     document.getElementById('editItemStockEnabled').checked = item.stockEnabled === true;
     document.getElementById('editItemStockRemaining').value = Number(item.stockRemaining || 0);
     document.getElementById('editItemStockRemaining').disabled = item.stockEnabled !== true;
+    document.getElementById('editItemImage').value = '';
+    removeEditingMenuImage = false;
+    document.getElementById('removeItemImage').disabled = !item.imageUrl;
+    setMenuImagePreview('editItemImagePreview', item.imageUrl || '', '目前沒有圖片');
     document.getElementById('menuEditOverlay').classList.add('open');
     setTimeout(function(){ document.getElementById('editItemName').focus(); }, 0);
   }
 
   function closeMenuEditor(){
     editingMenuItemId = null;
+    removeEditingMenuImage = false;
+    document.getElementById('editItemImage').value = '';
     document.getElementById('menuEditOverlay').classList.remove('open');
   }
 
@@ -2669,6 +2748,8 @@
     var available = document.getElementById('editItemAvailable').checked;
     var stockEnabled = document.getElementById('editItemStockEnabled').checked;
     var stockRemaining = Number(document.getElementById('editItemStockRemaining').value || 0);
+    var imageFile = document.getElementById('editItemImage').files[0] || null;
+    var oldImageStoragePath = menuItems[editingMenuItemId].imageStoragePath || '';
 
     if(!category){ alert('請填寫分類名稱。'); return; }
     if(!name){ alert('請填寫菜單名稱。'); return; }
@@ -2717,7 +2798,19 @@
       statusEl.textContent = '正在儲存並確認前台同步資料…';
       statusEl.style.color = 'var(--gold)';
     }
-    menuRef.child(id).set(data).then(function(){
+    var imagePromise = imageFile ? uploadMenuImage(id, imageFile) : Promise.resolve(null);
+    imagePromise.then(function(uploadedImage){
+      if(uploadedImage){
+        data.imageUrl = uploadedImage.imageUrl;
+        data.imageStoragePath = uploadedImage.imageStoragePath;
+        data.imageUpdatedAt = Date.now();
+      }else if(removeEditingMenuImage){
+        delete data.imageUrl;
+        delete data.imageStoragePath;
+        delete data.imageUpdatedAt;
+      }
+      return menuRef.child(id).set(data);
+    }).then(function(){
       return menuRef.child(id).once('value');
     }).then(function(snap){
       var saved = snap.val() || {};
@@ -2741,6 +2834,12 @@
         if(!publicVerified) throw new Error('menu-public-verify-failed');
       });
     }).then(function(){
+      if(removeEditingMenuImage && oldImageStoragePath){
+        return storage.ref(oldImageStoragePath).delete().catch(function(error){
+          if(error.code !== 'storage/object-not-found') console.warn('舊菜單圖片刪除失敗', error);
+        });
+      }
+    }).then(function(){
       if(statusEl){
         statusEl.textContent = '已寫入並通過公開菜單驗證・' + new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
         statusEl.style.color = 'var(--sage)';
@@ -2755,6 +2854,8 @@
       if(err && err.message === 'menu-verify-failed') message = 'Firebase 寫入後讀回結果不一致，請重新整理後再試一次。';
       if(err && err.message === 'menu-public-read-failed') message = '資料已寫入，但無法從公開菜單讀回；請檢查 Firebase Database Rules 的讀取權限。';
       if(err && err.message === 'menu-public-verify-failed') message = '後台資料已寫入，但公開菜單仍是舊值；請檢查 Firebase Database Rules 或代理快取。';
+      if(err && /^menu-image-/.test(err.message || '')) message = '料理圖片處理失敗，請改用 JPG、PNG 或 WebP 並確認檔案小於 12MB。';
+      if(err && err.code && String(err.code).indexOf('storage/')===0) message = '料理圖片上傳失敗，請先發布本版本附帶的 Firebase Storage 規則後再試。';
       alert(message);
     }).finally(function(){
       saveBtn.disabled = false;
@@ -2786,6 +2887,7 @@
             : '<span class="stock-badge soldout">本次額滿</span>';
         }
         html += '<div class="staff-check">'
+          + (item.imageUrl ? '<div class="menu-manage-image"><img src="'+escapeAttr(item.imageUrl)+'" alt=""></div>' : '')
           + '<label style="flex:1;">'+escapeHtml(item.name)+' <span style="color:var(--gold-dim);">'+fmtGil(item.price)+'</span>'+stockBadge
           + (item.note ? '<div style="font-size:11px;color:var(--parchment-dim);">'+escapeHtml(item.note)+'</div>' : '')
           + (item.addonLabel ? '<div style="font-size:11px;color:var(--mist);">加購：'+escapeHtml(item.addonLabel)+' ＋'+fmtGil(item.addonPrice)+'</div>' : '')
@@ -2824,7 +2926,13 @@
     el.querySelectorAll('[data-remove-item]').forEach(function(btn){
       btn.addEventListener('click', function(){
         if(confirm('確定要從菜單移除這個品項嗎？')){
-          menuRef.child(btn.getAttribute('data-remove-item')).remove();
+          var itemId = btn.getAttribute('data-remove-item');
+          var item = menuItems[itemId] || {};
+          menuRef.child(itemId).remove().then(function(){
+            if(item.imageStoragePath) return storage.ref(item.imageStoragePath).delete().catch(function(error){
+              if(error.code !== 'storage/object-not-found') console.warn('菜單圖片刪除失敗', error);
+            });
+          });
         }
       });
     });
@@ -2840,6 +2948,7 @@
     var addonPrice = parseInt(document.getElementById('newItemAddonPrice').value, 10);
     var serviceType = document.getElementById('newItemServiceType').value || 'food';
     var serviceStaffId = document.getElementById('newItemServiceStaff').value || '';
+    var imageFile = document.getElementById('newItemImage').files[0] || null;
 
     if(!category || !name || !price || price < 0){
       alert('請至少填寫分類、品名跟價格');
@@ -2852,16 +2961,52 @@
     if(addonLabel && addonPrice){ data.addonLabel = addonLabel; data.addonPrice = addonPrice; }
 
     var key = menuRef.push().key;
-    menuRef.child(key).set(data);
+    var button = this;
+    button.disabled = true;
+    button.textContent = imageFile ? '圖片上傳中…' : '新增中…';
+    uploadMenuImage(key, imageFile).then(function(uploadedImage){
+      if(uploadedImage){
+        data.imageUrl = uploadedImage.imageUrl;
+        data.imageStoragePath = uploadedImage.imageStoragePath;
+        data.imageUpdatedAt = Date.now();
+      }
+      return menuRef.child(key).set(data);
+    }).then(function(){
+      document.getElementById('newItemCategory').value = '';
+      document.getElementById('newItemName').value = '';
+      document.getElementById('newItemPrice').value = '';
+      document.getElementById('newItemNote').value = '';
+      document.getElementById('newItemAddonLabel').value = '';
+      document.getElementById('newItemAddonPrice').value = '';
+      document.getElementById('newItemServiceType').value = 'food';
+      document.getElementById('newItemImage').value = '';
+      setMenuImagePreview('newItemImagePreview', '', '尚未選擇圖片');
+      renderServiceStaffOptions();
+    }).catch(function(error){
+      console.error('新增菜單與圖片失敗', error);
+      var message = error && error.code && String(error.code).indexOf('storage/')===0
+        ? '圖片上傳失敗，請確認 Firebase Storage 規則已發布。'
+        : '新增菜單失敗，請確認圖片格式與網路連線後再試。';
+      alert(message);
+    }).finally(function(){
+      button.disabled = false;
+      button.textContent = '新增到菜單';
+    });
+  });
 
-    document.getElementById('newItemCategory').value = '';
-    document.getElementById('newItemName').value = '';
-    document.getElementById('newItemPrice').value = '';
-    document.getElementById('newItemNote').value = '';
-    document.getElementById('newItemAddonLabel').value = '';
-    document.getElementById('newItemAddonPrice').value = '';
-    document.getElementById('newItemServiceType').value = 'food';
-    renderServiceStaffOptions();
+  document.getElementById('newItemImage').addEventListener('change', function(){
+    previewMenuImageFile(this, 'newItemImagePreview', '尚未選擇圖片');
+  });
+  document.getElementById('editItemImage').addEventListener('change', function(){
+    removeEditingMenuImage = false;
+    document.getElementById('removeItemImage').disabled = false;
+    previewMenuImageFile(this, 'editItemImagePreview', '目前沒有圖片');
+  });
+  document.getElementById('removeItemImage').addEventListener('click', function(){
+    removeEditingMenuImage = true;
+    document.getElementById('editItemImage').value = '';
+    this.disabled = true;
+    setMenuImagePreview('editItemImagePreview', '', '儲存後移除圖片');
   });
 
   document.getElementById('newItemServiceType').addEventListener('change',renderServiceStaffOptions);
