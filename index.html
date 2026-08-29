@@ -144,7 +144,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 </style>
 <link rel="stylesheet" href="assets/unified-cafe-ui.css?v=20260825">
 <link rel="stylesheet" href="assets/readability-scale.css?v=20260826">
-<link rel="stylesheet" href="assets/guest-cafe-ui.css?v=20260829-layout2">
+<link rel="stylesheet" href="assets/guest-cafe-ui.css?v=20260829-category-logo">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -320,6 +320,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
   var menuItems = {}; // id -> {category,name,price,note,addonLabel,addonPrice}
   var categoryOrder = []; // first-seen order
+  var activeMenuCategory = '__all__';
 
   var cart = {}; // id -> {name, price, qty, addon:{label,price}|null, assignments:[用餐者]}
   var pendingAddons = {}; // remembers add-ons selected before the base item is added
@@ -900,6 +901,9 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       if(nav) nav.innerHTML='';
       return;
     }
+    if(activeMenuCategory!=='__all__' && categoryOrder.indexOf(activeMenuCategory)===-1){
+      activeMenuCategory='__all__';
+    }
     var html = '';
     function isPolaroidLimitNote(note){
       return /每位店員每次營業限量開放\s*3\s*張拍立得服務/.test(note || '');
@@ -908,12 +912,18 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     categoryOrder.forEach(function(cat){
       var items = groups[cat] || [];
       if(items.length === 0) return;
-      var categoryIndex=visibleCategories.length;
       var categoryParts = String(cat || '其他').split('※');
       var categoryTitle = (categoryParts.shift() || '其他').trim();
-      visibleCategories.push({title:categoryTitle,target:'menu-category-'+categoryIndex});
+      visibleCategories.push({title:categoryTitle,key:cat});
+    });
+    visibleCategories.forEach(function(categoryEntry){
+      if(activeMenuCategory!=='__all__' && categoryEntry.key!==activeMenuCategory) return;
+      var cat=categoryEntry.key;
+      var items=groups[cat] || [];
+      var categoryParts = String(cat || '其他').split('※');
+      var categoryTitle = (categoryParts.shift() || '其他').trim();
       var categoryNote = categoryParts.join('※').trim();
-      html += '<div class="cat-title" id="menu-category-'+categoryIndex+'">'+escapeHtml(categoryTitle)+'</div>';
+      html += '<div class="cat-title">'+escapeHtml(categoryTitle)+'</div>';
       var limitNoteItem = items.find(function(item){ return isPolaroidLimitNote(item.note); });
       var limitText = categoryNote || (limitNoteItem ? String(limitNoteItem.note || '').replace(/^\s*※\s*/, '') : '');
       if(limitText){
@@ -952,15 +962,15 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     });
     el.innerHTML = html;
     if(nav){
-      nav.innerHTML=visibleCategories.map(function(entry,index){
-        return '<button type="button" class="category-link '+(index===0?'is-active':'')+'" data-category-target="'+entry.target+'">'+escapeHtml(entry.title)+'</button>';
-      }).join('');
-      nav.querySelectorAll('[data-category-target]').forEach(function(button){
+      nav.innerHTML='<button type="button" class="category-link '+(activeMenuCategory==='__all__'?'is-active':'')+'" data-category-index="all">全部</button>'
+        + visibleCategories.map(function(entry,index){
+          return '<button type="button" class="category-link '+(activeMenuCategory===entry.key?'is-active':'')+'" data-category-index="'+index+'">'+escapeHtml(entry.title)+'</button>';
+        }).join('');
+      nav.querySelectorAll('[data-category-index]').forEach(function(button){
         button.addEventListener('click',function(){
-          nav.querySelectorAll('.category-link').forEach(function(link){link.classList.remove('is-active');});
-          button.classList.add('is-active');
-          var target=document.getElementById(button.getAttribute('data-category-target'));
-          if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+          var index=button.getAttribute('data-category-index');
+          activeMenuCategory=index==='all' ? '__all__' : visibleCategories[Number(index)].key;
+          renderMenu();
         });
       });
     }
