@@ -144,6 +144,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 </style>
 <link rel="stylesheet" href="assets/unified-cafe-ui.css?v=20260825">
 <link rel="stylesheet" href="assets/readability-scale.css?v=20260826">
+<link rel="stylesheet" href="assets/guest-cafe-ui.css?v=20260829">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -167,7 +168,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   </div>
 
   <div id="visitGate" class="panel">
-    <p class="panel-title">Welcome Home｜入店方式</p>
+    <p class="panel-title">入店方式</p>
     <div class="visit-choice-grid">
       <button class="visit-choice" id="chooseService" type="button"><strong>需要女僕接待</strong><span>準備用餐、聊天或體驗服務，登記後依序候位。</span></button>
       <button class="visit-choice" id="chooseBrowse" type="button"><strong>自由參觀</strong><span>只想看看裝潢、拍照、等朋友或自由交流，不占接待名額。</span></button>
@@ -880,7 +881,11 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         if(!itemIsAvailable(item)) availability = '<span class="availability soldout">暫停供應</span>';
         else if(itemHasStockLimit(item) && itemStockRemaining(item)<=0) availability = '<span class="availability soldout">本次額滿</span>';
         else if(itemHasStockLimit(item)) availability = '<span class="availability">剩餘 '+itemStockRemaining(item)+' 份</span>';
+        var imageHtml = item.imageUrl
+          ? '<div class="item-image"><img src="'+escapeHtml(item.imageUrl)+'" alt="'+escapeHtml(item.name)+'" loading="lazy"></div>'
+          : '';
         html += '<div class="item-row '+(soldOut?'unavailable':'')+'">'
+          + imageHtml
           + '<div class="item-name">'+escapeHtml(item.name)
           + (item.note && !isPolaroidLimitNote(item.note) ? '<span class="item-note">'+escapeHtml(item.note)+'</span>' : '')
           + availability
