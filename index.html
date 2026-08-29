@@ -144,20 +144,25 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 </style>
 <link rel="stylesheet" href="assets/unified-cafe-ui.css?v=20260825">
 <link rel="stylesheet" href="assets/readability-scale.css?v=20260826">
-<link rel="stylesheet" href="assets/guest-cafe-ui.css?v=20260829">
+<link rel="stylesheet" href="assets/guest-cafe-ui.css?v=20260829-layout2">
 </head>
 <body>
 <div class="wrap" id="wrap">
 
   <div class="header">
     <div class="brand">
-      <h1>曇時 Cafe l'Éphémère</h1>
-      <p>線上點餐</p>
+      <span class="brand-mark" aria-hidden="true">曇</span>
+      <div><h1>曇 時</h1><p>Cafe l'Éphémère</p></div>
     </div>
     <div class="clock">
       <div><span class="dot offline" id="connDot"></span><span id="connText">連線中...</span></div>
     </div>
   </div>
+
+  <nav class="guest-tabs" aria-label="服務頁面">
+    <button class="guest-tab is-active" id="queueTab" type="button">領取號碼牌</button>
+    <button class="guest-tab" id="orderTab" type="button" disabled>線上點餐</button>
+  </nav>
 
   <div id="configWarn" class="configwarn" style="display:none;">
     尚未設定 Firebase 連線資訊，請在程式碼中填入 firebaseConfig 後重新上傳。
@@ -213,7 +218,6 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <h2 style="font-family:'Noto Serif TC',serif;font-size:17px;margin:10px 0 5px;">歡迎自在探索曇時</h2>
     <p class="visit-help">您目前不在接待隊列中，可以自由參觀、拍照或等待朋友。若想開始用餐或接受女僕服務，再加入候位即可。</p>
     <button class="btn primary" id="browseToQueue" type="button" style="margin-top:12px;">我想接受接待</button>
-    <button class="btn ghost" id="browseMenuBtn" type="button" style="margin-top:8px;width:100%;">瀏覽本日菜單</button>
   </div>
 
   <div id="visitRecoveryPanel" class="panel visit-status-card" style="display:none;">
@@ -246,24 +250,39 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <button class="btn ghost" id="newOrderBtn" style="margin-top:12px;">繼續加點</button>
   </div>
 
-  <div id="orderFlow" style="display:none;">
-    <div class="panel" id="cartPanel">
-      <p class="panel-title">菜單</p>
+  <div id="orderFlow" class="order-shell" style="display:none;">
+    <header class="order-heading">
+      <div>
+        <p class="order-kicker">MENU</p>
+        <h2>線上點餐</h2>
+      </div>
+      <div class="order-visit-summary" aria-live="polite">
+        <span id="orderQueueNumber">候位號碼</span>
+        <strong id="orderGuestName">—</strong>
+      </div>
+    </header>
+
+    <div class="order-category-bar" id="categoryNav" aria-label="菜單分類"></div>
+
+    <div class="order-layout">
+    <main class="panel menu-panel" id="cartPanel">
       <div class="menu-sync-row">
         <div class="menu-sync-status" id="menuSyncStatus" aria-live="polite">正在同步最新菜單…</div>
         <button class="menu-refresh-btn" id="refreshMenuBtn" type="button">立即更新菜單</button>
       </div>
       <div id="menuList"><span class="empty">菜單載入中...</span></div>
-    </div>
+    </main>
 
+    <aside class="order-summary">
     <div class="panel" id="orderDataPanel">
-      <p class="panel-title">已選品項</p>
+      <p class="summary-kicker">已選品項</p>
+      <h3>目前點單</h3>
       <div id="dinerRoster" class="diner-roster" style="display:none;"></div>
       <div id="cartList"><span class="empty-cart">尚未選擇餐點</span></div>
     </div>
 
     <div class="panel" id="orderSubmitPanel">
-      <p class="panel-title">訂購資料</p>
+      <p class="summary-kicker">訂購資料</p>
       <div class="row">
         <input type="text" id="custName" maxlength="40" autocomplete="name" placeholder="角色名／稱呼">
       </div>
@@ -272,6 +291,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       </div>
       <p id="orderError" style="font-size:12px;color:var(--rose);margin:10px 0 0;display:none;"></p>
       <button class="btn primary" id="submitOrder" style="margin-top:12px;">送出訂單</button>
+    </div>
+    </aside>
     </div>
   </div>
 
@@ -484,6 +505,28 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     });
   }
 
+  function setGuestTab(orderingEnabled, showOrder){
+    var queueTab=document.getElementById('queueTab');
+    var orderTab=document.getElementById('orderTab');
+    orderTab.disabled=!orderingEnabled;
+    queueTab.classList.toggle('is-active', !showOrder);
+    orderTab.classList.toggle('is-active', !!showOrder);
+  }
+
+  function openOrderView(){
+    if(!activeVisit || (activeVisit.status!=='assigned' && activeVisit.status!=='serving')) return;
+    document.getElementById('orderFlow').style.display='block';
+    setGuestTab(true, true);
+    document.getElementById('orderFlow').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  document.getElementById('queueTab').addEventListener('click',function(){
+    setGuestTab(!!activeVisit && (activeVisit.status==='assigned' || activeVisit.status==='serving'), false);
+    var target=activeVisit ? document.getElementById('visitStatusPanel') : document.getElementById('visitGate');
+    if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  document.getElementById('orderTab').addEventListener('click',openOrderView);
+
   function renderVisitPreference(){
     var select = document.getElementById('visitPreference');
     if(!select) return;
@@ -511,7 +554,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       if(activeVisitId){ localStorage.removeItem('lephemereActiveVisitId'); sessionStorage.removeItem('lephemereActiveVisitSessionId'); activeVisitId=''; }
       visitRecoveryPending=false;
       if(!browseMode) setVisitView('visitGate');
-      document.getElementById('orderFlow').style.display = browseMode ? 'block' : 'none';
+      document.getElementById('orderFlow').style.display = 'none';
+      setGuestTab(false, false);
       renderOperationStatus();
       renderMenu();
       return;
@@ -523,6 +567,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       visitRecoveryPending=false;
       setVisitView('visitGate');
       document.getElementById('orderFlow').style.display='none';
+      setGuestTab(false, false);
       renderOperationStatus();
       renderMenu();
       return;
@@ -542,6 +587,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       browseMode=false;
       setVisitView('visitRecoveryPanel');
       document.getElementById('orderFlow').style.display='none';
+      setGuestTab(false, false);
       document.getElementById('recoveryTicketNumber').textContent=activeVisit.queueNumber||'候位中';
       document.getElementById('recoveryVisitName').textContent=(activeVisit.characterName||'未填角色名')+(activeVisit.world?' @ '+activeVisit.world:'');
       renderOperationStatus();
@@ -564,11 +610,14 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       : (assigned ? '若需要離開、轉交其他女僕或結束接待，請直接告知負責女僕。' : (activeVisit.preferredStaffName ? '您希望由 '+activeVisit.preferredStaffName+' 接待，因此等待時間可能較長。' : '請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。'));
     document.getElementById('cancelVisitQueue').style.display = activeVisit.status==='waiting' ? 'inline-block' : 'none';
     document.getElementById('orderFlow').style.display = assigned ? 'block' : 'none';
+    setGuestTab(assigned, assigned);
     if(assigned){
       document.getElementById('cartPanel').style.display='block';
       document.getElementById('orderDataPanel').style.display='block';
       document.getElementById('orderSubmitPanel').style.display='block';
       if(!document.getElementById('custName').value) document.getElementById('custName').value=activeVisit.characterName||'';
+      document.getElementById('orderQueueNumber').textContent='候位 '+(activeVisit.queueNumber||'—');
+      document.getElementById('orderGuestName').textContent=(activeVisit.characterName||'主人')+'・'+Number(activeVisit.partySize||1)+' 位';
     }
     renderDinerRoster();
     renderCart();
@@ -577,18 +626,14 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   }
 
   function showBrowseMenu(show){
-    document.getElementById('orderFlow').style.display = show ? 'block' : 'none';
-    document.getElementById('cartPanel').style.display = show ? 'block' : 'none';
-    document.getElementById('orderDataPanel').style.display='none';
-    document.getElementById('orderSubmitPanel').style.display='none';
-    renderMenu();
+    document.getElementById('orderFlow').style.display = 'none';
+    setGuestTab(false, false);
   }
 
   document.getElementById('chooseService').addEventListener('click', function(){ setVisitView('visitRegister'); });
   document.getElementById('chooseBrowse').addEventListener('click', function(){ browseMode=true; setVisitView('browsePanel'); showBrowseMenu(false); });
   document.getElementById('backVisitChoice').addEventListener('click', function(){ setVisitView('visitGate'); });
   document.getElementById('browseToQueue').addEventListener('click', function(){ browseMode=false; showBrowseMenu(false); setVisitView('visitRegister'); });
-  document.getElementById('browseMenuBtn').addEventListener('click', function(){ showBrowseMenu(document.getElementById('orderFlow').style.display==='none'); });
   document.getElementById('visitKind').addEventListener('change', function(){
     document.getElementById('visitReservation').style.display = this.value==='reservation' ? 'block' : 'none';
   });
@@ -848,22 +893,27 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
   function renderMenu(){
     var el = document.getElementById('menuList');
+    var nav = document.getElementById('categoryNav');
     var groups = groupedMenu();
     if(categoryOrder.length === 0){
       el.innerHTML = '<span class="empty">菜單尚未設定，請洽店員</span>';
+      if(nav) nav.innerHTML='';
       return;
     }
     var html = '';
     function isPolaroidLimitNote(note){
       return /每位店員每次營業限量開放\s*3\s*張拍立得服務/.test(note || '');
     }
+    var visibleCategories=[];
     categoryOrder.forEach(function(cat){
       var items = groups[cat] || [];
       if(items.length === 0) return;
+      var categoryIndex=visibleCategories.length;
       var categoryParts = String(cat || '其他').split('※');
       var categoryTitle = (categoryParts.shift() || '其他').trim();
+      visibleCategories.push({title:categoryTitle,target:'menu-category-'+categoryIndex});
       var categoryNote = categoryParts.join('※').trim();
-      html += '<div class="cat-title">'+escapeHtml(categoryTitle)+'</div>';
+      html += '<div class="cat-title" id="menu-category-'+categoryIndex+'">'+escapeHtml(categoryTitle)+'</div>';
       var limitNoteItem = items.find(function(item){ return isPolaroidLimitNote(item.note); });
       var limitText = categoryNote || (limitNoteItem ? String(limitNoteItem.note || '').replace(/^\s*※\s*/, '') : '');
       if(limitText){
@@ -901,6 +951,19 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       });
     });
     el.innerHTML = html;
+    if(nav){
+      nav.innerHTML=visibleCategories.map(function(entry,index){
+        return '<button type="button" class="category-link '+(index===0?'is-active':'')+'" data-category-target="'+entry.target+'">'+escapeHtml(entry.title)+'</button>';
+      }).join('');
+      nav.querySelectorAll('[data-category-target]').forEach(function(button){
+        button.addEventListener('click',function(){
+          nav.querySelectorAll('.category-link').forEach(function(link){link.classList.remove('is-active');});
+          button.classList.add('is-active');
+          var target=document.getElementById(button.getAttribute('data-category-target'));
+          if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+        });
+      });
+    }
 
     el.querySelectorAll('[data-inc]').forEach(function(btn){
       btn.addEventListener('click', function(){ changeQty(btn.getAttribute('data-inc'), 1); });
@@ -1102,6 +1165,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       errEl.textContent = '訂單已建立，Discord 通知狀態：'+(data.notificationStatus==='sent'?'已送出':'雲端處理中');
       document.getElementById('successNumber').textContent = '#'+(data.orderNumber||'—');
       document.getElementById('orderFlow').style.display = 'none';
+      setGuestTab(true, false);
       document.getElementById('successBox').style.display = 'block';
       clearPendingRequest();
       cart = {};
@@ -1123,6 +1187,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   document.getElementById('newOrderBtn').addEventListener('click', function(){
     document.getElementById('successBox').style.display = 'none';
     document.getElementById('orderFlow').style.display = 'block';
+    setGuestTab(true, true);
   });
 
 })();
