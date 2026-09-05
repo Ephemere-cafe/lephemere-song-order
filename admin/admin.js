@@ -56,7 +56,6 @@
     reservationRevenue:0,
     commonAdjustment:0,
     commonOverride:'',
-    headcount:1,
     selectedStaff:{},
     specialAdjustments:{},
     specialOverrides:{},
@@ -1325,7 +1324,7 @@
 
   function renderAssignmentHistory(){
     var el=document.getElementById('assignmentHistoryList'); if(!el) return;
-    var labels={claim:'認領接待',transfer:'轉交接待','order-page-transfer':'由訂單頁轉交','reset-daily-queue':'重置今日候位','reset-daily-orders':'重置本場訂單'};
+    var labels={claim:'認領接待',transfer:'轉交接待','order-page-transfer':'由訂單頁轉交','reset-daily-queue':'重置本場候位','reset-daily-orders':'重置本場訂單'};
     var rows=Object.keys(assignmentHistory).map(function(id){return assignmentHistory[id]||{};}).sort(function(a,b){return Number(b.createdAt||0)-Number(a.createdAt||0);});
     if(!rows.length){el.innerHTML='<div class="queue-empty">尚無操作紀錄</div>';return;}
     el.innerHTML=rows.map(function(row){
@@ -1429,7 +1428,7 @@
     if(!isManager()) return;
     if(operationStatus.isOpen!==false){alert('為避免正式營業中出現重複號碼，請先結束營業再重置候位。');return;}
     var active=visitRows(['waiting','assigned','serving']);
-    var message='確定重置今天的候位號碼嗎？\n\n下一位客人會從 A001 重新開始。';
+    var message='確定重置本場候位號碼嗎？\n\n下一位客人會從 A001 重新開始。';
     if(active.length) message+='\n目前 '+active.length+' 組進行中的候位會一併標記為取消，避免產生重複號碼。';
     message+='\n已完成的接待與既有訂單不會刪除。';
     if(!confirm(message)) return;
@@ -1780,10 +1779,8 @@
     var ids=activeDutyIds().filter(function(id){return !!staffRoster[id];});
     if(!ids.length) ids=Object.keys(staffRoster);
     ids.forEach(function(id){payrollState.selectedStaff[id]=true;});
-    payrollState.headcount=Math.max(1,ids.length);
     payrollState.slipStaffId=ids[0]||'';
     payrollState.initialized=true;
-    document.getElementById('payrollHeadcount').value=String(payrollState.headcount);
   }
 
   function resetPayrollForBusinessDate(date){
@@ -1793,7 +1790,6 @@
     payrollState.reservationRevenue=0;
     payrollState.commonAdjustment=0;
     payrollState.commonOverride='';
-    payrollState.headcount=1;
     payrollState.selectedStaff={};
     payrollState.specialAdjustments={};
     payrollState.specialOverrides={};
@@ -1801,7 +1797,6 @@
     document.getElementById('payrollReservationRevenue').value='0';
     document.getElementById('payrollCommonAdjustment').value='0';
     document.getElementById('payrollCommonOverride').value='';
-    document.getElementById('payrollHeadcount').value='1';
   }
 
   function payrollNumber(value){
@@ -1844,9 +1839,8 @@
     var commonOverride=String(payrollState.commonOverride===undefined?'':payrollState.commonOverride).trim();
     var commonTotal=commonOverride!==''?payrollNumber(commonOverride):data.commonRevenue+payrollNumber(payrollState.reservationRevenue)+payrollNumber(payrollState.commonAdjustment);
     commonTotal=Math.max(0,commonTotal);
-    var headcount=Math.max(1,Math.round(payrollNumber(payrollState.headcount)||1));
-    var share=Math.round(commonTotal/headcount);
     var selectedCount=Object.keys(payrollState.selectedStaff).filter(function(id){return payrollState.selectedStaff[id]===true&&!!staffRoster[id];}).length;
+    var share=selectedCount?Math.round(commonTotal/selectedCount):0;
     var allIds=Object.keys(staffRoster);
     Object.keys(data.specialByStaff).forEach(function(id){if(allIds.indexOf(id)===-1) allIds.push(id);});
     allIds.sort(function(a,b){
@@ -1870,8 +1864,8 @@
     document.getElementById('payrollSpecialTotal').textContent=fmtGil(Math.round(adjustedSpecialTotal));
     renderPayrollStaffChecks();
     var countNote=document.getElementById('payrollCountNote');
-    countNote.textContent=selectedCount===headcount?'已勾選 '+selectedCount+' 人，與平分人數相同。':'已勾選 '+selectedCount+' 人，但目前平分人數為 '+headcount+'；請確認是否正確。';
-    countNote.classList.toggle('is-warning',selectedCount!==headcount);
+    countNote.textContent=selectedCount?'共同營業額將由已勾選的 '+selectedCount+' 位成員平分。':'請至少勾選一位參與共同分紅的成員。';
+    countNote.classList.toggle('is-warning',selectedCount===0);
     var warning=document.getElementById('payrollUnassignedWarning');
     warning.hidden=!data.unassignedRevenue;
     warning.textContent=data.unassignedRevenue?'有 '+fmtGil(data.unassignedRevenue)+' 的特殊服務尚未指定任務負責女僕，因此目前未列入任何人的薪資。':'';
@@ -1898,7 +1892,6 @@
     if(target.id==='payrollReservationRevenue') payrollState.reservationRevenue=payrollNumber(target.value);
     else if(target.id==='payrollCommonAdjustment') payrollState.commonAdjustment=payrollNumber(target.value);
     else if(target.id==='payrollCommonOverride') payrollState.commonOverride=target.value;
-    else if(target.id==='payrollHeadcount') payrollState.headcount=Math.max(1,Math.round(payrollNumber(target.value)||1));
     else return false;
     return true;
   }
@@ -2482,7 +2475,7 @@
     var waitingVisits=visitRows(['waiting']);
     var warning = preview.data.activeCount>0 ? '目前仍有 '+preview.data.activeCount+' 筆進行中訂單。\n\n' : '';
     if(waitingVisits.length) warning+='目前另有 '+waitingVisits.length+' 組候位，打烊後會自動取消並通知客人頁面。\n\n';
-    if(!confirm(warning+'確定要結束今天的線上點餐並產生日報嗎？已送出的訂單仍會保留。')) return;
+    if(!confirm(warning+'確定要結束本場線上點餐並產生日報嗎？已送出的訂單仍會保留。')) return;
     var report = showDailyReport(true);
     var visitUpdates={};
     waitingVisits.forEach(function(v){visitUpdates[v.id+'/status']='cancelled';visitUpdates[v.id+'/cancelledAt']=Date.now();visitUpdates[v.id+'/updatedAt']=Date.now();visitUpdates[v.id+'/cancelReason']='business_closed';});
@@ -3449,12 +3442,19 @@
   });
 
   // ---------- open dates ----------
+  function isActiveReservation(reservation){
+    return !!reservation && reservation.status!=='cancelled';
+  }
+
   function renderOpenDateManageList(){
     var el = document.getElementById('openDateManageList');
     var keys = Object.keys(openDates).sort();
     if(keys.length===0){ el.innerHTML = '<span style="color:var(--parchment-dim);font-size:12px;">尚未開放任何日期</span>'; return; }
     var reservedDates = {};
-    Object.keys(reservations).forEach(function(id){ reservedDates[reservations[id].date] = true; });
+    Object.keys(reservations).forEach(function(id){
+      var reservation=reservations[id];
+      if(isActiveReservation(reservation)) reservedDates[reservation.date] = true;
+    });
     var html = '<div style="display:flex;flex-direction:column;gap:6px;">';
     keys.forEach(function(d){
       html += '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:6px;">'
@@ -3465,7 +3465,11 @@
     html += '</div>';
     el.innerHTML = html;
     el.querySelectorAll('[data-remove-date]').forEach(function(btn){
-      btn.addEventListener('click', function(){ openDatesRef.child(btn.getAttribute('data-remove-date')).remove(); });
+      btn.addEventListener('click', function(){
+        var date=btn.getAttribute('data-remove-date');
+        if(!confirm('確定要取消開放 '+date+' 的預約嗎？\n既有預約紀錄不會被刪除。')) return;
+        openDatesRef.child(date).remove();
+      });
     });
   }
 
@@ -3473,6 +3477,7 @@
     if(!isConfigured) return;
     var date = document.getElementById('newOpenDate').value.trim();
     if(!date) return;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){ alert('請選擇有效的預約日期。'); return; }
     openDatesRef.child(date).set(true);
     document.getElementById('newOpenDate').value = '';
   });
@@ -3482,24 +3487,44 @@
     var el = document.getElementById('adminReservationList');
     var keys = Object.keys(reservations);
     if(keys.length===0){ el.innerHTML = '尚無預約'; return; }
-    var arr = keys.map(function(id){ var r=reservations[id]; r.id=id; return r; });
-    arr.sort(function(a,b){ return a.date.localeCompare(b.date); });
-    var html = '<div style="display:flex;flex-direction:column;gap:8px;">';
+    var arr = keys.map(function(id){ return Object.assign({id:id},reservations[id]||{}); });
+    arr.sort(function(a,b){
+      var byDate=String(a.date||'').localeCompare(String(b.date||''));
+      if(byDate) return byDate;
+      return Number(a.status==='cancelled')-Number(b.status==='cancelled');
+    });
+    var html = '<div class="reservation-admin-list">';
     arr.forEach(function(r){
+      var cancelled=r.status==='cancelled';
       var songs = (r.songs||[]).map(function(s){ return s.title; }).join('、') || '（未選歌曲）';
-      html += '<div style="border-bottom:1px solid var(--line);padding-bottom:8px;">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;">'
-        + '<span>'+r.date+' · '+escapeHtml(r.name)+' · '+r.size+'位'+(r.maid?' · 指名：'+escapeHtml(r.maid):'')+(r.note?' · '+escapeHtml(r.note):'')+'</span>'
-        + '<span>'+notificationHtml(r, 'reservation', r.id)+' <button class="icon-btn" data-cancel-reservation="'+r.id+'" title="取消預約">✕</button></span>'
+      html += '<div class="reservation-admin-row'+(cancelled?' is-cancelled':'')+'">'
+        + '<div class="reservation-admin-head">'
+        + '<span>'+escapeHtml(r.date||'日期未填')+' · '+escapeHtml(r.name||'未填姓名')+' · '+escapeHtml(String(r.size||'—'))+'位'+(r.maid?' · 指名：'+escapeHtml(r.maid):'')+(r.note?' · '+escapeHtml(r.note):'')+'</span>'
+        + '<span class="reservation-admin-actions">'+(cancelled?'<span class="reservation-cancelled-badge">已取消</span>':notificationHtml(r, 'reservation', r.id)+' <button class="btn ghost small reservation-cancel-button" type="button" data-cancel-reservation="'+escapeAttr(r.id)+'">取消預約</button>')+'</span>'
         + '</div>'
-        + '<div style="font-size:11.5px;color:var(--parchment-dim);margin-top:3px;">點歌：'+escapeHtml(songs)+'</div>'
+        + '<div class="reservation-admin-songs">點歌：'+escapeHtml(songs)+'</div>'
         + '</div>';
     });
     html += '</div>';
     el.innerHTML = html;
     bindNotificationRetries(el);
     el.querySelectorAll('[data-cancel-reservation]').forEach(function(btn){
-      btn.addEventListener('click', function(){ reservationsRef.child(btn.getAttribute('data-cancel-reservation')).remove(); });
+      btn.addEventListener('click', function(){
+        var id=btn.getAttribute('data-cancel-reservation');
+        var reservation=reservations[id]||{};
+        var summary=(reservation.date||'未填日期')+'・'+(reservation.name||'未填姓名');
+        if(!confirm('確定要取消 '+summary+' 的預約嗎？\n\n紀錄會保留，該日期可再次接受預約。')) return;
+        btn.disabled=true;
+        reservationsRef.child(id).update({
+          status:'cancelled',
+          cancelledAt:Date.now(),
+          updatedAt:Date.now(),
+          cancelledByUid:currentAuthUser?currentAuthUser.uid:''
+        }).catch(function(){
+          btn.disabled=false;
+          alert('取消預約失敗，請確認登入權限與連線後再試。');
+        });
+      });
     });
   }
 

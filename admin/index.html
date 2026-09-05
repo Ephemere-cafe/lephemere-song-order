@@ -4,15 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>曇時 管理後台</title>
-<link rel="stylesheet" href="admin.css">
-<link rel="stylesheet" href="site-content-admin.css?v=20260826a">
-<link rel="stylesheet" href="unified-admin-ui.css?v=20260825">
-<link rel="stylesheet" href="admin-workspace.css?v=20260825">
-<link rel="stylesheet" href="readability-scale.css?v=20260826">
-<link rel="stylesheet" href="staff-photo-editor.css?v=20260826b">
-<link rel="stylesheet" href="admin-ivory-blue-theme.css?v=20260828">
-<link rel="stylesheet" href="payroll-admin.css?v=20260829">
-<link rel="stylesheet" href="menu-image-admin.css?v=20260829">
+<link rel="stylesheet" href="admin-ui-v6.css?v=20260905">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -39,37 +31,38 @@
       <button class="btn primary" id="adminLoginBtn">登入</button>
     </div>
     <p id="loginError" style="font-size:12px;color:var(--rose);margin:8px 0 0;display:none;">帳號或密碼錯誤</p>
-    <p class="login-help">登入後會依帳號權限顯示可使用的功能。訂單人員可處理一般訂單與特殊服務；管理人員可使用營業、菜單與網站設定。</p>
+    <p class="login-help">登入後會依帳號權限顯示可使用的功能。訂單人員可使用接待、訂單與特殊服務；管理人員可使用完整店務與網站設定。</p>
   </div>
 
   <div id="adminArea" style="display:none;">
 
     <div class="main-tabs" id="mainTabs">
       <span class="main-tab-group-label">營業中</span>
-      <div class="main-tab active" data-main="reception">接待</div>
-      <div class="main-tab" data-main="orders">訂單</div>
-      <div class="main-tab" data-main="special">特殊服務</div>
+      <button type="button" class="main-tab active" data-main="reception">接待</button>
+      <button type="button" class="main-tab" data-main="orders">訂單</button>
+      <button type="button" class="main-tab" data-main="special">特殊服務</button>
       <span class="main-tab-group-label manager-only" data-manager-only>店務</span>
-      <div class="main-tab manager-only" data-main="operations" data-manager-only>營業</div>
-      <div class="main-tab manager-only" data-main="menu" data-manager-only>菜單</div>
-      <div class="main-tab manager-only" data-main="staff" data-manager-only>店員</div>
-      <div class="main-tab manager-only" data-main="reservations" data-manager-only>預約</div>
-      <div class="main-tab manager-only" data-main="payroll" data-manager-only>薪資</div>
+      <button type="button" class="main-tab manager-only" data-main="operations" data-manager-only>營業</button>
+      <button type="button" class="main-tab manager-only" data-main="menu" data-manager-only>菜單</button>
+      <button type="button" class="main-tab manager-only" data-main="staff" data-manager-only>店員</button>
+      <button type="button" class="main-tab manager-only" data-main="reservations" data-manager-only>預約</button>
+      <button type="button" class="main-tab manager-only" data-main="payroll" data-manager-only>薪資</button>
       <span class="main-tab-group-label manager-only" data-manager-only>系統</span>
-      <div class="main-tab manager-only" data-main="site" data-manager-only>官網</div>
-      <div class="main-tab manager-only" data-main="site-content" data-manager-only>網站內容</div>
-      <div class="main-tab manager-only" data-main="access" data-manager-only>權限</div>
+      <button type="button" class="main-tab manager-only" data-main="site" data-manager-only>官網音樂</button>
+      <button type="button" class="main-tab manager-only" data-main="site-content" data-manager-only>官網內容</button>
+      <button type="button" class="main-tab manager-only" data-main="access" data-manager-only>權限</button>
       <span class="access-badge" id="currentAccessBadge">權限確認中</span>
       <button class="btn ghost small" id="adminLogoutBtn" style="margin-left:auto;">登出</button>
     </div>
     <div class="global-identity">
       <div class="global-identity-copy">
-        <strong>目前操作身分</strong>
-        <span id="globalDutyDateHint">依目前排班日期載入值班人員；此身分會套用接待、訂單、特殊服務與交接紀錄。</span>
+        <strong>操作女僕</strong>
+        <span id="globalDutyDateHint">這個身分會套用接待、訂單、特殊服務與交接紀錄。</span>
       </div>
       <div class="global-identity-control">
         <span class="operator-live" id="operatorLiveBadge"><i></i> 尚未選擇操作者</span>
         <select id="globalStaffSelect" aria-label="選擇目前操作女僕"><option value="">請先選擇女僕</option></select>
+        <button class="btn ghost small" id="guestPreviewToggle" type="button" aria-expanded="false" hidden>查看主人畫面</button>
       </div>
     </div>
 
@@ -79,7 +72,7 @@
           <span class="guest-preview-kicker">Guest View</span>
           <h2 id="guestPreviewModeLabel">主人端同步摘要</h2>
         </div>
-        <span class="guest-preview-live"><i></i> 唯讀同步</span>
+        <div class="guest-preview-head-actions"><span class="guest-preview-live"><i></i> 唯讀同步</span><button class="guest-preview-close" id="guestPreviewClose" type="button" aria-label="關閉主人畫面">×</button></div>
       </div>
       <label class="guest-preview-select-label" for="guestPreviewRecordSelect">目前預覽</label>
       <select id="guestPreviewRecordSelect" class="guest-preview-select" aria-label="選擇要預覽的主人或訂單"></select>
@@ -96,16 +89,17 @@
       </div>
       <p class="guest-preview-note">此區只讀取既有 Firebase 資料，用來快速核對主人看見的資訊；不會變更候位、訂單或服務狀態。</p>
     </aside>
+    <button class="guest-preview-backdrop" id="guestPreviewBackdrop" type="button" aria-label="關閉主人畫面" hidden></button>
 
     <!-- ============ 接待候位 ============ -->
     <div id="receptionTab">
       <div class="page-heading">
-        <div class="page-heading-copy"><span class="page-eyebrow">Guest Reception</span><h2>接待候位</h2><p>客人先領號；有空的女僕按「接待下一組」，系統會依順序鎖定歸屬。</p></div>
+        <div class="page-heading-copy"><span class="page-eyebrow">Reception</span><h2>接待工作區</h2><p>候位、接待與交接集中在這裡處理。</p></div>
       </div>
       <div class="panel reception-console">
         <div class="reception-console-head">
-          <div><span class="page-eyebrow">Your Station</span><h2 style="font-family:'Noto Serif TC',serif;font-size:17px;margin:0 0 5px;">我的接待台</h2><p style="font-size:11px;color:var(--parchment-dim);margin:0;line-height:1.7;">一位主人只會有一位負責女僕；需要換手時請使用正式轉交。</p></div>
-          <div class="reception-identity"><div><label>目前操作女僕</label><strong id="receptionStaffDisplay" style="display:block;color:var(--gold);padding:8px 0;">尚未選擇</strong></div><div class="reception-identity-actions"><button class="btn primary" id="claimNextVisit" type="button">接待下一組</button><button class="btn ghost manager-only" data-manager-only id="resetVisitQueue" type="button" style="border-color:var(--rose-dim);color:var(--rose);">重置今日候位</button></div></div>
+          <div><h2 style="font-family:'Noto Serif TC',serif;font-size:17px;margin:0 0 5px;">本場接待狀態</h2><p style="font-size:11px;color:var(--parchment-dim);margin:0;line-height:1.7;">需要換手時請使用正式轉交。</p></div>
+          <div class="reception-identity"><div><label>目前操作女僕</label><strong id="receptionStaffDisplay" style="display:block;color:var(--gold);padding:8px 0;">尚未選擇</strong></div><div class="reception-identity-actions"><button class="btn primary" id="claimNextVisit" type="button">接待下一組</button><button class="btn ghost manager-only" data-manager-only id="resetVisitQueue" type="button" style="border-color:var(--rose-dim);color:var(--rose);">重置本場候位</button></div></div>
         </div>
         <div class="presence-row" id="presenceButtons"><button class="presence-btn" data-presence="available">可接待</button><button class="presence-btn" data-presence="serving">接待中</button><button class="presence-btn" data-presence="photo">拍照中</button><button class="presence-btn" data-presence="away">暫離</button></div>
       </div>
@@ -117,7 +111,7 @@
           <div class="reception-template-actions"><span id="receptionCallTemplateStatus" aria-live="polite"></span><button class="btn primary small" id="saveReceptionCallTemplate" type="button">儲存我的接待文字</button></div>
         </div>
       </details>
-      <div class="reception-overview" aria-label="今日接待概況">
+      <div class="reception-overview" aria-label="本場接待概況">
         <div class="reception-metric"><span class="reception-metric-label">正在候位</span><strong class="reception-metric-value" id="receptionWaitingMetric">0</strong><span class="reception-metric-note">依序等待接待</span></div>
         <div class="reception-metric"><span class="reception-metric-label">接待進行中</span><strong class="reception-metric-value" id="receptionActiveMetric">0</strong><span class="reception-metric-note">已有負責女僕</span></div>
         <div class="reception-metric"><span class="reception-metric-label">可接待女僕</span><strong class="reception-metric-value" id="receptionAvailableMetric">0</strong><span class="reception-metric-note">目前狀態為可接待</span></div>
@@ -128,7 +122,7 @@
         <section class="reception-column"><div class="reception-column-title"><span>候位隊列</span><span class="reception-count" id="visitWaitingCount">0</span></div><div id="visitWaitingList"></div></section>
         <section class="reception-column my-visits-column"><div class="reception-column-title"><span>我的接待</span><span class="reception-count" id="myVisitCount">0</span></div><div id="myVisitList"></div></section>
         <details class="reception-column team-visits-panel" open><summary class="reception-column-title"><span>其他女僕接待中・可直接轉交</span><span class="reception-count" id="teamVisitCount">0</span></summary><div id="teamVisitList"></div></details>
-        <section class="reception-column team-section"><div class="reception-column-title"><span>今日女僕狀態</span></div><div class="team-grid" id="staffPresenceList"></div></section>
+        <section class="reception-column team-section"><div class="reception-column-title"><span>本場女僕狀態</span></div><div class="team-grid" id="staffPresenceList"></div></section>
       </div>
       <details class="panel"><summary style="cursor:pointer;color:var(--mist);font-size:12px;">最近接待操作紀錄</summary><div class="audit-list" id="assignmentHistoryList"><div class="queue-empty">尚無操作紀錄</div></div></details>
       <div class="copy-toast" id="copyToast" role="status" aria-live="polite">叫號文字已複製</div>
@@ -138,17 +132,17 @@
     <div id="ordersTab" style="display:none;">
       <div class="page-heading">
         <div class="page-heading-copy">
-          <span class="page-eyebrow">Order Queue</span>
-          <h2>即時訂單</h2>
-          <p>選擇目前身分後，依序處理待接單、服務中與已完成的訂單。</p>
+          <span class="page-eyebrow">Orders</span>
+          <h2>訂單工作區</h2>
+          <p>依序處理待接單、服務中與已完成的訂單。</p>
         </div>
       </div>
 
       <div class="panel order-console">
         <div class="order-console-head">
           <div>
-            <h2>訂單工作區</h2>
-            <p>此頁只保留接單、指派、搜尋與訂單處理；營業設定已移至「營業」。</p>
+            <h2>訂單篩選</h2>
+            <p>使用狀態或關鍵字快速找到訂單。</p>
           </div>
           <div class="identity-panel">
             <label>操作店員</label>
@@ -158,13 +152,13 @@
         </div>
         <div class="order-filter-bar">
           <div class="tabs" id="orderSubTabs">
-            <div class="tab active" data-filter="active">進行中</div>
-            <div class="tab" data-filter="mine">我的訂單</div>
-            <div class="tab" data-filter="unassigned">待指派</div>
-            <div class="tab" data-filter="completed">已完成</div>
-            <div class="tab" data-filter="cancelled">已取消</div>
-            <div class="tab" data-filter="all">全部</div>
-            <div class="tab manager-only" data-manager-only data-filter="history">歷史訂單</div>
+            <button type="button" class="tab active" data-filter="active">進行中</button>
+            <button type="button" class="tab" data-filter="mine">我的訂單</button>
+            <button type="button" class="tab" data-filter="unassigned">待指派</button>
+            <button type="button" class="tab" data-filter="completed">已完成</button>
+            <button type="button" class="tab" data-filter="cancelled">已取消</button>
+            <button type="button" class="tab" data-filter="all">全部</button>
+            <button type="button" class="tab manager-only" data-manager-only data-filter="history">歷史訂單</button>
           </div>
           <div class="order-tools">
             <input type="search" id="orderSearch" placeholder="搜尋編號、主人、餐點或店員">
@@ -184,13 +178,12 @@
         <div class="page-heading-copy">
           <span class="page-eyebrow">Special Services</span>
           <h2>特殊服務</h2>
-          <p>拍立得與 Lens 個人攝影獨立追蹤，避免和餐點訂單混在一起。</p>
+          <p>拍立得與 Lens 個人攝影獨立處理，服務進度會同步回原訂單。</p>
         </div>
-        <div class="special-page-intro">服務狀態會同步回原訂單，完成後不必再重複操作。</div>
       </div>
       <div class="panel special-workspace" id="specialServiceWorkspace">
         <div class="special-workspace-head">
-          <div><h2>今日待辦</h2><p>主要接待與拍立得負責人分開追蹤，不需要轉接整位主人。</p></div>
+          <div><h2>本場待辦</h2><p>主要接待與特殊服務負責人可以分開指派。</p></div>
           <div class="special-task-filters" id="specialTaskFilters" aria-label="特殊服務篩選">
             <button class="special-task-filter active" type="button" data-special-filter="all">全部</button>
             <button class="special-task-filter" type="button" data-special-filter="mine">我的任務</button>
@@ -216,7 +209,7 @@
         <div class="page-heading-copy">
           <span class="page-eyebrow">Operations</span>
           <h2>營業管理</h2>
-          <p>集中查看今日營業狀態、產生日報，以及調整這台裝置的通知設定。</p>
+          <p>集中查看本場營業狀態、產生日報，以及調整這台裝置的通知設定。</p>
         </div>
       </div>
 
@@ -331,7 +324,7 @@
       <div class="payroll-metrics" aria-live="polite">
         <div class="payroll-metric"><span>共同營業額</span><strong id="payrollCommonTotal">0 Gil</strong></div>
         <div class="payroll-metric"><span>每人共同分紅</span><strong id="payrollShareValue">0 Gil</strong></div>
-        <div class="payroll-metric"><span>個人特殊收入合計</span><strong id="payrollSpecialTotal">0 Gil</strong></div>
+        <div class="payroll-metric"><span>特殊服務收入合計（含未指派）</span><strong id="payrollSpecialTotal">0 Gil</strong></div>
       </div>
 
       <section class="panel payroll-settings-panel">
@@ -341,10 +334,9 @@
           <label>預約營業額<input id="payrollReservationRevenue" type="number" value="0" min="0" inputmode="numeric"></label>
           <label>共同收入加減調整<input id="payrollCommonAdjustment" type="number" value="0" inputmode="numeric"></label>
           <label>共同收入手動覆蓋<input id="payrollCommonOverride" type="number" placeholder="留空使用自動結果" min="0" inputmode="numeric"></label>
-          <label>平分人數<input id="payrollHeadcount" type="number" value="1" min="1" inputmode="numeric"></label>
         </div>
         <div class="payroll-staff-checks" id="payrollStaffChecks" aria-label="參與共同分紅的女僕"></div>
-        <div class="payroll-count-note" id="payrollCountNote">正在載入店員名單…</div>
+        <div class="payroll-count-note" id="payrollCountNote">勾選參與共同分紅的成員。</div>
         <div class="payroll-warning" id="payrollUnassignedWarning" hidden></div>
       </section>
 
@@ -478,7 +470,7 @@
         <p class="admin-section-label">🕯 預約管理</p>
         <p class="panel-title">開放可預約日期</p>
         <div class="row">
-          <input type="text" id="newOpenDate" placeholder="日期 YYYY-MM-DD" style="min-width:140px;">
+          <input type="date" id="newOpenDate" aria-label="新增可預約日期" style="min-width:140px;">
           <button class="btn primary" id="addOpenDate">開放此日期</button>
         </div>
         <div id="openDateManageList" style="margin-top:10px;"></div>
@@ -600,7 +592,7 @@
     <div id="accessTab" class="manager-only" data-manager-only style="display:none;">
       <div class="panel">
         <p class="admin-section-label">🔐 後台帳號權限</p>
-        <p class="access-intro">新帳號第一次登入後會自動列在這裡，預設只能使用「訂單管理」。將帳號改成「管理人員」後，才可使用菜單、店員、預約、官網與權限設定。</p>
+        <p class="access-intro">新帳號第一次登入後會自動列在這裡，預設可使用「接待、訂單、特殊服務」。將帳號改成「管理人員」後，才可使用完整店務、薪資、官網與權限設定。</p>
         <div id="accessUserList" class="access-list"><span class="empty">正在讀取帳號…</span></div>
         <p id="accessMessage" class="access-message" aria-live="polite"></p>
       </div>
@@ -699,7 +691,7 @@
 
 <div class="menu-edit-overlay" id="reportOverlay" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
   <div class="menu-edit-modal">
-    <h4 id="reportTitle">今日日報</h4>
+    <h4 id="reportTitle">本場日報</h4>
     <div class="report-text" id="reportText">整理中…</div>
     <div class="menu-edit-actions">
       <button class="btn ghost" id="reportClose">關閉</button>
@@ -744,9 +736,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js"></script>
-<script src="admin.js?v=20260829-menu-images"></script>
+<script src="admin.js?v=20260905-v6"></script>
 <script src="site-content-admin.js?v=20260826a"></script>
-<script src="admin-workspace-preview.js?v=20260825"></script>
+<script src="admin-workspace-preview.js?v=20260830"></script>
 
 </body>
 </html>
