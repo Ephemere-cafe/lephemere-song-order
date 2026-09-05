@@ -1,0 +1,78 @@
+/* 曇時管理後台 v6：安全操作、薪資與最終視覺修正。 */
+
+@media (min-width:1181px){
+  #payrollTab{grid-column:2;grid-row:2;min-width:0}
+}
+
+.payroll-fields{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+#orderSubTabs .tab{
+  appearance:none;
+  font:inherit;
+  line-height:inherit;
+}
+#orderSubTabs .tab:focus-visible{
+  outline:3px solid rgba(43,88,119,.18);
+  outline-offset:2px;
+}
+
+.photo-modal .staff-photo-file{
+  color:var(--parchment);
+  background:#fff;
+  border-color:#bcc9d2;
+  border-radius:7px;
+}
+.photo-modal .staff-photo-file::file-selector-button{
+  margin-right:10px;
+  padding:7px 10px;
+  color:#fff;
+  background:var(--ivory-blue);
+  border:0;
+  border-radius:5px;
+  cursor:pointer;
+}
+.photo-modal .staff-photo-preview-card{
+  color:var(--parchment);
+  background:#f4f7f9;
+  border-color:var(--line);
+  border-radius:8px;
+}
+.photo-modal .staff-photo-preview-title{color:var(--ink)}
+.photo-modal .staff-photo-preview-card label{color:var(--admin-muted)}
+.photo-modal .staff-photo-preview-card output{color:var(--terracotta)}
+.photo-modal .photo-modal-actions{background:#fff;border-color:var(--line)}
+
+.reservation-admin-list{display:flex;flex-direction:column;gap:8px}
+.reservation-admin-row{
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+}
+.reservation-admin-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+}
+.reservation-admin-head>span:first-child{min-width:0;overflow-wrap:anywhere}
+.reservation-admin-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:0 0 auto}
+.reservation-admin-songs{margin-top:4px;color:var(--parchment-dim);font-size:11.5px}
+.reservation-admin-row.is-cancelled{opacity:.72}
+.reservation-admin-row.is-cancelled .reservation-admin-head>span:first-child{text-decoration:line-through}
+.reservation-cancelled-badge{
+  display:inline-flex;
+  padding:5px 9px;
+  color:#7a4b52;
+  background:#fff1f3;
+  border:1px solid #e5cbd0;
+  border-radius:999px;
+  font-size:11px;
+  white-space:nowrap;
+}
+.reservation-cancel-button{color:var(--rose)!important;border-color:#d8a9ae!important}
+
+@media(max-width:720px){
+  .payroll-fields{grid-template-columns:1fr}
+  .reservation-admin-head{align-items:flex-start;flex-direction:column}
+  .reservation-admin-actions{width:100%;justify-content:space-between;flex-wrap:wrap}
+}
+@media(min-width:721px) and (max-width:1100px){.payroll-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}

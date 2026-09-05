@@ -1604,6 +1604,9 @@ input[type=checkbox],input[type=radio],input[type=range]{accent-color:var(--ivor
 @media(prefers-reduced-motion:reduce){.guest-workspace-preview *{scroll-behavior:auto!important}}
 
 /* 寬桌機將摘要停靠在工作區旁，不覆蓋接待與訂單內容。 */
+.guest-workspace-preview[data-open="true"]{display:block!important}
+.guest-workspace-preview[data-open="false"]{display:none!important}
+
 @media(min-width:1400px){
   #adminArea.workspace-preview-active{
     grid-template-columns:214px minmax(0,1fr) minmax(270px,300px)!important;

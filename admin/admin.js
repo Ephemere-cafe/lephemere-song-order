@@ -25,6 +25,8 @@
   var currentOrderFilter = 'active';
   var currentSpecialFilter = 'all';
   var orderSearchTerm = '';
+  var receptionSearchTerm = '';
+  var receptionAttentionOnly = false;
   var knownOrderIds = {};
   var ordersSnapshotReady = false;
   var allOrderHistoryLoaded = false;
@@ -174,6 +176,7 @@
     if(help) help.textContent = operationStatus.isOpen===false
       ? '可調整上方日期後按「開始營業」；開店後日期會鎖定，直到本場打烊。'
       : '目前場次已鎖定，不會在午夜自動換日；請於本場結束後再打烊。';
+    renderTodayOverview();
   }
 
   function tickClock(){
@@ -182,7 +185,7 @@
   }
   tickClock();
   setInterval(tickClock,15000);
-  setInterval(function(){ updateElapsedLabels(); renderStats(); renderReception(); },30000);
+  setInterval(function(){ updateElapsedLabels(); renderStats(); renderReception(); renderTodayOverview(); },30000);
   setInterval(function(){
     if(currentStaffId&&currentAuthUser&&!document.hidden&&staffPresenceRef){
       staffPresenceRef.child(currentStaffId).update({lastSeenAt:Date.now(),sessionId:adminSessionId});
@@ -332,6 +335,7 @@
     document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
     var ordersMainTab = document.querySelector('.main-tab[data-main="orders"]');
     if(ordersMainTab) ordersMainTab.classList.add('active');
+    document.getElementById('todayTab').style.display = 'none';
     document.getElementById('receptionTab').style.display = 'none';
     document.getElementById('ordersTab').style.display = 'block';
     document.getElementById('specialServicesTab').style.display = 'none';
@@ -348,6 +352,7 @@
     document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
     var tab = document.querySelector('.main-tab[data-main="reception"]');
     if(tab) tab.classList.add('active');
+    document.getElementById('todayTab').style.display = 'none';
     document.getElementById('receptionTab').style.display = 'block';
     document.getElementById('ordersTab').style.display = 'none';
     document.getElementById('specialServicesTab').style.display = 'none';
@@ -358,6 +363,25 @@
     document.getElementById('payrollTab').style.display = 'none';
     document.getElementById('siteSettingsTab').style.display = 'none';
     document.getElementById('accessTab').style.display = 'none';
+  }
+
+  function showTodayTab(){
+    if(!isManager()){ showReceptionTab(); return; }
+    document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
+    var tab = document.querySelector('.main-tab[data-main="today"]');
+    if(tab) tab.classList.add('active');
+    document.getElementById('todayTab').style.display = 'block';
+    document.getElementById('receptionTab').style.display = 'none';
+    document.getElementById('ordersTab').style.display = 'none';
+    document.getElementById('specialServicesTab').style.display = 'none';
+    document.getElementById('operationsTab').style.display = 'none';
+    document.getElementById('menuTab').style.display = 'none';
+    document.getElementById('staffTab').style.display = 'none';
+    document.getElementById('reservationsTab').style.display = 'none';
+    document.getElementById('payrollTab').style.display = 'none';
+    document.getElementById('siteSettingsTab').style.display = 'none';
+    document.getElementById('accessTab').style.display = 'none';
+    renderTodayOverview();
   }
 
   function accessUsersValueHandler(snap){
@@ -386,6 +410,7 @@
       badge.className = 'access-badge'+(manager ? ' manager' : '');
     }
     if(!manager) showReceptionTab();
+    else if(document.querySelector('.main-tab.active[data-main="today"]')) showTodayTab();
     syncAccessListListener();
     if(attached) renderOrders();
   }
@@ -644,6 +669,7 @@
       assignmentHistoryReady=true;
       assignmentHistory=nextHistory;
       renderAssignmentHistory();
+      renderTodayOverview();
     });
 
     operationStatusRef.on('value', function(snap){
@@ -800,6 +826,7 @@
     }
     document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
     tab.classList.add('active');
+    document.getElementById('todayTab').style.display = target==='today' ? 'block' : 'none';
     document.getElementById('receptionTab').style.display = target==='reception' ? 'block' : 'none';
     document.getElementById('ordersTab').style.display = target==='orders' ? 'block' : 'none';
     document.getElementById('specialServicesTab').style.display = target==='special' ? 'block' : 'none';
@@ -811,6 +838,7 @@
     document.getElementById('siteSettingsTab').style.display = target==='site' ? 'block' : 'none';
     document.getElementById('accessTab').style.display = target==='access' ? 'block' : 'none';
     if(target==='payroll') renderPayroll();
+    if(target==='today') renderTodayOverview();
   });
 
   document.getElementById('siteMusicVolume').addEventListener('input', function(e){
@@ -1189,8 +1217,120 @@
     return '<article class="visit-card '+(index===0&&v.status==='waiting'?'next ':'')+(isMine?'mine ':'')+urgency+'"><div class="visit-card-top"><div><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':(v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分'))+'</span></div><div class="visit-owner-line">'+(v.status==='waiting'?'<span>尚未指派</span>':'<span class="visit-owner-label">主要接待</span><strong>'+escapeHtml(v.assignedStaffName||'未命名女僕')+'</strong>')+(isMine?'<span class="visit-owner-badge">我的接待</span>':'')+'</div><div class="visit-meta">'+(v.status==='waiting'?'依序候位中':(v.status==='serving'?'接待進行中':'等待開始接待'))+'</div><div class="visit-tags">'+tags+'</div>'+(actions?'<div class="visit-actions">'+actions+'</div>':'')+overview+'</article>';
   }
 
+  function setNavCount(id,count){
+    var el=document.getElementById(id);
+    if(!el) return;
+    el.textContent=String(count||0);
+    el.hidden=!count;
+  }
+
+  function activeOrdersForToday(){
+    return Object.keys(orders).map(function(id){return Object.assign({id:id},orders[id]||{});}).filter(function(order){
+      return orderBelongsToBusiness(order) && (order.status==='pending'||order.status==='preparing'||order.status==='served');
+    });
+  }
+
+  function activeReservationsForDate(date){
+    return Object.keys(reservations).map(function(id){return Object.assign({id:id},reservations[id]||{});}).filter(function(reservation){
+      return isActiveReservation(reservation) && reservation.date===date;
+    });
+  }
+
+  function pendingSpecialCount(){
+    var count=0;
+    activeOrdersForToday().forEach(function(order){
+      collectSpecialTasks(order.items||[]).forEach(function(task){if(specialTaskState(order,task)!=='completed') count++;});
+    });
+    return count;
+  }
+
+  function todayAttentionData(){
+    var entries=[];
+    visitRows(['waiting']).forEach(function(visit){
+      var minutes=waitMinutes(visit.createdAt);
+      if(minutes>=10) entries.push({weight:minutes>=20?0:1,kind:'候位 '+minutes+' 分',title:(visit.queueNumber||'候位')+'・'+(visit.characterName||'未填角色名'),detail:'請確認主人是否仍在店內',target:'reception',action:'前往接待'});
+    });
+    activeOrdersForToday().forEach(function(order){
+      if(order.status!=='pending') return;
+      var minutes=waitMinutes(order.createdAt);
+      if(minutes>=10) entries.push({weight:minutes>=20?0:1,kind:'訂單待接',title:'#'+(order.orderNumber||'—')+'・'+(order.name||'未填主人名'),detail:'已等待處理 '+minutes+' 分鐘',target:'orders',action:'查看訂單'});
+    });
+    activeReservationsForDate(currentBusinessDate()).forEach(function(reservation){
+      entries.push({weight:2,kind:'本場預約',title:(reservation.name||'未填姓名')+'・'+Number(reservation.size||1)+' 位',detail:reservation.maid?'指定成員：'+reservation.maid:'未指定接待成員',target:'reservations',action:'查看預約'});
+    });
+    return entries.sort(function(a,b){return a.weight-b.weight;}).slice(0,5);
+  }
+
+  function renderTodayOverview(){
+    var todayTab=document.getElementById('todayTab');
+    if(!todayTab) return;
+    var date=currentBusinessDate();
+    var waiting=visitRows(['waiting']);
+    var activeOrders=activeOrdersForToday();
+    var reservationsToday=activeReservationsForDate(date);
+    var schedule=scheduleForDate(activeDutyDate());
+    var dutyIds=activeDutyIds().filter(function(id){return !!staffRoster[id];});
+    var available=dutyIds.filter(function(id){return (staffPresence[id]||{}).status==='available';}).length;
+    var specialPending=pendingSpecialCount();
+    var attentions=todayAttentionData();
+
+    document.getElementById('todayOverviewDate').textContent=orderDateLabel(date)+'・即時整理既有營業資料';
+    var operationEl=document.getElementById('todayOperationState');
+    operationEl.innerHTML='<i></i> '+(operationStatus.isOpen===false?'本場已打烊':'本場營業中');
+    operationEl.className='today-operation-state '+(operationStatus.isOpen===false?'is-closed':'is-open');
+    document.getElementById('todayWaitingCount').textContent=waiting.length;
+    document.getElementById('todayActiveOrderCount').textContent=activeOrders.length;
+    document.getElementById('todayReservationCount').textContent=reservationsToday.length;
+    document.getElementById('todayAvailableCount').textContent=available;
+
+    setNavCount('navReceptionCount',waiting.length);
+    setNavCount('navOrderCount',activeOrders.filter(function(order){return order.status==='pending';}).length);
+    setNavCount('navSpecialCount',specialPending);
+    setNavCount('navReservationCount',reservationsToday.length);
+
+    document.getElementById('todayAttentionCount').textContent=attentions.length+' 項';
+    document.getElementById('todayAttentionList').innerHTML=attentions.length?attentions.map(function(entry){
+      return '<div class="today-attention-item"><span class="today-attention-kind">'+escapeHtml(entry.kind)+'</span><div class="today-attention-copy"><strong>'+escapeHtml(entry.title)+'</strong><span>'+escapeHtml(entry.detail)+'</span></div><button type="button" class="btn ghost small" data-dashboard-target="'+escapeAttr(entry.target)+'">'+escapeHtml(entry.action)+'</button></div>';
+    }).join(''):'<div class="today-empty">目前沒有需要優先處理的項目。</div>';
+
+    var presenceLabels={available:'可接待',serving:'接待中',photo:'拍照中',away:'暫離'};
+    document.getElementById('todayDutyCount').textContent=dutyIds.length+' 位成員';
+    document.getElementById('todayDutyList').innerHTML=dutyIds.length?dutyIds.map(function(id){
+      var staff=staffRoster[id]||{};
+      var presence=staffPresence[id]||{};
+      var stale=presence.lastSeenAt&&Date.now()-Number(presence.lastSeenAt)>300000;
+      var state=stale?'狀態可能已過期':(presenceLabels[presence.status]||'尚未回報');
+      return '<div class="today-duty-row"><span class="today-duty-mark">'+escapeHtml(String(staff.name||'?').slice(0,1))+'</span><div class="today-duty-copy"><strong>'+escapeHtml(staff.name||'未命名成員')+'</strong><span>'+(id===currentStaffId?'本機操作者':'本場值班')+'</span></div><span class="today-duty-state">'+escapeHtml(state)+'</span></div>';
+    }).join(''):'<div class="today-empty">'+(schedule?'本場尚未安排值班成員。':'本場值班名單尚未公布。')+'</div>';
+
+    var checks=[
+      {done:!!schedule&&dutyIds.length>0,label:'本場值班名單已公布'},
+      {done:Object.keys(menuItems).length>0,label:'菜單與供應資料已載入'},
+      {done:isDatabaseConnected,label:'Firebase 即時資料已連線'},
+      {done:operationStatus.isOpen!==false,label:'本場點餐已開放'}
+    ];
+    var doneCount=checks.filter(function(check){return check.done;}).length;
+    document.getElementById('todayCheckCount').textContent=doneCount+' / '+checks.length;
+    document.getElementById('todayCheckList').innerHTML=checks.map(function(check){return '<div class="today-check-row '+(check.done?'is-done':'')+'"><i>'+(check.done?'✓':'')+'</i><span>'+escapeHtml(check.label)+'</span></div>';}).join('');
+
+    var history=Object.keys(assignmentHistory).map(function(id){return assignmentHistory[id]||{};}).sort(function(a,b){return Number(b.createdAt||0)-Number(a.createdAt||0);})[0];
+    var recent=document.getElementById('todayRecentAction');
+    var recentText='尚無接待操作紀錄';
+    if(history){
+      var labels={claim:'認領接待',transfer:'轉交接待','order-page-transfer':'由訂單頁轉交','reset-daily-queue':'重置本場候位','reset-daily-orders':'重置本場訂單'};
+      recentText=fmtTime(history.createdAt)+'・'+(history.byStaffName||'管理人員')+' '+(labels[history.action]||history.action||'更新接待');
+    }
+    recent.querySelector('strong').textContent=recentText;
+  }
+
   function renderReception(){
     var waiting=visitRows(['waiting']);
+    var visibleWaiting=waiting.filter(function(visit){
+      var search=[visit.queueNumber,visit.characterName,visit.world,Array.isArray(visit.partyMembers)?visit.partyMembers.join(' '):''].join(' ').toLowerCase();
+      var matchesSearch=!receptionSearchTerm||search.indexOf(receptionSearchTerm)>-1;
+      var matchesAttention=!receptionAttentionOnly||!!visitUrgency(visit,ordersForVisit(visit.id));
+      return matchesSearch&&matchesAttention;
+    });
     var active=visitRows(['assigned','serving']);
     active.sort(function(a,b){
       var am=currentStaffId && a.assignedStaffId===currentStaffId?0:1, bm=currentStaffId && b.assignedStaffId===currentStaffId?0:1;
@@ -1201,7 +1341,7 @@
     var ids=(schedule?duty:Object.keys(staffRoster)).filter(function(id){return staffRoster[id];});
     var available=ids.filter(function(id){return (staffPresence[id]||{}).status==='available';}).length;
     var alerts=receptionAlertsData(waiting,active);
-    document.getElementById('visitWaitingCount').textContent=waiting.length;
+    document.getElementById('visitWaitingCount').textContent=(receptionSearchTerm||receptionAttentionOnly)?visibleWaiting.length+' / '+waiting.length:waiting.length;
     var mine=currentStaffId?active.filter(function(v){return v.assignedStaffId===currentStaffId;}):[];
     var teammates=active.filter(function(v){return !currentStaffId||v.assignedStaffId!==currentStaffId;});
     document.getElementById('myVisitCount').textContent=mine.length;
@@ -1213,10 +1353,11 @@
     document.getElementById('receptionAlertCount').textContent=alerts.length+' 項';
     document.getElementById('receptionAlerts').classList.toggle('visible',alerts.length>0);
     document.getElementById('receptionAlertList').innerHTML=alerts.map(function(a){return '<div class="reception-alert-item"><strong>'+escapeHtml(a.title)+'</strong><span>'+escapeHtml(a.detail)+'</span></div>';}).join('');
-    document.getElementById('visitWaitingList').innerHTML=waiting.length?waiting.map(function(v,i){return visitCard(v,i,false);}).join(''):'<div class="queue-empty">目前沒有人候位。<br>自由參觀的客人不會出現在這裡。</div>';
+    document.getElementById('visitWaitingList').innerHTML=visibleWaiting.length?visibleWaiting.map(function(v,i){return visitCard(v,i,false);}).join(''):(waiting.length?'<div class="queue-empty">沒有符合搜尋或篩選條件的候位主人。</div>':'<div class="queue-empty">目前沒有人候位。<br>自由參觀的客人不會出現在這裡。</div>');
     document.getElementById('myVisitList').innerHTML=mine.length?mine.map(function(v,i){return visitCard(v,i,true);}).join(''):'<div class="queue-empty">你目前沒有接待中的主人。<br>有空時可接待下一組。</div>';
     document.getElementById('teamVisitList').innerHTML=teammates.length?teammates.map(function(v,i){return visitCard(v,i,false);}).join(''):'<div class="queue-empty">其他女僕目前沒有接待中的主人。</div>';
     var label={available:'可接待',serving:'接待中',photo:'拍照中',away:'暫離'};
+    document.getElementById('staffPresenceCount').textContent=ids.length;
     document.getElementById('staffPresenceList').innerHTML=ids.length?ids.map(function(id){
       var presence=staffPresence[id]||{};
       var stale=presence.lastSeenAt && Date.now()-Number(presence.lastSeenAt)>300000;
@@ -1227,6 +1368,7 @@
     document.querySelectorAll('[data-presence]').forEach(function(btn){ btn.classList.toggle('active',!!currentStaffId && ((staffPresence[currentStaffId]||{}).status===btn.getAttribute('data-presence'))); });
     document.getElementById('claimNextVisit').disabled=!currentStaffId;
     renderAssignmentHistory();
+    renderTodayOverview();
   }
 
   function syncVisitOrdersAssignee(visitId,staffId,staffName){
@@ -1400,6 +1542,21 @@
     if(!btn) return;
     var visit=visits[btn.getAttribute('data-copy-call')];
     if(visit) copyReceptionText(visitCallText(visit));
+  });
+
+  document.getElementById('todayTab').addEventListener('click',function(e){
+    var target=e.target.closest('[data-dashboard-target]');
+    if(!target) return;
+    var tab=document.querySelector('.main-tab[data-main="'+target.getAttribute('data-dashboard-target')+'"]');
+    if(tab) tab.click();
+  });
+  document.getElementById('receptionSearch').addEventListener('input',function(){
+    receptionSearchTerm=this.value.trim().toLowerCase();
+    renderReception();
+  });
+  document.getElementById('receptionAttentionOnly').addEventListener('change',function(){
+    receptionAttentionOnly=this.checked;
+    renderReception();
   });
 
   document.getElementById('globalStaffSelect').addEventListener('change',function(){ setCurrentStaff(this.value); });
@@ -1601,6 +1758,7 @@
     document.getElementById('statCompleted').textContent = completed;
     document.getElementById('statTotalGil').textContent = fmtGil(gil);
     document.getElementById('overviewDate').textContent = currentBusinessDate().replace(/-/g,' / ')+'・即時整理本場訂單與待處理事項';
+    renderTodayOverview();
   }
 
   function addSpecialTag(tags, key, label){
@@ -3486,7 +3644,7 @@
   function renderAdminReservations(){
     var el = document.getElementById('adminReservationList');
     var keys = Object.keys(reservations);
-    if(keys.length===0){ el.innerHTML = '尚無預約'; return; }
+    if(keys.length===0){ el.innerHTML = '尚無預約'; renderTodayOverview(); return; }
     var arr = keys.map(function(id){ return Object.assign({id:id},reservations[id]||{}); });
     arr.sort(function(a,b){
       var byDate=String(a.date||'').localeCompare(String(b.date||''));
@@ -3507,6 +3665,7 @@
     });
     html += '</div>';
     el.innerHTML = html;
+    renderTodayOverview();
     bindNotificationRetries(el);
     el.querySelectorAll('[data-cancel-reservation]').forEach(function(btn){
       btn.addEventListener('click', function(){

@@ -1,0 +1,136 @@
+/* 曇時管理後台 v10：今日總覽與接待工作區排版補強。 */
+
+.main-tab{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.main-tab-count{display:inline-grid;min-width:20px;height:20px;padding:0 6px;place-items:center;border-radius:999px;background:#e9a477;color:#263f51;font-size:10px;font-weight:700;line-height:1}
+.main-tab-count[hidden]{display:none!important}
+
+@media(min-width:1181px){
+  #todayTab{grid-column:2;grid-row:2;min-width:0}
+}
+
+.today-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:8px 0 14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.today-heading .page-heading-copy h2{margin-bottom:2px}
+.today-operation-state{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;color:var(--admin-muted);background:#f1f5f7;font-size:11px;white-space:nowrap}
+.today-operation-state i{width:7px;height:7px;border-radius:50%;background:#97a1a6}
+.today-operation-state.is-open{color:#56725f;background:#edf5ef}
+.today-operation-state.is-open i{background:#72947c}
+.today-operation-state.is-closed{color:#985e5c;background:#fff1f0}
+.today-operation-state.is-closed i{background:#bd7775}
+
+.today-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:12px;border:1px solid var(--line);border-radius:9px;background:#fff;overflow:hidden}
+.today-metric{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:6px;min-width:0;padding:13px 15px;border:0;border-right:1px solid var(--line);color:var(--ink);background:#fff;text-align:left;cursor:pointer}
+.today-metric:last-child{border-right:0}
+.today-metric:hover,.today-metric:focus-visible{background:#f4f7f9;outline:0}
+.today-metric span{grid-column:1/-1;color:var(--admin-muted);font-size:11px}
+.today-metric strong{font-family:'Noto Serif TC',serif;font-size:25px;font-weight:500;line-height:1}
+.today-metric small{justify-self:end;color:var(--admin-muted);font-size:10px}
+
+.today-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(310px,.92fr);gap:12px;align-items:start}
+.today-grid>.panel{margin:0;padding:0;overflow:hidden}
+.today-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:42px;padding:10px 13px;border-bottom:1px solid var(--line);background:#f4f7f9}
+.today-panel-head h3{margin:0;color:var(--ink);font-family:'Noto Serif TC',serif;font-size:14px;font-weight:600}
+.today-panel-head span{color:var(--admin-muted);font-size:10px}
+.today-empty{display:grid;min-height:118px;place-items:center;padding:24px;color:var(--admin-muted);font-size:12px;text-align:center}
+
+.today-attention-list{min-height:156px}
+.today-attention-item{display:grid;grid-template-columns:78px minmax(0,1fr) auto;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--line)}
+.today-attention-item:last-child{border-bottom:0}
+.today-attention-kind{color:#b66d52;font-size:10px}
+.today-attention-copy{min-width:0}
+.today-attention-copy strong,.today-attention-copy span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.today-attention-copy strong{color:var(--ink);font-size:12px;font-weight:600}
+.today-attention-copy span{margin-top:2px;color:var(--admin-muted);font-size:10px}
+.today-attention-item .btn{min-height:32px;padding:6px 10px;font-size:10px}
+
+.today-duty-list{padding:3px 13px}
+.today-duty-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--line)}
+.today-duty-row:last-child{border-bottom:0}
+.today-duty-mark{display:grid;width:28px;height:28px;place-items:center;border-radius:50%;color:#315b77;background:#e9f0f4;font-size:10px}
+.today-duty-copy strong,.today-duty-copy span{display:block}
+.today-duty-copy strong{color:var(--ink);font-size:12px}
+.today-duty-copy span{color:var(--admin-muted);font-size:10px}
+.today-duty-state{color:#56725f;font-size:10px;white-space:nowrap}
+
+.today-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:13px}
+.today-shortcuts .btn{min-height:52px;color:var(--ivory-blue);border-color:#cad9e3;background:#f7fafb}
+.today-shortcuts .btn:hover{background:#edf3f6}
+
+.today-check-list{padding:8px 13px 3px}
+.today-check-row{display:flex;align-items:center;gap:9px;padding:7px 0;color:var(--admin-muted);font-size:11px}
+.today-check-row i{display:grid;flex:0 0 auto;width:18px;height:18px;place-items:center;border:1px solid #c9d6dd;border-radius:4px;color:#fff;background:#fff;font-style:normal;font-size:10px}
+.today-check-row.is-done{color:var(--ink)}
+.today-check-row.is-done i{border-color:#6f92a7;background:#2b6c91}
+.today-check-panel>p{margin:4px 13px 12px;color:var(--admin-muted);font-size:10px;line-height:1.6}
+
+.today-recent{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;margin-top:12px;padding:10px 13px;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:#f4f7f9;text-align:left;cursor:pointer}
+.today-recent span,.today-recent small{color:var(--admin-muted);font-size:10px}
+.today-recent strong{overflow:hidden;font-size:11px;font-weight:500;text-overflow:ellipsis;white-space:nowrap}
+
+#receptionTab .page-heading{margin-bottom:10px}
+.reception-console-head{grid-template-columns:minmax(220px,.62fr) minmax(0,1.38fr)!important;padding:13px 15px!important}
+.reception-console-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:0}
+.reception-console-actions .presence-row{flex:1;margin:0;padding:0;border:0}
+.reception-console-actions #claimNextVisit{flex:0 0 auto}
+.reception-overview{margin:10px 0!important;gap:0!important;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.reception-metric{display:grid!important;grid-template-columns:auto 1fr!important;align-items:center!important;min-height:42px!important;padding:8px 12px!important;border:0!important;border-right:1px solid var(--line)!important;border-radius:0!important}
+.reception-metric:last-child{border-right:0!important}
+.reception-metric-label{font-size:10px!important}
+.reception-metric-value{justify-self:end;font-size:18px!important;line-height:1!important}
+.reception-metric-note{display:none!important}
+.reception-grid{grid-template-columns:minmax(300px,1fr) minmax(300px,1fr)!important;gap:10px!important;margin:10px 0!important}
+.my-visits-column{position:static!important}
+.reception-queue-title{align-items:center!important;min-height:48px;margin:0!important;padding:7px 10px!important}
+.reception-queue-title>span{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.reception-filter-tools{display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0}
+.reception-filter-tools input[type=search]{width:min(190px,42vw);min-height:32px;padding:6px 9px;border:1px solid var(--line);border-radius:7px;color:var(--ink);background:#fff;font:inherit;font-size:10px}
+.reception-filter-tools label{display:flex;align-items:center;gap:4px;white-space:nowrap;color:var(--admin-muted);font-size:10px!important}
+.reception-filter-tools input[type=checkbox]{accent-color:var(--ivory-blue)}
+.team-visits-panel,.team-status-panel{grid-column:1/-1;padding:0!important;border:1px solid var(--line);border-radius:8px;background:#fff}
+.team-visits-panel>summary,.team-status-panel>summary{min-height:40px;margin:0!important;padding:9px 11px!important;cursor:pointer;list-style:none}
+.team-visits-panel>summary::-webkit-details-marker,.team-status-panel>summary::-webkit-details-marker{display:none}
+.team-visits-panel>summary::after,.team-status-panel>summary::after{content:'展開⌄';margin-left:auto;color:var(--admin-muted);font-family:'Noto Sans TC',sans-serif;font-size:10px}
+.team-visits-panel[open]>summary::after,.team-status-panel[open]>summary::after{content:'收起⌃'}
+.team-visits-panel>div,.team-status-panel>div{padding:9px 10px 10px!important;border-top:1px solid var(--line)}
+.reception-session-panel{margin:10px 0!important;padding:0!important;overflow:hidden}
+.reception-session-panel>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;cursor:pointer;list-style:none;color:var(--ink);font-size:11px}
+.reception-session-panel>summary::-webkit-details-marker{display:none}
+.reception-session-panel>summary span:last-child{color:var(--admin-muted);font-size:10px}
+.reception-session-body{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border-top:1px solid var(--line)}
+.reception-session-body p{margin:0;color:var(--admin-muted);font-size:10px!important}
+.danger-action{flex:0 0 auto;color:#a35156!important;border-color:#d9a6aa!important}
+
+@media(max-width:1180px){
+  .main-tab{justify-content:center}
+  .today-grid{grid-template-columns:1fr 1fr}
+}
+
+@media(max-width:900px){
+  .today-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .today-metric:nth-child(2){border-right:0}
+  .today-metric:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .today-grid{grid-template-columns:1fr}
+  .reception-console-head{grid-template-columns:1fr!important}
+  .reception-console-actions{justify-content:flex-start;flex-wrap:wrap}
+  .reception-grid{grid-template-columns:1fr!important}
+  .reception-metric:nth-child(2){border-right:0!important}
+  .reception-metric:nth-child(-n+2){border-bottom:1px solid var(--line)!important}
+}
+
+@media(max-width:620px){
+  .today-heading{align-items:flex-start;flex-direction:column}
+  .today-operation-state{align-self:flex-start}
+  .today-metrics{grid-template-columns:1fr 1fr}
+  .today-metric{padding:11px}
+  .today-attention-item{grid-template-columns:64px minmax(0,1fr)}
+  .today-attention-item .btn{grid-column:1/-1;width:100%}
+  .today-shortcuts{grid-template-columns:1fr}
+  .today-recent{grid-template-columns:1fr}
+  .reception-console-actions{display:grid;grid-template-columns:1fr}
+  .reception-console-actions .presence-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .reception-console-actions #claimNextVisit{width:100%}
+  .reception-overview{grid-template-columns:1fr 1fr!important}
+  .reception-queue-title{align-items:stretch!important;flex-direction:column!important}
+  .reception-filter-tools{display:grid;grid-template-columns:1fr}
+  .reception-filter-tools input[type=search]{width:100%}
+  .reception-session-body{align-items:stretch;flex-direction:column}
+}

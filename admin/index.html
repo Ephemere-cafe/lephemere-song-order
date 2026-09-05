@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>曇時 管理後台</title>
-<link rel="stylesheet" href="admin-ui-v6.css?v=20260905b">
+  <link rel="stylesheet" href="admin-ui-v6.css?v=20260905c">
+  <link rel="stylesheet" href="admin-ui-v10.css?v=20260906a">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -38,14 +39,15 @@
 
     <div class="main-tabs" id="mainTabs">
       <span class="main-tab-group-label">營業中</span>
-      <button type="button" class="main-tab active" data-main="reception">接待</button>
-      <button type="button" class="main-tab" data-main="orders">訂單</button>
-      <button type="button" class="main-tab" data-main="special">特殊服務</button>
+      <button type="button" class="main-tab active manager-only" data-main="today" data-manager-only><span>今日總覽</span></button>
+      <button type="button" class="main-tab" data-main="reception"><span>接待</span><span class="main-tab-count" id="navReceptionCount" hidden>0</span></button>
+      <button type="button" class="main-tab" data-main="orders"><span>訂單</span><span class="main-tab-count" id="navOrderCount" hidden>0</span></button>
+      <button type="button" class="main-tab" data-main="special"><span>特殊服務</span><span class="main-tab-count" id="navSpecialCount" hidden>0</span></button>
       <span class="main-tab-group-label manager-only" data-manager-only>店務</span>
       <button type="button" class="main-tab manager-only" data-main="operations" data-manager-only>營業</button>
       <button type="button" class="main-tab manager-only" data-main="menu" data-manager-only>菜單</button>
       <button type="button" class="main-tab manager-only" data-main="staff" data-manager-only>店員</button>
-      <button type="button" class="main-tab manager-only" data-main="reservations" data-manager-only>預約</button>
+      <button type="button" class="main-tab manager-only" data-main="reservations" data-manager-only><span>預約</span><span class="main-tab-count" id="navReservationCount" hidden>0</span></button>
       <button type="button" class="main-tab manager-only" data-main="payroll" data-manager-only>薪資</button>
       <span class="main-tab-group-label manager-only" data-manager-only>系統</span>
       <button type="button" class="main-tab manager-only" data-main="site" data-manager-only>官網音樂</button>
@@ -91,17 +93,61 @@
     </aside>
     <button class="guest-preview-backdrop" id="guestPreviewBackdrop" type="button" aria-label="關閉主人畫面" hidden></button>
 
+    <!-- ============ 今日總覽 ============ -->
+    <div id="todayTab" class="manager-only" data-manager-only>
+      <div class="today-heading">
+        <div class="page-heading-copy"><span class="page-eyebrow">Today</span><h2>今日總覽</h2><p id="todayOverviewDate">正在整理本場資訊…</p></div>
+        <span class="today-operation-state" id="todayOperationState"><i></i> 狀態確認中</span>
+      </div>
+
+      <div class="today-metrics" aria-label="今日營業概況">
+        <button type="button" class="today-metric" data-dashboard-target="reception"><span>正在候位</span><strong id="todayWaitingCount">0</strong><small>組</small></button>
+        <button type="button" class="today-metric" data-dashboard-target="orders"><span>進行中訂單</span><strong id="todayActiveOrderCount">0</strong><small>筆</small></button>
+        <button type="button" class="today-metric" data-dashboard-target="reservations"><span>本場預約</span><strong id="todayReservationCount">0</strong><small>組</small></button>
+        <button type="button" class="today-metric" data-dashboard-target="reception"><span>可接待成員</span><strong id="todayAvailableCount">0</strong><small>位</small></button>
+      </div>
+
+      <div class="today-grid">
+        <section class="panel today-attention-panel">
+          <div class="today-panel-head"><h3>需要留意</h3><span id="todayAttentionCount">0 項</span></div>
+          <div class="today-attention-list" id="todayAttentionList"><div class="today-empty">目前沒有需要優先處理的項目。</div></div>
+        </section>
+
+        <section class="panel today-duty-panel">
+          <div class="today-panel-head"><h3>今日值班</h3><span id="todayDutyCount">0 位成員</span></div>
+          <div class="today-duty-list" id="todayDutyList"><div class="today-empty">值班資料載入中…</div></div>
+        </section>
+
+        <section class="panel today-shortcuts-panel">
+          <div class="today-panel-head"><h3>快速前往</h3><span>保留原有功能入口</span></div>
+          <div class="today-shortcuts">
+            <button type="button" class="btn ghost" data-dashboard-target="reception">接待下一組</button>
+            <button type="button" class="btn ghost" data-dashboard-target="orders">查看進行中訂單</button>
+            <button type="button" class="btn ghost" data-dashboard-target="reservations">查看預約</button>
+            <button type="button" class="btn ghost" data-dashboard-target="operations">場次管理</button>
+          </div>
+        </section>
+
+        <section class="panel today-check-panel">
+          <div class="today-panel-head"><h3>營業檢查</h3><span id="todayCheckCount">0 / 4</span></div>
+          <div class="today-check-list" id="todayCheckList"></div>
+          <p>依既有 Firebase 資料即時判斷，不會另外儲存或改動營業設定。</p>
+        </section>
+      </div>
+
+      <button type="button" class="today-recent" id="todayRecentAction" data-dashboard-target="reception"><span>最近操作</span><strong>尚無接待操作紀錄</strong><small>查看接待紀錄 →</small></button>
+    </div>
+
     <!-- ============ 接待候位 ============ -->
-    <div id="receptionTab">
+    <div id="receptionTab" style="display:none;">
       <div class="page-heading">
-        <div class="page-heading-copy"><span class="page-eyebrow">Reception</span><h2>接待工作區</h2><p>候位、接待與交接集中在這裡處理。</p></div>
+        <div class="page-heading-copy"><span class="page-eyebrow">Reception</span><h2>接待工作區</h2><p>優先顯示自己的主要工作；其他資訊需要時再展開。</p></div>
       </div>
       <div class="panel reception-console">
         <div class="reception-console-head">
-          <div><h2 style="font-family:'Noto Serif TC',serif;font-size:17px;margin:0 0 5px;">本場接待狀態</h2><p style="font-size:11px;color:var(--parchment-dim);margin:0;line-height:1.7;">需要換手時請使用正式轉交。</p></div>
-          <div class="reception-identity"><div><label>目前操作女僕</label><strong id="receptionStaffDisplay" style="display:block;color:var(--gold);padding:8px 0;">尚未選擇</strong></div><div class="reception-identity-actions"><button class="btn primary" id="claimNextVisit" type="button">接待下一組</button><button class="btn ghost manager-only" data-manager-only id="resetVisitQueue" type="button" style="border-color:var(--rose-dim);color:var(--rose);">重置本場候位</button></div></div>
+          <div><h2 style="font-family:'Noto Serif TC',serif;font-size:17px;margin:0 0 5px;"><span id="receptionStaffDisplay">尚未選擇</span>的接待狀態</h2><p style="font-size:11px;color:var(--parchment-dim);margin:0;line-height:1.7;">需要換手時請使用正式轉交。</p></div>
+          <div class="reception-console-actions"><div class="presence-row" id="presenceButtons"><button class="presence-btn" data-presence="available">可接待</button><button class="presence-btn" data-presence="serving">接待中</button><button class="presence-btn" data-presence="photo">拍照中</button><button class="presence-btn" data-presence="away">暫離</button></div><button class="btn primary" id="claimNextVisit" type="button">接待下一組</button></div>
         </div>
-        <div class="presence-row" id="presenceButtons"><button class="presence-btn" data-presence="available">可接待</button><button class="presence-btn" data-presence="serving">接待中</button><button class="presence-btn" data-presence="photo">拍照中</button><button class="presence-btn" data-presence="away">暫離</button></div>
       </div>
       <details class="panel reception-template-panel">
         <summary><span>✉ 我的接待文字</span><span>員工可自行調整</span></summary>
@@ -119,11 +165,12 @@
       </div>
       <div class="panel reception-alerts" id="receptionAlerts"><div class="reception-alert-head"><span>需要優先處理</span><span id="receptionAlertCount">0 項</span></div><div id="receptionAlertList"></div></div>
       <div class="reception-grid">
-        <section class="reception-column"><div class="reception-column-title"><span>候位隊列</span><span class="reception-count" id="visitWaitingCount">0</span></div><div id="visitWaitingList"></div></section>
+        <section class="reception-column"><div class="reception-column-title reception-queue-title"><span>候位隊列 <span class="reception-count" id="visitWaitingCount">0</span></span><div class="reception-filter-tools"><input type="search" id="receptionSearch" placeholder="搜尋主人／候位號碼" aria-label="搜尋主人名稱或候位號碼"><label><input type="checkbox" id="receptionAttentionOnly"> 只看需要留意</label></div></div><div id="visitWaitingList"></div></section>
         <section class="reception-column my-visits-column"><div class="reception-column-title"><span>我的接待</span><span class="reception-count" id="myVisitCount">0</span></div><div id="myVisitList"></div></section>
-        <details class="reception-column team-visits-panel" open><summary class="reception-column-title"><span>其他女僕接待中・可直接轉交</span><span class="reception-count" id="teamVisitCount">0</span></summary><div id="teamVisitList"></div></details>
-        <section class="reception-column team-section"><div class="reception-column-title"><span>本場女僕狀態</span></div><div class="team-grid" id="staffPresenceList"></div></section>
+        <details class="reception-column team-visits-panel"><summary class="reception-column-title"><span>其他成員接待中・可直接轉交</span><span class="reception-count" id="teamVisitCount">0</span></summary><div id="teamVisitList"></div></details>
+        <details class="reception-column team-status-panel"><summary class="reception-column-title"><span>成員狀態總覽</span><span class="reception-count" id="staffPresenceCount">0</span></summary><div class="team-grid" id="staffPresenceList"></div></details>
       </div>
+      <details class="panel reception-session-panel manager-only" data-manager-only><summary><span>場次管理</span><span>低頻率操作</span></summary><div class="reception-session-body"><p>請先結束營業再重置候位；已完成接待與既有訂單不會刪除。</p><button class="btn ghost small danger-action" data-manager-only id="resetVisitQueue" type="button">重置本場候位</button></div></details>
       <details class="panel"><summary style="cursor:pointer;color:var(--mist);font-size:12px;">最近接待操作紀錄</summary><div class="audit-list" id="assignmentHistoryList"><div class="queue-empty">尚無操作紀錄</div></div></details>
       <div class="copy-toast" id="copyToast" role="status" aria-live="polite">叫號文字已複製</div>
     </div>
@@ -738,7 +785,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js"></script>
 <script src="admin.js?v=20260905-v6"></script>
 <script src="site-content-admin.js?v=20260826a"></script>
-<script src="admin-workspace-preview.js?v=20260905b"></script>
+<script src="admin-workspace-preview.js?v=20260905c"></script>
 
 </body>
 </html>

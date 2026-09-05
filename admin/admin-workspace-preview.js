@@ -9,6 +9,7 @@
   var backdrop = document.getElementById('guestPreviewBackdrop');
   if(!area || !preview || !select || !toggle || !close || !backdrop || typeof firebase === 'undefined') return;
   var desktopPreviewQuery=window.matchMedia('(min-width:1400px)');
+  var previewPreference=readPreviewPreference();
 
   var mode = 'reception';
   var signedIn = false;
@@ -25,6 +26,23 @@
     pending:'待接單', preparing:'服務中', served:'服務中',
     completed:'已完成', cancelled:'已取消'
   };
+
+  function readPreviewPreference(){
+    try{
+      var value=window.localStorage.getItem('lephemere-admin-guest-preview');
+      return value==='open'?true:value==='closed'?false:null;
+    }catch(error){ return null; }
+  }
+
+  function savePreviewPreference(open){
+    previewPreference=!!open;
+    try{ window.localStorage.setItem('lephemere-admin-guest-preview',open?'open':'closed'); }
+    catch(error){}
+  }
+
+  function previewIsOpen(){
+    return preview.getAttribute('data-open')==='true';
+  }
 
   function localDateKey(){
     var now = new Date();
@@ -172,18 +190,21 @@
     return active?active.getAttribute('data-main'):'reception';
   }
 
-  function setPreviewOpen(open){
+  function setPreviewOpen(open,remember){
     var active=activeMainTab();
     var shouldOpen=!!open && signedIn && (active==='reception'||active==='orders');
     preview.hidden=!shouldOpen;
+    preview.setAttribute('data-open',shouldOpen?'true':'false');
     area.classList.toggle('guest-preview-open',shouldOpen);
     syncPreviewLayout();
     toggle.setAttribute('aria-expanded',shouldOpen?'true':'false');
+    toggle.textContent=shouldOpen?'收起主人畫面':'查看主人畫面';
+    if(remember) savePreviewPreference(shouldOpen);
     if(shouldOpen) setMode(active);
   }
 
   function syncPreviewLayout(){
-    var shouldOpen=!preview.hidden;
+    var shouldOpen=previewIsOpen();
     var shouldDock=shouldOpen && desktopPreviewQuery.matches;
     area.classList.toggle('workspace-preview-active',shouldDock);
     backdrop.hidden=!shouldOpen || shouldDock;
@@ -194,7 +215,11 @@
     var available=signedIn && (active==='reception'||active==='orders');
     toggle.hidden=!available;
     if(!available){ setPreviewOpen(false); return; }
-    if(!preview.hidden) setMode(active);
+    if(previewIsOpen()) setMode(active);
+    else{
+      var shouldRestore=previewPreference===null?desktopPreviewQuery.matches:previewPreference;
+      if(shouldRestore) setPreviewOpen(true,false);
+    }
   }
 
   function bindVisits(date){
@@ -227,10 +252,10 @@
     renderCard(records.find(function(record){return record.id===select.value;})||null);
   });
 
-  toggle.addEventListener('click',function(){ setPreviewOpen(preview.hidden); });
-  close.addEventListener('click',function(){ setPreviewOpen(false); toggle.focus(); });
-  backdrop.addEventListener('click',function(){ setPreviewOpen(false); toggle.focus(); });
-  document.addEventListener('keydown',function(event){ if(event.key==='Escape'&&!preview.hidden) setPreviewOpen(false); });
+  toggle.addEventListener('click',function(){ setPreviewOpen(!previewIsOpen(),true); });
+  close.addEventListener('click',function(){ setPreviewOpen(false,true); toggle.focus(); });
+  backdrop.addEventListener('click',function(){ setPreviewOpen(false,true); toggle.focus(); });
+  document.addEventListener('keydown',function(event){ if(event.key==='Escape'&&previewIsOpen()) setPreviewOpen(false,true); });
   if(desktopPreviewQuery.addEventListener) desktopPreviewQuery.addEventListener('change',syncPreviewLayout);
   else desktopPreviewQuery.addListener(syncPreviewLayout);
 
