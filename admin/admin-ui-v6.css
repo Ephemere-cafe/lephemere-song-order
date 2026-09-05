@@ -1603,6 +1603,27 @@ input[type=checkbox],input[type=radio],input[type=range]{accent-color:var(--ivor
 
 @media(prefers-reduced-motion:reduce){.guest-workspace-preview *{scroll-behavior:auto!important}}
 
+/* 寬桌機將摘要停靠在工作區旁，不覆蓋接待與訂單內容。 */
+@media(min-width:1400px){
+  #adminArea.workspace-preview-active{
+    grid-template-columns:214px minmax(0,1fr) minmax(270px,300px)!important;
+  }
+  #adminArea.workspace-preview-active>.guest-workspace-preview{
+    position:sticky!important;
+    top:14px!important;
+    right:auto!important;
+    bottom:auto!important;
+    z-index:20;
+    width:100%!important;
+    max-height:calc(100vh - 28px);
+    align-self:start;
+    grid-column:3!important;
+  }
+  #adminArea.workspace-preview-active>#receptionTab,
+  #adminArea.workspace-preview-active>#ordersTab{grid-column:2!important}
+  #adminArea.workspace-preview-active>.guest-preview-backdrop{display:none!important}
+}
+
 
 /* ===== admin-v6-fixes.css ===== */
 /* 曇時管理後台 v6：安全操作、薪資與最終視覺修正。 */

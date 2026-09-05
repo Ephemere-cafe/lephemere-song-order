@@ -4,7 +4,11 @@
   var area = document.getElementById('adminArea');
   var preview = document.getElementById('guestWorkspacePreview');
   var select = document.getElementById('guestPreviewRecordSelect');
-  if(!area || !preview || !select || typeof firebase === 'undefined') return;
+  var toggle = document.getElementById('guestPreviewToggle');
+  var close = document.getElementById('guestPreviewClose');
+  var backdrop = document.getElementById('guestPreviewBackdrop');
+  if(!area || !preview || !select || !toggle || !close || !backdrop || typeof firebase === 'undefined') return;
+  var desktopPreviewQuery=window.matchMedia('(min-width:1400px)');
 
   var mode = 'reception';
   var signedIn = false;
@@ -168,12 +172,29 @@
     return active?active.getAttribute('data-main'):'reception';
   }
 
+  function setPreviewOpen(open){
+    var active=activeMainTab();
+    var shouldOpen=!!open && signedIn && (active==='reception'||active==='orders');
+    preview.hidden=!shouldOpen;
+    area.classList.toggle('guest-preview-open',shouldOpen);
+    syncPreviewLayout();
+    toggle.setAttribute('aria-expanded',shouldOpen?'true':'false');
+    if(shouldOpen) setMode(active);
+  }
+
+  function syncPreviewLayout(){
+    var shouldOpen=!preview.hidden;
+    var shouldDock=shouldOpen && desktopPreviewQuery.matches;
+    area.classList.toggle('workspace-preview-active',shouldDock);
+    backdrop.hidden=!shouldOpen || shouldDock;
+  }
+
   function syncWorkspace(){
     var active=activeMainTab();
-    var show=signedIn && (active==='reception'||active==='orders');
-    area.classList.toggle('workspace-preview-active',show);
-    preview.hidden=!show;
-    if(show) setMode(active);
+    var available=signedIn && (active==='reception'||active==='orders');
+    toggle.hidden=!available;
+    if(!available){ setPreviewOpen(false); return; }
+    if(!preview.hidden) setMode(active);
   }
 
   function bindVisits(date){
@@ -205,6 +226,13 @@
   select.addEventListener('change',function(){
     renderCard(records.find(function(record){return record.id===select.value;})||null);
   });
+
+  toggle.addEventListener('click',function(){ setPreviewOpen(preview.hidden); });
+  close.addEventListener('click',function(){ setPreviewOpen(false); toggle.focus(); });
+  backdrop.addEventListener('click',function(){ setPreviewOpen(false); toggle.focus(); });
+  document.addEventListener('keydown',function(event){ if(event.key==='Escape'&&!preview.hidden) setPreviewOpen(false); });
+  if(desktopPreviewQuery.addEventListener) desktopPreviewQuery.addEventListener('change',syncPreviewLayout);
+  else desktopPreviewQuery.addListener(syncPreviewLayout);
 
   document.getElementById('mainTabs').addEventListener('click',function(event){
     if(event.target.closest('.main-tab[data-main]')) setTimeout(syncWorkspace,0);
