@@ -134,3 +134,35 @@
   .reception-filter-tools input[type=search]{width:100%}
   .reception-session-body{align-items:stretch;flex-direction:column}
 }
+
+/* v13：特殊服務卡片控制區改為上下排列，避免欄位互相擠壓。 */
+.special-queue-card{
+  grid-template-columns:minmax(0,1fr) minmax(190px,.72fr);
+  grid-template-areas:
+    "details assignment"
+    "details actions";
+  align-items:start;
+}
+.special-queue-card>:first-child{grid-area:details;min-width:0}
+.special-queue-assignment{
+  grid-area:assignment;
+  grid-template-columns:1fr;
+  gap:5px;
+  align-items:stretch;
+  width:100%;
+}
+.special-queue-assignment label{white-space:normal}
+.special-queue-actions{grid-area:actions;width:100%;align-self:start}
+.special-queue-assignment select,
+.special-queue-actions select,
+.special-queue-actions .special-task-reset{min-width:0;width:100%}
+
+@media(max-width:700px){
+  .special-queue-card{
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "details"
+      "assignment"
+      "actions";
+  }
+}
