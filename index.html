@@ -1150,8 +1150,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       return;
     }
     var total = cartTotal();
-    if(total < 10000){
-      errEl.textContent = '每位入座客人的低消為 10,000 Gil，請再選擇其他餐點或服務';
+    if(total < 30000){
+      errEl.textContent = '每位入座客人的低消為 30,000 Gil，請再選擇其他餐點或服務';
       errEl.style.display = 'block';
       return;
     }
