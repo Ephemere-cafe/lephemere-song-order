@@ -98,10 +98,18 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   border:1px solid rgba(202,160,107,.38);border-left:3px solid var(--gold);
   border-radius:8px;background:rgba(202,160,107,.09);font-size:11.5px;line-height:1.65;
 }
-.character-name-notice strong{flex:none;color:var(--gold);font-size:11.5px;white-space:nowrap;}
+.character-name-notice strong{flex:none;color:var(--gold);font-size:11.5px;white-space:normal;}
 .companion-fields{display:grid;gap:7px;padding:10px;border:1px solid var(--line);border-radius:8px;background:rgba(25,20,32,.35);}
 .companion-fields-title{font-size:11.5px;color:var(--gold);}
 .companion-fields-help{font-size:10.5px;color:var(--parchment-dim);line-height:1.6;}
+.companion-fields-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.companion-count{flex:none;color:var(--rose);font-size:10.5px;white-space:nowrap;}
+.companion-list{display:grid;gap:8px;}
+.companion-row{display:grid;grid-template-columns:32px minmax(0,1.35fr) minmax(150px,.8fr) 38px;gap:7px;align-items:end;padding-top:9px;border-top:1px solid var(--line);}
+.companion-index{align-self:center;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--rose);color:var(--paper);font-family:'Noto Serif TC',serif;font-size:11px;}
+.companion-row label{display:grid;gap:5px;min-width:0;}
+.companion-remove{width:38px;height:38px;padding:0;border:1px solid var(--line);border-radius:7px;background:transparent;color:var(--rose);font:18px/1 inherit;cursor:pointer;}
+.companion-add{justify-self:start;padding:8px 12px;}
 .visit-status-card{text-align:center;padding:20px 16px;}
 .visit-ticket{font-family:'Noto Serif TC',serif;font-size:34px;color:var(--gold);margin:7px 0;letter-spacing:.06em;}
 .visit-status-label{display:inline-flex;padding:4px 10px;border-radius:20px;border:1px solid var(--gold-dim);color:var(--gold);font-size:11px;}
@@ -111,7 +119,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 .visit-help{font-size:11.5px;line-height:1.75;color:var(--parchment-dim);margin:10px 0 0;}
 .browse-badge{display:inline-flex;padding:4px 9px;border:1px solid rgba(167,155,196,.35);border-radius:20px;color:var(--mist);font-size:10.5px;}
 .visit-recovery-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
-@media(max-width:560px){.visit-choice-grid,.visit-form-row{grid-template-columns:1fr;}.character-name-notice{display:block;}.character-name-notice strong{display:block;margin-bottom:3px;}}
+@media(max-width:560px){.visit-choice-grid,.visit-form-row{grid-template-columns:1fr;}.character-name-notice{display:block;}.character-name-notice strong{display:block;margin-bottom:3px;}.companion-row{grid-template-columns:30px minmax(0,1fr) 38px;align-items:start;}.companion-row label{grid-column:2;}.companion-remove{grid-column:3;grid-row:1;}.companion-fields-head{display:block;}.companion-count{display:block;margin-top:4px;}}
 @media(max-width:520px){.visit-recovery-actions{grid-template-columns:1fr;}}
 .row{display:flex;gap:8px;flex-wrap:wrap;}
 
@@ -185,8 +193,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <p class="panel-title">接待候位登記</p>
     <div class="visit-form">
       <div class="visit-form-row">
-        <input type="text" id="visitCharacter" maxlength="40" placeholder="請輸入完整遊戲 ID" aria-describedby="characterNameNotice">
-        <select id="visitWorld" aria-label="選擇伺服器">
+        <label>角色完整姓名<input type="text" id="visitCharacter" maxlength="40" placeholder="請輸入完整遊戲 ID" aria-describedby="characterNameNotice"></label>
+        <label>伺服器<select id="visitWorld" aria-label="選擇伺服器">
           <option value="">請選擇伺服器</option>
           <option value="利維坦">利維坦</option>
           <option value="伊弗利特">伊弗利特</option>
@@ -195,16 +203,24 @@ input:focus{outline:none;border-color:var(--gold-dim);}
           <option value="奧汀">奧汀</option>
           <option value="巴哈姆特">巴哈姆特</option>
           <option value="泰坦">泰坦</option>
-        </select>
+        </select></label>
       </div>
       <div class="character-name-notice" id="characterNameNotice" role="note">
-        <strong>請填寫完整遊戲 ID</strong>
+        <strong>請填寫完整遊戲 ID 與所在伺服器，以便現場核對與後續服務紀錄。</strong>
       </div>
       <div class="visit-form-row">
-        <label>本次同行人數<select id="visitPartySize"><option value="1">1 人</option><option value="2">2 人</option><option value="3">3 人</option><option value="4">4 人以上</option></select></label>
+        <label>本次同行人數<input type="text" id="visitPartySizeDisplay" value="1 人（含領號代表）" readonly></label>
+        <input type="hidden" id="visitPartySize" value="1">
         <label>來店類型<select id="visitKind"><option value="walkin">一般來店</option><option value="reservation">已有預約</option></select></label>
       </div>
-      <div id="visitCompanionFields" class="companion-fields" style="display:none;"></div>
+      <div id="visitCompanionFields" class="companion-fields">
+        <div class="companion-fields-head">
+          <div><div class="companion-fields-title">同行者資料</div><div class="companion-fields-help">每位同行者的角色完整姓名與伺服器皆為必填。</div></div>
+          <span class="companion-count" id="visitPartyCount">目前共 1 人</span>
+        </div>
+        <div class="companion-list" id="visitCompanionList"></div>
+        <button class="btn companion-add" id="addVisitCompanion" type="button">＋ 新增一位同行者</button>
+      </div>
       <input type="text" id="visitReservation" maxlength="60" placeholder="預約名稱／預約碼（一般來店可留空）" style="display:none;">
       <label>接待偏好<select id="visitPreference"><option value="">任何有空的女僕皆可（等待較短）</option></select></label>
       <p id="visitError" style="font-size:12px;color:var(--rose);margin:0;display:none;"></p>
@@ -364,18 +380,35 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   function escapeHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
   function fmtGil(n){ return (n||0).toLocaleString('en-US') + ' Gil'; }
 
-  function renderCompanionInputs(){
-    var box=document.getElementById('visitCompanionFields');
-    var size=Math.max(1,Number(document.getElementById('visitPartySize').value||1));
-    if(size<=1){ box.style.display='none'; box.innerHTML=''; return; }
-    var previous={};
-    box.querySelectorAll('[data-companion-index]').forEach(function(input){ previous[input.getAttribute('data-companion-index')]=input.value; });
-    var html='<div class="companion-fields-title">同行者名稱</div><div class="companion-fields-help">填寫後，點餐時可把每一份餐點分配給正確的人；不確定時可以先留空。</div>';
-    for(var i=2;i<=size;i++){
-      html+='<input type="text" maxlength="40" data-companion-index="'+i+'" placeholder="同行者 '+i+' 的角色名／稱呼" value="'+escapeHtml(previous[String(i)]||'')+'">';
-    }
-    box.innerHTML=html;
-    box.style.display='grid';
+  function partyMemberName(value){ return String(value||'').split('｜')[0].trim(); }
+  function hasFullCharacterName(value){ return /^\S+(?:\s+\S+)+$/.test(String(value||'').trim()); }
+  function syncCompanionRows(){
+    var rows=Array.prototype.slice.call(document.querySelectorAll('#visitCompanionList .companion-row'));
+    rows.forEach(function(row,index){
+      var number=index+2;
+      row.querySelector('.companion-index').textContent=number;
+      row.querySelector('[data-companion-name]').setAttribute('aria-label','同行者 '+number+' 的角色完整姓名');
+      row.querySelector('[data-companion-world]').setAttribute('aria-label','同行者 '+number+' 的伺服器');
+      row.querySelector('.companion-remove').setAttribute('aria-label','移除同行者 '+number);
+    });
+    var size=rows.length+1;
+    document.getElementById('visitPartySize').value=String(size);
+    document.getElementById('visitPartySizeDisplay').value=size+' 人（含領號代表）';
+    document.getElementById('visitPartyCount').textContent='目前共 '+size+' 人';
+  }
+  function addCompanionInput(){
+    var list=document.getElementById('visitCompanionList');
+    var row=document.createElement('div');
+    row.className='companion-row';
+    var index=document.createElement('span'); index.className='companion-index';
+    var nameLabel=document.createElement('label'); nameLabel.textContent='角色完整姓名';
+    var nameInput=document.createElement('input'); nameInput.type='text'; nameInput.maxLength=40; nameInput.placeholder='請輸入完整遊戲 ID'; nameInput.setAttribute('data-companion-name',''); nameLabel.appendChild(nameInput);
+    var worldLabel=document.createElement('label'); worldLabel.textContent='伺服器';
+    var worldSelect=document.createElement('select'); worldSelect.innerHTML=document.getElementById('visitWorld').innerHTML; worldSelect.setAttribute('data-companion-world',''); worldLabel.appendChild(worldSelect);
+    var remove=document.createElement('button'); remove.type='button'; remove.className='companion-remove'; remove.textContent='×';
+    remove.addEventListener('click',function(){ row.remove(); syncCompanionRows(); });
+    row.appendChild(index); row.appendChild(nameLabel); row.appendChild(worldLabel); row.appendChild(remove);
+    list.appendChild(row); syncCompanionRows(); nameInput.focus();
   }
 
   function currentDiners(){
@@ -383,7 +416,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     var saved=activeVisit && Array.isArray(activeVisit.partyMembers) ? activeVisit.partyMembers : [];
     var diners=[];
     for(var i=0;i<size;i++){
-      var name=String(saved[i]||'').trim();
+      var name=partyMemberName(saved[i]);
       if(!name && i===0) name=String(activeVisit && activeVisit.characterName || document.getElementById('custName').value || '').trim();
       diners.push(name || (i===0?'領號代表':'同行者 '+(i+1)));
     }
@@ -638,8 +671,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   document.getElementById('visitKind').addEventListener('change', function(){
     document.getElementById('visitReservation').style.display = this.value==='reservation' ? 'block' : 'none';
   });
-  document.getElementById('visitPartySize').addEventListener('change', renderCompanionInputs);
-  renderCompanionInputs();
+  document.getElementById('addVisitCompanion').addEventListener('click',addCompanionInput);
+  syncCompanionRows();
 
   function forgetLocalVisit(){
     localStorage.removeItem('lephemereActiveVisitId');
@@ -669,8 +702,15 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   document.getElementById('joinVisitQueue').addEventListener('click', function(){
     var err = document.getElementById('visitError');
     var name = document.getElementById('visitCharacter').value.trim();
-    if(!name){ err.textContent='請填寫遊戲角色名稱'; err.style.display='block'; return; }
+    if(!hasFullCharacterName(name)){ err.textContent='請填寫完整遊戲 ID（名字與姓氏）'; err.style.display='block'; return; }
     if(!document.getElementById('visitWorld').value){ err.textContent='請選擇角色所在伺服器'; err.style.display='block'; return; }
+    var companionRows=Array.prototype.slice.call(document.querySelectorAll('#visitCompanionList .companion-row'));
+    for(var companionIndex=0;companionIndex<companionRows.length;companionIndex++){
+      var companionName=companionRows[companionIndex].querySelector('[data-companion-name]').value.trim();
+      var companionWorld=companionRows[companionIndex].querySelector('[data-companion-world]').value.trim();
+      if(!hasFullCharacterName(companionName)){ err.textContent='請填寫同行者 '+(companionIndex+2)+' 的完整遊戲 ID（名字與姓氏）'; err.style.display='block'; return; }
+      if(!companionWorld){ err.textContent='請選擇同行者 '+(companionIndex+2)+' 所在的伺服器'; err.style.display='block'; return; }
+    }
     if(operationStatus.isOpen===false){ err.textContent='本場接待已結束，目前無法領取候位號碼'; err.style.display='block'; return; }
     if(!currentVisitorUid){ err.textContent='正在建立安全訪客身分，請稍後再試'; err.style.display='block'; return; }
     if(!visitsRef){ err.textContent='系統尚未連線，請稍後再試'; err.style.display='block'; return; }
@@ -685,9 +725,9 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       var staffName=staffId && staffRoster[staffId] ? staffRoster[staffId].name||'' : '';
       var now=Date.now();
       var partySize=Number(document.getElementById('visitPartySize').value||1);
-      var partyMembers=[name];
-      document.querySelectorAll('#visitCompanionFields [data-companion-index]').forEach(function(input,index){
-        partyMembers.push(input.value.trim() || '同行者 '+(index+2));
+      var partyMembers=[name+'｜'+document.getElementById('visitWorld').value.trim()];
+      document.querySelectorAll('#visitCompanionList .companion-row').forEach(function(row){
+        partyMembers.push(row.querySelector('[data-companion-name]').value.trim()+'｜'+row.querySelector('[data-companion-world]').value.trim());
       });
       var visitRecord={
         queueNumber:'A'+String(number).padStart(3,'0'),
