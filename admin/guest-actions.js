@@ -14,7 +14,7 @@ window.GuestActions={apply:function(value,d,auth,roster,visit,importToken='',imp
   r.profiles||={};r.settings||={visitThreshold:6,spendThreshold:4000000};
   let target='',oldValue=null,newValue=null;
   function set(section,k,v){r[section]||={};oldValue=r[section][k]||null;r[section][k]=v;target=section+'/'+k;newValue=v;}
-  const getGuest=()=>{const gid=id(d.guestId);if(!r.profiles[gid]||r.profiles[gid].mergedInto)fail('請選擇有效客人');return gid;};
+  const getGuest=()=>{const gid=id(d.guestId);if(!r.profiles[gid]||r.profiles[gid].mergedInto||r.exclusions?.['guest_'+gid]?.active)fail('請選擇有效客人');return gid;};
   if(action==='activate'){if(!r.settings.activatedAt)r.settings.activatedAt=now;target='settings';newValue=r.settings;}
   else if(action==='profile'){
    const gid=d.guestId?getGuest():'g_'+rid,name=text(d.name,80),world=text(d.world,80);if(!name||!world)fail('名稱與伺服器必填');
@@ -30,6 +30,17 @@ window.GuestActions={apply:function(value,d,auth,roster,visit,importToken='',imp
   else if(action==='voidAdjustment'){const k=id(d.adjustmentId);if(!r.adjustments?.[k])fail('修正不存在');set('adjustments',k,{...r.adjustments[k],voided:true,voidedAt:now});}
   else if(action==='merge'){const gid=getGuest(),from=id(d.fromGuestId);if(from===gid||!r.profiles[from]||r.profiles[from].mergedInto)fail('合併來源不正確');oldValue={source:r.profiles[from],target:r.profiles[gid]};const src=r.profiles[from],dest=r.profiles[gid];r.profiles[from]={...src,mergedInto:gid};const dates=[src.enabledAt,dest.enabledAt].filter(Boolean);r.profiles[gid]={...dest,enabled:!!(src.enabled||dest.enabled),enabledAt:dates.length?Math.min(...dates):null};target='merge/'+from+'/'+gid;newValue={source:r.profiles[from],target:r.profiles[gid]};}
   else if(action==='import'){if(d.previewToken!==importToken||(r.revision||0)!==importRevision)fail('資料已變更，請重新預覽');oldValue=r.settings;r.settings={...r.settings,historyImported:true,activatedAt:r.settings.activatedAt||now};target='settings';newValue=r.settings;}
+  else if(action==='exclude'||action==='restore'){
+   if(!Array.isArray(d.targets)||!d.targets.length||d.targets.length>1000)fail('請選擇 1～1000 筆資料');
+   const entries={},before={};
+   for(const item of d.targets){const kind=item.kind,k=id(item.id);if(!['guest','pending'].includes(kind))fail('刪除類型不正確');const ek=kind+'_'+k;const old=r.exclusions?.[ek]||null;before[ek]=old;
+    if(action==='restore'){if(!old?.active)fail('資料已還原或不存在，請重新整理');entries[ek]={...old,active:false,restoredAt:now,restoredBy:auth.uid,restoreReason:reason};continue;}
+    if(old?.active)fail('資料已刪除，請重新整理');
+    const snapshot=kind==='guest'?r.summaries?.[k]:r.pending?.[k];if(!snapshot)fail('所選資料已變更，請重新整理再選擇');
+    entries[ek]={kind,id:k,active:true,snapshot,deletedAt:now,byUid:auth.uid,byStaffId:staffId,reason};
+   }
+   r.exclusions={...r.exclusions,...entries};target='exclusions';oldValue=before;newValue=entries;
+  }
   else fail('未知操作');
   r.audit||={};r.audit[rid]={action,target,before:oldValue,after:newValue,reason,uid:auth.uid,staffId,createdAt:now};r.revision=(r.revision||0)+1;r.recomputeRequest={id:rid,at:now};return {state:r,response};
 }};})();

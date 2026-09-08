@@ -17,6 +17,8 @@ function calculate(input,original={},options={}){
  const r=clone(original),now=options.now||Date.now(),profiles=r.profiles||{},settings={visitThreshold:6,spendThreshold:4000000,...r.settings};
  const visits=input.visits||{},orders=input.orders||{},index={},links={},ledger={},pending={},summaries={},interactions={},history={};
  for(const [id,p] of Object.entries(profiles)){const dest=canonical(profiles,id);for(const pair of [{name:p.name,world:p.world},...Object.values(p.aliases||{})]){if(pair.name&&pair.world){const k=identity(pair.name,pair.world);(index[k]||= {})[dest]=true;}}}
+ const excludedGuest=id=>!!r.exclusions?.['guest_'+canonical(profiles,id)]?.active;
+ const excludedPending=id=>!!r.exclusions?.['pending_'+id]?.active;
  const eligible=v=>options.allHistory||settings.historyImported||Number(v.createdAt)>=Number(settings.activatedAt||now);
  for(const [vid,v] of Object.entries(visits)){
   if(!eligible(v))continue;links[vid]={};
@@ -26,7 +28,7 @@ function calculate(input,original={},options={}){
    links[vid][m.index]={...m,guestId:id};if(!id)pending['member_'+key(vid+':'+m.index)]={kind:'member',visitId:vid,memberIndex:m.index,name:m.name,world:m.world,reason:'客人名稱／伺服器缺失或重複，請指定客人'};
   }
  }
- function rowAdd(row){ledger[row.sourceKey]=row;if(row.reason)pending[row.sourceKey]=row;}
+ function rowAdd(row){if(excludedPending(row.sourceKey)||row.guestId&&excludedGuest(row.guestId))return;ledger[row.sourceKey]=row;if(row.reason)pending[row.sourceKey]=row;}
  for(const [oid,o] of Object.entries(orders)){
   if(o.status!=='completed')continue;
   const v=visits[o.visitId];if(v&&!eligible(v))continue;if(!v&&!options.allHistory&&!settings.historyImported&&Number(o.createdAt)<Number(settings.activatedAt||now))continue;
@@ -52,10 +54,19 @@ function calculate(input,original={},options={}){
   for(const [id,date] of Object.entries(guests)){if(!staffIds.length)pending['staff_'+key(vid+id)]={kind:'interaction',visitId:vid,guestId:id,businessDate:date,reason:'服務女僕待補正'};for(const sid of staffIds){interactionEvents[key(id+vid+sid)]={id,sid,date};hrow(id,date).staffIds[sid]=true;}}
  }
  const visitDeltas={},interactionDeltas={};
- for(const adj of Object.values(r.adjustments||{})){if(adj.voided)continue;const id=canonical(profiles,adj.guestId);if(!id||!dateOK(adj.businessDate))continue;const h=hrow(id,adj.businessDate);if(adj.type==='spend'){h[adj.kind||'food']+=adj.delta;h.amount+=adj.delta;}if(adj.type==='visit')visitDeltas[id]=(visitDeltas[id]||0)+adj.delta;if(adj.type==='interaction'){const k=id+'|'+adj.staffId;interactionDeltas[k]=(interactionDeltas[k]||0)+adj.delta;}}
+ for(const adj of Object.values(r.adjustments||{})){if(adj.voided)continue;const id=canonical(profiles,adj.guestId);if(!id||excludedGuest(id)||!dateOK(adj.businessDate))continue;const h=hrow(id,adj.businessDate);if(adj.type==='spend'){h[adj.kind||'food']+=adj.delta;h.amount+=adj.delta;}if(adj.type==='visit')visitDeltas[id]=(visitDeltas[id]||0)+adj.delta;if(adj.type==='interaction'){const k=id+'|'+adj.staffId;interactionDeltas[k]=(interactionDeltas[k]||0)+adj.delta;}}
  for(const e of Object.values(interactionEvents)){interactions[e.id]||={};const x=interactions[e.id][e.sid]||={count:0,lastDate:''};x.count++;x.lastDate=x.lastDate>e.date?x.lastDate:e.date;}
  for(const [k,delta] of Object.entries(interactionDeltas)){const [id,sid]=k.split('|');interactions[id]||={};const x=interactions[id][sid]||={count:0,lastDate:''};x.count=Math.max(0,x.count+delta);}
- for(const [id,p] of Object.entries(profiles)){if(p.mergedInto)continue;const rows=Object.values(history[id]||{}),dates=rows.filter(h=>h.amount>0).map(h=>h.businessDate).sort();const amount=Math.max(0,rows.reduce((s,h)=>s+h.amount,0)),count=Math.max(0,dates.length+(visitDeltas[id]||0));summaries[id]={name:p.name,world:p.world,visitCount:count,totalSpend:amount,firstDate:dates[0]||'',lastDate:dates.at(-1)||'',eligible:count>=settings.visitThreshold||amount>=settings.spendThreshold,enabled:!!p.enabled,enabledAt:p.enabledAt||null};}
+ for(const [id,p] of Object.entries(profiles)){if(p.mergedInto||excludedGuest(id))continue;const rows=Object.values(history[id]||{}),dates=rows.filter(h=>h.amount>0).map(h=>h.businessDate).sort();const amount=Math.max(0,rows.reduce((s,h)=>s+h.amount,0)),count=Math.max(0,dates.length+(visitDeltas[id]||0));summaries[id]={name:p.name,world:p.world,visitCount:count,totalSpend:amount,firstDate:dates[0]||'',lastDate:dates.at(-1)||'',eligible:count>=settings.visitThreshold||amount>=settings.spendThreshold,enabled:!!p.enabled,enabledAt:p.enabledAt||null};}
+ for(const [pid,p] of Object.entries(pending)){
+  if(excludedPending(pid)||p.guestId&&excludedGuest(p.guestId)){delete pending[pid];continue;}
+  const o=orders[p.orderId]||{},v=visits[p.visitId]||{};
+  p.sourceCustomerName=clean(o.name||o.characterName||v.characterName||'');
+  p.sourceBusinessDate=clean(v.businessDate||o.businessDate||'');
+  p.sourceCreatedAt=Number(o.createdAt||v.createdAt)||0;
+  if(p.kind==='member'){p.businessDate=clean(v.businessDate);p.sourceCustomerName=clean(p.name||v.characterName);}
+ }
+ for(const [vid,entries] of Object.entries(links))for(const [i,m] of Object.entries(entries))if(m.guestId&&excludedGuest(m.guestId))delete entries[i];
  return {profiles,identityIndex:index,visitLinks:links,ledger,pending,summaries,interactions,history,computedAt:now};
 }
 window.GuestCore={calculate,members,key,identity,canonical,dateOK,money,clean,clone};
