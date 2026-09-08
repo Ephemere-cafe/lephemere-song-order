@@ -567,7 +567,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     if(!select) return;
     var selected = select.value;
     var duty = Array.isArray(todayStaff.staffIds) ? todayStaff.staffIds : [];
-    var ids = duty.filter(function(id){ return staffRoster[id]; });
+    var ids = duty.filter(function(id){ return staffRoster[id] && String(staffRoster[id].name||'').trim()!=='蒼'; });
     ids.sort(function(a,b){
       return String((staffRoster[a]||{}).name||'').localeCompare(String((staffRoster[b]||{}).name||''),'zh-Hant');
     });
@@ -723,6 +723,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       var number=Number(result.snapshot.val()||0);
       var id=visitsRef.push().key;
       var staffId=document.getElementById('visitPreference').value;
+      if(staffId && String((staffRoster[staffId]||{}).name||'').trim()==='蒼') staffId='';
       var staffName=staffId && staffRoster[staffId] ? staffRoster[staffId].name||'' : '';
       var now=Date.now();
       var partySize=Number(document.getElementById('visitPartySize').value||1);
