@@ -3,7 +3,7 @@
  let api,signature='',unsub=[],timer,epoch=0,running=false,rerun=false;
  let state={},source={visits:{},orders:{}},ready={};
  const root=()=>api.db.ref('lephemere'),registry=()=>root().child('guestRegistry');
- const inputs=r=>({algorithmVersion:19,exclusions:r.exclusions||{},settings:r.settings||{},profiles:r.profiles||{},allocations:r.allocations||{},memberOverrides:r.memberOverrides||{},adjustments:r.adjustments||{},serviceParticipation:r.serviceParticipation||{}});
+ const inputs=r=>({algorithmVersion:20,exclusions:r.exclusions||{},settings:r.settings||{},profiles:r.profiles||{},allocations:r.allocations||{},memberOverrides:r.memberOverrides||{},adjustments:r.adjustments||{},serviceParticipation:r.serviceParticipation||{}});
  const stable=x=>JSON.stringify(x,function(k,v){return v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(key=>[key,v[key]])):v;});
  const hash=(s,r)=>core.key(stable([s,inputs(r)]));
  function status(message){const el=document.getElementById('grStatus');if(el){el.textContent=message;el.className='gr-status gr-muted';}}
@@ -47,6 +47,13 @@
    const result=window.GuestActions.apply({[section]:{[key]:old}},d,auth,roster,visit);
    const updates={};updates[section+'/'+key]=result.state[section][key];updates['audit/'+d.requestId]=result.state.audit[d.requestId];
    await registry().update(updates);return result.response;
+  }
+  if(d.action==='approvedCleanup'){
+   const sources=await readSource();let applied;
+   const res=await transaction(registry(),current=>{
+    if(!api.context().manager||api.context().user?.uid!==auth.uid)return;
+    applied=window.GuestCleanup.apply(current,d.plan,sources,{...auth,staffId:c.staffId||''});return applied.state;
+   });if(!res.committed)throw Error('尚未套用，請重新登入再試');schedule();return applied.result;
   }
   if(d.action==='preview'){
    const r=(await registry().once('value')).val()||{},s=await readSource(),derived=core.calculate(s,r,{allHistory:true});

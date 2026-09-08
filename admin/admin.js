@@ -1869,7 +1869,7 @@
     var source=String(item.name||menuItem.name||'').toLowerCase();
     var matches=Object.keys(staffRoster).filter(function(id){
       var name=String((staffRoster[id]||{}).name||'').trim();
-      return name && source.indexOf(name.toLowerCase())>-1;
+      return name && (source.indexOf(name.toLowerCase())>-1 || (name==='馬鈴薯' && source.replace(/\s+/g,'').indexOf('鈴薯')>-1));
     }).sort(function(a,b){return String(staffRoster[b].name||'').length-String(staffRoster[a].name||'').length;});
     if(matches.length===1){
       return {id:matches[0],name:staffRoster[matches[0]].name||'未命名女僕',source:'name'};

@@ -6,7 +6,7 @@ window.GuestActions={apply:function(value,d,auth,roster,visit,importToken='',imp
  const action=text(d.action,60),staffId=d.staffId?id(d.staffId):'',rid=id(d.requestId||'');
  if(!auth.uid)fail('請先登入');if(!auth.manager&&!['macro','participation'].includes(action))fail('只有管理員可以操作客人資料');
  if(staffId&&!roster[staffId])fail('請選擇有效操作女僕');
- const reason=text(d.reason||'',500);if(auth.manager&&!['macro','participation','activate'].includes(action)&&!reason)fail('請填寫修改原因');
+ const reason=text(d.reason||'',500);
  if(action==='participation'&&(!visit||!Array.isArray(d.staffIds)||d.staffIds.some(s=>!roster[s])))fail('接待或參與女僕名單不正確');
  if(action==='member'&&(!visit||!Number.isSafeInteger(d.memberIndex)||!core.members(visit)[d.memberIndex]))fail('同行者來源不存在');
  let response={ok:true};value=core.clone(value||{});
@@ -20,6 +20,10 @@ window.GuestActions={apply:function(value,d,auth,roster,visit,importToken='',imp
    const gid=d.guestId?getGuest():'g_'+rid,name=text(d.name,80),world=text(d.world,80);if(!name||!world)fail('名稱與伺服器必填');
    if(Object.entries(r.profiles).some(([other,p])=>other!==gid&&!p.mergedInto&&core.identity(p.name,p.world)===core.identity(name,world)))fail('已有相同名稱與伺服器的客人，請使用現有資料或合併');
    const p={...(r.profiles[gid]||{createdAt:now,enabled:false})};if(p.name&&(p.name!==name||p.world!==world)){p.aliases||={};p.aliases[core.identity(p.name,p.world)]={name:p.name,world:p.world};}Object.assign(p,{name,world,note:text(d.note||'',2000),updatedAt:now});set('profiles',gid,p);response.guestId=gid;
+  }else if(action==='world'){
+   const gid=getGuest(),p={...r.profiles[gid]},world=text(d.world,80);if(!world)fail('請填寫伺服器');
+   if(Object.entries(r.profiles).some(([other,q])=>other!==gid&&!q.mergedInto&&core.identity(q.name,q.world)===core.identity(p.name,world)))fail('已有相同姓名與伺服器的客人，請先合併客人資料');
+   p.aliases={...p.aliases,[core.identity(p.name,p.world)]:{name:p.name,world:p.world||''}};p.world=world;p.updatedAt=now;set('profiles',gid,p);
   }else if(action==='enable'){const gid=getGuest(),p={...r.profiles[gid]};if(typeof d.enabled!=='boolean')fail('啟用狀態不正確');p.enabled=d.enabled;if(d.enabled&&!p.enabledAt)p.enabledAt=now;set('profiles',gid,p);}
   else if(action==='settings'){if(!Number.isSafeInteger(d.visitThreshold)||d.visitThreshold<1||!core.money(d.spendThreshold)||d.spendThreshold<1)fail('門檻須為正整數');oldValue=r.settings;r.settings={...r.settings,visitThreshold:d.visitThreshold,spendThreshold:d.spendThreshold,regularTemplate:text(d.regularTemplate||'',2000)};target='settings';newValue=r.settings;}
   else if(action==='macro'){const sid=id(d.targetStaffId);if(!roster[sid])fail('女僕不存在');set('macros',sid,{regularTemplate:text(d.template||'',2000),updatedAt:now,byUid:auth.uid,byStaffId:staffId});}
