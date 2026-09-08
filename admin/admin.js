@@ -335,6 +335,7 @@
     document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
     var ordersMainTab = document.querySelector('.main-tab[data-main="orders"]');
     if(ordersMainTab) ordersMainTab.classList.add('active');
+    if(document.getElementById('guestRegistryTab')) document.getElementById('guestRegistryTab').style.display='none';
     document.getElementById('todayTab').style.display = 'none';
     document.getElementById('receptionTab').style.display = 'none';
     document.getElementById('ordersTab').style.display = 'block';
@@ -352,6 +353,7 @@
     document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
     var tab = document.querySelector('.main-tab[data-main="reception"]');
     if(tab) tab.classList.add('active');
+    if(document.getElementById('guestRegistryTab')) document.getElementById('guestRegistryTab').style.display='none';
     document.getElementById('todayTab').style.display = 'none';
     document.getElementById('receptionTab').style.display = 'block';
     document.getElementById('ordersTab').style.display = 'none';
@@ -366,6 +368,7 @@
   }
 
   function showTodayTab(){
+    if(document.getElementById('guestRegistryTab')) document.getElementById('guestRegistryTab').style.display='none';
     if(!isManager()){ showReceptionTab(); return; }
     document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
     var tab = document.querySelector('.main-tab[data-main="today"]');
@@ -412,6 +415,7 @@
     if(!manager) showReceptionTab();
     else if(document.querySelector('.main-tab.active[data-main="today"]')) showTodayTab();
     syncAccessListListener();
+    if(window.GuestRegistry) window.GuestRegistry.refresh();
     if(attached) renderOrders();
   }
 
@@ -669,6 +673,8 @@
       assignmentHistoryReady=true;
       assignmentHistory=nextHistory;
       renderAssignmentHistory();
+    if(window.GuestRegistry) window.GuestRegistry.refresh();
+    if(window.GuestRegistry) window.GuestRegistry.refresh();
       renderTodayOverview();
     });
 
@@ -1214,7 +1220,7 @@
     }
     var noteAction=isMine?'<div class="guest-note-actions"><button class="btn ghost small" data-edit-visit-note="'+v.id+'">編輯備註</button></div>':'';
     var overview=v.status!=='waiting'?'<div class="guest-overview"><div class="guest-overview-head"><span>訂單與服務</span><span>'+linkedOrders.length+' 筆訂單</span></div><div class="guest-order-list">'+guestOrdersHtml(v)+'</div><details class="guest-note"><summary>店內交接備註｜'+escapeHtml(v.internalNote||'尚未填寫')+'</summary>'+noteAction+'</details></div>':'';
-    return '<article class="visit-card '+(index===0&&v.status==='waiting'?'next ':'')+(isMine?'mine ':'')+urgency+'"><div class="visit-card-top"><div><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':(v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分'))+'</span></div><div class="visit-owner-line">'+(v.status==='waiting'?'<span>尚未指派</span>':'<span class="visit-owner-label">主要接待</span><strong>'+escapeHtml(v.assignedStaffName||'未命名女僕')+'</strong>')+(isMine?'<span class="visit-owner-badge">我的接待</span>':'')+'</div><div class="visit-meta">'+(v.status==='waiting'?'依序候位中':(v.status==='serving'?'接待進行中':'等待開始接待'))+'</div><div class="visit-tags">'+tags+'</div>'+(actions?'<div class="visit-actions">'+actions+'</div>':'')+overview+'</article>';
+    return '<article data-gr-visit="'+escapeHtml(v.id)+'" class="visit-card '+(index===0&&v.status==='waiting'?'next ':'')+(isMine?'mine ':'')+urgency+'"><div class="visit-card-top"><div><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':(v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分'))+'</span></div><div class="visit-owner-line">'+(v.status==='waiting'?'<span>尚未指派</span>':'<span class="visit-owner-label">主要接待</span><strong>'+escapeHtml(v.assignedStaffName||'未命名女僕')+'</strong>')+(isMine?'<span class="visit-owner-badge">我的接待</span>':'')+'</div><div class="visit-meta">'+(v.status==='waiting'?'依序候位中':(v.status==='serving'?'接待進行中':'等待開始接待'))+'</div><div class="visit-tags">'+tags+'</div>'+(actions?'<div class="visit-actions">'+actions+'</div>':'')+overview+'</article>';
   }
 
   function setNavCount(id,count){
@@ -1368,6 +1374,7 @@
     document.querySelectorAll('[data-presence]').forEach(function(btn){ btn.classList.toggle('active',!!currentStaffId && ((staffPresence[currentStaffId]||{}).status===btn.getAttribute('data-presence'))); });
     document.getElementById('claimNextVisit').disabled=!currentStaffId;
     renderAssignmentHistory();
+    if(window.GuestRegistry) window.GuestRegistry.refresh();
     renderTodayOverview();
   }
 
@@ -3687,4 +3694,5 @@
     });
   }
 
+if(window.GuestRegistry && db) window.GuestRegistry.mount({db:db,defaultTemplate:DEFAULT_VISIT_CALL_TEMPLATE,context:function(){return {user:currentAuthUser,manager:isManager(),staffId:currentStaffId,staffRoster:staffRoster,visits:visits,businessDate:currentBusinessDate()};},copy:function(value){copyReceptionText(value);return Promise.resolve();},toast:showCopyToast});
 })();
