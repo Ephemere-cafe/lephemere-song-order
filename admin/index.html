@@ -256,7 +256,7 @@
     <!-- ============ 客人留言 ============ -->
     <div id="guestbookAdminTab" style="display:none;">
       <div class="page-heading guestbook-admin-heading">
-        <div class="page-heading-copy"><span class="page-eyebrow">Guest Letters</span><h2>客人留言</h2><p>所有後台帳號可閱讀投稿；只有管理員可以編輯展示文字、刊登、取消刊登或自行新增官網留言。</p></div>
+        <div class="page-heading-copy"><span class="page-eyebrow">Guest Letters</span><h2>客人留言</h2><p>所有後台帳號可閱讀投稿；只有管理員可以編輯展示文字、刊登、取消刊登、刪除或自行新增官網留言。</p></div>
         <button class="btn primary manager-only" data-manager-only id="guestbookAddDisplay" type="button">新增官網展示留言</button>
       </div>
       <div class="guestbook-admin-metrics" aria-label="留言概況">
@@ -277,13 +277,14 @@
             <h3 id="guestbookDetailTitle">留言詳情</h3>
             <dl class="guestbook-detail-meta" id="guestbookDetailMeta"></dl>
             <div class="guestbook-original"><span>客人投稿原文</span><p id="guestbookOriginalText"></p></div>
-            <label class="guestbook-admin-field manager-only" data-manager-only for="guestbookDisplayText">官網展示文字（原文會永久保留）<textarea id="guestbookDisplayText" maxlength="1000" rows="6"></textarea></label>
+            <label class="guestbook-admin-field manager-only" data-manager-only for="guestbookDisplayText">官網展示文字（與客人投稿原文分開保存）<textarea id="guestbookDisplayText" maxlength="1000" rows="6"></textarea></label>
             <div class="guestbook-detail-actions manager-only" data-manager-only>
               <button class="btn ghost" id="guestbookMarkRead" type="button">標示已讀</button>
               <button class="btn primary" id="guestbookPublish" type="button">刊登留言</button>
               <button class="btn ghost" id="guestbookUnpublish" type="button">取消刊登</button>
+              <button class="btn danger" id="guestbookDelete" type="button">永久刪除</button>
             </div>
-            <p class="guestbook-readonly-note" id="guestbookReadonlyNote">一般帳號為唯讀模式，不可編輯或刊登。</p>
+            <p class="guestbook-readonly-note" id="guestbookReadonlyNote">一般帳號為唯讀模式，不可編輯、刊登或刪除。</p>
             <p class="site-content-status" id="guestbookAdminStatus" aria-live="polite"></p>
           </div>
         </section>
@@ -872,7 +873,7 @@
 <script src="guest-registry.js?v=20260908-v21"></script>
 <script src="admin.js?v=20260909-v22"></script>
 <script src="site-content-admin.js?v=20260826a"></script>
-<script src="guestbook-admin.js?v=20260909-v22"></script>
+<script src="guestbook-admin.js?v=20260910-v25"></script>
 <script src="studio-admin.js?v=20260909-v22"></script>
 <script src="admin-workspace-preview.js?v=20260905c"></script>
 

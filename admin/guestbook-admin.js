@@ -58,7 +58,7 @@
     byId('guestbookDetailTitle').textContent='給 '+(clean(item.recipientNameSnapshot,40)||'曇時全體成員')+' 的留言';
     var meta=byId('guestbookDetailMeta');meta.replaceChildren();addMeta(meta,'公開選擇',consentLabel(item.consentMode));addMeta(meta,'內部名字',clean(item.authorName,40)||'未填寫');addMeta(meta,'投稿時間',timeLabel(item.createdAt));addMeta(meta,'投稿來源','客人官網留言箱');
     byId('guestbookOriginalText').textContent=clean(item.messageOriginal,1000);byId('guestbookDisplayText').value=published?clean(published.displayText,1000):clean(item.messageOriginal,1000);
-    byId('guestbookPublish').disabled=!canManage||item.consentMode==='private';byId('guestbookPublish').textContent=published?'更新官網展示文字':item.consentMode==='anonymous'?'刊登匿名留言':'刊登具名留言';byId('guestbookUnpublish').disabled=!canManage||!published;byId('guestbookMarkRead').disabled=!canManage||!!(item.management&&item.management.readAt);
+    byId('guestbookPublish').disabled=!canManage||item.consentMode==='private';byId('guestbookPublish').textContent=published?'更新官網展示文字':item.consentMode==='anonymous'?'刊登匿名留言':'刊登具名留言';byId('guestbookUnpublish').disabled=!canManage||!published;byId('guestbookMarkRead').disabled=!canManage||!!(item.management&&item.management.readAt);byId('guestbookDelete').disabled=!canManage;
     setManagerUI();status('guestbookAdminStatus',item.consentMode==='private'?'客人選擇不公開，管理員不能刊登此投稿。':'原文與展示版本會分開保存。','');
   }
   function renderPublicAdmin(){
@@ -80,6 +80,13 @@
   }
   async function unpublishById(publicationId,submissionId){if(!canManage||!publicationId)return;if(!window.confirm('確定要取消刊登這則留言嗎？客人原始投稿仍會保留。'))return;var updates={};updates[PUBLIC_ROOT+'/'+publicationId]=null;if(submissionId){updates[ROOT+'/'+submissionId+'/management/publicationId']=null;updates[ROOT+'/'+submissionId+'/management/updatedAt']=firebase.database.ServerValue.TIMESTAMP;updates[ROOT+'/'+submissionId+'/management/updatedByUid']=auth.currentUser.uid;}await db.ref().update(updates);}
   function unpublishSelected(){var item=submissions.find(function(row){return row.id===selectedId;});var publication=publicationFor(item);if(publication)unpublishById(publication.id,item.id);}
+  async function deleteSelected(){
+    if(!canManage||!selectedId)return;var item=submissions.find(function(row){return row.id===selectedId;});if(!item)return;var publication=publicationFor(item);
+    var warning=publication?'確定永久刪除這封投稿嗎？此操作會同時移除官網已刊登留言，且無法復原。':'確定永久刪除這封投稿嗎？刪除後無法復原。';
+    if(!window.confirm(warning))return;
+    var deletingId=item.id;var updates={};updates[ROOT+'/'+deletingId]=null;if(publication)updates[PUBLIC_ROOT+'/'+publication.id]=null;
+    status('guestbookAdminStatus','正在永久刪除留言…','busy');await db.ref().update(updates);selectedId='';renderAll();
+  }
   async function editPublication(item){if(!canManage)return;var next=window.prompt('編輯官網展示文字（客人原文不會被修改）',clean(item.displayText,1000));if(next===null)return;next=clean(next,1000);if(next.length<2){window.alert('展示文字至少需要兩個字。');return;}await publicRef.child(item.id).update({displayText:next,updatedAt:firebase.database.ServerValue.TIMESTAMP});}
   async function saveManual(){
     if(!canManage)return;var mode=byId('guestbookManualMode').value==='named'?'named':'anonymous';var name=clean(byId('guestbookManualName').value,40);var recipient=clean(byId('guestbookManualRecipient').value,40)||'曇時全體成員';var text=clean(byId('guestbookManualText').value,1000);if(mode==='named'&&!name){status('guestbookManualStatus','具名公開請填寫顯示名字。','error');return;}if(text.length<2){status('guestbookManualStatus','展示文字至少需要兩個字。','error');return;}
@@ -88,7 +95,7 @@
   }
   function bind(){
     document.querySelectorAll('[data-guestbook-filter]').forEach(function(button){button.addEventListener('click',function(){filter=button.dataset.guestbookFilter;document.querySelectorAll('[data-guestbook-filter]').forEach(function(node){node.classList.toggle('active',node===button);});renderList();});});
-    byId('guestbookMarkRead').addEventListener('click',function(){markRead().catch(function(error){status('guestbookAdminStatus','操作失敗：'+error.message,'error');});});byId('guestbookPublish').addEventListener('click',function(){publishSelected().catch(function(error){status('guestbookAdminStatus','刊登失敗：'+error.message,'error');});});byId('guestbookUnpublish').addEventListener('click',function(){unpublishSelected();});
+    byId('guestbookMarkRead').addEventListener('click',function(){markRead().catch(function(error){status('guestbookAdminStatus','操作失敗：'+error.message,'error');});});byId('guestbookPublish').addEventListener('click',function(){publishSelected().catch(function(error){status('guestbookAdminStatus','刊登失敗：'+error.message,'error');});});byId('guestbookUnpublish').addEventListener('click',function(){unpublishSelected();});byId('guestbookDelete').addEventListener('click',function(){deleteSelected().catch(function(error){status('guestbookAdminStatus','刪除失敗：'+error.message,'error');});});
     byId('guestbookAddDisplay').addEventListener('click',function(){byId('guestbookManualPanel').hidden=false;byId('guestbookManualPanel').scrollIntoView({behavior:'smooth',block:'start'});});byId('guestbookManualClose').addEventListener('click',function(){byId('guestbookManualPanel').hidden=true;});byId('guestbookManualSave').addEventListener('click',function(){saveManual().catch(function(error){status('guestbookManualStatus','新增失敗：'+error.message,'error');});});
   }
   function subscribe(){if(listening)return;listening=true;submissionsRef.on('value',function(snapshot){submissions=normalize(snapshot.val());if(selectedId&&!submissions.some(function(row){return row.id===selectedId;}))selectedId='';renderAll();},function(error){var list=byId('guestbookSubmissionList');var message=document.createElement('span');message.className='empty';message.textContent='讀取失敗：'+clean(error.message,120);list.replaceChildren(message);});publicRef.on('value',function(snapshot){publications=normalize(snapshot.val());renderAll();});}
