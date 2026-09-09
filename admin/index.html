@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="admin-ui-v6.css?v=20260905c">
   <link rel="stylesheet" href="admin-ui-v10.css?v=20260907-v13">
 <link rel="stylesheet" href="guest-registry.css?v=20260908-v21">
-<link rel="stylesheet" href="admin-v22.css?v=20260909-v22">
+<link rel="stylesheet" href="admin-v22.css?v=20260910-v27">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -622,9 +622,9 @@
 
     <!-- ============ 官網內容管理 ============ -->
     <div id="siteContentTab" class="manager-only" data-manager-only style="display:none;">
-      <div class="panel site-content-panel">
-        <p class="admin-section-label">首頁主視覺</p>
-        <p class="panel-title">店員合照與顯示焦點</p>
+      <details class="panel site-content-panel site-content-collapsible">
+        <summary class="site-content-collapse-summary"><span><strong>首頁主視覺</strong><small>店員合照與顯示焦點</small></span><i class="site-content-collapse-indicator" aria-hidden="true"></i></summary>
+        <div class="site-content-collapse-body">
         <p class="site-content-lead">桌機與手機可分別調整。預覽會即時顯示官網裁切、文字遮擋區、水平與垂直位置及縮放比例；只調整位置或縮放時不需要重新上傳。</p>
 
         <div class="site-hero-editor-grid">
@@ -670,11 +670,12 @@
           <button class="btn ghost" id="resetSiteHero">恢復官網預設圖</button>
         </div>
         <p class="site-content-status" id="siteHeroStatus" aria-live="polite">正在讀取首頁設定…</p>
-      </div>
+        </div>
+      </details>
 
-      <div class="panel site-content-panel">
-        <p class="admin-section-label">服務頁面</p>
-        <p class="panel-title">拍立得成品範例</p>
+      <details class="panel site-content-panel site-content-collapsible">
+        <summary class="site-content-collapse-summary"><span><strong>服務頁面</strong><small>拍立得成品範例</small></span><i class="site-content-collapse-indicator" aria-hidden="true"></i></summary>
+        <div class="site-content-collapse-body">
         <p class="site-content-lead">先選擇作品所屬女僕；同一位女僕可新增不限張數。官網會先切換女僕，再以前後按鈕、圓點或手機滑動瀏覽她的作品。</p>
 
         <div class="site-polaroid-form">
@@ -688,11 +689,12 @@
         </div>
         <p class="site-content-status" id="sitePolaroidStatus" aria-live="polite">正在讀取拍立得資料…</p>
         <div id="sitePolaroidList" class="site-polaroid-list"><span class="empty">正在讀取…</span></div>
-      </div>
+        </div>
+      </details>
 
-      <div class="panel site-content-panel studio-admin-panel">
-        <p class="admin-section-label">攝影棚與往日相簿</p>
-        <p class="panel-title">棚景內容管理</p>
+      <details class="panel site-content-panel studio-admin-panel site-content-collapsible">
+        <summary class="site-content-collapse-summary"><span><strong>攝影棚與往日相簿</strong><small>棚景內容管理</small></span><i class="site-content-collapse-indicator" aria-hidden="true"></i></summary>
+        <div class="site-content-collapse-body">
         <p class="site-content-lead">現役棚會顯示在主要區域；換棚時將狀態改為「往日回憶」即可保留照片與介紹，不必刪除重建。</p>
         <div class="studio-admin-layout">
           <section class="studio-admin-list-panel">
@@ -715,7 +717,8 @@
             <p class="site-content-status" id="studioAdminStatus" aria-live="polite"></p>
           </section>
         </div>
-      </div>
+        </div>
+      </details>
     </div>
 
     <!-- ============ 權限管理 ============ -->
