@@ -13,6 +13,7 @@ const dateOK=x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)&&!Number.isNa
 const money=x=>Number.isSafeInteger(x)&&x>=0;
 function members(v){const raw=Array.isArray(v.partyMembers)&&v.partyMembers.length?v.partyMembers:[clean(v.characterName)+'｜'+clean(v.world)];return raw.map((s,i)=>{const p=String(s).split('｜');return {index:i,name:clean(p[0]),world:p.length===2?clean(p[1]):(i===0?clean(v.world):'')};});}
 function canonical(profiles,id){const seen=new Set();while(profiles[id]&&profiles[id].mergedInto){if(seen.has(id))throw Error('客人合併關係循環');seen.add(id);id=profiles[id].mergedInto;}return profiles[id]?id:'';}
+function taiwanOrderDate(value){if(typeof value!=='number'||!Number.isFinite(value)||value<=0)return '';const d=new Date(value+8*60*60*1000);return Number.isNaN(d.getTime())?'':d.toISOString().slice(0,10);}
 function calculate(input,original={},options={}){
  const r=clone(original),now=options.now||Date.now(),profiles=r.profiles||{},settings={visitThreshold:6,spendThreshold:4000000,...r.settings};
  const visits=input.visits||{},orders=input.orders||{},index={},links={},ledger={},pending={},summaries={},interactions={},history={};
@@ -40,18 +41,18 @@ function calculate(input,original={},options={}){
   const mismatch=invalid||!money(o.total)||total!==o.total;
   if(invalid){rowAdd({sourceKey:'order_'+key(oid),orderId:oid,visitId:o.visitId||'',amount:money(o.total)?o.total:0,reason:'訂單品項或金額格式不完整；請用消費修正補入',kind:'invalid'});continue;}
   for(const part of parts){const sourceKey=key(oid+':'+part.i+':'+part.n+':'+!!part.addon);const fingerprint=key(JSON.stringify([part,o.total,o.visitId,v&&v.businessDate]));const fix=(r.allocations||{})[sourceKey];const validFix=fix&&fix.fingerprint===fingerprint;
-   let date=v&&v.businessDate||'',id='',reason='';const candidates=Object.values(links[o.visitId]||{}).filter(m=>m.name===clean(part.assignment)&&m.guestId);
-   if(validFix){id=canonical(profiles,fix.guestId);date=fix.businessDate||date;}else if(candidates.length===1&&part.assignment!=='全桌共享'&&part.assignment!=='尚未指定')id=candidates[0].guestId;
+   let date=dateOK(v&&v.businessDate)?v.businessDate:taiwanOrderDate(o.createdAt),dateSource=dateOK(v&&v.businessDate)?'visit':'orderCreatedAt',id='',reason='';const candidates=Object.values(links[o.visitId]||{}).filter(m=>m.name===clean(part.assignment)&&m.guestId);
+   if(validFix){id=canonical(profiles,fix.guestId);date=fix.businessDate||date;dateSource='manual';}else if(candidates.length===1&&part.assignment!=='全桌共享'&&part.assignment!=='尚未指定')id=candidates[0].guestId;
    if(!id)reason='消費歸屬待確認';if(!dateOK(date))reason='營業日期待確認';if(mismatch&&!validFix)reason='品項合計與訂單總額不一致，請逐項核對';if(fix&&!validFix)reason='來源訂單已變更，原修正需重新確認';
-   rowAdd({sourceKey,fingerprint,orderId:oid,visitId:o.visitId||'',guestId:id,businessDate:date,name:part.name,assignment:part.assignment,amount:validFix&&money(fix.amount)?fix.amount:part.amount,kind:part.kind,reason});
+   rowAdd({sourceKey,fingerprint,orderId:oid,visitId:o.visitId||'',guestId:id,businessDate:date,dateSource,name:part.name,assignment:part.assignment,amount:validFix&&money(fix.amount)?fix.amount:part.amount,kind:part.kind,reason});
   }
  }
  function hrow(id,date){history[id]||={};return history[id][date]||=( {businessDate:date,food:0,special:0,amount:0,staffIds:{},sourceKeys:{}} );}
  const visitsWithSpend={};
- for(const row of Object.values(ledger)){if(row.reason||!row.guestId||row.amount<=0)continue;const h=hrow(row.guestId,row.businessDate);h[row.kind]+=row.amount;h.amount+=row.amount;h.sourceKeys[row.sourceKey]=true;(visitsWithSpend[row.visitId]||={})[row.guestId]=row.businessDate;}
+ for(const row of Object.values(ledger)){if(row.reason||!row.guestId||row.amount<=0)continue;const h=hrow(row.guestId,row.businessDate);if(row.dateSource==='orderCreatedAt')h.orderDateFallback=true;h[row.kind]+=row.amount;h.amount+=row.amount;h.sourceKeys[row.sourceKey]=true;(visitsWithSpend[row.visitId]||={})[row.guestId]=row.businessDate;}
  const interactionEvents={};
  for(const [vid,guests] of Object.entries(visitsWithSpend)){const v=visits[vid]||{};if(v.status!=='completed'&&!v.tableServiceCompletedAt)continue;const chosen=(r.serviceParticipation||{})[vid];const staffIds=chosen?Object.keys(chosen.staffIds||{}):(v.assignedStaffId?[v.assignedStaffId]:[]);
-  for(const [id,date] of Object.entries(guests)){if(!staffIds.length)pending['staff_'+key(vid+id)]={kind:'interaction',visitId:vid,guestId:id,businessDate:date,reason:'服務女僕待補正'};for(const sid of staffIds){interactionEvents[key(id+vid+sid)]={id,sid,date};hrow(id,date).staffIds[sid]=true;}}
+  for(const [id,date] of Object.entries(guests)){for(const sid of staffIds){interactionEvents[key(id+vid+sid)]={id,sid,date};hrow(id,date).staffIds[sid]=true;}}
  }
  const visitDeltas={},interactionDeltas={};
  for(const adj of Object.values(r.adjustments||{})){if(adj.voided)continue;const id=canonical(profiles,adj.guestId);if(!id||excludedGuest(id)||!dateOK(adj.businessDate))continue;const h=hrow(id,adj.businessDate);if(adj.type==='spend'){h[adj.kind||'food']+=adj.delta;h.amount+=adj.delta;}if(adj.type==='visit')visitDeltas[id]=(visitDeltas[id]||0)+adj.delta;if(adj.type==='interaction'){const k=id+'|'+adj.staffId;interactionDeltas[k]=(interactionDeltas[k]||0)+adj.delta;}}

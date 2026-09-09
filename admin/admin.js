@@ -340,6 +340,7 @@
     document.getElementById('receptionTab').style.display = 'none';
     document.getElementById('ordersTab').style.display = 'block';
     document.getElementById('specialServicesTab').style.display = 'none';
+    document.getElementById('guestbookAdminTab').style.display = 'none';
     document.getElementById('operationsTab').style.display = 'none';
     document.getElementById('menuTab').style.display = 'none';
     document.getElementById('staffTab').style.display = 'none';
@@ -358,6 +359,7 @@
     document.getElementById('receptionTab').style.display = 'block';
     document.getElementById('ordersTab').style.display = 'none';
     document.getElementById('specialServicesTab').style.display = 'none';
+    document.getElementById('guestbookAdminTab').style.display = 'none';
     document.getElementById('operationsTab').style.display = 'none';
     document.getElementById('menuTab').style.display = 'none';
     document.getElementById('staffTab').style.display = 'none';
@@ -377,6 +379,7 @@
     document.getElementById('receptionTab').style.display = 'none';
     document.getElementById('ordersTab').style.display = 'none';
     document.getElementById('specialServicesTab').style.display = 'none';
+    document.getElementById('guestbookAdminTab').style.display = 'none';
     document.getElementById('operationsTab').style.display = 'none';
     document.getElementById('menuTab').style.display = 'none';
     document.getElementById('staffTab').style.display = 'none';
@@ -826,7 +829,7 @@
     var tab = e.target.closest('.main-tab');
     if(!tab) return;
     var target = tab.getAttribute('data-main');
-    if(target!=='reception' && target!=='orders' && target!=='special' && !isManager()){
+    if(target!=='reception' && target!=='orders' && target!=='special' && target!=='guestbook' && !isManager()){
       showReceptionTab();
       return;
     }
@@ -836,6 +839,7 @@
     document.getElementById('receptionTab').style.display = target==='reception' ? 'block' : 'none';
     document.getElementById('ordersTab').style.display = target==='orders' ? 'block' : 'none';
     document.getElementById('specialServicesTab').style.display = target==='special' ? 'block' : 'none';
+    document.getElementById('guestbookAdminTab').style.display = target==='guestbook' ? 'block' : 'none';
     document.getElementById('operationsTab').style.display = target==='operations' ? 'block' : 'none';
     document.getElementById('menuTab').style.display = target==='menu' ? 'block' : 'none';
     document.getElementById('staffTab').style.display = target==='staff' ? 'block' : 'none';

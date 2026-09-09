@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="admin-ui-v6.css?v=20260905c">
   <link rel="stylesheet" href="admin-ui-v10.css?v=20260907-v13">
 <link rel="stylesheet" href="guest-registry.css?v=20260908-v21">
+<link rel="stylesheet" href="admin-v22.css?v=20260909-v22">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -44,6 +45,7 @@
       <button type="button" class="main-tab" data-main="reception"><span>接待</span><span class="main-tab-count" id="navReceptionCount" hidden>0</span></button>
       <button type="button" class="main-tab" data-main="orders"><span>訂單</span><span class="main-tab-count" id="navOrderCount" hidden>0</span></button>
       <button type="button" class="main-tab" data-main="special"><span>特殊服務</span><span class="main-tab-count" id="navSpecialCount" hidden>0</span></button>
+      <button type="button" class="main-tab" data-main="guestbook"><span>留言</span><span class="main-tab-count" id="navGuestbookCount" hidden>0</span></button>
       <span class="main-tab-group-label manager-only" data-manager-only>店務</span>
       <button type="button" class="main-tab manager-only" data-main="operations" data-manager-only>營業</button>
       <button type="button" class="main-tab manager-only" data-main="menu" data-manager-only>菜單</button>
@@ -249,6 +251,58 @@
           </section>
         </div>
       </div>
+    </div>
+
+    <!-- ============ 客人留言 ============ -->
+    <div id="guestbookAdminTab" style="display:none;">
+      <div class="page-heading guestbook-admin-heading">
+        <div class="page-heading-copy"><span class="page-eyebrow">Guest Letters</span><h2>客人留言</h2><p>所有後台帳號可閱讀投稿；只有管理員可以編輯展示文字、刊登、取消刊登或自行新增官網留言。</p></div>
+        <button class="btn primary manager-only" data-manager-only id="guestbookAddDisplay" type="button">新增官網展示留言</button>
+      </div>
+      <div class="guestbook-admin-metrics" aria-label="留言概況">
+        <div><span>未讀</span><strong id="guestbookUnreadCount">0</strong></div>
+        <div><span>允許公開</span><strong id="guestbookAllowedCount">0</strong></div>
+        <div><span>目前刊登</span><strong id="guestbookPublishedCount">0</strong></div>
+        <div><span>不公開</span><strong id="guestbookPrivateCount">0</strong></div>
+      </div>
+      <div class="guestbook-admin-layout">
+        <section class="panel guestbook-inbox-panel">
+          <div class="guestbook-admin-panel-head"><h3>投稿列表</h3><div class="guestbook-admin-filters" role="group" aria-label="篩選留言"><button type="button" class="active" data-guestbook-filter="all">全部</button><button type="button" data-guestbook-filter="unread">未讀</button><button type="button" data-guestbook-filter="published">已刊登</button><button type="button" data-guestbook-filter="private">不公開</button></div></div>
+          <div id="guestbookSubmissionList" class="guestbook-admin-list"><span class="empty">正在讀取投稿…</span></div>
+        </section>
+        <section class="panel guestbook-detail-panel" id="guestbookDetailPanel">
+          <div id="guestbookDetailEmpty" class="guestbook-admin-empty">請從左側選擇一封留言。</div>
+          <div id="guestbookDetail" hidden>
+            <div class="guestbook-detail-tags" id="guestbookDetailTags"></div>
+            <h3 id="guestbookDetailTitle">留言詳情</h3>
+            <dl class="guestbook-detail-meta" id="guestbookDetailMeta"></dl>
+            <div class="guestbook-original"><span>客人投稿原文</span><p id="guestbookOriginalText"></p></div>
+            <label class="guestbook-admin-field manager-only" data-manager-only for="guestbookDisplayText">官網展示文字（原文會永久保留）<textarea id="guestbookDisplayText" maxlength="1000" rows="6"></textarea></label>
+            <div class="guestbook-detail-actions manager-only" data-manager-only>
+              <button class="btn ghost" id="guestbookMarkRead" type="button">標示已讀</button>
+              <button class="btn primary" id="guestbookPublish" type="button">刊登留言</button>
+              <button class="btn ghost" id="guestbookUnpublish" type="button">取消刊登</button>
+            </div>
+            <p class="guestbook-readonly-note" id="guestbookReadonlyNote">一般帳號為唯讀模式，不可編輯或刊登。</p>
+            <p class="site-content-status" id="guestbookAdminStatus" aria-live="polite"></p>
+          </div>
+        </section>
+      </div>
+      <section class="panel guestbook-public-admin-panel manager-only" data-manager-only>
+        <div class="guestbook-admin-panel-head"><div><h3>官網已刊登留言</h3><p>可辨識客人投稿或管理員自行新增；取消刊登不會刪除客人原始投稿。</p></div></div>
+        <div id="guestbookPublicAdminList" class="guestbook-public-admin-list"><span class="empty">正在讀取官網留言…</span></div>
+      </section>
+      <section class="panel guestbook-manual-panel manager-only" data-manager-only id="guestbookManualPanel" hidden>
+        <div class="guestbook-admin-panel-head"><h3>新增官網展示留言</h3><button class="btn ghost small" id="guestbookManualClose" type="button">關閉</button></div>
+        <div class="guestbook-manual-grid">
+          <label>公開方式<select id="guestbookManualMode"><option value="anonymous">匿名公開</option><option value="named">具名公開</option></select></label>
+          <label>顯示名字<input id="guestbookManualName" type="text" maxlength="40" placeholder="具名公開時必填"></label>
+          <label>收件對象<input id="guestbookManualRecipient" type="text" maxlength="40" value="曇時全體成員"></label>
+          <label class="wide">展示文字<textarea id="guestbookManualText" maxlength="1000" rows="5"></textarea></label>
+        </div>
+        <button class="btn primary" id="guestbookManualSave" type="button">新增並刊登</button>
+        <p class="site-content-status" id="guestbookManualStatus" aria-live="polite"></p>
+      </section>
     </div>
 
     <!-- ============ 營業管理 ============ -->
@@ -634,6 +688,33 @@
         <p class="site-content-status" id="sitePolaroidStatus" aria-live="polite">正在讀取拍立得資料…</p>
         <div id="sitePolaroidList" class="site-polaroid-list"><span class="empty">正在讀取…</span></div>
       </div>
+
+      <div class="panel site-content-panel studio-admin-panel">
+        <p class="admin-section-label">攝影棚與往日相簿</p>
+        <p class="panel-title">棚景內容管理</p>
+        <p class="site-content-lead">現役棚會顯示在主要區域；換棚時將狀態改為「往日回憶」即可保留照片與介紹，不必刪除重建。</p>
+        <div class="studio-admin-layout">
+          <section class="studio-admin-list-panel">
+            <div class="guestbook-admin-panel-head"><h3>棚景列表</h3><button class="btn primary small" id="studioAdd" type="button">新增棚景</button></div>
+            <div id="studioAdminList" class="studio-admin-list"><span class="empty">正在讀取棚景…</span></div>
+          </section>
+          <section class="studio-admin-editor" id="studioAdminEditor">
+            <div class="guestbook-admin-panel-head"><h3 id="studioEditorTitle">編輯棚景</h3><span class="studio-admin-badge">管理員專用</span></div>
+            <div class="studio-admin-fields">
+              <label>棚名<input type="text" id="studioName" maxlength="80"></label>
+              <label>狀態<select id="studioStatus"><option value="active">現役攝影棚</option><option value="memory">往日回憶</option></select></label>
+              <label>排序<input type="number" id="studioSortOrder" min="0" max="999999" step="1" value="100"></label>
+              <label class="studio-visible-field"><input type="checkbox" id="studioVisible" checked> 顯示在官網</label>
+              <label class="wide">簡介<textarea id="studioSummary" maxlength="240" rows="3"></textarea></label>
+              <label class="wide">完整介紹<textarea id="studioDescription" maxlength="3000" rows="7"></textarea></label>
+            </div>
+            <label class="studio-upload-zone">加入棚景圖片（可一次多選）<input type="file" id="studioImagesInput" accept="image/jpeg,image/png,image/webp" multiple><span>JPG／PNG／WebP，每張不超過 12 MB；圖片上傳與移除僅限 tanjicafe@gmail.com。</span></label>
+            <div id="studioImageList" class="studio-image-list"><span class="empty">請選擇棚景或新增資料。</span></div>
+            <div class="studio-admin-actions"><button class="btn primary" id="studioSave" type="button">儲存棚景並同步官網</button><button class="btn ghost" id="studioCancel" type="button">取消本次修改</button></div>
+            <p class="site-content-status" id="studioAdminStatus" aria-live="polite"></p>
+          </section>
+        </div>
+      </div>
     </div>
 
     <!-- ============ 權限管理 ============ -->
@@ -789,8 +870,10 @@
 <script src="guest-actions.js?v=20260908-v21"></script>
 <script src="guest-local.js?v=20260908-v21"></script>
 <script src="guest-registry.js?v=20260908-v21"></script>
-<script src="admin.js?v=20260908-v21"></script>
+<script src="admin.js?v=20260909-v22"></script>
 <script src="site-content-admin.js?v=20260826a"></script>
+<script src="guestbook-admin.js?v=20260909-v22"></script>
+<script src="studio-admin.js?v=20260909-v22"></script>
 <script src="admin-workspace-preview.js?v=20260905c"></script>
 
 </body>
