@@ -153,7 +153,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 </style>
 <link rel="stylesheet" href="assets/unified-cafe-ui.css?v=20260825">
 <link rel="stylesheet" href="assets/readability-scale.css?v=20260826">
-<link rel="stylesheet" href="assets/guest-cafe-ui.css?v=20260829-contrast-a">
+<link rel="stylesheet" href="assets/guest-cafe-ui.css?v=20260913-v32">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -255,6 +255,12 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <div class="visit-assignee" id="visitAssignee"></div>
     <div class="visit-meta" id="visitStatusMeta"></div>
     <p class="visit-help" id="visitStatusHelp">請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。</p>
+    <div class="polaroid-link-card" id="polaroidLinkCard">
+      <div><strong>共桌拍立得連結</strong><span>產生一次性桌內密碼，同行者即可連結自己的角色並使用拍立得網站。</span></div>
+      <button class="btn ghost" id="createPolaroidShareCode" type="button">產生共桌密碼</button>
+      <output id="polaroidShareCode" aria-live="polite"></output>
+      <a class="btn primary" href="https://photo.ephemereffxiv.com/" target="_blank" rel="noopener">前往拍立得網站</a>
+    </div>
     <button class="btn ghost" id="cancelVisitQueue" type="button" style="margin-top:12px;">取消候位／改為自由參觀</button>
     <button class="btn ghost" id="forgetVisitSession" type="button" style="margin-top:8px;border:0;width:100%;font-size:11px;">這不是我的候位號碼</button>
   </div>
@@ -341,7 +347,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
   var cart = {}; // id -> {name, price, qty, addon:{label,price}|null, assignments:[用餐者]}
   var pendingAddons = {}; // remembers add-ons selected before the base item is added
-  var db, menuRef, operationStatusRef, functionsClient, submitOrderFn;
+  var db, menuRef, operationStatusRef, functionsClient, submitOrderFn, createPolaroidShareCodeFn;
   var visitsRef, visitQueueCounterRef, staffRosterRef, todayStaffRef;
   var currentVisitorUid = '';
   var activeVisitListenerRef = null;
@@ -451,6 +457,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     db = firebase.database();
     functionsClient = firebase.app().functions('asia-southeast1');
     submitOrderFn = functionsClient.httpsCallable('submitOrder');
+    createPolaroidShareCodeFn = functionsClient.httpsCallable('polaroidCreateShareCode');
     menuRef = db.ref('lephemere/menu');
     operationStatusRef = db.ref('lephemere/operationStatus');
     visitsRef = db.ref('lephemere/visits');
@@ -781,6 +788,14 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     if(!activeVisitId || !visitsRef) return;
     if(!confirm('確定取消候位並改為自由參觀嗎？')) return;
     visitsRef.child(activeVisitId).update({status:'cancelled',cancelledAt:Date.now(),updatedAt:Date.now()});
+  });
+  document.getElementById('createPolaroidShareCode').addEventListener('click',function(){
+    if(!activeVisitId||!createPolaroidShareCodeFn){ alert('目前沒有可連結的號碼牌。'); return; }
+    var btn=this,out=document.getElementById('polaroidShareCode');btn.disabled=true;out.textContent='正在產生…';
+    createPolaroidShareCodeFn({visitId:activeVisitId}).then(function(res){
+      var code=res.data&&res.data.shareCode||'';
+      out.innerHTML=code?'<b>'+escapeHtml(code)+'</b><span>請只告訴本桌同行者；重新產生後舊密碼會失效。</span>':'未取得密碼，請再試一次。';
+    }).catch(function(err){out.textContent=(err&&err.message)||'產生失敗，請稍後再試。';}).finally(function(){btn.disabled=false;});
   });
 
   setInterval(function(){ if(activeVisit) updateVisitStatus(); },30000);
