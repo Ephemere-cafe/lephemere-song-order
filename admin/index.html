@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="admin-ui-v10.css?v=20260907-v13">
 <link rel="stylesheet" href="guest-registry.css?v=20260908-v21">
 <link rel="stylesheet" href="admin-v22.css?v=20260910-v27">
+<link rel="stylesheet" href="admin-v31.css?v=20260913-v31">
+<link rel="stylesheet" href="polaroid-admin.css?v=20260913-v32">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -43,8 +45,10 @@
       <span class="main-tab-group-label">營業中</span>
       <button type="button" class="main-tab active manager-only" data-main="today" data-manager-only><span>今日總覽</span></button>
       <button type="button" class="main-tab" data-main="reception"><span>接待</span><span class="main-tab-count" id="navReceptionCount" hidden>0</span></button>
+      <button type="button" class="main-tab" data-main="macros"><span>我的巨集</span></button>
       <button type="button" class="main-tab" data-main="orders"><span>訂單</span><span class="main-tab-count" id="navOrderCount" hidden>0</span></button>
       <button type="button" class="main-tab" data-main="special"><span>特殊服務</span><span class="main-tab-count" id="navSpecialCount" hidden>0</span></button>
+      <button type="button" class="main-tab" data-main="polaroid"><span>拍立得</span><span class="main-tab-count" id="navPolaroidCount" hidden>0</span></button>
       <button type="button" class="main-tab" data-main="guestbook"><span>留言</span><span class="main-tab-count" id="navGuestbookCount" hidden>0</span></button>
       <span class="main-tab-group-label manager-only" data-manager-only>店務</span>
       <button type="button" class="main-tab manager-only" data-main="operations" data-manager-only>營業</button>
@@ -141,6 +145,24 @@
       <button type="button" class="today-recent" id="todayRecentAction" data-dashboard-target="reception"><span>最近操作</span><strong>尚無接待操作紀錄</strong><small>查看接待紀錄 →</small></button>
     </div>
 
+    <!-- ============ 我的巨集 ============ -->
+    <div id="macrosTab" style="display:none;">
+      <div class="page-heading macro-page-heading">
+        <div class="page-heading-copy"><span class="page-eyebrow">My Messages</span><h2>我的巨集</h2><p>把接待時會用到的文字整理在這裡，需要時就能快速找到。</p></div>
+      </div>
+      <div class="macro-settings-grid">
+        <section class="panel macro-editor-panel">
+          <div class="macro-editor-head"><div><h3>號碼牌叫號文字</h3><p>接待下一組或複製接待文字時使用。</p></div><span class="macro-editor-tag">一般接待</span></div>
+          <textarea id="receptionCallTemplate" maxlength="300" aria-label="號碼牌叫號文字" placeholder="請先在上方選擇目前操作女僕"></textarea>
+          <div class="macro-variable-list" aria-label="可用變數"><span>{角色名}</span><span>{伺服器}</span><span>{候位號碼}</span><span>{女僕名}</span></div>
+          <p class="macro-editor-hint">請保留 FF14 密語格式；儲存後會套用在目前選擇的女僕。</p>
+          <div class="macro-editor-actions"><span id="receptionCallTemplateStatus" aria-live="polite"></span><button class="btn primary small" id="saveReceptionCallTemplate" type="button">儲存號碼牌文字</button></div>
+        </section>
+        <div id="personalRegularMacroHost"></div>
+      </div>
+      <p class="macro-page-note">這裡只集中女僕自己的巨集。管理員設定的熟客門檻與店內通用文字仍保留在「客人管理」。</p>
+    </div>
+
     <!-- ============ 接待候位 ============ -->
     <div id="receptionTab" style="display:none;">
       <div class="page-heading">
@@ -152,14 +174,6 @@
           <div class="reception-console-actions"><div class="presence-row" id="presenceButtons"><button class="presence-btn" data-presence="available">可接待</button><button class="presence-btn" data-presence="serving">接待中</button><button class="presence-btn" data-presence="photo">拍照中</button><button class="presence-btn" data-presence="away">暫離</button></div><button class="btn primary" id="claimNextVisit" type="button">接待下一組</button></div>
         </div>
       </div>
-      <details class="panel reception-template-panel">
-        <summary><span>✉ 我的接待文字</span><span>員工可自行調整</span></summary>
-        <div class="reception-template-body">
-          <textarea id="receptionCallTemplate" maxlength="300" placeholder="請先在上方選擇目前操作女僕"></textarea>
-          <p>可用變數：{角色名}、{伺服器}、{候位號碼}、{女僕名}。請保留 FF14 密語格式，例如：/t {角色名}@{伺服器}</p>
-          <div class="reception-template-actions"><span id="receptionCallTemplateStatus" aria-live="polite"></span><button class="btn primary small" id="saveReceptionCallTemplate" type="button">儲存我的接待文字</button></div>
-        </div>
-      </details>
       <div class="reception-overview" aria-label="本場接待概況">
         <div class="reception-metric"><span class="reception-metric-label">正在候位</span><strong class="reception-metric-value" id="receptionWaitingMetric">0</strong><span class="reception-metric-note">依序等待接待</span></div>
         <div class="reception-metric"><span class="reception-metric-label">接待進行中</span><strong class="reception-metric-value" id="receptionActiveMetric">0</strong><span class="reception-metric-note">已有負責女僕</span></div>
@@ -251,6 +265,17 @@
           </section>
         </div>
       </div>
+    </div>
+
+    <!-- ============ 獨立拍立得系統 ============ -->
+    <div id="polaroidTab" style="display:none;">
+      <div class="page-heading"><div class="page-heading-copy"><span class="page-eyebrow">Polaroid</span><h2>拍立得工作區</h2><p>女僕只需查看自己的待拍；管理員可在同一頁管理本場名額與輪次。</p></div><span class="polaroid-live" id="polaroidSessionBadge">場次確認中</span></div>
+      <section class="panel polaroid-my-work"><div class="polaroid-work-head"><div><h3 id="polaroidMyTitle">我的待拍</h3><p id="polaroidMyHint">請先在上方選擇操作女僕。</p></div><div class="polaroid-status-actions" id="polaroidStatusActions"><button data-polaroid-status="available">可拍</button><button data-polaroid-status="serving">接待中</button><button data-polaroid-status="shooting">拍攝中</button><button data-polaroid-status="away">暫離</button><button data-polaroid-status="off">停止接單</button></div></div><div id="polaroidMyTasks" class="polaroid-task-list"><div class="queue-empty">正在讀取待拍清單…</div></div></section>
+      <section class="manager-only" data-manager-only id="polaroidManagerArea"><div class="polaroid-admin-metrics"><div><span>本場訂單</span><strong id="polaroidMetricOrders">0</strong></div><div><span>已完成</span><strong id="polaroidMetricDone">0</strong></div><div><span>等待拍攝</span><strong id="polaroidMetricPending">0</strong></div><div><span>未到場／順延</span><strong id="polaroidMetricDeferred">0</strong></div></div>
+        <details class="panel polaroid-session-editor" open><summary><span><strong>本場拍立得設定</strong><small>管理員專用</small></span></summary><div class="polaroid-session-fields"><label>場次名稱<input id="polaroidSessionTitle" maxlength="100" placeholder="例如：2026/09/22 曇時一般營業"></label><label>營業日期<input id="polaroidBusinessDate" type="date"></label><label>客人最多選擇女僕數<input id="polaroidMaxMaids" type="number" min="1" max="20" value="3"></label><label>每女僕每客限購<input id="polaroidPerMaidLimit" type="number" min="1" max="5" value="1"></label><label>每輪同時拍攝女僕數<input id="polaroidSimultaneous" type="number" min="1" max="20" value="2"></label><label class="check"><input id="polaroidSessionOpen" type="checkbox" checked> 啟用本場拍立得</label><label class="check"><input id="polaroidSalesOpen" type="checkbox" checked> 接受新現場合照</label></div>
+        <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕與名額</h4><div id="polaroidMaidEditor"></div></div></div><div class="polaroid-save-row"><span id="polaroidSaveStatus" aria-live="polite"></span><button type="button" class="btn primary" id="polaroidSaveSession">儲存本場拍立得設定</button></div></details>
+        <section class="panel"><div class="polaroid-work-head"><div><h3>全場待拍概況</h3><p>系統自動安排後，只需處理未到場或臨時例外。</p></div></div><div id="polaroidAllTasks" class="polaroid-task-list"></div></section>
+      </section>
     </div>
 
     <!-- ============ 客人留言 ============ -->
@@ -873,12 +898,13 @@
 <script src="guest-cleanup.js?v=20260908-v21"></script>
 <script src="guest-actions.js?v=20260908-v21"></script>
 <script src="guest-local.js?v=20260908-v21"></script>
-<script src="guest-registry.js?v=20260912-v30"></script>
-<script src="admin.js?v=20260909-v22"></script>
+<script src="guest-registry.js?v=20260913-v31"></script>
+<script src="admin.js?v=20260913-v32"></script>
 <script src="site-content-admin.js?v=20260826a"></script>
 <script src="guestbook-admin.js?v=20260910-v25"></script>
 <script src="studio-admin.js?v=20260909-v22"></script>
 <script src="admin-workspace-preview.js?v=20260905c"></script>
+<script src="polaroid-admin.js?v=20260913-v32"></script>
 
 </body>
 </html>

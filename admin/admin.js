@@ -338,6 +338,7 @@
     if(document.getElementById('guestRegistryTab')) document.getElementById('guestRegistryTab').style.display='none';
     document.getElementById('todayTab').style.display = 'none';
     document.getElementById('receptionTab').style.display = 'none';
+    document.getElementById('macrosTab').style.display = 'none';
     document.getElementById('ordersTab').style.display = 'block';
     document.getElementById('specialServicesTab').style.display = 'none';
     document.getElementById('guestbookAdminTab').style.display = 'none';
@@ -357,6 +358,7 @@
     if(document.getElementById('guestRegistryTab')) document.getElementById('guestRegistryTab').style.display='none';
     document.getElementById('todayTab').style.display = 'none';
     document.getElementById('receptionTab').style.display = 'block';
+    document.getElementById('macrosTab').style.display = 'none';
     document.getElementById('ordersTab').style.display = 'none';
     document.getElementById('specialServicesTab').style.display = 'none';
     document.getElementById('guestbookAdminTab').style.display = 'none';
@@ -377,6 +379,7 @@
     if(tab) tab.classList.add('active');
     document.getElementById('todayTab').style.display = 'block';
     document.getElementById('receptionTab').style.display = 'none';
+    document.getElementById('macrosTab').style.display = 'none';
     document.getElementById('ordersTab').style.display = 'none';
     document.getElementById('specialServicesTab').style.display = 'none';
     document.getElementById('guestbookAdminTab').style.display = 'none';
@@ -829,7 +832,7 @@
     var tab = e.target.closest('.main-tab');
     if(!tab) return;
     var target = tab.getAttribute('data-main');
-    if(target!=='reception' && target!=='orders' && target!=='special' && target!=='guestbook' && !isManager()){
+    if(target!=='reception' && target!=='macros' && target!=='orders' && target!=='special' && target!=='polaroid' && target!=='guestbook' && !isManager()){
       showReceptionTab();
       return;
     }
@@ -837,8 +840,10 @@
     tab.classList.add('active');
     document.getElementById('todayTab').style.display = target==='today' ? 'block' : 'none';
     document.getElementById('receptionTab').style.display = target==='reception' ? 'block' : 'none';
+    document.getElementById('macrosTab').style.display = target==='macros' ? 'block' : 'none';
     document.getElementById('ordersTab').style.display = target==='orders' ? 'block' : 'none';
     document.getElementById('specialServicesTab').style.display = target==='special' ? 'block' : 'none';
+    document.getElementById('polaroidTab').style.display = target==='polaroid' ? 'block' : 'none';
     document.getElementById('guestbookAdminTab').style.display = target==='guestbook' ? 'block' : 'none';
     document.getElementById('operationsTab').style.display = target==='operations' ? 'block' : 'none';
     document.getElementById('menuTab').style.display = target==='menu' ? 'block' : 'none';
@@ -1939,7 +1944,12 @@
       var orderTotal=isFinite(recordedTotal)?recordedTotal:payrollOrderFallbackTotal(order);
       commonRevenue+=Math.max(0,orderTotal-specialBase);
     });
-    return {commonRevenue:commonRevenue,specialRevenue:specialRevenue,unassignedRevenue:unassignedRevenue,specialByStaff:specialByStaff,specialStaffNames:specialStaffNames};
+    var polaroid=window.LephemerePolaroidAccounting?window.LephemerePolaroidAccounting(currentBusinessDate()):null;
+    if(polaroid){
+      specialRevenue+=Number(polaroid.total||0);
+      Object.keys(polaroid.specialByStaff||{}).forEach(function(id){specialByStaff[id]=(specialByStaff[id]||0)+Number(polaroid.specialByStaff[id]||0);specialStaffNames[id]=(polaroid.staffNames&&polaroid.staffNames[id])||((staffRoster[id]||{}).name)||'未命名女僕';});
+    }
+    return {commonRevenue:commonRevenue,specialRevenue:specialRevenue,unassignedRevenue:unassignedRevenue,specialByStaff:specialByStaff,specialStaffNames:specialStaffNames,polaroidRevenue:polaroid?Number(polaroid.total||0):0};
   }
 
   function ensurePayrollDefaults(){
@@ -2085,6 +2095,7 @@
   });
   document.getElementById('payrollSlipStaff').addEventListener('change',renderPayrollSlip);
   document.getElementById('payrollRecalculate').addEventListener('click',renderPayroll);
+  window.addEventListener('polaroid-accounting-updated',function(){var tab=document.getElementById('payrollTab');if(tab&&tab.style.display!=='none')renderPayroll();});
   document.getElementById('payrollCopySlip').addEventListener('click',function(){
     var button=this;
     var text=document.getElementById('payrollSlip').textContent||'';
@@ -2610,16 +2621,19 @@
         });
       }
     });
+    var polaroid=window.LephemerePolaroidAccounting?window.LephemerePolaroidAccounting(date):{orderCount:0,total:0,taskCount:0,completed:0,deferred:0};
+    totalGil+=Number(polaroid.total||0);
     var staffLines = Object.keys(staffCounts).sort().map(function(name){ return '・'+name+'：'+staffCounts[name]+' 筆'; });
     if(!staffLines.length) staffLines.push('・尚無店員接待紀錄');
     var text = '【曇時營業日報｜'+date+'】\n'
       +'訂單：'+list.length+' 筆（完成 '+completed+'／進行中 '+active+'／取消 '+cancelled+'）\n'
+      +'拍立得：'+Number(polaroid.orderCount||0)+' 筆（完成拍攝 '+Number(polaroid.completed||0)+'／待處理 '+Math.max(0,Number(polaroid.taskCount||0)-Number(polaroid.completed||0))+'）\n'
       +'訂單總額：'+fmtGil(totalGil)+'\n'
       +'特別服務：完成 '+special.completed+'／共 '+special.total+' 項\n\n'
       +'接待紀錄\n'+staffLines.join('\n');
     return {
       text:text,
-      data:{ date:date, orderCount:list.length, activeCount:active, completedCount:completed, cancelledCount:cancelled, totalGil:totalGil, specialTotal:special.total, specialCompleted:special.completed, staffCounts:staffCounts, text:text, generatedAt:Date.now() }
+      data:{ date:date, orderCount:list.length, activeCount:active, completedCount:completed, cancelledCount:cancelled, totalGil:totalGil, specialTotal:special.total+Number(polaroid.taskCount||0), specialCompleted:special.completed+Number(polaroid.completed||0), polaroidOrderCount:Number(polaroid.orderCount||0), polaroidRevenue:Number(polaroid.total||0), polaroidTaskCount:Number(polaroid.taskCount||0), polaroidCompleted:Number(polaroid.completed||0), staffCounts:staffCounts, text:text, generatedAt:Date.now() }
     };
   }
 
