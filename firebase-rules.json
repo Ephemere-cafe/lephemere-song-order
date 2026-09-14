@@ -45,9 +45,22 @@
         "studios": {
           "$studioId": {
             ".validate": "newData.hasChildren(['name','summary','description','status','sortOrder','visible','coverImageId','images','createdAt','updatedAt']) && newData.child('name').isString() && newData.child('name').val().length >= 1 && newData.child('name').val().length <= 80 && newData.child('summary').isString() && newData.child('summary').val().length <= 240 && newData.child('description').isString() && newData.child('description').val().length <= 3000 && (newData.child('status').val() == 'active' || newData.child('status').val() == 'memory') && newData.child('sortOrder').isNumber() && newData.child('visible').isBoolean() && newData.child('coverImageId').isString() && newData.child('images').child(newData.child('coverImageId').val()).exists() && newData.child('createdAt').isNumber() && newData.child('updatedAt').isNumber()",
+            "name": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 80" },
+            "summary": { ".validate": "newData.isString() && newData.val().length <= 240" },
+            "description": { ".validate": "newData.isString() && newData.val().length <= 3000" },
+            "status": { ".validate": "newData.val() == 'active' || newData.val() == 'memory'" },
+            "sortOrder": { ".validate": "newData.isNumber()" },
+            "visible": { ".validate": "newData.isBoolean()" },
+            "coverImageId": { ".validate": "newData.isString() && newData.parent().child('images').child(newData.val()).exists()" },
+            "createdAt": { ".validate": "newData.isNumber()" },
+            "updatedAt": { ".validate": "newData.isNumber()" },
             "images": {
               "$imageId": {
                 ".validate": "newData.hasChildren(['imageUrl','storagePath','alt','sortOrder']) && newData.child('imageUrl').isString() && newData.child('imageUrl').val().length <= 2000 && newData.child('storagePath').isString() && newData.child('storagePath').val().length <= 240 && newData.child('alt').isString() && newData.child('alt').val().length <= 160 && newData.child('sortOrder').isNumber()",
+                "imageUrl": { ".validate": "newData.isString() && newData.val().length <= 2000" },
+                "storagePath": { ".validate": "newData.isString() && newData.val().length <= 240" },
+                "alt": { ".validate": "newData.isString() && newData.val().length <= 160" },
+                "sortOrder": { ".validate": "newData.isNumber()" },
                 "$other": { ".validate": false }
               }
             },
@@ -86,6 +99,14 @@
         ".indexOn": ["sortOrder", "publishedAt"],
         "$publicationId": {
           ".validate": "newData.hasChildren(['displayMode','displayText','recipientLabel','sourceType','sortOrder','publishedAt','updatedAt']) && (newData.child('displayMode').val() == 'anonymous' || newData.child('displayMode').val() == 'named') && newData.child('displayText').isString() && newData.child('displayText').val().length >= 2 && newData.child('displayText').val().length <= 1000 && newData.child('recipientLabel').isString() && newData.child('recipientLabel').val().length >= 1 && newData.child('recipientLabel').val().length <= 40 && (newData.child('sourceType').val() == 'guest' || newData.child('sourceType').val() == 'admin') && newData.child('sortOrder').isNumber() && newData.child('publishedAt').isNumber() && newData.child('updatedAt').isNumber() && ((newData.child('displayMode').val() == 'named' && newData.child('displayName').isString() && newData.child('displayName').val().length >= 1 && newData.child('displayName').val().length <= 40) || (newData.child('displayMode').val() == 'anonymous' && !newData.child('displayName').exists()))",
+          "displayMode": { ".validate": "newData.val() == 'anonymous' || newData.val() == 'named'" },
+          "displayText": { ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 1000" },
+          "displayName": { ".validate": "newData.parent().child('displayMode').val() == 'named' && newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
+          "recipientLabel": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
+          "sourceType": { ".validate": "newData.val() == 'guest' || newData.val() == 'admin'" },
+          "sortOrder": { ".validate": "newData.isNumber()" },
+          "publishedAt": { ".validate": "newData.isNumber()" },
+          "updatedAt": { ".validate": "newData.isNumber()" },
           "$other": { ".validate": false }
         }
       },
@@ -138,6 +159,36 @@
           }
         }
       },
+      "polaroid": {
+        "public": {
+          ".read": true,
+          ".write": false
+        },
+        "access": {
+          "$uid": {
+            ".read": "auth != null && auth.uid == $uid",
+            ".write": false
+          }
+        },
+        "customerOrders": {
+          "$uid": {
+            ".read": "auth != null && auth.uid == $uid",
+            ".write": false
+          }
+        },
+        "sessions": {
+          ".read": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager' || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'orders')",
+          ".write": false
+        },
+        "visitSecrets": {
+          ".read": false,
+          ".write": false
+        },
+        "$other": {
+          ".read": false,
+          ".write": false
+        }
+      },
       "orderRequests": {
         ".read": false,
         ".write": false
@@ -157,12 +208,19 @@
       "visits": {
         ".read": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager' || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'orders')",
         ".indexOn": [
-          "businessDate"
+          "businessDate",
+          "queueNumber"
         ],
         "$visitId": {
-          ".read": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager' || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'orders') || (auth != null && data.child('ownerUid').val() == auth.uid)",
+          ".read": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager' || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'orders') || (auth != null && data.child('ownerUid').val() == auth.uid) || (auth != null && root.child('lephemere/sharedVisitAccess').child(auth.uid).child($visitId).child('sessionId').val() == data.child('sessionId').val() && root.child('lephemere/sharedVisitAccess').child(auth.uid).child($visitId).child('expiresAt').val() > now)",
           ".write": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager' || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'orders') || (auth != null && ((!data.exists() && newData.child('ownerUid').val() == auth.uid && newData.child('status').val() == 'waiting') || (data.child('ownerUid').val() == auth.uid && data.child('status').val() == 'waiting' && newData.child('status').val() == 'cancelled')))",
           ".validate": "auth != null && (auth.token.email == 'tanjicafe@gmail.com' || root.child('lephemere/todayStaff/_access/ownerUid').val() == auth.uid || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'manager' || root.child('lephemere/todayStaff/_access/users').child(auth.uid).child('role').val() == 'orders') || (newData.hasChildren(['ownerUid','queueNumber','characterName','world','partySize','status','businessDate','createdAt','updatedAt']) && newData.child('ownerUid').val() == auth.uid && newData.child('queueNumber').isString() && newData.child('characterName').isString() && newData.child('characterName').val().length <= 40 && (newData.child('world').val() == '利維坦' || newData.child('world').val() == '伊弗利特' || newData.child('world').val() == '鳳凰' || newData.child('world').val() == '迦樓羅' || newData.child('world').val() == '奧汀' || newData.child('world').val() == '巴哈姆特' || newData.child('world').val() == '泰坦') && newData.child('partySize').isNumber() && newData.child('partySize').val() >= 1 && (newData.child('status').val() == 'waiting' || newData.child('status').val() == 'cancelled'))"
+        }
+      },
+      "sharedVisitAccess": {
+        "$uid": {
+          ".read": "auth != null && auth.uid == $uid",
+          ".write": false
         }
       },
       "menu": {

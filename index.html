@@ -153,7 +153,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 </style>
 <link rel="stylesheet" href="assets/unified-cafe-ui.css?v=20260825">
 <link rel="stylesheet" href="assets/readability-scale.css?v=20260826">
-<link rel="stylesheet" href="assets/guest-cafe-ui.css?v=20260914-v33">
+<link rel="stylesheet" href="assets/guest-cafe-ui.css?v=20260914-v34">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -253,7 +253,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <div class="visit-status-label">找到尚未結束的候位</div>
     <div class="visit-ticket" id="recoveryTicketNumber">A000</div>
     <div id="recoveryVisitName" style="font-family:'Noto Serif TC',serif;font-size:16px;"></div>
-    <p class="visit-help">這個瀏覽器上次離開時仍有候位紀錄。請先確認是不是你的號碼，系統不會因重新開啟網頁而自動重排。</p>
+    <p class="visit-help">這個瀏覽器留有尚未結束的候位紀錄。請確認是否為你的號碼；重新開啟頁面不會改變原本順位。</p>
     <div class="visit-recovery-actions">
       <button class="btn primary" id="resumeVisit" type="button">繼續這次候位</button>
       <button class="btn ghost" id="forgetRecoveredVisit" type="button">這不是我的號碼</button>
@@ -267,16 +267,14 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <div class="visit-assignee" id="visitAssignee"></div>
     <div class="visit-meta" id="visitStatusMeta"></div>
     <p class="visit-help" id="visitStatusHelp">請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。</p>
-    <div class="polaroid-link-card" id="sharedTableLinkCard">
-      <div><strong>讓同行者連接同桌菜單</strong><span>產生六位數共桌密碼；同行者只在這個點餐網站輸入。</span></div>
-      <button class="btn ghost" id="createSharedTableCode" type="button">產生共桌密碼</button>
-      <output id="sharedTableShareCode" aria-live="polite"></output>
-    </div>
-    <div class="polaroid-link-card" id="polaroidLinkCard">
-      <div><strong>前往拍立得網站</strong><span>先選擇要連結的本桌角色；網站會直接辨識，不會再次要求共桌密碼。</span></div>
-      <select id="polaroidMemberSelect" aria-label="選擇拍立得購買角色"></select>
-      <button class="btn primary" id="openPolaroidSite" type="button">連結並前往拍立得</button>
-      <output id="polaroidTransferStatus" aria-live="polite"></output>
+    <div class="table-access-card" id="sharedTableLinkCard">
+      <div class="table-access-copy"><span class="table-access-kicker">本桌連結資料</span><strong>同行者共用同一組號碼牌與桌碼</strong><p>可用於連接同桌菜單，也可在拍立得網站登記自己的商品。</p></div>
+      <div class="table-access-code"><span id="sharedTableQueueNumber">—</span><b id="sharedTableShareCode">取得中…</b></div>
+      <div class="table-access-actions">
+        <button class="btn ghost" id="copySharedTableCode" type="button" disabled>複製本桌資料</button>
+        <a class="btn primary" id="openPolaroidSite" href="https://photo.ephemereffxiv.com/" target="_blank" rel="noopener">前往拍立得網站</a>
+      </div>
+      <output id="tableAccessStatus" aria-live="polite"></output>
     </div>
     <button class="btn ghost" id="cancelVisitQueue" type="button" style="margin-top:12px;">取消候位／改為自由參觀</button>
     <button class="btn ghost" id="forgetVisitSession" type="button" style="margin-top:8px;border:0;width:100%;font-size:11px;">這不是我的候位號碼</button>
@@ -364,7 +362,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
   var cart = {}; // id -> {name, price, qty, addon:{label,price}|null, assignments:[用餐者]}
   var pendingAddons = {}; // remembers add-ons selected before the base item is added
-  var db, menuRef, operationStatusRef, functionsClient, submitOrderFn, createPolaroidTransferFn, createSharedTableCodeFn, joinSharedTableFn;
+  var db, menuRef, operationStatusRef, functionsClient, submitOrderFn, createSharedTableCodeFn, joinSharedTableFn;
+  var tableShareCode='', tableShareVisitId='', tableShareLoading=false;
   var visitsRef, visitQueueCounterRef, staffRosterRef, todayStaffRef;
   var currentVisitorUid = '';
   var activeVisitListenerRef = null;
@@ -474,7 +473,6 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     db = firebase.database();
     functionsClient = firebase.app().functions('asia-southeast1');
     submitOrderFn = functionsClient.httpsCallable('submitOrder');
-    createPolaroidTransferFn = functionsClient.httpsCallable('polaroidCreateTransferToken');
     createSharedTableCodeFn = functionsClient.httpsCallable('polaroidCreateShareCode');
     joinSharedTableFn = functionsClient.httpsCallable('joinSharedVisit');
     menuRef = db.ref('lephemere/menu');
@@ -658,18 +656,16 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     browseMode=false;
     setVisitView('visitStatusPanel');
     document.getElementById('visitTicketNumber').textContent = activeVisit.queueNumber || '候位中';
-    var specialService = activeVisit.status==='special_service';
+    var legacyService = activeVisit.status==='special_service';
     var assigned = activeVisit.status==='assigned' || activeVisit.status==='serving';
-    document.getElementById('visitStatusBadge').textContent = specialService ? '特殊服務準備中' : (assigned ? (activeVisit.status==='serving'?'接待進行中':'已安排接待') : '等待接待');
-    document.getElementById('visitStatusTitle').textContent = specialService ? '餐點接待已完成，女僕正在準備您的拍立得' : (assigned ? '女僕已接下您的接待' : '女僕正在依序為大家準備');
-    document.getElementById('visitAssignee').textContent = assigned ? '負責女僕｜'+(activeVisit.assignedStaffName||'店員') : (specialService ? '原接待女僕｜'+(activeVisit.assignedStaffName||'店員') : '');
-    document.getElementById('visitStatusMeta').textContent = specialService
-      ? '拍立得會由各品項指定的女僕分別處理，全部完成後本次接待會自動結案。'
-      : (assigned ? '請留意遊戲內的招呼；接待開始後即可在下方點餐。' : '候位號碼已登記｜同行 '+Number(activeVisit.partySize||1)+' 人');
-    document.getElementById('visitStatusHelp').textContent = specialService
-      ? '若需要確認拍攝順序，請直接詢問現場女僕。此階段無法再新增餐點。'
-      : (assigned ? '若需要離開、轉交其他女僕或結束接待，請直接告知負責女僕。' : (activeVisit.preferredStaffName ? '您希望由 '+activeVisit.preferredStaffName+' 接待，因此等待時間可能較長。' : '請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。'));
+    document.getElementById('visitStatusBadge').textContent = legacyService ? '接待即將完成' : (assigned ? (activeVisit.status==='serving'?'接待進行中':'已安排接待') : '等待接待');
+    document.getElementById('visitStatusTitle').textContent = legacyService ? '本次桌邊接待即將完成' : (assigned ? '女僕已接下您的接待' : '女僕正在依序為大家準備');
+    document.getElementById('visitAssignee').textContent = (assigned||legacyService) ? '負責女僕｜'+(activeVisit.assignedStaffName||'店員') : '';
+    document.getElementById('visitStatusMeta').textContent = legacyService ? '如仍有餐點或服務需要確認，請直接告知負責女僕。' : (assigned ? '請留意遊戲內的招呼；接待開始後即可在下方點餐。' : '候位號碼已登記｜同行 '+Number(activeVisit.partySize||1)+' 人');
+    document.getElementById('visitStatusHelp').textContent = legacyService ? '拍立得商品請另至拍立得網站登記。' : (assigned ? '若需要離開、轉交其他女僕或結束接待，請直接告知負責女僕。' : (activeVisit.preferredStaffName ? '您希望由 '+activeVisit.preferredStaffName+' 接待，因此等待時間可能較長。' : '請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。'));
     document.getElementById('sharedTableLinkCard').style.display=activeVisit.ownerUid===currentVisitorUid?'':'none';
+    document.getElementById('sharedTableQueueNumber').textContent=activeVisit.queueNumber||'—';
+    if(activeVisit.ownerUid===currentVisitorUid) ensureTableShareCode();
     document.getElementById('cancelVisitQueue').style.display = activeVisit.status==='waiting'&&activeVisit.ownerUid===currentVisitorUid ? 'inline-block' : 'none';
     document.getElementById('orderFlow').style.display = assigned ? 'block' : 'none';
     setGuestTab(assigned, assigned);
@@ -682,15 +678,6 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       document.getElementById('orderGuestName').textContent=(activeVisit.characterName||'主人')+'・'+Number(activeVisit.partySize||1)+' 位';
     }
     renderDinerRoster();
-    var polaroidMemberSelect=document.getElementById('polaroidMemberSelect');
-    if(polaroidMemberSelect){
-      var previousMember=polaroidMemberSelect.value;
-      var polaroidMembers=activeVisit&&Array.isArray(activeVisit.partyMembers)?activeVisit.partyMembers.slice():[];
-      var ownerMember=[activeVisit&&activeVisit.characterName||'',activeVisit&&activeVisit.world||''].filter(Boolean).join('｜');
-      if(ownerMember&&polaroidMembers.indexOf(ownerMember)===-1)polaroidMembers.unshift(ownerMember);
-      polaroidMemberSelect.innerHTML=polaroidMembers.map(function(member){return '<option value="'+escapeHtml(member)+'">'+escapeHtml(partyMemberName(member))+'</option>';}).join('');
-      if(previousMember) polaroidMemberSelect.value=previousMember;
-    }
     renderCart();
     renderOperationStatus();
     renderMenu();
@@ -735,7 +722,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   });
   document.getElementById('forgetRecoveredVisit').addEventListener('click',forgetLocalVisit);
   document.getElementById('forgetVisitSession').addEventListener('click',function(){
-    if(confirm('確定這不是你的候位號碼嗎？\n這只會清除此裝置的顯示，不會取消後台中的候位。')) forgetLocalVisit();
+    if(confirm('確定這不是你的候位號碼嗎？\n移除此頁的紀錄不會取消原本候位。')) forgetLocalVisit();
   });
 
   document.getElementById('joinVisitQueue').addEventListener('click', function(){
@@ -752,7 +739,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     }
     if(operationStatus.isOpen===false){ err.textContent='本場接待已結束，目前無法領取候位號碼'; err.style.display='block'; return; }
     if(!currentVisitorUid){ err.textContent='正在建立安全訪客身分，請稍後再試'; err.style.display='block'; return; }
-    if(!visitsRef){ err.textContent='系統尚未連線，請稍後再試'; err.style.display='block'; return; }
+    if(!visitsRef){ err.textContent='目前尚未連線，請稍後再試'; err.style.display='block'; return; }
     err.style.display='none';
     var btn=this; btn.disabled=true; btn.textContent='正在領號…';
     var day=visitDateKey();
@@ -820,31 +807,25 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     if(!confirm('確定取消候位並改為自由參觀嗎？')) return;
     visitsRef.child(activeVisitId).update({status:'cancelled',cancelledAt:Date.now(),updatedAt:Date.now()});
   });
-  document.getElementById('createSharedTableCode').addEventListener('click',function(){
-    if(!activeVisitId||!createSharedTableCodeFn){alert('目前沒有可分享的號碼牌。');return}
-    var btn=this,out=document.getElementById('sharedTableShareCode');btn.disabled=true;out.textContent='正在產生…';
-    createSharedTableCodeFn({visitId:activeVisitId}).then(function(res){var code=res.data&&res.data.shareCode||'';out.innerHTML=code?'<b>'+escapeHtml(code)+'</b><span>請將號碼牌與這組六位數密碼交給同行者。</span>':'未取得密碼，請再試一次。'}).catch(function(err){out.textContent=(err&&err.message)||'產生失敗，請稍後再試。'}).finally(function(){btn.disabled=false});
+  function friendlyCallableError(err,fallback){var code=String(err&&err.code||'').toLowerCase();if(code.indexOf('permission')!==-1)return '目前無法取得本桌資料，請由領取號碼牌的人重新開啟此頁。';if(code.indexOf('network')!==-1||code.indexOf('unavailable')!==-1)return '網路連線不穩定，請稍後再試。';return fallback}
+  function ensureTableShareCode(){
+    if(!activeVisitId||!createSharedTableCodeFn||tableShareLoading)return;
+    if(tableShareVisitId===activeVisitId&&tableShareCode){document.getElementById('sharedTableShareCode').textContent=tableShareCode;document.getElementById('copySharedTableCode').disabled=false;return}
+    tableShareLoading=true;document.getElementById('sharedTableShareCode').textContent='取得中…';document.getElementById('tableAccessStatus').textContent='';
+    createSharedTableCodeFn({visitId:activeVisitId}).then(function(res){tableShareCode=String(res.data&&res.data.shareCode||'');tableShareVisitId=activeVisitId;if(!/^\d{6}$/.test(tableShareCode))throw new Error('missing-code');document.getElementById('sharedTableShareCode').textContent=tableShareCode;document.getElementById('copySharedTableCode').disabled=false}).catch(function(err){document.getElementById('sharedTableShareCode').textContent='暫時無法取得';document.getElementById('tableAccessStatus').textContent=friendlyCallableError(err,'暫時無法取得桌碼，請稍後重新整理。')}).finally(function(){tableShareLoading=false})
+  }
+  document.getElementById('copySharedTableCode').addEventListener('click',function(){
+    if(!activeVisit||!tableShareCode)return;var message='曇時本桌資料\n號碼牌：'+(activeVisit.queueNumber||'')+'\n桌碼：'+tableShareCode+'\n點餐：https://order.ephemereffxiv.com/\n拍立得：https://photo.ephemereffxiv.com/';
+    var status=document.getElementById('tableAccessStatus');
+    navigator.clipboard.writeText(message).then(function(){status.textContent='已複製，可傳給同行者。'}).catch(function(){status.textContent='請手動記下號碼牌與桌碼。'})
   });
   document.getElementById('joinSharedTable').addEventListener('click',function(){
     var queue=document.getElementById('sharedQueueNumber').value.trim().toUpperCase(),code=document.getElementById('sharedTableCode').value.trim(),status=document.getElementById('sharedTableStatus'),btn=this;
     if(!queue||!code){status.textContent='請填寫號碼牌與六位數共桌密碼。';return}
-    if(!joinSharedTableFn){status.textContent='系統尚未連線，請稍後再試。';return}
+    if(!joinSharedTableFn){status.textContent='目前尚未連線，請稍後再試。';return}
     btn.disabled=true;status.textContent='正在核對共桌資料…';
     joinSharedTableFn({queueNumber:queue,shareCode:code}).then(function(res){var d=res.data||{};if(!d.visitId)throw new Error('沒有取得號碼牌');activeVisitId=d.visitId;activeVisitSessionId=d.visitId;localStorage.setItem('lephemereActiveVisitId',d.visitId);sessionStorage.setItem('lephemereActiveVisitSessionId',d.visitId);visitRecoveryPending=false;watchActiveVisit(d.visitId);status.textContent='已連接同桌號碼牌。'}).catch(function(err){status.textContent=(err&&err.message)||'連接失敗，請重新確認。'}).finally(function(){btn.disabled=false});
   });
-  document.getElementById('openPolaroidSite').addEventListener('click',function(){
-    if(!activeVisitId||!createPolaroidTransferFn){ alert('目前沒有可連結的號碼牌。'); return; }
-    var btn=this,out=document.getElementById('polaroidTransferStatus'),member=document.getElementById('polaroidMemberSelect').value;
-    if(!member){out.textContent='請先選擇本桌角色。';return}
-    btn.disabled=true;out.textContent='正在建立安全連結…';
-    createPolaroidTransferFn({visitId:activeVisitId,memberLabel:member}).then(function(res){
-      var token=res.data&&res.data.token||'';
-      if(!token)throw new Error('未取得連結');
-      out.textContent='連結完成，正在前往拍立得網站…';
-      window.location.href='https://photo.ephemereffxiv.com/?ticket='+encodeURIComponent(token);
-    }).catch(function(err){out.textContent=(err&&err.message)||'連結失敗，請稍後再試。';}).finally(function(){btn.disabled=false;});
-  });
-
   setInterval(function(){ if(activeVisit) updateVisitStatus(); },30000);
 
   function renderOperationStatus(){
@@ -1224,11 +1205,11 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     if(reason==='VISIT_NOT_ASSIGNED') return '尚未由女僕接待，目前不能送出訂單。';
     if(reason==='ITEM_UNAVAILABLE') return (details.itemName||'部分餐點')+'目前暫停供應，請重新確認菜單。';
     if(reason==='OUT_OF_STOCK') return (details.itemName||'限量餐點')+'剩餘 '+Number(details.remaining||0)+' 份，請調整數量後重試。';
-    if(reason==='MINIMUM_NOT_MET') return '雲端重新計價後未達低消，目前合計 '+fmtGil(Number(details.total||0))+'。';
+    if(reason==='MINIMUM_NOT_MET') return '餐點金額尚未達低消，目前合計 '+fmtGil(Number(details.total||0))+'。';
     if(reason==='TRANSACTION_RETRY') return '同時有其他客人送單，庫存正在更新；請按「重試送單」。';
     if(reason==='AUTH_NOT_READY') return '訪客身分尚未建立完成，請稍候幾秒再重試。';
     var code = String(error && error.code || '');
-    if(/unavailable|deadline-exceeded|internal/.test(code)) return '連線中斷或雲端暫時忙碌。請按「重試送單」；系統會沿用同一識別碼，不會重複扣庫存。';
+    if(/unavailable|deadline-exceeded|internal/.test(code)) return '目前連線不穩定，請稍後按「重試送單」。';
     return (error && error.message) ? '送出失敗：'+error.message : '送出失敗，請按「重試送單」。';
   }
 
@@ -1263,17 +1244,17 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     }
     var total = cartTotal();
     if(total < 30000){
-      errEl.textContent = '每位入座客人的低消為 30,000 Gil，請再選擇其他餐點或服務';
+      errEl.textContent = '每位入座客人的餐點低消為 30,000 Gil，請再選擇其他餐點。';
       errEl.style.display = 'block';
       return;
     }
-    errEl.textContent = '準備送出：雲端將重新驗證價格與限量庫存…';
+    errEl.textContent = '正在確認價格與供應數量…';
     errEl.style.color = 'var(--gold)';
     errEl.style.display = 'block';
 
     var submitBtn = document.getElementById('submitOrder');
     submitBtn.disabled = true;
-    submitBtn.textContent = '雲端驗價中…';
+    submitBtn.textContent = '確認訂單中…';
 
     var items = ids.map(function(id){
       var line = cart[id];
@@ -1284,7 +1265,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
     submitOrderFn({requestId:pending.requestId,visitId:activeVisitId,name:name,note:note,diners:currentDiners(),items:items}).then(function(result){
       var data = result && result.data || {};
-      errEl.textContent = '訂單已建立，Discord 通知狀態：'+(data.notificationStatus==='sent'?'已送出':'雲端處理中');
+      errEl.textContent = '訂單已成功送出。';
       document.getElementById('successNumber').textContent = '#'+(data.orderNumber||'—');
       document.getElementById('orderFlow').style.display = 'none';
       setGuestTab(true, false);
