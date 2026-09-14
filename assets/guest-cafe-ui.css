@@ -133,3 +133,11 @@ input::placeholder{color:#8a7e76;opacity:1}
 .item-row.unavailable{opacity:.76}
 .polaroid-link-card{margin-top:14px;padding:14px;border:1px solid rgba(126,103,91,.24);background:rgba(255,250,243,.55);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}.polaroid-link-card strong,.polaroid-link-card span{display:block}.polaroid-link-card span{font-size:11px;color:var(--muted,#8b7b72);line-height:1.7;margin-top:3px}.polaroid-link-card output{grid-column:1/-1}.polaroid-link-card output b{font:700 24px Georgia,serif;letter-spacing:.18em;color:var(--rose,#925468)}.polaroid-link-card output span{display:inline;margin-left:12px}@media(max-width:600px){.polaroid-link-card{grid-template-columns:1fr}.polaroid-link-card output{grid-column:auto}.polaroid-link-card output span{display:block;margin:5px 0 0}}
 .polaroid-link-card>a{grid-column:1/-1;text-align:center;text-decoration:none}
+/* v33：共桌連接與拍立得入口 */
+@media(min-width:760px){.visit-choice-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+#sharedTablePanel .visit-form{max-width:620px}
+#sharedTablePanel .visit-form label{display:grid;gap:7px}
+#sharedTableShareCode b{display:block;font-size:24px;letter-spacing:.18em;color:var(--rose)}
+#sharedTableShareCode span{display:block;margin-top:5px;font-size:11px;color:var(--parchment-dim)}
+#polaroidMemberSelect{min-width:190px}
+@media(max-width:620px){#polaroidMemberSelect{width:100%}.polaroid-link-card{align-items:stretch}}
