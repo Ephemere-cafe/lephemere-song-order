@@ -1,0 +1,135 @@
+/* v35｜接待工作區比例、營業工具與場次輪次介面 */
+
+/* 寬螢幕主要工作區優先，主人畫面維持為窄型核對欄。 */
+@media (min-width:1400px){
+  #adminArea[style*="display: block"].workspace-preview-active{
+    grid-template-columns:210px minmax(720px,1fr) 264px!important;
+    column-gap:18px!important;
+  }
+  #adminArea[style*="display: block"].workspace-preview-active>.guest-workspace-preview{
+    grid-column:3!important;
+    width:264px!important;
+    min-width:0!important;
+  }
+  #adminArea[style*="display: block"].workspace-preview-active>#receptionTab,
+  #adminArea[style*="display: block"].workspace-preview-active>#ordersTab{
+    grid-column:2!important;
+    min-width:0!important;
+  }
+}
+
+/* 營業頁的低頻率操作統一呈現。 */
+.operation-tool-group{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:13px 14px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:#f7f9fa;
+}
+.operation-tool-copy{min-width:0}
+.operation-tool-copy strong,.operation-tool-copy span{display:block}
+.operation-tool-copy strong{margin-bottom:4px;color:var(--ink);font-size:12px}
+.operation-tool-copy span{color:var(--admin-muted);font-size:10.5px;line-height:1.65}
+.operation-tool-group .btn{flex:0 0 auto}
+
+/* 場次基本設定改為明確的卡片網格。 */
+.polaroid-session-editor{padding:0!important;overflow:hidden}
+.polaroid-session-editor>summary{
+  padding:15px 18px;
+  border-bottom:1px solid var(--line);
+  background:#f5f8fa;
+}
+.polaroid-session-editor>.polaroid-session-fields,
+.polaroid-session-editor>.polaroid-editor-grid,
+.polaroid-session-editor>.polaroid-save-row{margin-left:18px;margin-right:18px}
+.polaroid-session-fields{
+  grid-template-columns:minmax(260px,1.6fr) minmax(170px,.8fr) minmax(190px,.8fr)!important;
+  align-items:end;
+  gap:12px!important;
+  margin-top:18px!important;
+}
+.polaroid-session-fields>label{
+  display:grid;
+  align-content:start;
+  gap:6px;
+  min-width:0;
+}
+.polaroid-session-fields>label input{margin-top:0!important}
+.polaroid-session-fields>.check{
+  min-height:46px;
+  padding:0 13px;
+  border:1px solid var(--line);
+  border-radius:7px;
+  color:var(--ink)!important;
+  background:#f7f9fa;
+}
+.polaroid-editor-grid{
+  grid-template-columns:minmax(430px,1.15fr) minmax(330px,.85fr)!important;
+  align-items:start;
+  gap:16px!important;
+  margin-top:18px!important;
+}
+.polaroid-editor-grid>div{
+  min-width:0;
+  padding:16px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:#fff;
+}
+.polaroid-editor-grid h4{margin:0 0 4px;color:var(--ink);font-size:14px}
+.polaroid-editor-grid .polaroid-help{min-height:38px;margin-bottom:12px;line-height:1.6}
+
+.polaroid-round-row{
+  grid-template-columns:minmax(130px,1.2fr) minmax(112px,.8fr) minmax(112px,.8fr) auto!important;
+  align-items:end;
+  gap:8px!important;
+  margin-bottom:9px!important;
+  padding:10px;
+  border:1px solid #dce5ea;
+  border-radius:8px;
+  background:#f7f9fa;
+}
+.polaroid-round-field{display:grid;gap:5px;min-width:0}
+.polaroid-round-field span{color:var(--admin-muted);font-size:10px}
+.polaroid-round-field input{min-width:0;margin-top:0!important;background:#fff}
+.polaroid-round-row [data-remove-round]{min-height:42px}
+#polaroidAddRound{margin-top:2px}
+
+.polaroid-maid-row{
+  grid-template-columns:28px minmax(110px,1fr) auto!important;
+  min-height:48px;
+  gap:10px!important;
+  padding:9px 4px!important;
+}
+.polaroid-maid-row>strong{overflow:hidden;color:var(--ink);font-size:12px;text-overflow:ellipsis;white-space:nowrap}
+.polaroid-maid-row>span{
+  padding:4px 8px;
+  border-radius:999px;
+  color:var(--ivory-blue);
+  background:#edf3f6;
+  font-size:10px;
+  white-space:nowrap;
+}
+.polaroid-save-row{
+  margin-top:16px!important;
+  padding:14px 0 18px;
+  border-top:1px solid var(--line);
+}
+
+@media(max-width:1050px){
+  .polaroid-session-fields{grid-template-columns:1fr 1fr!important}
+  .polaroid-session-fields>label:first-child{grid-column:1/-1}
+  .polaroid-editor-grid{grid-template-columns:1fr!important}
+}
+@media(max-width:620px){
+  .operation-tool-group{align-items:stretch;flex-direction:column}
+  .operation-tool-group .btn{width:100%}
+  .polaroid-session-fields{grid-template-columns:1fr!important}
+  .polaroid-session-fields>label:first-child{grid-column:auto}
+  .polaroid-round-row{grid-template-columns:1fr 1fr!important}
+  .polaroid-round-field:first-child{grid-column:1/-1}
+  .polaroid-round-row [data-remove-round]{grid-column:1/-1;width:100%}
+}

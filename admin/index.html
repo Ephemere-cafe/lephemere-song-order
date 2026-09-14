@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="admin-v31.css?v=20260913-v31">
 <link rel="stylesheet" href="polaroid-admin.css?v=20260914-v34">
 <link rel="stylesheet" href="admin-v33.css?v=20260914-v33">
+<link rel="stylesheet" href="admin-v35.css?v=20260914-v35">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -187,7 +188,6 @@
         <details class="reception-column team-visits-panel"><summary class="reception-column-title"><span>其他成員接待中・可直接轉交</span><span class="reception-count" id="teamVisitCount">0</span></summary><div id="teamVisitList"></div></details>
         <details class="reception-column team-status-panel"><summary class="reception-column-title"><span>成員狀態總覽</span><span class="reception-count" id="staffPresenceCount">0</span></summary><div class="team-grid" id="staffPresenceList"></div></details>
       </div>
-      <details class="panel reception-session-panel manager-only" data-manager-only><summary><span>場次管理</span><span>低頻率操作</span></summary><div class="reception-session-body"><p>請先結束營業再重置候位；已完成接待與既有訂單不會刪除。</p><button class="btn ghost small danger-action" data-manager-only id="resetVisitQueue" type="button">重置本場候位</button></div></details>
       <details class="panel"><summary style="cursor:pointer;color:var(--mist);font-size:12px;">最近接待操作紀錄</summary><div class="audit-list" id="assignmentHistoryList"><div class="queue-empty">尚無操作紀錄</div></div></details>
       <div class="copy-toast" id="copyToast" role="status" aria-live="polite">叫號文字已複製</div>
     </div>
@@ -463,6 +463,13 @@
         <details class="panel operation-tools operations-tools-panel">
           <summary>查看連線狀態與低頻率操作</summary>
           <div class="operation-tools-content">
+            <div class="operation-tool-group">
+              <div class="operation-tool-copy">
+                <strong>候位號碼</strong>
+                <span>請先結束營業再重置；已完成的接待與既有訂單會保留。</span>
+              </div>
+              <button class="btn ghost small manager-only danger-action" data-manager-only id="resetVisitQueue" type="button">重置本場候位</button>
+            </div>
             <div class="row" style="margin-top:14px;">
               <button class="btn ghost small manager-only" data-manager-only id="resetOrderNumber" style="border-color:var(--rose-dim);color:var(--rose);">重置訂單編號</button>
               <button class="btn ghost small manager-only" data-manager-only id="resetTodayOrders" style="border-color:var(--rose-dim);color:var(--rose);">重置本場全部訂單</button>
