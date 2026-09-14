@@ -141,3 +141,13 @@ input::placeholder{color:#8a7e76;opacity:1}
 #sharedTableShareCode span{display:block;margin-top:5px;font-size:11px;color:var(--parchment-dim)}
 #polaroidMemberSelect{min-width:190px}
 @media(max-width:620px){#polaroidMemberSelect{width:100%}.polaroid-link-card{align-items:stretch}}
+
+/* v34：精簡號碼牌與桌碼區塊 */
+.visit-status-card{padding:26px!important;text-align:left!important}
+.visit-status-card>.visit-status-label,.visit-status-card>.visit-ticket,.visit-status-card>#visitStatusTitle,.visit-status-card>.visit-assignee,.visit-status-card>.visit-meta,.visit-status-card>.visit-help{text-align:center}
+.visit-ticket{font-size:clamp(42px,8vw,62px);margin:8px 0}
+.table-access-card{margin:22px auto 0;padding:17px;max-width:680px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:13px 20px;align-items:center;background:#faf6ef;border:1px solid var(--guest-line)}
+.table-access-copy strong,.table-access-copy span,.table-access-copy p{display:block}.table-access-copy strong{margin:5px 0;color:var(--guest-ink);font-size:15px}.table-access-copy p{margin:0;color:var(--guest-muted);font-size:12px;line-height:1.7}.table-access-kicker{color:var(--guest-wine);font-size:9px;letter-spacing:.16em}
+.table-access-code{display:flex;align-items:baseline;gap:12px;padding:11px 15px;background:#fff;border:1px solid var(--guest-line);white-space:nowrap}.table-access-code span{color:var(--guest-gold);font-size:14px;letter-spacing:.1em}.table-access-code b{color:var(--guest-wine);font:600 23px Georgia,serif;letter-spacing:.18em}
+.table-access-actions{grid-column:1/-1;display:flex;gap:10px}.table-access-actions .btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;flex:1}#tableAccessStatus{grid-column:1/-1;color:var(--guest-sage);font-size:11px;min-height:1em}
+@media(max-width:620px){.visit-status-card{padding:20px 15px!important}.table-access-card{grid-template-columns:1fr;padding:14px}.table-access-code{justify-content:center}.table-access-actions{grid-column:1;flex-direction:column}#tableAccessStatus{grid-column:1}}
