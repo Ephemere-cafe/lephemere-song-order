@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="admin-v22.css?v=20260910-v27">
 <link rel="stylesheet" href="admin-v31.css?v=20260913-v31">
 <link rel="stylesheet" href="polaroid-admin.css?v=20260913-v32">
+<link rel="stylesheet" href="admin-v33.css?v=20260914-v33">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -36,7 +37,7 @@
       <button class="btn primary" id="adminLoginBtn">登入</button>
     </div>
     <p id="loginError" style="font-size:12px;color:var(--rose);margin:8px 0 0;display:none;">帳號或密碼錯誤</p>
-    <p class="login-help">登入後會依帳號權限顯示可使用的功能。訂單人員可使用接待、訂單與特殊服務；管理人員可使用完整店務與網站設定。</p>
+    <p class="login-help">登入後會依帳號權限顯示可使用的功能。女僕可使用接待、訂單與自己的拍立得工作；管理人員可使用完整店務與網站設定。</p>
   </div>
 
   <div id="adminArea" style="display:none;">
@@ -47,7 +48,6 @@
       <button type="button" class="main-tab" data-main="reception"><span>接待</span><span class="main-tab-count" id="navReceptionCount" hidden>0</span></button>
       <button type="button" class="main-tab" data-main="macros"><span>我的巨集</span></button>
       <button type="button" class="main-tab" data-main="orders"><span>訂單</span><span class="main-tab-count" id="navOrderCount" hidden>0</span></button>
-      <button type="button" class="main-tab" data-main="special"><span>特殊服務</span><span class="main-tab-count" id="navSpecialCount" hidden>0</span></button>
       <button type="button" class="main-tab" data-main="polaroid"><span>拍立得</span><span class="main-tab-count" id="navPolaroidCount" hidden>0</span></button>
       <button type="button" class="main-tab" data-main="guestbook"><span>留言</span><span class="main-tab-count" id="navGuestbookCount" hidden>0</span></button>
       <span class="main-tab-group-label manager-only" data-manager-only>店務</span>
@@ -66,7 +66,7 @@
     <div class="global-identity">
       <div class="global-identity-copy">
         <strong>操作女僕</strong>
-        <span id="globalDutyDateHint">這個身分會套用接待、訂單、特殊服務與交接紀錄。</span>
+        <span id="globalDutyDateHint">這個身分會套用接待、訂單、拍立得工作與交接紀錄。</span>
       </div>
       <div class="global-identity-control">
         <span class="operator-live" id="operatorLiveBadge"><i></i> 尚未選擇操作者</span>
@@ -267,14 +267,56 @@
       </div>
     </div>
 
-    <!-- ============ 獨立拍立得系統 ============ -->
+    <!-- ============ 拍立得與獨立商品系統 ============ -->
     <div id="polaroidTab" style="display:none;">
-      <div class="page-heading"><div class="page-heading-copy"><span class="page-eyebrow">Polaroid</span><h2>拍立得工作區</h2><p>女僕只需查看自己的待拍；管理員可在同一頁管理本場名額與輪次。</p></div><span class="polaroid-live" id="polaroidSessionBadge">場次確認中</span></div>
-      <section class="panel polaroid-my-work"><div class="polaroid-work-head"><div><h3 id="polaroidMyTitle">我的待拍</h3><p id="polaroidMyHint">請先在上方選擇操作女僕。</p></div><div class="polaroid-status-actions" id="polaroidStatusActions"><button data-polaroid-status="available">可拍</button><button data-polaroid-status="serving">接待中</button><button data-polaroid-status="shooting">拍攝中</button><button data-polaroid-status="away">暫離</button><button data-polaroid-status="off">停止接單</button></div></div><div id="polaroidMyTasks" class="polaroid-task-list"><div class="queue-empty">正在讀取待拍清單…</div></div></section>
-      <section class="manager-only" data-manager-only id="polaroidManagerArea"><div class="polaroid-admin-metrics"><div><span>本場訂單</span><strong id="polaroidMetricOrders">0</strong></div><div><span>已完成</span><strong id="polaroidMetricDone">0</strong></div><div><span>等待拍攝</span><strong id="polaroidMetricPending">0</strong></div><div><span>未到場／順延</span><strong id="polaroidMetricDeferred">0</strong></div></div>
-        <details class="panel polaroid-session-editor" open><summary><span><strong>本場拍立得設定</strong><small>管理員專用</small></span></summary><div class="polaroid-session-fields"><label>場次名稱<input id="polaroidSessionTitle" maxlength="100" placeholder="例如：2026/09/22 曇時一般營業"></label><label>營業日期<input id="polaroidBusinessDate" type="date"></label><label>客人最多選擇女僕數<input id="polaroidMaxMaids" type="number" min="1" max="20" value="3"></label><label>每女僕每客限購<input id="polaroidPerMaidLimit" type="number" min="1" max="5" value="1"></label><label>每輪同時拍攝女僕數<input id="polaroidSimultaneous" type="number" min="1" max="20" value="2"></label><label class="check"><input id="polaroidSessionOpen" type="checkbox" checked> 啟用本場拍立得</label><label class="check"><input id="polaroidSalesOpen" type="checkbox" checked> 接受新現場合照</label></div>
-        <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕與名額</h4><div id="polaroidMaidEditor"></div></div></div><div class="polaroid-save-row"><span id="polaroidSaveStatus" aria-live="polite"></span><button type="button" class="btn primary" id="polaroidSaveSession">儲存本場拍立得設定</button></div></details>
-        <section class="panel"><div class="polaroid-work-head"><div><h3>全場待拍概況</h3><p>系統自動安排後，只需處理未到場或臨時例外。</p></div></div><div id="polaroidAllTasks" class="polaroid-task-list"></div></section>
+      <div class="page-heading polaroid-page-heading"><div class="page-heading-copy"><span class="page-eyebrow">Polaroid Management</span><h2>拍立得與商品</h2><p>拍攝、商品交付、範例與收入歸屬集中在這裡；拍立得網站的消費不列入餐點低消。</p></div><span class="polaroid-live" id="polaroidSessionBadge">場次確認中</span></div>
+      <div class="polaroid-admin-tabs" id="polaroidAdminTabs" role="tablist" aria-label="拍立得工作區">
+        <button type="button" class="active" data-polaroid-pane="work">我的工作</button>
+        <button type="button" class="manager-only" data-manager-only data-polaroid-pane="session">場次與輪次</button>
+        <button type="button" class="manager-only" data-manager-only data-polaroid-pane="products">商品與範例</button>
+        <button type="button" class="manager-only" data-manager-only data-polaroid-pane="orders">本場訂單</button>
+      </div>
+
+      <section class="polaroid-pane" data-polaroid-panel="work">
+        <section class="panel polaroid-my-work"><div class="polaroid-work-head"><div><h3 id="polaroidMyTitle">我的拍立得工作</h3><p id="polaroidMyHint">請先在上方選擇操作女僕。</p></div><div class="polaroid-status-actions" id="polaroidStatusActions"><button data-polaroid-status="available">可拍</button><button data-polaroid-status="serving">接待中</button><button data-polaroid-status="shooting">拍攝中</button><button data-polaroid-status="away">暫離</button><button data-polaroid-status="off">下班</button></div></div><div id="polaroidMyTasks" class="polaroid-task-list"><div class="queue-empty">正在讀取工作清單…</div></div></section>
+      </section>
+
+      <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="session" hidden id="polaroidManagerArea">
+        <details class="panel polaroid-session-editor" open><summary><span><strong>本場拍立得設定</strong><small>所有限制皆由本場設定控制</small></span></summary>
+          <div class="polaroid-session-fields"><label>場次名稱<input id="polaroidSessionTitle" maxlength="100" placeholder="例如：2026/09/22 曇時一般營業"></label><label>營業日期<input id="polaroidBusinessDate" type="date"></label><label>每位客人商品總上限<input id="polaroidMaxProducts" type="number" min="1" max="50" value="5"></label><label>每輪同時拍攝女僕數<input id="polaroidSimultaneous" type="number" min="1" max="20" value="2"></label><label class="check"><input id="polaroidSessionOpen" type="checkbox" checked> 啟用本場拍立得網站</label><label class="check"><input id="polaroidSalesOpen" type="checkbox" checked> 接受新訂單</label></div>
+          <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><p class="polaroid-help">只有「需要拍攝輪次」的商品會排入。</p><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕狀態</h4><p class="polaroid-help">開放後才可被商品指定為拍攝或收入歸屬對象。</p><div id="polaroidMaidEditor"></div></div></div>
+          <div class="polaroid-save-row"><span id="polaroidSaveStatus" aria-live="polite"></span><button type="button" class="btn primary" id="polaroidSaveSession">儲存場次與輪次</button></div>
+        </details>
+      </section>
+
+      <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="products" hidden>
+        <section class="panel polaroid-products-panel"><div class="polaroid-work-head"><div><h3>商品管理</h3><p>商品、價格、庫存、工作方式與收入歸屬都能獨立設定。</p></div><button class="btn primary" id="polaroidNewProduct" type="button">＋ 新增商品</button></div><div id="polaroidProductList" class="polaroid-product-list"><div class="queue-empty">正在讀取商品…</div></div></section>
+        <section class="panel polaroid-product-editor" id="polaroidProductEditor">
+          <div class="polaroid-work-head"><div><h3 id="polaroidProductEditorTitle">新增商品</h3><p>所有商品都必須連結當日號碼牌才能購買，且不列入餐點低消。</p></div><button class="btn danger small" id="polaroidDeleteProduct" type="button" hidden>刪除商品</button></div>
+          <input id="polaroidProductId" type="hidden">
+          <div class="polaroid-product-fields">
+            <label>商品名稱<input id="polaroidProductName" maxlength="80" placeholder="例如：小顏・現場合照"></label>
+            <label>分類<input id="polaroidProductCategory" maxlength="40" placeholder="現場合照／純拍／限定商品"></label>
+            <label>價格（Gil）<input id="polaroidProductPrice" type="number" min="0" step="10000" value="80000"></label>
+            <label>庫存（-1 代表不限量）<input id="polaroidProductStock" type="number" min="-1" value="10"></label>
+            <label>每人限購<input id="polaroidProductLimit" type="number" min="1" max="20" value="1"></label>
+            <label>工作方式<select id="polaroidProductMode"><option value="round">需要拍攝輪次</option><option value="delivery">完成後交付</option></select></label>
+            <label>主要負責女僕<select id="polaroidProductProvider"><option value="">請選擇</option></select></label>
+            <label>收入歸屬<select id="polaroidProductRevenue"><option value="maid">指定女僕</option><option value="split">多位女僕平均</option><option value="shared">共同收入</option></select></label>
+            <label class="wide">收入女僕（多選）<select id="polaroidProductRevenueMaids" multiple size="4"></select></label>
+            <label class="wide">商品說明<textarea id="polaroidProductDescription" maxlength="500" rows="3" placeholder="客人會在商品卡片與範例視窗看到這段文字。"></textarea></label>
+            <label class="check"><input id="polaroidProductEnabled" type="checkbox" checked> 公開販售</label>
+          </div>
+          <div class="polaroid-product-media"><label>商品封面<input id="polaroidProductImage" type="file" accept="image/jpeg,image/png,image/webp"></label><div id="polaroidProductImagePreview" class="polaroid-media-preview">尚未上傳封面</div></div>
+          <div class="polaroid-example-head"><div><h4>公開範例</h4><p>可在商品售完或停賣後繼續公開。</p></div><button class="btn ghost small" id="polaroidAddExample" type="button">＋ 增加範例</button></div>
+          <div id="polaroidExampleEditor" class="polaroid-example-editor"></div>
+          <div class="polaroid-save-row"><span id="polaroidProductStatus" aria-live="polite"></span><button type="button" class="btn primary" id="polaroidSaveProduct">儲存商品與範例</button></div>
+        </section>
+      </section>
+
+      <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="orders" hidden>
+        <div class="polaroid-admin-metrics"><div><span>本場訂單</span><strong id="polaroidMetricOrders">0</strong></div><div><span>已完成</span><strong id="polaroidMetricDone">0</strong></div><div><span>等待處理</span><strong id="polaroidMetricPending">0</strong></div><div><span>未到場／順延</span><strong id="polaroidMetricDeferred">0</strong></div></div>
+        <section class="panel"><div class="polaroid-work-head"><div><h3>全場工作概況</h3><p>系統會依商品設定建立拍攝或交付工作。</p></div></div><div id="polaroidAllTasks" class="polaroid-task-list"></div></section>
       </section>
     </div>
 
@@ -373,7 +415,7 @@
             <div class="stat"><b id="statPending">0</b>待接單</div>
             <div class="stat attention"><b id="statUnassigned">0</b>待指派</div>
             <div class="stat caution"><b id="statOverdue">0</b>等待逾 10 分鐘</div>
-            <div class="stat"><b id="statSpecialPending">0</b>特殊服務待完成</div>
+            <div class="stat"><b id="statSpecialPending">0</b>桌邊服務待完成</div>
             <div class="stat"><b id="statPreparing">0</b>服務中</div>
             <div class="stat"><b id="statCompleted">0</b>本場完成</div>
             <div class="stat"><b id="statTotalGil">0</b>本場訂單總額</div>
@@ -452,7 +494,7 @@
       <div class="payroll-metrics" aria-live="polite">
         <div class="payroll-metric"><span>共同營業額</span><strong id="payrollCommonTotal">0 Gil</strong></div>
         <div class="payroll-metric"><span>每人共同分紅</span><strong id="payrollShareValue">0 Gil</strong></div>
-        <div class="payroll-metric"><span>特殊服務收入合計（含未指派）</span><strong id="payrollSpecialTotal">0 Gil</strong></div>
+        <div class="payroll-metric"><span>拍立得個人收入合計（含未指派）</span><strong id="payrollSpecialTotal">0 Gil</strong></div>
       </div>
 
       <section class="panel payroll-settings-panel">
@@ -469,10 +511,10 @@
       </section>
 
       <section class="panel payroll-details-panel">
-        <div class="payroll-panel-head"><h3>個人薪資明細</h3><span>特殊服務以完成訂單的任務負責女僕計入</span></div>
+        <div class="payroll-panel-head"><h3>個人薪資明細</h3><span>拍立得依各商品設定的收入歸屬計入</span></div>
         <div class="payroll-table-wrap">
           <table class="payroll-table">
-            <thead><tr><th>女僕</th><th>共同分紅</th><th>系統特殊收入</th><th>特殊收入調整</th><th>特殊收入覆蓋</th><th>最終薪資</th><th></th></tr></thead>
+            <thead><tr><th>女僕</th><th>共同分紅</th><th>拍立得個人收入</th><th>個人收入調整</th><th>個人收入覆蓋</th><th>最終薪資</th><th></th></tr></thead>
             <tbody id="payrollRows"></tbody>
           </table>
         </div>
@@ -481,7 +523,7 @@
       <div class="payroll-bottom-grid">
         <section class="panel payroll-help-panel">
           <div class="payroll-panel-head"><h3>計算說明</h3></div>
-          <p>共同收入優先採用「手動覆蓋」；留空時使用完成訂單＋預約營業額＋加減調整。餐點加購仍列入共同收入，拍立得與純拍等特殊服務列入負責女僕的個人收入。平分結果以四捨五入計算。</p>
+          <p>共同收入優先採用「手動覆蓋」；留空時使用完成餐點訂單＋預約營業額＋拍立得商品所設定的共同收入＋加減調整。拍立得商品可逐項指定女僕、多人平均或共同收入。平分結果以四捨五入計算。</p>
         </section>
         <section class="panel payroll-slip-panel">
           <div class="payroll-panel-head"><h3>薪資條預覽</h3><select id="payrollSlipStaff" aria-label="選擇薪資條女僕"></select></div>
@@ -496,7 +538,7 @@
       <div class="panel">
         <p class="admin-section-label">🍰 新增餐點</p>
         <div class="row">
-          <input type="text" id="newItemCategory" placeholder="分類（如：主食、拍立得）" style="flex:1;min-width:120px;">
+          <input type="text" id="newItemCategory" placeholder="分類（如：主食、甜點）" style="flex:1;min-width:120px;">
           <input type="text" id="newItemName" placeholder="品名" style="flex:1;min-width:120px;">
           <input type="text" id="newItemPrice" placeholder="價格（Gil）" style="width:110px;">
         </div>
@@ -516,11 +558,11 @@
         <div class="row" style="margin-top:8px;">
           <input type="text" id="newItemAddonLabel" placeholder="加購項目名稱（選填）" style="flex:1;min-width:140px;">
           <input type="text" id="newItemAddonPrice" placeholder="加購價格" style="width:110px;">
-          <select id="newItemServiceType" aria-label="品項類型"><option value="food">一般餐點</option><option value="polaroid">拍立得</option><option value="lens">個人攝影</option><option value="magic">蛋包飯魔法</option></select>
-          <select id="newItemServiceStaff" aria-label="特殊服務負責女僕" disabled><option value="">一般餐點不需指定</option></select>
+          <select id="newItemServiceType" aria-label="品項類型"><option value="food">一般餐點</option><option value="magic">蛋包飯魔法</option></select>
+          <select id="newItemServiceStaff" aria-label="服務負責女僕" disabled hidden><option value="">餐點不需指定</option></select>
         </div>
         <button class="btn primary" id="addMenuItem" style="margin-top:10px;">新增到菜單</button>
-        <p style="font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;">分類欄位打一樣的名稱會自動歸在同一區。例如想加「小顏 拍立得」「Naipa 拍立得」，分類都打「拍立得」即可。</p>
+        <p style="font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;">分類欄位打一樣的名稱會自動歸在同一區。拍立得、純拍與其他影像商品請到「拍立得 → 商品與範例」管理。</p>
       </div>
 
       <div class="panel">
@@ -750,7 +792,7 @@
     <div id="accessTab" class="manager-only" data-manager-only style="display:none;">
       <div class="panel">
         <p class="admin-section-label">🔐 後台帳號權限</p>
-        <p class="access-intro">新帳號第一次登入後會自動列在這裡，預設可使用「接待、訂單、特殊服務」。將帳號改成「管理人員」後，才可使用完整店務、薪資、官網與權限設定。</p>
+        <p class="access-intro">新帳號第一次登入後會自動列在這裡，預設可使用「接待、訂單、自己的拍立得工作」。將帳號改成「管理人員」後，才可使用完整店務、商品、薪資、官網與權限設定。</p>
         <div id="accessUserList" class="access-list"><span class="empty">正在讀取帳號…</span></div>
         <p id="accessMessage" class="access-message" aria-live="polite"></p>
       </div>
@@ -771,7 +813,7 @@
       <button class="transfer-modal-close" id="transferModalClose" type="button" aria-label="關閉">×</button>
     </div>
     <div class="transfer-guest" id="transferGuestSummary"></div>
-    <p class="transfer-scope">主要接待與未完成的一般訂單會一起轉交；拍立得、Lens 與其他特殊服務維持原本負責人。</p>
+    <p class="transfer-scope">主要接待與未完成的一般餐點訂單會一起轉交；獨立拍立得商品仍依商品設定的負責女僕處理。</p>
     <div class="transfer-roster" id="transferRoster" role="radiogroup" aria-label="選擇新的主要接待"></div>
     <div class="transfer-modal-actions">
       <span id="transferModalStatus" role="status" aria-live="polite">請選擇新的主要接待</span>
@@ -795,11 +837,11 @@
       </div>
       <div class="menu-edit-field full">
         <label for="editItemServiceType">品項類型</label>
-        <select id="editItemServiceType"><option value="food">一般餐點</option><option value="polaroid">拍立得</option><option value="lens">個人攝影</option><option value="magic">蛋包飯魔法</option></select>
+        <select id="editItemServiceType"><option value="food">一般餐點</option><option value="magic">蛋包飯魔法</option></select>
       </div>
       <div class="menu-edit-field full">
-        <label for="editItemServiceStaff">拍立得／攝影負責女僕</label>
-        <select id="editItemServiceStaff" disabled><option value="">此類型不需指定</option></select>
+        <label for="editItemServiceStaff" hidden>服務負責女僕</label>
+        <select id="editItemServiceStaff" disabled hidden><option value="">此類型不需指定</option></select>
       </div>
       <div class="menu-edit-field full">
         <label for="editItemName">菜單名稱</label>
@@ -899,12 +941,12 @@
 <script src="guest-actions.js?v=20260908-v21"></script>
 <script src="guest-local.js?v=20260908-v21"></script>
 <script src="guest-registry.js?v=20260913-v31"></script>
-<script src="admin.js?v=20260913-v32"></script>
+<script src="admin.js?v=20260914-v33"></script>
 <script src="site-content-admin.js?v=20260826a"></script>
 <script src="guestbook-admin.js?v=20260910-v25"></script>
 <script src="studio-admin.js?v=20260909-v22"></script>
 <script src="admin-workspace-preview.js?v=20260905c"></script>
-<script src="polaroid-admin.js?v=20260913-v32"></script>
+<script src="polaroid-admin.js?v=20260914-v33"></script>
 
 </body>
 </html>

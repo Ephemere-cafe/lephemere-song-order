@@ -832,7 +832,7 @@
     var tab = e.target.closest('.main-tab');
     if(!tab) return;
     var target = tab.getAttribute('data-main');
-    if(target!=='reception' && target!=='macros' && target!=='orders' && target!=='special' && target!=='polaroid' && target!=='guestbook' && !isManager()){
+    if(target!=='reception' && target!=='macros' && target!=='orders' && target!=='polaroid' && target!=='guestbook' && !isManager()){
       showReceptionTab();
       return;
     }
@@ -842,7 +842,7 @@
     document.getElementById('receptionTab').style.display = target==='reception' ? 'block' : 'none';
     document.getElementById('macrosTab').style.display = target==='macros' ? 'block' : 'none';
     document.getElementById('ordersTab').style.display = target==='orders' ? 'block' : 'none';
-    document.getElementById('specialServicesTab').style.display = target==='special' ? 'block' : 'none';
+    document.getElementById('specialServicesTab').style.display = 'none';
     document.getElementById('polaroidTab').style.display = target==='polaroid' ? 'block' : 'none';
     document.getElementById('guestbookAdminTab').style.display = target==='guestbook' ? 'block' : 'none';
     document.getElementById('operationsTab').style.display = target==='operations' ? 'block' : 'none';
@@ -1652,28 +1652,13 @@
         alert('這組主人還有 '+unfinishedOrders.length+' 筆一般訂單尚未完成，請先送餐並完成訂單。');
         return;
       }
-      var pendingSpecial=[];
       var pendingTableService=[];
       linkedOrders.forEach(function(order){collectSpecialTasks(order.items||[]).forEach(function(task){
         if(specialTaskState(order,task)==='completed') return;
-        if(task.type==='polaroid'||task.type==='lens') pendingSpecial.push(task); else pendingTableService.push(task);
+        if(task.type!=='polaroid'&&task.type!=='lens') pendingTableService.push(task);
       });});
       if(pendingTableService.length){
         alert('這組主人還有桌邊特殊服務尚未完成，請先完成蛋包飯魔法等桌邊項目。');
-        return;
-      }
-      if(pendingSpecial.length){
-        var plan=specialAssignmentPlan(id);
-        if(plan.missing.length){
-          alert('以下特殊服務尚未指定負責女僕：\n'+plan.missing.join('、')+'\n\n請先到「特殊服務」指派，或在菜單品項設定預設負責女僕。');
-          return;
-        }
-        Promise.all(plan.jobs).then(function(){
-          return visitsRef.child(id).update({status:'special_service',tableServiceCompletedAt:Date.now(),tableServiceCompletedById:currentStaffId,tableServiceCompletedByName:(staffRoster[currentStaffId]||{}).name||'',updatedAt:Date.now()});
-        }).then(function(){
-          var other=visitRows(['assigned','serving']).some(function(v){return v.id!==id&&v.assignedStaffId===currentStaffId;});
-          if(!other) return staffPresenceRef.child(currentStaffId).set({status:'available',updatedAt:Date.now()});
-        });
         return;
       }
       if(!confirm('確定結束 '+(visits[id].queueNumber||'這組')+' 的接待嗎？')) return;
@@ -1946,7 +1931,8 @@
     });
     var polaroid=window.LephemerePolaroidAccounting?window.LephemerePolaroidAccounting(currentBusinessDate()):null;
     if(polaroid){
-      specialRevenue+=Number(polaroid.total||0);
+      commonRevenue+=Number(polaroid.commonRevenue||0);
+      specialRevenue+=Number(polaroid.personalRevenue||0);
       Object.keys(polaroid.specialByStaff||{}).forEach(function(id){specialByStaff[id]=(specialByStaff[id]||0)+Number(polaroid.specialByStaff[id]||0);specialStaffNames[id]=(polaroid.staffNames&&polaroid.staffNames[id])||((staffRoster[id]||{}).name)||'未命名女僕';});
     }
     return {commonRevenue:commonRevenue,specialRevenue:specialRevenue,unassignedRevenue:unassignedRevenue,specialByStaff:specialByStaff,specialStaffNames:specialStaffNames,polaroidRevenue:polaroid?Number(polaroid.total||0):0};
@@ -2727,11 +2713,18 @@
 
   // ================= 菜單管理 =================
 
+  function isLegacyPhotoMenuItem(item){
+    var type=String(item&&item.serviceType||'').toLowerCase();
+    var source=String(item&&item.name||'')+' '+String(item&&item.category||'');
+    return type==='polaroid'||type==='lens'||/拍立得|純拍|lens|個人攝影|專屬留影/i.test(source);
+  }
+
   function buildMenuGroups(){
     var groups = {};
     menuCategoryOrder.forEach(function(c){ groups[c] = []; });
     Object.keys(menuItems).forEach(function(id){
       var item = menuItems[id];
+      if(isLegacyPhotoMenuItem(item)) return;
       var cat = item.category || '其他';
       if(!groups[cat]) groups[cat] = [];
       groups[cat].push(Object.assign({id:id}, item));
@@ -2821,7 +2814,7 @@
     }).then(function(url){ return {imageUrl:url, imageStoragePath:path}; });
   }
 
-  function isAssignableServiceType(type){return type==='polaroid'||type==='lens';}
+  function isAssignableServiceType(){return false;}
 
   function fillServiceStaffSelect(select,type,selectedId){
     if(!select) return;
@@ -2886,8 +2879,9 @@
     document.getElementById('editItemCategory').value = item.category || '其他';
     document.getElementById('editItemName').value = item.name || '';
     document.getElementById('editItemPrice').value = Number(item.price || 0);
-    document.getElementById('editItemServiceType').value = item.serviceType || 'food';
-    fillServiceStaffSelect(document.getElementById('editItemServiceStaff'),item.serviceType||'food',item.serviceStaffId||'');
+    var editableType=item.serviceType==='magic'?'magic':'food';
+    document.getElementById('editItemServiceType').value = editableType;
+    fillServiceStaffSelect(document.getElementById('editItemServiceStaff'),editableType,'');
     document.getElementById('editItemNote').value = item.note || '';
     document.getElementById('editItemAddonLabel').value = item.addonLabel || '';
     document.getElementById('editItemAddonPrice').value = Number(item.addonPrice || 0);
