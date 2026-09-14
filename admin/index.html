@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="guest-registry.css?v=20260908-v21">
 <link rel="stylesheet" href="admin-v22.css?v=20260910-v27">
 <link rel="stylesheet" href="admin-v31.css?v=20260913-v31">
-<link rel="stylesheet" href="polaroid-admin.css?v=20260913-v32">
+<link rel="stylesheet" href="polaroid-admin.css?v=20260914-v34">
 <link rel="stylesheet" href="admin-v33.css?v=20260914-v33">
 </head>
 <body>
@@ -283,8 +283,8 @@
 
       <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="session" hidden id="polaroidManagerArea">
         <details class="panel polaroid-session-editor" open><summary><span><strong>本場拍立得設定</strong><small>所有限制皆由本場設定控制</small></span></summary>
-          <div class="polaroid-session-fields"><label>場次名稱<input id="polaroidSessionTitle" maxlength="100" placeholder="例如：2026/09/22 曇時一般營業"></label><label>營業日期<input id="polaroidBusinessDate" type="date"></label><label>每位客人商品總上限<input id="polaroidMaxProducts" type="number" min="1" max="50" value="5"></label><label>每輪同時拍攝女僕數<input id="polaroidSimultaneous" type="number" min="1" max="20" value="2"></label><label class="check"><input id="polaroidSessionOpen" type="checkbox" checked> 啟用本場拍立得網站</label><label class="check"><input id="polaroidSalesOpen" type="checkbox" checked> 接受新訂單</label></div>
-          <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><p class="polaroid-help">只有「需要拍攝輪次」的商品會排入。</p><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕狀態</h4><p class="polaroid-help">開放後才可被商品指定為拍攝或收入歸屬對象。</p><div id="polaroidMaidEditor"></div></div></div>
+          <div class="polaroid-session-fields"><label>場次名稱<input id="polaroidSessionTitle" maxlength="100" placeholder="例如：2026/09/22 曇時一般營業"></label><label>營業日期<input id="polaroidBusinessDate" type="date"></label><label>每位客人商品總上限<input id="polaroidMaxProducts" type="number" min="1" max="50" value="5"></label><label hidden>舊版輪次參數<input id="polaroidSimultaneous" type="number" min="1" max="20" value="2"></label><label class="check"><input id="polaroidSessionOpen" type="checkbox" checked> 啟用本場拍立得網站</label><label class="check"><input id="polaroidSalesOpen" type="checkbox" checked> 接受新訂單</label></div>
+          <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><p class="polaroid-help">系統會先建議輪次；現場可在工作項目中隨時手動調整。</p><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕</h4><p class="polaroid-help">勾選本場可被商品指定的女僕；狀態僅供現場互相確認，不會限制接單或輪次。</p><div id="polaroidMaidEditor"></div></div></div>
           <div class="polaroid-save-row"><span id="polaroidSaveStatus" aria-live="polite"></span><button type="button" class="btn primary" id="polaroidSaveSession">儲存場次與輪次</button></div>
         </details>
       </section>
@@ -741,7 +741,7 @@
       </details>
 
       <details class="panel site-content-panel site-content-collapsible">
-        <summary class="site-content-collapse-summary"><span><strong>服務頁面</strong><small>拍立得成品範例</small></span><i class="site-content-collapse-indicator" aria-hidden="true"></i></summary>
+        <summary class="site-content-collapse-summary"><span><strong>官網拍立得作品集</strong><small>官網服務介紹使用；商品個別範例請至「拍立得 → 商品與範例」</small></span><i class="site-content-collapse-indicator" aria-hidden="true"></i></summary>
         <div class="site-content-collapse-body">
         <p class="site-content-lead">先選擇作品所屬女僕；同一位女僕可新增不限張數。官網會先切換女僕，再以前後按鈕、圓點或手機滑動瀏覽她的作品。</p>
 
@@ -946,7 +946,7 @@
 <script src="guestbook-admin.js?v=20260910-v25"></script>
 <script src="studio-admin.js?v=20260909-v22"></script>
 <script src="admin-workspace-preview.js?v=20260905c"></script>
-<script src="polaroid-admin.js?v=20260914-v33"></script>
+<script src="polaroid-admin.js?v=20260914-v34"></script>
 
 </body>
 </html>
