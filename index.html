@@ -153,7 +153,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 </style>
 <link rel="stylesheet" href="assets/unified-cafe-ui.css?v=20260825">
 <link rel="stylesheet" href="assets/readability-scale.css?v=20260826">
-<link rel="stylesheet" href="assets/guest-cafe-ui.css?v=20260913-v32">
+<link rel="stylesheet" href="assets/guest-cafe-ui.css?v=20260914-v33">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -186,8 +186,20 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <div class="visit-choice-grid">
       <button class="visit-choice" id="chooseService" type="button"><strong>需要女僕接待</strong><span>準備用餐、聊天或體驗服務，登記後依序候位。</span></button>
       <button class="visit-choice" id="chooseBrowse" type="button"><strong>自由參觀</strong><span>只想看看裝潢、拍照、等朋友或自由交流，不占接待名額。</span></button>
+      <button class="visit-choice" id="chooseSharedTable" type="button"><strong>連接同行者的號碼牌</strong><span>輸入桌主提供的號碼與共桌密碼，在自己的裝置查看同桌菜單。</span></button>
     </div>
     <p class="visit-help">一組同行主人只需由一位代表登記。若之後想接受服務，可隨時加入候位。</p>
+  </div>
+
+  <div id="sharedTablePanel" class="panel" style="display:none;">
+    <p class="panel-title">連接共桌號碼牌</p>
+    <div class="visit-form">
+      <label>號碼牌<input id="sharedQueueNumber" maxlength="12" placeholder="例如 A003"></label>
+      <label>共桌密碼<input id="sharedTableCode" maxlength="12" inputmode="numeric" autocomplete="one-time-code" placeholder="請向桌主索取六位數密碼"></label>
+      <p id="sharedTableStatus" class="visit-help" aria-live="polite"></p>
+      <button class="btn primary" id="joinSharedTable" type="button">連接這張號碼牌</button>
+      <button class="btn ghost" id="backSharedTable" type="button">返回</button>
+    </div>
   </div>
 
   <div id="visitRegister" class="panel" style="display:none;">
@@ -255,11 +267,16 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <div class="visit-assignee" id="visitAssignee"></div>
     <div class="visit-meta" id="visitStatusMeta"></div>
     <p class="visit-help" id="visitStatusHelp">請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。</p>
+    <div class="polaroid-link-card" id="sharedTableLinkCard">
+      <div><strong>讓同行者連接同桌菜單</strong><span>產生六位數共桌密碼；同行者只在這個點餐網站輸入。</span></div>
+      <button class="btn ghost" id="createSharedTableCode" type="button">產生共桌密碼</button>
+      <output id="sharedTableShareCode" aria-live="polite"></output>
+    </div>
     <div class="polaroid-link-card" id="polaroidLinkCard">
-      <div><strong>共桌拍立得連結</strong><span>產生一次性桌內密碼，同行者即可連結自己的角色並使用拍立得網站。</span></div>
-      <button class="btn ghost" id="createPolaroidShareCode" type="button">產生共桌密碼</button>
-      <output id="polaroidShareCode" aria-live="polite"></output>
-      <a class="btn primary" href="https://photo.ephemereffxiv.com/" target="_blank" rel="noopener">前往拍立得網站</a>
+      <div><strong>前往拍立得網站</strong><span>先選擇要連結的本桌角色；網站會直接辨識，不會再次要求共桌密碼。</span></div>
+      <select id="polaroidMemberSelect" aria-label="選擇拍立得購買角色"></select>
+      <button class="btn primary" id="openPolaroidSite" type="button">連結並前往拍立得</button>
+      <output id="polaroidTransferStatus" aria-live="polite"></output>
     </div>
     <button class="btn ghost" id="cancelVisitQueue" type="button" style="margin-top:12px;">取消候位／改為自由參觀</button>
     <button class="btn ghost" id="forgetVisitSession" type="button" style="margin-top:8px;border:0;width:100%;font-size:11px;">這不是我的候位號碼</button>
@@ -347,7 +364,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
   var cart = {}; // id -> {name, price, qty, addon:{label,price}|null, assignments:[用餐者]}
   var pendingAddons = {}; // remembers add-ons selected before the base item is added
-  var db, menuRef, operationStatusRef, functionsClient, submitOrderFn, createPolaroidShareCodeFn;
+  var db, menuRef, operationStatusRef, functionsClient, submitOrderFn, createPolaroidTransferFn, createSharedTableCodeFn, joinSharedTableFn;
   var visitsRef, visitQueueCounterRef, staffRosterRef, todayStaffRef;
   var currentVisitorUid = '';
   var activeVisitListenerRef = null;
@@ -457,7 +474,9 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     db = firebase.database();
     functionsClient = firebase.app().functions('asia-southeast1');
     submitOrderFn = functionsClient.httpsCallable('submitOrder');
-    createPolaroidShareCodeFn = functionsClient.httpsCallable('polaroidCreateShareCode');
+    createPolaroidTransferFn = functionsClient.httpsCallable('polaroidCreateTransferToken');
+    createSharedTableCodeFn = functionsClient.httpsCallable('polaroidCreateShareCode');
+    joinSharedTableFn = functionsClient.httpsCallable('joinSharedVisit');
     menuRef = db.ref('lephemere/menu');
     operationStatusRef = db.ref('lephemere/operationStatus');
     visitsRef = db.ref('lephemere/visits');
@@ -542,7 +561,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   }
 
   function setVisitView(view){
-    ['visitGate','visitRegister','browsePanel','visitRecoveryPanel','visitStatusPanel'].forEach(function(id){
+    ['visitGate','visitRegister','sharedTablePanel','browsePanel','visitRecoveryPanel','visitStatusPanel'].forEach(function(id){
       document.getElementById(id).style.display = id===view ? 'block' : 'none';
     });
   }
@@ -650,7 +669,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     document.getElementById('visitStatusHelp').textContent = specialService
       ? '若需要確認拍攝順序，請直接詢問現場女僕。此階段無法再新增餐點。'
       : (assigned ? '若需要離開、轉交其他女僕或結束接待，請直接告知負責女僕。' : (activeVisit.preferredStaffName ? '您希望由 '+activeVisit.preferredStaffName+' 接待，因此等待時間可能較長。' : '請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。'));
-    document.getElementById('cancelVisitQueue').style.display = activeVisit.status==='waiting' ? 'inline-block' : 'none';
+    document.getElementById('sharedTableLinkCard').style.display=activeVisit.ownerUid===currentVisitorUid?'':'none';
+    document.getElementById('cancelVisitQueue').style.display = activeVisit.status==='waiting'&&activeVisit.ownerUid===currentVisitorUid ? 'inline-block' : 'none';
     document.getElementById('orderFlow').style.display = assigned ? 'block' : 'none';
     setGuestTab(assigned, assigned);
     if(assigned){
@@ -662,6 +682,15 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       document.getElementById('orderGuestName').textContent=(activeVisit.characterName||'主人')+'・'+Number(activeVisit.partySize||1)+' 位';
     }
     renderDinerRoster();
+    var polaroidMemberSelect=document.getElementById('polaroidMemberSelect');
+    if(polaroidMemberSelect){
+      var previousMember=polaroidMemberSelect.value;
+      var polaroidMembers=activeVisit&&Array.isArray(activeVisit.partyMembers)?activeVisit.partyMembers.slice():[];
+      var ownerMember=[activeVisit&&activeVisit.characterName||'',activeVisit&&activeVisit.world||''].filter(Boolean).join('｜');
+      if(ownerMember&&polaroidMembers.indexOf(ownerMember)===-1)polaroidMembers.unshift(ownerMember);
+      polaroidMemberSelect.innerHTML=polaroidMembers.map(function(member){return '<option value="'+escapeHtml(member)+'">'+escapeHtml(partyMemberName(member))+'</option>';}).join('');
+      if(previousMember) polaroidMemberSelect.value=previousMember;
+    }
     renderCart();
     renderOperationStatus();
     renderMenu();
@@ -674,6 +703,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
   document.getElementById('chooseService').addEventListener('click', function(){ setVisitView('visitRegister'); });
   document.getElementById('chooseBrowse').addEventListener('click', function(){ browseMode=true; setVisitView('browsePanel'); showBrowseMenu(false); });
+  document.getElementById('chooseSharedTable').addEventListener('click', function(){ setVisitView('sharedTablePanel'); });
+  document.getElementById('backSharedTable').addEventListener('click', function(){ setVisitView('visitGate'); });
   document.getElementById('backVisitChoice').addEventListener('click', function(){ setVisitView('visitGate'); });
   document.getElementById('browseToQueue').addEventListener('click', function(){ browseMode=false; showBrowseMenu(false); setVisitView('visitRegister'); });
   document.getElementById('visitKind').addEventListener('change', function(){
@@ -789,13 +820,29 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     if(!confirm('確定取消候位並改為自由參觀嗎？')) return;
     visitsRef.child(activeVisitId).update({status:'cancelled',cancelledAt:Date.now(),updatedAt:Date.now()});
   });
-  document.getElementById('createPolaroidShareCode').addEventListener('click',function(){
-    if(!activeVisitId||!createPolaroidShareCodeFn){ alert('目前沒有可連結的號碼牌。'); return; }
-    var btn=this,out=document.getElementById('polaroidShareCode');btn.disabled=true;out.textContent='正在產生…';
-    createPolaroidShareCodeFn({visitId:activeVisitId}).then(function(res){
-      var code=res.data&&res.data.shareCode||'';
-      out.innerHTML=code?'<b>'+escapeHtml(code)+'</b><span>請只告訴本桌同行者；重新產生後舊密碼會失效。</span>':'未取得密碼，請再試一次。';
-    }).catch(function(err){out.textContent=(err&&err.message)||'產生失敗，請稍後再試。';}).finally(function(){btn.disabled=false;});
+  document.getElementById('createSharedTableCode').addEventListener('click',function(){
+    if(!activeVisitId||!createSharedTableCodeFn){alert('目前沒有可分享的號碼牌。');return}
+    var btn=this,out=document.getElementById('sharedTableShareCode');btn.disabled=true;out.textContent='正在產生…';
+    createSharedTableCodeFn({visitId:activeVisitId}).then(function(res){var code=res.data&&res.data.shareCode||'';out.innerHTML=code?'<b>'+escapeHtml(code)+'</b><span>請將號碼牌與這組六位數密碼交給同行者。</span>':'未取得密碼，請再試一次。'}).catch(function(err){out.textContent=(err&&err.message)||'產生失敗，請稍後再試。'}).finally(function(){btn.disabled=false});
+  });
+  document.getElementById('joinSharedTable').addEventListener('click',function(){
+    var queue=document.getElementById('sharedQueueNumber').value.trim().toUpperCase(),code=document.getElementById('sharedTableCode').value.trim(),status=document.getElementById('sharedTableStatus'),btn=this;
+    if(!queue||!code){status.textContent='請填寫號碼牌與六位數共桌密碼。';return}
+    if(!joinSharedTableFn){status.textContent='系統尚未連線，請稍後再試。';return}
+    btn.disabled=true;status.textContent='正在核對共桌資料…';
+    joinSharedTableFn({queueNumber:queue,shareCode:code}).then(function(res){var d=res.data||{};if(!d.visitId)throw new Error('沒有取得號碼牌');activeVisitId=d.visitId;activeVisitSessionId=d.visitId;localStorage.setItem('lephemereActiveVisitId',d.visitId);sessionStorage.setItem('lephemereActiveVisitSessionId',d.visitId);visitRecoveryPending=false;watchActiveVisit(d.visitId);status.textContent='已連接同桌號碼牌。'}).catch(function(err){status.textContent=(err&&err.message)||'連接失敗，請重新確認。'}).finally(function(){btn.disabled=false});
+  });
+  document.getElementById('openPolaroidSite').addEventListener('click',function(){
+    if(!activeVisitId||!createPolaroidTransferFn){ alert('目前沒有可連結的號碼牌。'); return; }
+    var btn=this,out=document.getElementById('polaroidTransferStatus'),member=document.getElementById('polaroidMemberSelect').value;
+    if(!member){out.textContent='請先選擇本桌角色。';return}
+    btn.disabled=true;out.textContent='正在建立安全連結…';
+    createPolaroidTransferFn({visitId:activeVisitId,memberLabel:member}).then(function(res){
+      var token=res.data&&res.data.token||'';
+      if(!token)throw new Error('未取得連結');
+      out.textContent='連結完成，正在前往拍立得網站…';
+      window.location.href='https://photo.ephemereffxiv.com/?ticket='+encodeURIComponent(token);
+    }).catch(function(err){out.textContent=(err&&err.message)||'連結失敗，請稍後再試。';}).finally(function(){btn.disabled=false;});
   });
 
   setInterval(function(){ if(activeVisit) updateVisitStatus(); },30000);
@@ -817,6 +864,12 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   // ---------- menu rendering ----------
   function itemIsAvailable(item){
     return !!item && item.available!==false && item.available!=='false' && item.available!==0;
+  }
+
+  function isLegacyPhotoMenuItem(item){
+    var type=String(item&&item.serviceType||'').toLowerCase();
+    var source=String(item&&item.name||'')+' '+String(item&&item.category||'');
+    return type==='polaroid'||type==='lens'||/拍立得|純拍|lens|個人攝影|專屬留影/i.test(source);
   }
 
   function itemHasStockLimit(item){
@@ -896,6 +949,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         latest = newId ? menuItems[newId] : null;
       }
       if(!latest) return;
+      if(isLegacyPhotoMenuItem(latest)) return;
       if(!itemIsAvailable(latest)) return;
       var allowedQty = Number(line.qty||0);
       if(itemHasStockLimit(latest)){
@@ -939,6 +993,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     categoryOrder.forEach(function(c){ groups[c] = []; });
     Object.keys(menuItems).forEach(function(id){
       var item = menuItems[id];
+      if(isLegacyPhotoMenuItem(item)) return;
       var cat = item.category || '其他';
       if(!groups[cat]) groups[cat] = [];
       groups[cat].push(Object.assign({id:id}, item));
