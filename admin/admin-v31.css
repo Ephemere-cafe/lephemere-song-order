@@ -1,0 +1,28 @@
+.macro-page-heading{margin-bottom:18px}
+.macro-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:stretch}
+.macro-editor-panel,.macro-settings-grid>#personalRegularMacroHost{min-width:0}
+.macro-editor-panel{display:flex;flex-direction:column;min-height:410px;padding:20px;margin:0}
+.macro-settings-grid>#personalRegularMacroHost>.macro-editor-panel{height:100%}
+.macro-editor-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+.macro-editor-head h3{font-family:'Noto Serif TC',serif;font-size:17px;font-weight:600;color:var(--parchment);margin:0 0 5px}
+.macro-editor-head p{font-size:11.5px;line-height:1.65;color:var(--parchment-dim);margin:0}
+.macro-editor-tag{flex:none;padding:5px 9px;border:1px solid rgba(202,160,107,.32);border-radius:20px;background:rgba(202,160,107,.08);color:var(--gold);font-size:10.5px}
+.macro-editor-panel textarea{width:100%;box-sizing:border-box;min-height:160px;padding:13px 14px;font-size:13px;line-height:1.8;resize:vertical}
+.macro-variable-list{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.macro-variable-list span{padding:4px 8px;border:1px solid rgba(243,236,225,.1);border-radius:5px;color:var(--mist);font-size:10.5px}
+.macro-editor-hint{min-height:42px;margin:0 0 14px;color:var(--parchment-dim);font-size:11px;line-height:1.65}
+.macro-editor-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:auto}
+.macro-editor-actions>span{margin-right:auto;color:var(--sage);font-size:11.5px}
+.macro-page-note{margin:16px 0 0;padding:12px 14px;border-left:2px solid var(--sage);background:rgba(143,166,136,.06);color:var(--parchment-dim);font-size:11.5px;line-height:1.7}
+@media(max-width:700px){
+  .macro-settings-grid{grid-template-columns:1fr;gap:12px}
+  .macro-editor-panel{min-height:0;padding:16px}
+  .macro-editor-head{display:block}
+  .macro-editor-tag{display:inline-block;margin-top:9px}
+  .macro-editor-panel textarea{min-height:142px}
+  .macro-editor-hint{min-height:0}
+  .macro-editor-actions{display:grid;grid-template-columns:1fr}
+  .macro-editor-actions>span{margin:0}
+  .macro-editor-actions .btn{width:100%;min-height:44px}
+  .macro-page-note{margin-top:12px}
+}

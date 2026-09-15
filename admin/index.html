@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="polaroid-admin.css?v=20260914-v34">
 <link rel="stylesheet" href="admin-v33.css?v=20260914-v33">
 <link rel="stylesheet" href="admin-v35.css?v=20260914-v35">
-</head>
+<link rel="stylesheet" href="polaroid-v36.css?v=36"></head>
 <body>
 <div class="wrap" id="wrap">
 
@@ -159,7 +159,16 @@
           <p class="macro-editor-hint">請保留 FF14 密語格式；儲存後會套用在目前選擇的女僕。</p>
           <div class="macro-editor-actions"><span id="receptionCallTemplateStatus" aria-live="polite"></span><button class="btn primary small" id="saveReceptionCallTemplate" type="button">儲存號碼牌文字</button></div>
         </section>
-        <div id="personalRegularMacroHost"></div>
+        <section class="panel macro-editor-panel photo-macro-panel">
+  <div class="macro-editor-head"><div><h3>拍攝時段通知</h3><p>套用在目前選擇的女僕；複製後貼到遊戲內私訊。</p></div><span class="macro-editor-tag">拍攝通知</span></div>
+  <label for="photoMacroTemplate">通知範本</label><textarea id="photoMacroTemplate" maxlength="1000" rows="3"></textarea>
+  <div class="macro-variable-list"><span>{角色名}</span><span>{伺服器}</span><span>{候位號碼}</span><span>{女僕名}</span><span>{商品名}</span><span>{輪次}</span><span>{開始時間}</span><span>{結束時間}</span></div>
+  <button type="button" class="btn primary small" id="photoMacroSave">儲存我的拍攝通知</button>
+  <label for="photoMacroTask">通知客人</label><select id="photoMacroTask"><option value="">選擇待拍客人</option></select>
+  <label for="photoMacroPreview">本次私訊（可直接修改）</label><textarea id="photoMacroPreview" maxlength="1500" rows="3"></textarea>
+  <button type="button" class="btn ghost small" id="photoMacroCopy">一鍵複製私訊</button><span id="photoMacroStatus" role="status"></span>
+</section>
+<div id="personalRegularMacroHost"></div>
       </div>
       <p class="macro-page-note">這裡只集中女僕自己的巨集。管理員設定的熟客門檻與店內通用文字仍保留在「客人管理」。</p>
     </div>
@@ -188,6 +197,15 @@
         <details class="reception-column team-visits-panel"><summary class="reception-column-title"><span>其他成員接待中・可直接轉交</span><span class="reception-count" id="teamVisitCount">0</span></summary><div id="teamVisitList"></div></details>
         <details class="reception-column team-status-panel"><summary class="reception-column-title"><span>成員狀態總覽</span><span class="reception-count" id="staffPresenceCount">0</span></summary><div class="team-grid" id="staffPresenceList"></div></details>
       </div>
+      <details class="panel visit-history-panel" id="visitHistoryPanel">
+        <summary><span><strong>號碼牌紀錄</strong><small>永久保留，可依日期、號碼、角色、伺服器、女僕或狀態查詢</small></span><span id="visitHistoryCount">尚未載入</span></summary>
+        <div class="visit-history-tools">
+          <label>營業日期<input type="date" id="visitHistoryDate"></label>
+          <label>狀態<select id="visitHistoryStatus"><option value="">全部狀態</option><option value="waiting">候位中</option><option value="assigned">已安排</option><option value="serving">接待中</option><option value="completed">已完成</option><option value="cancelled">已取消</option><option value="no_show">未到場</option></select></label>
+          <label class="visit-history-search">搜尋<input type="search" id="visitHistorySearch" placeholder="號碼、角色、伺服器、女僕、訂單或備註"></label>
+        </div>
+        <div id="visitHistoryList" class="visit-history-list"><div class="queue-empty">展開後載入永久號碼牌紀錄。</div></div>
+      </details>
       <details class="panel"><summary style="cursor:pointer;color:var(--mist);font-size:12px;">最近接待操作紀錄</summary><div class="audit-list" id="assignmentHistoryList"><div class="queue-empty">尚無操作紀錄</div></div></details>
       <div class="copy-toast" id="copyToast" role="status" aria-live="polite">叫號文字已複製</div>
     </div>
@@ -278,13 +296,13 @@
       </div>
 
       <section class="polaroid-pane" data-polaroid-panel="work">
-        <section class="panel polaroid-my-work"><div class="polaroid-work-head"><div><h3 id="polaroidMyTitle">我的拍立得工作</h3><p id="polaroidMyHint">請先在上方選擇操作女僕。</p></div><div class="polaroid-status-actions" id="polaroidStatusActions"><button data-polaroid-status="available">可拍</button><button data-polaroid-status="serving">接待中</button><button data-polaroid-status="shooting">拍攝中</button><button data-polaroid-status="away">暫離</button><button data-polaroid-status="off">下班</button></div></div><div id="polaroidMyTasks" class="polaroid-task-list"><div class="queue-empty">正在讀取工作清單…</div></div></section>
+        <section class="panel polaroid-my-work"><div class="polaroid-work-head"><div><h3 id="polaroidMyTitle">我的拍立得工作</h3><p id="polaroidMyHint">請先在上方選擇操作女僕。</p></div><div hidden class="polaroid-status-actions" id="polaroidStatusActions"><button data-polaroid-status="available">可拍</button><button data-polaroid-status="serving">接待中</button><button data-polaroid-status="shooting">拍攝中</button><button data-polaroid-status="away">暫離</button><button data-polaroid-status="off">下班</button></div></div><div id="polaroidMyTasks" class="polaroid-task-list"><div class="queue-empty">正在讀取工作清單…</div></div></section>
       </section>
 
       <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="session" hidden id="polaroidManagerArea">
-        <details class="panel polaroid-session-editor" open><summary><span><strong>本場拍立得設定</strong><small>所有限制皆由本場設定控制</small></span></summary>
-          <div class="polaroid-session-fields"><label>場次名稱<input id="polaroidSessionTitle" maxlength="100" placeholder="例如：2026/09/22 曇時一般營業"></label><label>營業日期<input id="polaroidBusinessDate" type="date"></label><label>每位客人商品總上限<input id="polaroidMaxProducts" type="number" min="1" max="50" value="5"></label><label hidden>舊版輪次參數<input id="polaroidSimultaneous" type="number" min="1" max="20" value="2"></label><label class="check"><input id="polaroidSessionOpen" type="checkbox" checked> 啟用本場拍立得網站</label><label class="check"><input id="polaroidSalesOpen" type="checkbox" checked> 接受新訂單</label></div>
-          <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><p class="polaroid-help">系統會先建議輪次；現場可在工作項目中隨時手動調整。</p><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕</h4><p class="polaroid-help">勾選本場可被商品指定的女僕；狀態僅供現場互相確認，不會限制接單或輪次。</p><div id="polaroidMaidEditor"></div></div></div>
+        <details class="panel polaroid-session-editor" open><summary><span><strong>本場拍立得設定</strong><small>現場合照每客 3 張、同女僕每客 1 張為固定限制</small></span></summary>
+          <div class="polaroid-session-fields"><label>場次名稱<input id="polaroidSessionTitle" maxlength="100" placeholder="例如：2026/09/22 曇時一般營業"></label><label>營業日期<input id="polaroidBusinessDate" type="date"></label><label>其他商品每客上限<input id="polaroidMaxProducts" type="number" min="1" max="50" value="5"></label><label>同時最多拍攝女僕人數<input id="polaroidSimultaneous" type="number" min="1" max="20" value="2"></label><label class="check"><input id="polaroidSessionOpen" type="checkbox" checked> 啟用本場拍立得網站</label><label class="check"><input id="polaroidSalesOpen" type="checkbox" checked> 接受新現場合照（取消勾選並儲存後停止）</label><label class="check"><input id="polaroidOtherSalesOpen" type="checkbox" checked> 開放商品接單總開關</label></div>
+          <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><p class="polaroid-help">新單安排到最近尚未結束的輪次；未完成自動遞延並保留下單順位。時間以台灣時間為準，跨午夜輪次請放在最後。</p><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕</h4><p class="polaroid-help">勾選開放現場合照的女僕，個別設定本場張數；預設 3 張。系統不判斷女僕是否有空。</p><div id="polaroidMaidEditor"></div></div></div>
           <div class="polaroid-save-row"><span id="polaroidSaveStatus" aria-live="polite"></span><button type="button" class="btn primary" id="polaroidSaveSession">儲存場次與輪次</button></div>
         </details>
       </section>
@@ -296,7 +314,7 @@
           <input id="polaroidProductId" type="hidden">
           <div class="polaroid-product-fields">
             <label>商品名稱<input id="polaroidProductName" maxlength="80" placeholder="例如：小顏・現場合照"></label>
-            <label>分類<input id="polaroidProductCategory" maxlength="40" placeholder="現場合照／純拍／限定商品"></label>
+            <label class="check"><input id="polaroidProductOnsite" type="checkbox" checked> 現場合照（每客 3 張、同女僕 1 張）</label><label>分類<input id="polaroidProductCategory" maxlength="40" placeholder="現場合照／純拍／限定商品"></label>
             <label>價格（Gil）<input id="polaroidProductPrice" type="number" min="0" step="10000" value="80000"></label>
             <label>庫存（-1 代表不限量）<input id="polaroidProductStock" type="number" min="-1" value="10"></label>
             <label>每人限購<input id="polaroidProductLimit" type="number" min="1" max="20" value="1"></label>
@@ -315,8 +333,8 @@
       </section>
 
       <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="orders" hidden>
-        <div class="polaroid-admin-metrics"><div><span>本場訂單</span><strong id="polaroidMetricOrders">0</strong></div><div><span>已完成</span><strong id="polaroidMetricDone">0</strong></div><div><span>等待處理</span><strong id="polaroidMetricPending">0</strong></div><div><span>未到場／順延</span><strong id="polaroidMetricDeferred">0</strong></div></div>
-        <section class="panel"><div class="polaroid-work-head"><div><h3>全場工作概況</h3><p>系統會依商品設定建立拍攝或交付工作。</p></div></div><div id="polaroidAllTasks" class="polaroid-task-list"></div></section>
+        <div class="polaroid-admin-metrics"><div><span>現場合照張數</span><strong id="polaroidMetricOrders">0</strong></div><div><span>已完成</span><strong id="polaroidMetricDone">0</strong></div><div><span>等待處理</span><strong id="polaroidMetricPending">0</strong></div><div><span>未完成（含拍攝中）</span><strong id="polaroidMetricDeferred">0</strong></div></div>
+        <section class="panel photo-round-summary"><p>目前：<strong id="polaroidCurrentRound"></strong></p><p>下一輪：<strong id="polaroidNextRound"></strong></p><p>拍攝中女僕：<strong id="polaroidBusyCount"></strong></p><div id="polaroidMaidTotals" class="photo-maid-totals"></div></section><section class="panel"><div class="polaroid-work-head"><div><h3>全場工作概況</h3><p>待拍依原始下單時間排序；跳過不會改變順位。已完成列於下方。最後一輪未完成工作留待店長安排。</p></div></div><div id="polaroidAllTasks" class="polaroid-task-list"></div></section>
       </section>
     </div>
 
@@ -953,8 +971,9 @@
 <script src="guestbook-admin.js?v=20260910-v25"></script>
 <script src="studio-admin.js?v=20260909-v22"></script>
 <script src="admin-workspace-preview.js?v=20260905c"></script>
-<script src="polaroid-admin.js?v=20260914-v34"></script>
+<script src="schedule.js?v=36"></script><script src="polaroid-admin.js?v=36"></script>
 
 </body>
 </html>
+
 

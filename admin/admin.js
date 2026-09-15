@@ -16,10 +16,12 @@
   var db, storage, functionsClient, retryDiscordNotificationFn;
   var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, staffSchedulesRef, menuRef, nextOrderNumberRef, operationStatusRef, dailyReportsRef, adminUsersRef, adminOwnerUidRef, siteMusicRef;
   var visitsRef, visitQueueCounterRef, staffPresenceRef, assignmentHistoryRef;
-  var recentOrdersQuery, ordersQuery, todayVisitsQuery, currentVisitsBusinessDate = '';
+  var recentOrdersQuery, ordersQuery, todayVisitsQuery, allVisitsHistoryQuery, currentVisitsBusinessDate = '';
 
   var orders = {};
   var visits = {};
+  var allVisitHistory = {};
+  var visitHistoryLoaded = false;
   var staffPresence = {};
   var assignmentHistory = {};
   var currentOrderFilter = 'active';
@@ -623,6 +625,7 @@
     renderStats();
     renderOrders();
     renderReception();
+    if(visitHistoryLoaded) renderVisitHistory();
     renderPayroll();
   }
 
@@ -646,7 +649,7 @@
   }
 
   function loadAllOrderHistory(){
-    if(!isManager()) return;
+    if(!currentAuthUser) return;
     setOrderHistoryStatus('正在載入全部歷史訂單…', 'loading');
     watchOrders(ordersRef.orderByChild('createdAt'), 'all');
   }
@@ -1551,6 +1554,44 @@
     else fallback();
   }
 
+  function visitHistoryTimestamp(ts){
+    if(!ts) return '未記錄';
+    var d=new Date(Number(ts));
+    return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  }
+
+  function renderVisitHistory(){
+    var host=document.getElementById('visitHistoryList');if(!host)return;
+    if(!visitHistoryLoaded){host.innerHTML='<div class="queue-empty">正在載入號碼牌紀錄…</div>';return;}
+    var date=document.getElementById('visitHistoryDate').value,status=document.getElementById('visitHistoryStatus').value,term=document.getElementById('visitHistorySearch').value.trim().toLowerCase();
+    var allOrders=Object.keys(orders).map(function(id){return Object.assign({id:id},orders[id]||{});});
+    var rows=Object.keys(allVisitHistory).map(function(id){return Object.assign({id:id},allVisitHistory[id]||{});}).filter(function(v){
+      if(date&&v.businessDate!==date)return false;if(status&&v.status!==status)return false;
+      var related=allOrders.filter(function(o){return o.visitId===v.id;});
+      var hay=[v.queueNumber,v.characterName,v.world,v.assignedStaffName,v.preferredStaffName,v.reservationRef,v.note,v.internalNote,Array.isArray(v.partyMembers)?v.partyMembers.join(' '):'',related.map(function(o){return [o.orderNumber,o.name,o.note].join(' ');}).join(' ')].join(' ').toLowerCase();
+      return !term||hay.indexOf(term)>-1;
+    }).sort(function(a,b){return Number(b.createdAt||0)-Number(a.createdAt||0);});
+    var labels={waiting:'候位中',assigned:'已安排',serving:'接待中',completed:'已完成',cancelled:'已取消',no_show:'未到場',special_service:'接待完成'};
+    document.getElementById('visitHistoryCount').textContent=rows.length+' 筆';
+    host.innerHTML=rows.length?rows.map(function(v){
+      var related=allOrders.filter(function(o){return o.visitId===v.id;}).sort(function(a,b){return Number(a.createdAt||0)-Number(b.createdAt||0);});
+      var orderTotal=related.filter(function(o){return o.status!=='cancelled';}).reduce(function(sum,o){return sum+Number(o.total||0);},0);
+      var memberText=Array.isArray(v.partyMembers)&&v.partyMembers.length?v.partyMembers.join('、'):[v.characterName,v.world].filter(Boolean).join('｜');
+      var orderHtml=related.length?related.map(function(o){return '<div class="visit-history-order"><span>#'+escapeHtml(String(o.orderNumber||'—'))+'・'+escapeHtml(o.name||'未填名稱')+'</span><span>'+escapeHtml(STATUS_LABEL[o.status]||o.status||'未記錄')+'・'+fmtGil(o.total)+'</span></div>';}).join(''):'<div class="visit-history-empty">本桌沒有餐點訂單</div>';
+      return '<details class="visit-history-card"><summary><span><strong>'+escapeHtml(v.queueNumber||'未編號')+'・'+escapeHtml(v.characterName||'未填角色名')+'</strong><small>'+escapeHtml(v.businessDate||orderDateKey(v.createdAt))+'・'+escapeHtml(labels[v.status]||v.status||'未記錄')+'・'+Number(v.partySize||1)+' 人</small></span><span>'+related.length+' 張訂單・'+fmtGil(orderTotal)+'</span></summary><div class="visit-history-detail"><dl><div><dt>同行角色</dt><dd>'+escapeHtml(memberText||'未記錄')+'</dd></div><div><dt>負責女僕</dt><dd>'+escapeHtml(v.assignedStaffName||'未指派')+'</dd></div><div><dt>領號時間</dt><dd>'+visitHistoryTimestamp(v.createdAt)+'</dd></div><div><dt>接待開始</dt><dd>'+visitHistoryTimestamp(v.serviceStartedAt||v.assignedAt)+'</dd></div><div><dt>完成時間</dt><dd>'+visitHistoryTimestamp(v.completedAt||v.cancelledAt||v.noShowAt)+'</dd></div><div><dt>備註</dt><dd>'+escapeHtml(v.note||v.internalNote||'無')+'</dd></div></dl><div class="visit-history-orders">'+orderHtml+'</div></div></details>';
+    }).join(''):'<div class="queue-empty">沒有符合條件的號碼牌紀錄。</div>';
+  }
+
+  function loadVisitHistory(){
+    if(visitHistoryLoaded||!visitsRef)return;
+    if(allVisitsHistoryQuery)allVisitsHistoryQuery.off();allVisitsHistoryQuery=visitsRef.orderByChild('createdAt');
+    allVisitsHistoryQuery.on('value',function(snap){allVisitHistory=snap.val()||{};visitHistoryLoaded=true;renderVisitHistory();},function(err){console.error('Visit history sync failed',err);document.getElementById('visitHistoryList').innerHTML='<div class="queue-empty">號碼牌紀錄載入失敗，請確認登入權限與連線。</div>';});
+    if(!allOrderHistoryLoaded)loadAllOrderHistory();
+  }
+
+  document.getElementById('visitHistoryPanel').addEventListener('toggle',function(){if(this.open)loadVisitHistory();});
+  ['visitHistoryDate','visitHistoryStatus','visitHistorySearch'].forEach(function(id){document.getElementById(id).addEventListener(id==='visitHistorySearch'?'input':'change',renderVisitHistory);});
+
   document.getElementById('receptionTab').addEventListener('click',function(e){
     var transfer=e.target.closest('[data-open-transfer]');
     if(transfer){ openTransferModal(transfer.getAttribute('data-open-transfer')); return; }
@@ -2346,13 +2387,17 @@
     }
     document.getElementById('orderSearchHint').textContent = orderSearchTerm ? '找到 '+arr.length+' 筆' : '';
     var groupByDate = currentOrderFilter==='completed' || currentOrderFilter==='cancelled' || currentOrderFilter==='all' || currentOrderFilter==='history';
+    function orderTableKey(o){return (o.visitId||o.queueNumber||('order-'+o.id));}
     arr.sort(function(a,b){
-      return groupByDate ? (b.createdAt||0) - (a.createdAt||0) : (a.createdAt||0) - (b.createdAt||0);
+      if(groupByDate){var ad=orderBusinessDate(a),bd=orderBusinessDate(b);if(ad!==bd)return bd.localeCompare(ad);}
+      var at=orderTableKey(a),bt=orderTableKey(b);if(at!==bt)return String(at).localeCompare(String(bt),'zh-Hant');
+      return (a.createdAt||0)-(b.createdAt||0);
     });
 
     if(arr.length===0){ el.innerHTML = '<p class="empty">目前沒有符合條件的訂單</p>'; return; }
 
     var dayStats = {};
+    var tableStats = {};
     if(groupByDate){
       arr.forEach(function(o){
         var key = orderBusinessDate(o);
@@ -2361,9 +2406,14 @@
         if(o.status!=='cancelled') dayStats[key].gil += (o.total||0);
       });
     }
+    arr.forEach(function(o){
+      var key=(groupByDate?orderBusinessDate(o)+'|':'')+orderTableKey(o),stat=tableStats[key]||(tableStats[key]={count:0,total:0,statuses:{},visitId:o.visitId||'',queueNumber:o.queueNumber||''});
+      stat.count++;if(o.status!=='cancelled')stat.total+=Number(o.total||0);stat.statuses[o.status]=Number(stat.statuses[o.status]||0)+1;
+    });
 
     var html = '';
     var openDay = null;
+    var openTable = null;
     var dayIndex = 0;
     arr.forEach(function(o){
       if(groupByDate){
@@ -2377,8 +2427,15 @@
             +'<span class="order-day-meta">'+meta+'<span class="order-day-arrow">⌄</span></span></summary>'
             +'<div class="order-day-list">';
           openDay = dateKey;
+          openTable = null;
           dayIndex++;
         }
+      }
+      var tableKey=(groupByDate?orderBusinessDate(o)+'|':'')+orderTableKey(o);
+      if(tableKey!==openTable){
+        var tableStat=tableStats[tableKey],tableVisit=visits[tableStat.visitId]||allVisitHistory[tableStat.visitId]||{},statusParts=Object.keys(tableStat.statuses).map(function(key){return (STATUS_LABEL[key]||key)+' '+tableStat.statuses[key];});
+        html+='<div class="order-table-heading"><div><span class="order-table-kicker">同桌訂單</span><strong>'+(tableStat.queueNumber?'候位 '+escapeHtml(tableStat.queueNumber):'未連結號碼牌')+'・'+escapeHtml(tableVisit.characterName||o.name||'未填名稱')+'</strong><small>'+Number(tableVisit.partySize||1)+' 人・'+tableStat.count+' 張獨立訂單・'+escapeHtml(statusParts.join('／'))+'</small></div><b>'+fmtGil(tableStat.total)+'</b></div>';
+        openTable=tableKey;
       }
       var regularItems = (o.items||[]).filter(function(it){ return !standaloneSpecialType(it); });
       var itemsHtml = regularItems.map(function(it){
