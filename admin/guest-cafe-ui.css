@@ -170,3 +170,14 @@ input::placeholder{color:#8a7e76;opacity:1}
   #menuList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:34px}
   #menuList>.cat-title,#menuList>.category-notice{grid-column:1/-1}
 }
+
+/* v46：客用號碼牌與點餐文字可讀性 */
+.clock{font-size:13px}.brand p{font-size:13px}.guest-tab{font-size:15px}
+.visit-choice span,.visit-help,.visit-form label,.visit-meta,.diner-roster{font-size:14px;line-height:1.8}
+.visit-status-label{font-size:12px}.character-name-notice,.companion-fields-title{font-size:13px}.companion-fields-help,.companion-count{font-size:12px}
+.table-access-kicker{font-size:11px}.table-access-copy strong{font-size:16px}.table-access-copy p{font-size:13px}.table-access-code span{font-size:15px}
+.order-kicker,.summary-kicker{font-size:12px}.order-visit-summary span{font-size:13px}.order-visit-summary strong{font-size:14px}
+.category-link{font-size:14px}.menu-sync-status,.menu-refresh-btn{font-size:12px}.category-notice{font-size:13px}.category-notice-label{font-size:11px}
+.item-name{font-size:16px}.item-note{font-size:13px;line-height:1.65}.item-price{font-size:15px}.availability{font-size:12px}.addon-row{font-size:13px}.step-qty{font-size:15px}
+.cart-line,.cart-line-main{font-size:14px}.empty,.empty-cart{font-size:14px}.diner-assignment,.cart-note{font-size:13px}.success-copy{font-size:14px}.success-note{font-size:13px}
+@media(max-width:560px){.clock{font-size:11px}.guest-tab{font-size:14px}.item-name{font-size:15px}.item-note{font-size:12.5px}.item-price{font-size:14px}}
