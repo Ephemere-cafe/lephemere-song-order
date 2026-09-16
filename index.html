@@ -174,7 +174,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   </nav>
 
   <div id="configWarn" class="configwarn" style="display:none;">
-    尚未設定 Firebase 連線資訊，請在程式碼中填入 firebaseConfig 後重新上傳。
+    網站暫時無法使用，請聯絡女僕協助。
   </div>
 
   <div id="operationBanner" class="status-banner" style="display:none;">
@@ -308,7 +308,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <div class="order-layout">
     <main class="panel menu-panel" id="cartPanel">
       <div class="menu-sync-row">
-        <div class="menu-sync-status" id="menuSyncStatus" aria-live="polite">正在同步最新菜單…</div>
+        <div class="menu-sync-status" id="menuSyncStatus" aria-live="polite">正在載入最新菜單…</div>
         <button class="menu-refresh-btn" id="refreshMenuBtn" type="button">立即更新菜單</button>
       </div>
       <div id="menuList"><span class="empty">菜單載入中...</span></div>
@@ -505,7 +505,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         watchActiveVisit(activeVisitId);
       }else{
         firebase.auth().signInAnonymously().catch(function(){
-          document.getElementById('configWarn').textContent='無法建立安全訪客身分，請通知店員檢查 Firebase 匿名登入設定。';
+          document.getElementById('configWarn').textContent='暫時無法開始登記，請重新整理；若仍無法使用，請聯絡女僕。';
           document.getElementById('configWarn').style.display='block';
         });
       }
@@ -797,7 +797,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       var code=String((error&&error.code)||'').toLowerCase();
       var message=String((error&&error.message)||'').toLowerCase();
       if(code.indexOf('permission')!==-1 || message.indexOf('permission')!==-1){
-        err.textContent='候位寫入被 Firebase 權限拒絕，請店員確認 Realtime Database 規則已發布';
+        err.textContent='暫時無法完成領號，請聯絡女僕協助登記。';
       }else if(code.indexOf('network')!==-1 || message.indexOf('network')!==-1){
         err.textContent='目前網路連線不穩定，請確認連線後再試一次';
       }else if(message.indexOf('queue-number')!==-1){
@@ -895,7 +895,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     });
     renderMenu();
     renderCart();
-    setMenuSyncStatus('菜單已同步・' + new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'}), false);
+    setMenuSyncStatus('菜單已更新・' + new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'}), false);
   }
 
   function refreshMenuSnapshot(){
@@ -913,7 +913,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       return menuRef.once('value').then(function(snap){
         applyMenuSnapshot(snap);
       }).catch(function(){
-        setMenuSyncStatus('菜單同步失敗，請按「立即更新菜單」', true);
+        setMenuSyncStatus('菜單載入失敗，請按「立即更新菜單」', true);
       });
     }).then(function(){
       menuSyncBusy = false;
@@ -1001,7 +1001,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     var nav = document.getElementById('categoryNav');
     var groups = groupedMenu();
     if(categoryOrder.length === 0){
-      el.innerHTML = '<span class="empty">菜單尚未設定，請洽店員</span>';
+      el.innerHTML = '<span class="empty">菜單尚未開放，請稍候或詢問女僕。</span>';
       if(nav) nav.innerHTML='';
       return;
     }
