@@ -151,3 +151,33 @@ input::placeholder{color:#8a7e76;opacity:1}
 .table-access-code{display:flex;align-items:baseline;gap:12px;padding:11px 15px;background:#fff;border:1px solid var(--guest-line);white-space:nowrap}.table-access-code span{color:var(--guest-gold);font-size:14px;letter-spacing:.1em}.table-access-code b{color:var(--guest-wine);font:600 23px Georgia,serif;letter-spacing:.18em}
 .table-access-actions{grid-column:1/-1;display:flex;gap:10px}.table-access-actions .btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;flex:1}#tableAccessStatus{grid-column:1/-1;color:var(--guest-sage);font-size:11px;min-height:1em}
 @media(max-width:620px){.visit-status-card{padding:20px 15px!important}.table-access-card{grid-template-columns:1fr;padding:14px}.table-access-code{justify-content:center}.table-access-actions{grid-column:1;flex-direction:column}#tableAccessStatus{grid-column:1}}
+
+/* v45：號碼牌與點餐桌機整合寬版 */
+@media(min-width:1101px){
+  .wrap{width:min(calc(100% - 40px),1540px);max-width:1540px}
+  #visitStatusPanel[style*="display: block"]{display:grid!important;grid-template-columns:210px minmax(260px,1fr) minmax(480px,.95fr);grid-template-rows:auto auto auto auto;column-gap:28px;row-gap:8px;align-items:center;margin:24px 32px 0!important;padding:24px 26px!important;text-align:left!important}
+  #visitStatusPanel[style*="display: block"]>.visit-status-label{grid-column:1;grid-row:1;justify-self:center}
+  #visitStatusPanel[style*="display: block"]>.visit-ticket{grid-column:1;grid-row:2/5;align-self:start;margin:4px 0!important;font-size:58px;text-align:center!important}
+  #visitStatusPanel[style*="display: block"]>#visitStatusTitle{grid-column:2;grid-row:1;text-align:left!important;font-size:20px!important}
+  #visitStatusPanel[style*="display: block"]>.visit-assignee{grid-column:2;grid-row:2;text-align:left!important;margin:0}
+  #visitStatusPanel[style*="display: block"]>.visit-meta{grid-column:2;grid-row:3;text-align:left!important;margin:0}
+  #visitStatusPanel[style*="display: block"]>.visit-help{grid-column:2;grid-row:4;text-align:left!important;margin:0}
+  #visitStatusPanel[style*="display: block"]>.table-access-card{grid-column:3;grid-row:1/6;width:100%;max-width:none;margin:0}
+  #visitStatusPanel[style*="display: block"]>#cancelVisitQueue{grid-column:2;grid-row:5;justify-self:start;margin:4px 0 0!important}
+  #visitStatusPanel[style*="display: block"]>#forgetVisitSession{grid-column:1;grid-row:5;margin:4px 0 0!important}
+  #visitStatusPanel[style*="display: block"]:has(.table-access-card[style*="display: none"]){grid-template-columns:210px minmax(0,1fr)}
+  .order-layout{grid-template-columns:minmax(0,1fr) 340px}
+  #menuList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:34px}
+  #menuList>.cat-title,#menuList>.category-notice{grid-column:1/-1}
+}
+
+/* v46：客用號碼牌與點餐文字可讀性 */
+.clock{font-size:13px}.brand p{font-size:13px}.guest-tab{font-size:15px}
+.visit-choice span,.visit-help,.visit-form label,.visit-meta,.diner-roster{font-size:14px;line-height:1.8}
+.visit-status-label{font-size:12px}.character-name-notice,.companion-fields-title{font-size:13px}.companion-fields-help,.companion-count{font-size:12px}
+.table-access-kicker{font-size:11px}.table-access-copy strong{font-size:16px}.table-access-copy p{font-size:13px}.table-access-code span{font-size:15px}
+.order-kicker,.summary-kicker{font-size:12px}.order-visit-summary span{font-size:13px}.order-visit-summary strong{font-size:14px}
+.category-link{font-size:14px}.menu-sync-status,.menu-refresh-btn{font-size:12px}.category-notice{font-size:13px}.category-notice-label{font-size:11px}
+.item-name{font-size:16px}.item-note{font-size:13px;line-height:1.65}.item-price{font-size:15px}.availability{font-size:12px}.addon-row{font-size:13px}.step-qty{font-size:15px}
+.cart-line,.cart-line-main{font-size:14px}.empty,.empty-cart{font-size:14px}.diner-assignment,.cart-note{font-size:13px}.success-copy{font-size:14px}.success-note{font-size:13px}
+@media(max-width:560px){.clock{font-size:11px}.guest-tab{font-size:14px}.item-name{font-size:15px}.item-note{font-size:12.5px}.item-price{font-size:14px}}
