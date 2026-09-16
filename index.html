@@ -3,974 +3,1312 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>曇時 管理後台</title>
-  <link rel="stylesheet" href="admin-ui-v6.css?v=20260905c">
-  <link rel="stylesheet" href="admin-ui-v10.css?v=20260907-v13">
-<link rel="stylesheet" href="guest-registry.css?v=20260908-v21">
-<link rel="stylesheet" href="admin-v22.css?v=20260910-v27">
-<link rel="stylesheet" href="admin-v31.css?v=20260913-v31">
-<link rel="stylesheet" href="polaroid-admin.css?v=20260914-v34">
-<link rel="stylesheet" href="admin-v33.css?v=20260914-v33">
-<link rel="stylesheet" href="admin-v35.css?v=20260914-v35">
-  <link rel="stylesheet" href="polaroid-v36.css?v=53"></head>
+<title>曇時 線上點餐</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;}
+body{margin:0;background:#241f30;font-family:'Noto Sans TC',sans-serif;}
+:root{
+  --ink:#241f30; --ink-deep:#191420; --card:#2d2738;
+  --parchment:#f3ece1; --parchment-dim:#c7bfae;
+  --gold:#caa06b; --gold-dim:#8a6f4d;
+  --rose:#c07b8a; --rose-dim:#7a4d57;
+  --sage:#8fa688; --sage-dim:#4d5c48;
+  --mist:#a79bc4; --line:rgba(243,236,225,0.12);
+}
+.wrap{
+  background:var(--ink); color:var(--parchment); padding:28px 22px 34px;
+  border-radius:14px; max-width:640px; margin:0 auto; position:relative;
+  overflow:hidden; min-height:100vh;
+}
+@media (min-width:860px){ .wrap{ max-width:760px; } }
+.petal{
+  position:absolute; width:10px; height:10px; border-radius:0 60% 0 60%;
+  background:var(--rose); opacity:0.18; animation:fall linear infinite;
+}
+@keyframes fall{from{transform:translateY(-20px) rotate(0deg);} to{transform:translateY(420px) rotate(200deg);}}
+
+.header{
+  position:relative; z-index:1; display:flex; justify-content:space-between; align-items:flex-end;
+  margin-bottom:22px; padding-bottom:16px; border-bottom:1px solid var(--line);
+}
+.brand h1{font-family:'Noto Serif TC',serif;font-weight:600;font-size:21px;margin:0 0 2px;letter-spacing:0.02em;}
+.brand p{margin:0;font-size:12px;color:var(--parchment-dim);letter-spacing:0.05em;}
+.clock{text-align:right;font-size:12px;color:var(--parchment-dim);}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;}
+.dot.online{background:var(--sage);}
+.dot.offline{background:var(--rose);}
+
+.panel{position:relative;z-index:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px;}
+.panel-title{font-size:12px;color:var(--mist);letter-spacing:0.06em;margin:0 0 10px;text-transform:uppercase;}
+.menu-sync-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-4px 0 9px;}
+.menu-sync-status{font-size:10.5px;color:var(--sage);letter-spacing:.02em;}
+.menu-sync-status.error{color:var(--rose);}
+.menu-refresh-btn{border:0;background:transparent;color:var(--mist);font:inherit;font-size:10.5px;padding:2px 0;cursor:pointer;}
+.menu-refresh-btn:hover{color:var(--gold);}
+.menu-refresh-btn:disabled{opacity:.45;cursor:wait;}
+.cat-title{font-family:'Noto Serif TC',serif;font-weight:600;font-size:14px;color:var(--gold);margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line);}
+.cat-title:first-child{margin-top:0;}
+.category-notice{
+  display:flex;align-items:flex-start;gap:9px;margin:4px 0 8px;padding:9px 11px;
+  border:1px solid rgba(202,160,107,0.22);border-left:3px solid var(--gold-dim);
+  border-radius:7px;background:rgba(202,160,107,0.07);
+  color:var(--parchment-dim);font-size:11.5px;line-height:1.7;
+}
+.category-notice-label{
+  color:var(--gold);font-family:'Noto Serif TC',serif;font-size:10px;
+  letter-spacing:0.08em;white-space:nowrap;padding-top:1px;
+}
+
+.item-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(243,236,225,0.06);}
+.item-row:last-child{border-bottom:none;}
+.item-name{flex:1;font-size:14px;}
+.item-note{display:block;font-size:11px;color:var(--parchment-dim);margin-top:2px;}
+.item-price{font-size:13px;color:var(--gold-dim);min-width:64px;text-align:right;}
+.stepper{display:flex;align-items:center;gap:6px;}
+.step-btn{width:26px;height:26px;border-radius:6px;background:var(--ink-deep);border:1px solid var(--line);color:var(--parchment);font-size:14px;cursor:pointer;line-height:1;}
+.step-btn:hover{border-color:var(--gold-dim);color:var(--gold);}
+.step-btn:disabled{opacity:.28;cursor:not-allowed;border-color:var(--line);color:var(--parchment-dim);}
+.step-qty{width:20px;text-align:center;font-size:14px;}
+.item-row.unavailable{opacity:.58;}
+.availability{display:inline-flex;margin-top:4px;padding:2px 7px;border:1px solid rgba(202,160,107,.32);border-radius:20px;color:var(--gold);font-size:10.5px;}
+.availability.soldout{color:var(--rose);border-color:rgba(192,123,138,.42);}
+
+.addon-row{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--mist);margin-top:4px;margin-left:0;}
+.addon-row input{accent-color:var(--gold-dim);}
+
+input[type=text]{
+  background:var(--ink-deep);border:1px solid var(--line);color:var(--parchment);
+  border-radius:7px;padding:9px 11px;font-size:14px;font-family:inherit;width:100%;
+}
+input::placeholder{color:var(--parchment-dim);}
+input:focus{outline:none;border-color:var(--gold-dim);}
+.visit-choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.visit-choice{padding:16px 14px;text-align:left;border:1px solid var(--line);border-radius:9px;background:var(--ink-deep);color:var(--parchment);cursor:pointer;font-family:inherit;}
+.visit-choice:hover{border-color:var(--gold-dim);}
+.visit-choice strong{display:block;color:var(--gold);font-family:'Noto Serif TC',serif;font-size:15px;margin-bottom:5px;}
+.visit-choice span{display:block;color:var(--parchment-dim);font-size:11.5px;line-height:1.65;}
+.visit-form{display:grid;gap:9px;}
+.visit-form select,.visit-form input{background:var(--ink-deep);border:1px solid var(--line);color:var(--parchment);border-radius:7px;padding:9px 11px;font-size:13px;font-family:inherit;width:100%;}
+.visit-form label{font-size:11.5px;color:var(--parchment-dim);}
+.visit-form-row{display:grid;grid-template-columns:1.3fr .7fr;gap:8px;}
+.character-name-notice{
+  display:flex;align-items:flex-start;gap:9px;margin:0;padding:10px 12px;
+  border:1px solid rgba(202,160,107,.38);border-left:3px solid var(--gold);
+  border-radius:8px;background:rgba(202,160,107,.09);font-size:11.5px;line-height:1.65;
+}
+.character-name-notice strong{flex:none;color:var(--gold);font-size:11.5px;white-space:normal;}
+.companion-fields{display:grid;gap:7px;padding:10px;border:1px solid var(--line);border-radius:8px;background:rgba(25,20,32,.35);}
+.companion-fields-title{font-size:11.5px;color:var(--gold);}
+.companion-fields-help{font-size:10.5px;color:var(--parchment-dim);line-height:1.6;}
+.companion-fields-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.companion-count{flex:none;color:var(--rose);font-size:10.5px;white-space:nowrap;}
+.companion-list{display:grid;gap:8px;}
+.companion-row{display:grid;grid-template-columns:32px minmax(0,1.35fr) minmax(150px,.8fr) 38px;gap:7px;align-items:end;padding-top:9px;border-top:1px solid var(--line);}
+.companion-index{align-self:center;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--rose);color:var(--paper);font-family:'Noto Serif TC',serif;font-size:11px;}
+.companion-row label{display:grid;gap:5px;min-width:0;}
+.companion-remove{width:38px;height:38px;padding:0;border:1px solid var(--line);border-radius:7px;background:transparent;color:var(--rose);font:18px/1 inherit;cursor:pointer;}
+.visit-form .companion-add{justify-self:stretch;width:100%;padding:10px 16px;border-color:var(--guest-sage,var(--sage));background:var(--guest-sage,var(--sage));color:#fff;font-weight:500;letter-spacing:.04em;}
+.visit-form .companion-add:hover{border-color:var(--guest-wine,var(--rose));background:var(--guest-wine,var(--rose));color:#fff;}
+.visit-status-card{text-align:center;padding:20px 16px;}
+.visit-ticket{font-family:'Noto Serif TC',serif;font-size:34px;color:var(--gold);margin:7px 0;letter-spacing:.06em;}
+.visit-status-label{display:inline-flex;padding:4px 10px;border-radius:20px;border:1px solid var(--gold-dim);color:var(--gold);font-size:11px;}
+.visit-status-label.assigned{border-color:var(--sage-dim);color:var(--sage);}
+.visit-meta{font-size:12px;color:var(--parchment-dim);line-height:1.8;margin-top:10px;}
+.visit-assignee{font-family:'Noto Serif TC',serif;color:var(--sage);font-size:18px;margin-top:8px;}
+.visit-help{font-size:11.5px;line-height:1.75;color:var(--parchment-dim);margin:10px 0 0;}
+.browse-badge{display:inline-flex;padding:4px 9px;border:1px solid rgba(167,155,196,.35);border-radius:20px;color:var(--mist);font-size:10.5px;}
+.visit-recovery-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
+@media(max-width:560px){.visit-choice-grid,.visit-form-row{grid-template-columns:1fr;}.character-name-notice{display:block;}.character-name-notice strong{display:block;margin-bottom:3px;}.companion-row{grid-template-columns:30px minmax(0,1fr) 38px;align-items:start;}.companion-row label{grid-column:2;}.companion-remove{grid-column:3;grid-row:1;}.companion-fields-head{display:block;}.companion-count{display:block;margin-top:4px;}}
+@media(max-width:520px){.visit-recovery-actions{grid-template-columns:1fr;}}
+.row{display:flex;gap:8px;flex-wrap:wrap;}
+
+.btn{background:transparent;border:1px solid var(--gold-dim);color:var(--gold);border-radius:7px;padding:9px 16px;font-size:13px;font-family:inherit;cursor:pointer;white-space:nowrap;}
+.btn:hover{background:rgba(202,160,107,0.1);}
+.btn.primary{background:var(--gold-dim);color:var(--ink-deep);border-color:var(--gold-dim);font-weight:500;width:100%;padding:12px;font-size:14px;}
+.btn.primary:hover{background:var(--gold);}
+.btn.primary:disabled{opacity:0.4;cursor:not-allowed;}
+.btn.ghost{border-color:var(--line);color:var(--parchment-dim);}
+
+.cart-line{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:var(--parchment-dim);}
+.cart-line span.name{color:var(--parchment);}
+.cart-line-block{padding:8px 0;border-bottom:1px solid rgba(243,236,225,.07);}
+.cart-line-block:last-of-type{border-bottom:0;}
+.cart-line-main{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--parchment);}
+.diner-assignments{display:grid;gap:5px;margin-top:7px;}
+.diner-assignment{display:grid;grid-template-columns:54px 1fr;align-items:center;gap:7px;font-size:11px;color:var(--parchment-dim);}
+.diner-assignment select{min-width:0;width:100%;background:var(--ink-deep);border:1px solid var(--line);color:var(--parchment);border-radius:6px;padding:6px 8px;font-family:inherit;font-size:11.5px;}
+.diner-roster{font-size:11.5px;line-height:1.7;color:var(--parchment-dim);margin:0 0 9px;padding:9px 10px;border:1px solid rgba(167,155,196,.22);border-radius:7px;background:rgba(167,155,196,.05);}
+.cart-total{display:flex;justify-content:space-between;font-size:15px;font-weight:600;color:var(--gold);border-top:1px solid var(--line);margin-top:8px;padding-top:10px;}
+.empty-cart{font-size:12.5px;color:var(--parchment-dim);}
+
+.configwarn{position:relative;z-index:1;background:#3a2b2b;border:1px solid var(--rose-dim);color:var(--parchment);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.6;}
+.status-banner{position:relative;z-index:1;background:rgba(202,160,107,.09);border:1px solid var(--gold-dim);color:var(--parchment);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;line-height:1.7;}
+.success-box{position:relative;z-index:1;background:rgba(143,166,136,0.12);border:1px solid var(--sage-dim);border-radius:10px;padding:18px;text-align:center;margin-bottom:14px;}
+.success-box .num{font-family:'Noto Serif TC',serif;font-size:30px;color:var(--sage);margin:6px 0;}
+.success-copy{max-width:540px;margin:0 auto;font-size:12.5px;line-height:1.8;color:var(--parchment-dim);}
+.success-note{max-width:540px;margin:8px auto 0;font-size:11.5px;line-height:1.7;color:var(--gold-dim);}
+.empty{font-size:12.5px;color:var(--parchment-dim);}
+</style>
+<link rel="stylesheet" href="assets/unified-cafe-ui.css?v=20260825">
+<link rel="stylesheet" href="assets/readability-scale.css?v=20260826">
+<link rel="stylesheet" href="assets/guest-cafe-ui.css?v=20260916-v46">
+</head>
 <body>
 <div class="wrap" id="wrap">
 
   <div class="header">
     <div class="brand">
-      <h1>曇時 Cafe l'Éphémère</h1>
-      <p>管理後台</p>
+      <span class="brand-mark" aria-hidden="true">曇</span>
+      <div><h1>曇 時</h1><p>Cafe l'Éphémère</p></div>
     </div>
     <div class="clock">
       <div><span class="dot offline" id="connDot"></span><span id="connText">連線中...</span></div>
     </div>
   </div>
 
-  <div id="configWarn" class="panel" style="display:none;border-color:var(--rose-dim);">
-    尚未設定 Firebase 連線資訊，請在程式碼中填入 firebaseConfig 後重新上傳。
+  <nav class="guest-tabs" aria-label="服務頁面">
+    <button class="guest-tab is-active" id="queueTab" type="button">領取號碼牌</button>
+    <button class="guest-tab" id="orderTab" type="button" disabled>線上點餐</button>
+  </nav>
+
+  <div id="configWarn" class="configwarn" style="display:none;">
+    網站暫時無法使用，請聯絡女僕協助。
   </div>
 
-  <div class="panel login-box" id="loginBox">
-    <p class="admin-section-label">後台登入</p>
-    <div class="row" style="flex-direction:column;align-items:stretch;">
-      <input type="text" id="adminEmail" placeholder="帳號 Email">
-      <input type="password" id="adminPassword" placeholder="密碼" autocomplete="current-password">
-      <button class="btn primary" id="adminLoginBtn">登入</button>
-    </div>
-    <p id="loginError" style="font-size:12px;color:var(--rose);margin:8px 0 0;display:none;">帳號或密碼錯誤</p>
-    <p class="login-help">登入後會依帳號權限顯示可使用的功能。女僕可使用接待、訂單與自己的拍立得工作；管理人員可使用完整店務與網站設定。</p>
+  <div id="operationBanner" class="status-banner" style="display:none;">
+    目前已結束線上點餐，菜單仍可瀏覽。若您已在店內，請直接詢問女僕。
   </div>
 
-  <div id="adminArea" style="display:none;">
-
-    <div class="main-tabs" id="mainTabs">
-      <span class="main-tab-group-label">營業中</span>
-      <button type="button" class="main-tab active manager-only" data-main="today" data-manager-only><span>今日總覽</span></button>
-      <button type="button" class="main-tab" data-main="reception"><span>接待</span><span class="main-tab-count" id="navReceptionCount" hidden>0</span></button>
-      <button type="button" class="main-tab" data-main="macros"><span>我的巨集</span></button>
-      <button type="button" class="main-tab" data-main="orders"><span>訂單</span><span class="main-tab-count" id="navOrderCount" hidden>0</span></button>
-      <button type="button" class="main-tab" data-main="polaroid"><span>拍立得</span><span class="main-tab-count" id="navPolaroidCount" hidden>0</span></button>
-      <button type="button" class="main-tab" data-main="guestbook"><span>留言</span><span class="main-tab-count" id="navGuestbookCount" hidden>0</span></button>
-      <span class="main-tab-group-label manager-only" data-manager-only>店務</span>
-      <button type="button" class="main-tab manager-only" data-main="operations" data-manager-only>營業</button>
-      <button type="button" class="main-tab manager-only" data-main="menu" data-manager-only>菜單</button>
-      <button type="button" class="main-tab manager-only" data-main="staff" data-manager-only>店員</button>
-      <button type="button" class="main-tab manager-only" data-main="reservations" data-manager-only><span>預約</span><span class="main-tab-count" id="navReservationCount" hidden>0</span></button>
-      <button type="button" class="main-tab manager-only" data-main="payroll" data-manager-only>薪資</button>
-      <span class="main-tab-group-label manager-only" data-manager-only>系統</span>
-      <button type="button" class="main-tab manager-only" data-main="site" data-manager-only>官網音樂</button>
-      <button type="button" class="main-tab manager-only" data-main="site-content" data-manager-only>官網內容</button>
-      <button type="button" class="main-tab manager-only" data-main="access" data-manager-only>權限</button>
-      <span class="access-badge" id="currentAccessBadge">權限確認中</span>
-      <button class="btn ghost small" id="adminLogoutBtn" style="margin-left:auto;">登出</button>
+  <div id="visitGate" class="panel">
+    <p class="panel-title">入店方式</p>
+    <div class="visit-choice-grid">
+      <button class="visit-choice" id="chooseService" type="button"><strong>需要女僕接待</strong><span>準備用餐、聊天或體驗服務，登記後依序候位。</span></button>
+      <button class="visit-choice" id="chooseBrowse" type="button"><strong>自由參觀</strong><span>只想看看裝潢、拍照、等朋友或自由交流，不占接待名額。</span></button>
+      <button class="visit-choice" id="chooseSharedTable" type="button"><strong>我是同行者</strong><span>輸入桌主提供的六位數共桌密碼，即可查看同桌菜單。</span></button>
     </div>
-    <div class="global-identity">
-      <div class="global-identity-copy">
-        <strong>操作女僕</strong>
-        <span id="globalDutyDateHint">這個身分會套用接待、訂單、拍立得工作與交接紀錄。</span>
+    <p class="visit-help">一組同行主人只需由一位代表登記。若之後想接受服務，可隨時加入候位。</p>
+  </div>
+
+  <div id="sharedTablePanel" class="panel" style="display:none;">
+    <p class="panel-title">連接本桌</p>
+    <div class="visit-form">
+      <label>共桌密碼<input id="sharedTableCode" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="請輸入六位數密碼"></label>
+      <div id="sharedMemberForm" style="display:none;">
+        <label>選擇你的角色<select id="sharedMemberSelect" aria-label="選擇同行角色"></select></label>
+        <button class="btn primary" id="confirmSharedMember" type="button">以這個角色繼續</button>
       </div>
-      <div class="global-identity-control">
-        <span class="operator-live" id="operatorLiveBadge"><i></i> 尚未選擇操作者</span>
-        <select id="globalStaffSelect" aria-label="選擇目前操作女僕"><option value="">請先選擇女僕</option></select>
-        <button class="btn ghost small" id="guestPreviewToggle" type="button" aria-expanded="false" hidden>查看主人畫面</button>
+      <p id="sharedTableStatus" class="visit-help" aria-live="polite"></p>
+      <button class="btn primary" id="joinSharedTable" type="button">確認密碼</button>
+      <button class="btn ghost" id="backSharedTable" type="button">返回</button>
+    </div>
+  </div>
+
+  <div id="visitRegister" class="panel" style="display:none;">
+    <p class="panel-title">接待候位登記</p>
+    <div class="visit-form">
+      <div class="visit-form-row">
+        <label>角色名稱<input type="text" id="visitCharacter" maxlength="40" placeholder="請輸入角色名稱" aria-describedby="characterNameNotice"></label>
+        <label>伺服器<select id="visitWorld" aria-label="選擇伺服器">
+          <option value="">請選擇伺服器</option>
+          <option value="利維坦">利維坦</option>
+          <option value="伊弗利特">伊弗利特</option>
+          <option value="鳳凰">鳳凰</option>
+          <option value="迦樓羅">迦樓羅</option>
+          <option value="奧汀">奧汀</option>
+          <option value="巴哈姆特">巴哈姆特</option>
+          <option value="泰坦">泰坦</option>
+        </select></label>
       </div>
+      <div class="character-name-notice" id="characterNameNotice" role="note">
+        <strong>請填寫角色名稱與所在伺服器，以便現場核對與後續服務紀錄。</strong>
+      </div>
+      <div class="visit-form-row">
+        <label>本次同行人數<input type="text" id="visitPartySizeDisplay" value="1 人（含領號代表）" readonly></label>
+        <input type="hidden" id="visitPartySize" value="1">
+        <label>來店類型<select id="visitKind"><option value="walkin">一般來店</option><option value="reservation">已有預約</option></select></label>
+      </div>
+      <div id="visitCompanionFields" class="companion-fields">
+        <div class="companion-fields-head">
+          <div><div class="companion-fields-title">同行者資料</div><div class="companion-fields-help">每位同行者的角色名稱與伺服器皆為必填。</div></div>
+          <span class="companion-count" id="visitPartyCount">目前共 1 人</span>
+        </div>
+        <div class="companion-list" id="visitCompanionList"></div>
+        <button class="btn companion-add" id="addVisitCompanion" type="button">＋ 新增一位同行者</button>
+      </div>
+      <input type="text" id="visitReservation" maxlength="60" placeholder="預約名稱／預約碼（一般來店可留空）" style="display:none;">
+      <label>接待偏好<select id="visitPreference"><option value="">任何有空的女僕皆可（等待較短）</option></select></label>
+      <p id="visitError" style="font-size:12px;color:var(--rose);margin:0;display:none;"></p>
+      <button class="btn primary" id="joinVisitQueue" type="button">領取候位號碼</button>
+      <button class="btn ghost" id="backVisitChoice" type="button">返回</button>
+    </div>
+  </div>
+
+  <div id="browsePanel" class="panel" style="display:none;">
+    <span class="browse-badge">自由參觀</span>
+    <h2 style="font-family:'Noto Serif TC',serif;font-size:17px;margin:10px 0 5px;">歡迎自在探索曇時</h2>
+    <p class="visit-help">您目前不在接待隊列中，可以自由參觀、拍照或等待朋友。若想開始用餐或接受女僕服務，再加入候位即可。</p>
+    <button class="btn primary" id="browseToQueue" type="button" style="margin-top:12px;">我想接受接待</button>
+  </div>
+
+  <div id="visitRecoveryPanel" class="panel visit-status-card" style="display:none;">
+    <div class="visit-status-label">找到尚未結束的候位</div>
+    <div class="visit-ticket" id="recoveryTicketNumber">A000</div>
+    <div id="recoveryVisitName" style="font-family:'Noto Serif TC',serif;font-size:16px;"></div>
+    <p class="visit-help">這個瀏覽器留有尚未結束的候位紀錄。請確認是否為你的號碼；重新開啟頁面不會改變原本順位。</p>
+    <div class="visit-recovery-actions">
+      <button class="btn primary" id="resumeVisit" type="button">繼續這次候位</button>
+      <button class="btn ghost" id="forgetRecoveredVisit" type="button">這不是我的號碼</button>
+    </div>
+  </div>
+
+  <div id="visitStatusPanel" class="panel visit-status-card" style="display:none;">
+    <div class="visit-status-label" id="visitStatusBadge">等待接待</div>
+    <div class="visit-ticket" id="visitTicketNumber">A000</div>
+    <div id="visitStatusTitle" style="font-family:'Noto Serif TC',serif;font-size:16px;">女僕正在為您準備</div>
+    <div class="visit-assignee" id="visitAssignee"></div>
+    <div class="visit-meta" id="visitStatusMeta"></div>
+    <p class="visit-help" id="visitStatusHelp">請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。</p>
+    <div class="table-access-card" id="sharedTableLinkCard">
+      <div class="table-access-copy"><span class="table-access-kicker">本桌共桌密碼</span><strong>同行者只需輸入這組六位數密碼</strong><p>可用於連接同桌菜單，也可在拍立得網站登記自己的商品。</p></div>
+      <div class="table-access-code"><b id="sharedTableShareCode">取得中…</b></div>
+      <div class="table-access-actions">
+        <button class="btn ghost" id="copySharedTableCode" type="button" disabled>複製共桌密碼</button>
+        <a class="btn primary" id="openPolaroidSite" href="https://ephemere-photo.pages.dev/" target="_blank" rel="noopener">前往拍立得網站</a>
+      </div>
+      <output id="tableAccessStatus" aria-live="polite"></output>
+    </div>
+    <button class="btn ghost" id="cancelVisitQueue" type="button" style="margin-top:12px;">取消候位／改為自由參觀</button>
+    <button class="btn ghost" id="forgetVisitSession" type="button" style="margin-top:8px;border:0;width:100%;font-size:11px;">這不是我的候位號碼</button>
+  </div>
+
+  <div id="successBox" class="success-box" style="display:none;">
+    <div style="font-size:12px;color:var(--parchment-dim);letter-spacing:0.06em;">訂單已送出</div>
+    <div class="num" id="successNumber"></div>
+    <div class="success-copy">曇時已收到您的訂單，請留在座位稍候。餐點準備完成後，女僕會為您送上，並於送餐時收取本次訂單費用。</div>
+    <div class="success-note">如需修改或取消訂單，請告知女僕並提供上方編號。</div>
+    <button class="btn ghost" id="newOrderBtn" style="margin-top:12px;">繼續加點</button>
+  </div>
+
+  <div id="orderFlow" class="order-shell" style="display:none;">
+    <header class="order-heading">
+      <div>
+        <p class="order-kicker">MENU</p>
+        <h2>線上點餐</h2>
+      </div>
+      <div class="order-visit-summary" aria-live="polite">
+        <span id="orderQueueNumber">候位號碼</span>
+        <strong id="orderGuestName">—</strong>
+      </div>
+    </header>
+
+    <div class="order-category-bar" id="categoryNav" aria-label="菜單分類"></div>
+
+    <div class="order-layout">
+    <main class="panel menu-panel" id="cartPanel">
+      <div class="menu-sync-row">
+        <div class="menu-sync-status" id="menuSyncStatus" aria-live="polite">正在載入最新菜單…</div>
+        <button class="menu-refresh-btn" id="refreshMenuBtn" type="button">立即更新菜單</button>
+      </div>
+      <div id="menuList"><span class="empty">菜單載入中...</span></div>
+    </main>
+
+    <aside class="order-summary">
+    <div class="panel" id="orderDataPanel">
+      <p class="summary-kicker">已選品項</p>
+      <h3>目前點單</h3>
+      <div id="dinerRoster" class="diner-roster" style="display:none;"></div>
+      <div id="cartList"><span class="empty-cart">尚未選擇餐點</span></div>
     </div>
 
-    <aside class="guest-workspace-preview" id="guestWorkspacePreview" aria-label="主人端唯讀同步摘要" hidden>
-      <div class="guest-preview-head">
-        <div>
-          <span class="guest-preview-kicker">Guest View</span>
-          <h2 id="guestPreviewModeLabel">主人端同步摘要</h2>
-        </div>
-        <div class="guest-preview-head-actions"><span class="guest-preview-live"><i></i> 唯讀同步</span><button class="guest-preview-close" id="guestPreviewClose" type="button" aria-label="關閉主人畫面">×</button></div>
+    <div class="panel" id="orderSubmitPanel">
+      <p class="summary-kicker">訂購資料</p>
+      <div class="row">
+        <input type="text" id="custName" maxlength="40" autocomplete="name" placeholder="角色名／稱呼">
       </div>
-      <label class="guest-preview-select-label" for="guestPreviewRecordSelect">目前預覽</label>
-      <select id="guestPreviewRecordSelect" class="guest-preview-select" aria-label="選擇要預覽的主人或訂單"></select>
-      <div class="guest-preview-screen" id="guestPreviewScreen">
-        <div class="guest-preview-empty" id="guestPreviewEmpty">正在讀取目前資料…</div>
-        <div class="guest-preview-card" id="guestPreviewCard" hidden>
-          <span class="guest-preview-status" id="guestPreviewStatus">處理中</span>
-          <strong class="guest-preview-ticket" id="guestPreviewTicket">—</strong>
-          <h3 id="guestPreviewTitle">—</h3>
-          <p id="guestPreviewMeta">—</p>
-          <div class="guest-preview-items" id="guestPreviewItems"></div>
-          <div class="guest-preview-total" id="guestPreviewTotal"></div>
-        </div>
+      <div class="row" style="margin-top:8px;">
+        <input type="text" id="custNote" maxlength="120" placeholder="備註（座位、指定服務等，選填）">
       </div>
-      <p class="guest-preview-note">此區只讀取既有 Firebase 資料，用來快速核對主人看見的資訊；不會變更候位、訂單或服務狀態。</p>
+      <p id="orderError" style="font-size:12px;color:var(--rose);margin:10px 0 0;display:none;"></p>
+      <button class="btn primary" id="submitOrder" style="margin-top:12px;">送出訂單</button>
+    </div>
     </aside>
-    <button class="guest-preview-backdrop" id="guestPreviewBackdrop" type="button" aria-label="關閉主人畫面" hidden></button>
-
-    <!-- ============ 今日總覽 ============ -->
-    <div id="todayTab" class="manager-only" data-manager-only style="display:none;">
-      <div class="today-heading">
-        <div class="page-heading-copy"><span class="page-eyebrow">Today</span><h2>今日總覽</h2><p id="todayOverviewDate">正在整理本場資訊…</p></div>
-        <span class="today-operation-state" id="todayOperationState"><i></i> 狀態確認中</span>
-      </div>
-
-      <div class="today-metrics" aria-label="今日營業概況">
-        <button type="button" class="today-metric" data-dashboard-target="reception"><span>正在候位</span><strong id="todayWaitingCount">0</strong><small>組</small></button>
-        <button type="button" class="today-metric" data-dashboard-target="orders"><span>進行中訂單</span><strong id="todayActiveOrderCount">0</strong><small>筆</small></button>
-        <button type="button" class="today-metric" data-dashboard-target="reservations"><span>本場預約</span><strong id="todayReservationCount">0</strong><small>組</small></button>
-        <button type="button" class="today-metric" data-dashboard-target="reception"><span>可接待成員</span><strong id="todayAvailableCount">0</strong><small>位</small></button>
-      </div>
-
-      <div class="today-grid">
-        <section class="panel today-attention-panel">
-          <div class="today-panel-head"><h3>需要留意</h3><span id="todayAttentionCount">0 項</span></div>
-          <div class="today-attention-list" id="todayAttentionList"><div class="today-empty">目前沒有需要優先處理的項目。</div></div>
-        </section>
-
-        <section class="panel today-duty-panel">
-          <div class="today-panel-head"><h3>今日值班</h3><span id="todayDutyCount">0 位成員</span></div>
-          <div class="today-duty-list" id="todayDutyList"><div class="today-empty">值班資料載入中…</div></div>
-        </section>
-
-        <section class="panel today-shortcuts-panel">
-          <div class="today-panel-head"><h3>快速前往</h3><span>保留原有功能入口</span></div>
-          <div class="today-shortcuts">
-            <button type="button" class="btn ghost" data-dashboard-target="reception">接待下一組</button>
-            <button type="button" class="btn ghost" data-dashboard-target="orders">查看進行中訂單</button>
-            <button type="button" class="btn ghost" data-dashboard-target="reservations">查看預約</button>
-            <button type="button" class="btn ghost" data-dashboard-target="operations">場次管理</button>
-          </div>
-        </section>
-
-        <section class="panel today-check-panel">
-          <div class="today-panel-head"><h3>營業檢查</h3><span id="todayCheckCount">0 / 4</span></div>
-          <div class="today-check-list" id="todayCheckList"></div>
-          <p>依既有 Firebase 資料即時判斷，不會另外儲存或改動營業設定。</p>
-        </section>
-      </div>
-
-      <button type="button" class="today-recent" id="todayRecentAction" data-dashboard-target="reception"><span>最近操作</span><strong>尚無接待操作紀錄</strong><small>查看接待紀錄 →</small></button>
-    </div>
-
-    <!-- ============ 我的巨集 ============ -->
-    <div id="macrosTab" style="display:none;">
-      <div class="page-heading macro-page-heading">
-        <div class="page-heading-copy"><span class="page-eyebrow">My Messages</span><h2>我的巨集</h2><p>把接待時會用到的文字整理在這裡，需要時就能快速找到。</p></div>
-      </div>
-      <div class="macro-settings-grid">
-        <section class="panel macro-editor-panel">
-          <div class="macro-editor-head"><div><h3>號碼牌叫號文字</h3><p>接待下一組或複製接待文字時使用。</p></div><span class="macro-editor-tag">一般接待</span></div>
-          <textarea id="receptionCallTemplate" maxlength="300" aria-label="號碼牌叫號文字" placeholder="請先在上方選擇目前操作女僕"></textarea>
-          <div class="macro-variable-list" aria-label="可用變數"><span>{角色名}</span><span>{伺服器}</span><span>{候位號碼}</span><span>{女僕名}</span></div>
-          <p class="macro-editor-hint">請保留 FF14 密語格式；儲存後會套用在目前選擇的女僕。</p>
-          <div class="macro-editor-actions"><span id="receptionCallTemplateStatus" aria-live="polite"></span><button class="btn primary small" id="saveReceptionCallTemplate" type="button">儲存號碼牌文字</button></div>
-        </section>
-        <section class="panel macro-editor-panel photo-macro-panel">
-  <div class="macro-editor-head"><div><h3>拍攝時段通知</h3><p>選擇客人 → 確認自動帶入的時段 → 複製到遊戲內私訊。</p></div><span class="macro-editor-tag">拍攝通知</span></div>
-  <label for="photoMacroTask">1. 選擇通知客人</label><select id="photoMacroTask"><option value="">選擇待拍客人</option></select>
-  <p id="photoMacroEmpty" class="macro-editor-hint">請先選擇客人，系統會帶入角色、商品及拍攝輪次時間。</p>
-  <div id="photoMacroMessage" hidden><p id="photoMacroRound" class="photo-macro-round"></p><p id="photoMacroNoticeState" class="photo-macro-notice-state"></p><label for="photoMacroPreview">2. 確認本次私訊（可修改）</label><textarea id="photoMacroPreview" maxlength="1500" rows="4"></textarea><p class="macro-editor-hint">此處修改只影響本次複製的文字，不會變更排程或已儲存的範本。若拍攝安排更新，系統會重新帶入最新內容，請再次確認。</p><div class="photo-macro-actions"><button type="button" class="btn primary" id="photoMacroCopy" disabled>3. 一鍵複製私訊</button><button type="button" class="btn ghost" id="photoMacroMarkNotified" disabled>4. 標記已通知</button></div></div>
-  <span id="photoMacroStatus" role="status" aria-live="polite"></span>
-  <details class="photo-macro-settings"><summary>編輯我的通知範本</summary><p class="macro-editor-hint">套用在目前選擇的女僕。請保留 {輪次}、{開始時間}、{結束時間}，選擇客人後會依訂單自動填入，不需每次手動改時間。</p><label for="photoMacroTemplate">通知範本</label><textarea id="photoMacroTemplate" maxlength="1000" rows="4"></textarea><div class="macro-variable-list"><span>{角色名}</span><span>{伺服器}</span><span>{候位號碼}</span><span>{女僕名}</span><span>{商品名}</span><span>{輪次}</span><span>{開始時間}</span><span>{結束時間}</span></div><button type="button" class="btn ghost small" id="photoMacroSave">儲存我的拍攝通知範本</button></details>
-</section>
-<div id="personalRegularMacroHost"></div>
-      </div>
-      <p class="macro-page-note">這裡只集中女僕自己的巨集。管理員設定的熟客門檻與店內通用文字仍保留在「客人管理」。</p>
-    </div>
-
-    <!-- ============ 接待候位 ============ -->
-    <div id="receptionTab" style="display:none;">
-      <div class="page-heading">
-        <div class="page-heading-copy"><span class="page-eyebrow">Reception</span><h2>接待工作區</h2><p>優先顯示自己的主要工作；其他資訊需要時再展開。</p></div>
-      </div>
-      <div class="panel reception-console">
-        <div class="reception-console-head">
-          <div><h2 style="font-family:'Noto Serif TC',serif;font-size:17px;margin:0 0 5px;"><span id="receptionStaffDisplay">尚未選擇</span>的接待狀態</h2><p style="font-size:11px;color:var(--parchment-dim);margin:0;line-height:1.7;">需要換手時請使用正式轉交。</p></div>
-          <div class="reception-console-actions"><div class="presence-row" id="presenceButtons"><button class="presence-btn" data-presence="available">可接待</button><button class="presence-btn" data-presence="serving">接待中</button><button class="presence-btn" data-presence="photo">拍照中</button><button class="presence-btn" data-presence="away">暫離</button></div><button class="btn primary" id="claimNextVisit" type="button">接待下一組</button></div>
-        </div>
-      </div>
-      <div class="reception-overview" aria-label="本場接待概況">
-        <div class="reception-metric"><span class="reception-metric-label">正在候位</span><strong class="reception-metric-value" id="receptionWaitingMetric">0</strong><span class="reception-metric-note">依序等待接待</span></div>
-        <div class="reception-metric"><span class="reception-metric-label">接待進行中</span><strong class="reception-metric-value" id="receptionActiveMetric">0</strong><span class="reception-metric-note">已有負責女僕</span></div>
-        <div class="reception-metric"><span class="reception-metric-label">可接待女僕</span><strong class="reception-metric-value" id="receptionAvailableMetric">0</strong><span class="reception-metric-note">目前狀態為可接待</span></div>
-        <div class="reception-metric"><span class="reception-metric-label">需要留意</span><strong class="reception-metric-value" id="receptionAlertMetric">0</strong><span class="reception-metric-note">候位或訂單已超時</span></div>
-      </div>
-      <div class="panel reception-alerts" id="receptionAlerts"><div class="reception-alert-head"><span>需要優先處理</span><span id="receptionAlertCount">0 項</span></div><div id="receptionAlertList"></div></div>
-      <div class="reception-grid">
-        <section class="reception-column"><div class="reception-column-title reception-queue-title"><span>候位隊列 <span class="reception-count" id="visitWaitingCount">0</span></span><div class="reception-filter-tools"><input type="search" id="receptionSearch" placeholder="搜尋主人／候位號碼" aria-label="搜尋主人名稱或候位號碼"><label><input type="checkbox" id="receptionAttentionOnly"> 只看需要留意</label></div></div><div id="visitWaitingList"></div></section>
-        <section class="reception-column my-visits-column"><div class="reception-column-title"><span>我的接待</span><span class="reception-count" id="myVisitCount">0</span></div><div id="myVisitList"></div></section>
-        <details class="reception-column team-visits-panel"><summary class="reception-column-title"><span>其他成員接待中・可直接轉交</span><span class="reception-count" id="teamVisitCount">0</span></summary><div id="teamVisitList"></div></details>
-        <details class="reception-column team-status-panel"><summary class="reception-column-title"><span>成員狀態總覽</span><span class="reception-count" id="staffPresenceCount">0</span></summary><div class="team-grid" id="staffPresenceList"></div></details>
-      </div>
-      <details class="panel visit-history-panel" id="visitHistoryPanel">
-        <summary><span><strong>號碼牌紀錄</strong><small>永久保留，可依日期、號碼、角色、伺服器、女僕或狀態查詢</small></span><span id="visitHistoryCount">尚未載入</span></summary>
-        <div class="visit-history-tools">
-          <label>營業日期<input type="date" id="visitHistoryDate"></label>
-          <label>狀態<select id="visitHistoryStatus"><option value="">全部狀態</option><option value="waiting">候位中</option><option value="assigned">已安排</option><option value="serving">接待中</option><option value="completed">已完成</option><option value="cancelled">已取消</option><option value="no_show">未到場</option></select></label>
-          <label class="visit-history-search">搜尋<input type="search" id="visitHistorySearch" placeholder="號碼、角色、伺服器、女僕、訂單或備註"></label>
-        </div>
-        <div id="visitHistoryList" class="visit-history-list"><div class="queue-empty">展開後載入永久號碼牌紀錄。</div></div>
-      </details>
-      <details class="panel"><summary style="cursor:pointer;color:var(--mist);font-size:12px;">最近接待操作紀錄</summary><div class="audit-list" id="assignmentHistoryList"><div class="queue-empty">尚無操作紀錄</div></div></details>
-      <div class="copy-toast" id="copyToast" role="status" aria-live="polite">叫號文字已複製</div>
-    </div>
-
-    <!-- ============ 訂單管理 ============ -->
-    <div id="ordersTab" style="display:none;">
-      <div class="page-heading">
-        <div class="page-heading-copy">
-          <span class="page-eyebrow">Orders</span>
-          <h2>訂單工作區</h2>
-          <p>依序處理待接單、服務中與已完成的訂單。</p>
-        </div>
-      </div>
-
-      <div class="panel order-console">
-        <div class="order-console-head">
-          <div>
-            <h2>訂單篩選</h2>
-            <p>使用狀態或關鍵字快速找到訂單。</p>
-          </div>
-          <div class="identity-panel">
-            <label>操作店員</label>
-            <strong id="orderStaffDisplay" style="display:block;color:var(--gold);padding:8px 0;">尚未選擇</strong>
-            <span class="identity-help">請使用頁面上方的全站操作身分切換</span>
-          </div>
-        </div>
-        <div class="order-filter-bar">
-          <div class="tabs" id="orderSubTabs">
-            <button type="button" class="tab active" data-filter="active">進行中</button>
-            <button type="button" class="tab" data-filter="mine">我的訂單</button>
-            <button type="button" class="tab" data-filter="unassigned">待指派</button>
-            <button type="button" class="tab" data-filter="completed">已完成</button>
-            <button type="button" class="tab" data-filter="cancelled">已取消</button>
-            <button type="button" class="tab" data-filter="all">全部</button>
-            <button type="button" class="tab manager-only" data-manager-only data-filter="history">歷史訂單</button>
-          </div>
-          <div class="order-tools">
-            <input type="search" id="orderSearch" placeholder="搜尋編號、主人、餐點或店員">
-            <span class="order-search-hint" id="orderSearchHint"></span>
-            <span class="order-history-status" id="orderHistoryStatus">目前載入近 30 天；點「歷史訂單」可查看更早紀錄</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="order-list-heading"><h3>訂單佇列</h3><span>最新訂單會優先顯示</span></div>
-      <div id="orderList"></div>
-    </div>
-
-    <!-- ============ 特殊服務 ============ -->
-    <div id="specialServicesTab" style="display:none;">
-      <div class="page-heading">
-        <div class="page-heading-copy">
-          <span class="page-eyebrow">Special Services</span>
-          <h2>特殊服務</h2>
-          <p>拍立得與 Lens 個人攝影獨立處理，服務進度會同步回原訂單。</p>
-        </div>
-      </div>
-      <div class="panel special-workspace" id="specialServiceWorkspace">
-        <div class="special-workspace-head">
-          <div><h2>本場待辦</h2><p>主要接待與特殊服務負責人可以分開指派。</p></div>
-          <div class="special-task-filters" id="specialTaskFilters" aria-label="特殊服務篩選">
-            <button class="special-task-filter active" type="button" data-special-filter="all">全部</button>
-            <button class="special-task-filter" type="button" data-special-filter="mine">我的任務</button>
-            <button class="special-task-filter" type="button" data-special-filter="unassigned">未指派</button>
-          </div>
-        </div>
-        <div class="special-queue-grid">
-          <section class="special-queue-column" aria-labelledby="polaroidQueueTitle">
-            <div class="special-queue-title"><span id="polaroidQueueTitle">📷 拍立得</span><span class="special-queue-count" id="polaroidQueueCount">0</span></div>
-            <div id="polaroidQueue" class="special-queue-list"><div class="special-queue-empty">目前沒有待處理服務</div></div>
-          </section>
-          <section class="special-queue-column" aria-labelledby="lensQueueTitle">
-            <div class="special-queue-title"><span id="lensQueueTitle">✦ Lens 個人攝影</span><span class="special-queue-count" id="lensQueueCount">0</span></div>
-            <div id="lensQueue" class="special-queue-list"><div class="special-queue-empty">目前沒有待處理服務</div></div>
-          </section>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============ 拍立得與獨立商品系統 ============ -->
-    <div id="polaroidTab" style="display:none;">
-      <div class="page-heading polaroid-page-heading"><div class="page-heading-copy"><span class="page-eyebrow">Polaroid Management</span><h2>拍立得與商品</h2><p>拍攝、商品交付、範例與收入歸屬集中在這裡；拍立得網站的消費不列入餐點低消。</p></div><span class="polaroid-live" id="polaroidSessionBadge">場次確認中</span></div>
-      <div class="polaroid-admin-tabs" id="polaroidAdminTabs" role="tablist" aria-label="拍立得工作區">
-        <button type="button" class="active" data-polaroid-pane="work">我的工作</button>
-        <button type="button" class="manager-only" data-manager-only data-polaroid-pane="session">場次與輪次</button>
-        <button type="button" class="manager-only" data-manager-only data-polaroid-pane="products">商品與範例</button>
-        <button type="button" class="manager-only" data-manager-only data-polaroid-pane="orders">本場訂單</button>
-      </div>
-
-      <section class="polaroid-pane" data-polaroid-panel="work">
-        <section class="panel polaroid-my-work"><div class="polaroid-work-head"><div><h3 id="polaroidMyTitle">我的拍立得工作</h3><p id="polaroidMyHint">請先在上方選擇操作女僕。</p></div><div hidden class="polaroid-status-actions" id="polaroidStatusActions"><button data-polaroid-status="available">可拍</button><button data-polaroid-status="serving">接待中</button><button data-polaroid-status="shooting">拍攝中</button><button data-polaroid-status="away">暫離</button><button data-polaroid-status="off">下班</button></div></div><div id="polaroidMyTasks" class="polaroid-task-list"><div class="queue-empty">正在讀取工作清單…</div></div></section>
-      </section>
-
-      <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="session" hidden id="polaroidManagerArea">
-        <details class="panel polaroid-session-editor" open><summary><span><strong>本場拍立得設定</strong><small>需安排拍攝的服務每客 3 份、同女僕每客 1 份為固定限制</small></span></summary>
-          <div class="polaroid-session-fields"><label>場次名稱<input id="polaroidSessionTitle" maxlength="100" placeholder="例如：2026/09/22 曇時一般營業"></label><label>營業日期<input id="polaroidBusinessDate" type="date"></label><label>其他商品每客上限<input id="polaroidMaxProducts" type="number" min="1" max="50" value="5"></label><label>同時最多拍攝女僕人數<input id="polaroidSimultaneous" type="number" min="1" max="20" value="2"></label><label class="check"><input id="polaroidSessionOpen" type="checkbox" checked> 啟用本場拍立得網站</label><label class="check"><input id="polaroidSalesOpen" type="checkbox" checked> 接受新拍攝登記（取消勾選並儲存後停止）</label><label class="check"><input id="polaroidOtherSalesOpen" type="checkbox" checked> 開放商品接單總開關</label></div>
-          <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><p class="polaroid-help">新單安排到最近尚未結束的輪次；未完成自動遞延並保留下單順位。時間以台灣時間為準，跨午夜輪次請放在最後。</p><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕</h4><p class="polaroid-help">勾選開放本場拍攝服務的女僕，個別設定本場接單數；預設 3 份。系統不判斷女僕是否有空。</p><div id="polaroidMaidEditor"></div></div></div>
-          <div class="polaroid-save-row"><span id="polaroidSaveStatus" aria-live="polite"></span><button type="button" class="btn primary" id="polaroidSaveSession">儲存場次與輪次</button></div>
-        </details>
-      </section>
-
-      <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="products" hidden>
-        <section class="panel polaroid-products-panel"><div class="polaroid-work-head"><div><h3>共用商品管理</h3><p>所有營業日期共用同一份商品名稱、圖片、說明、價格與限購設定；各場已售數量會分開計算。</p></div><button class="btn primary" id="polaroidNewProduct" type="button">＋ 新增商品</button></div><div id="polaroidProductList" class="polaroid-product-list"><div class="queue-empty">正在讀取商品…</div></div></section>
-        <section class="panel polaroid-product-editor" id="polaroidProductEditor">
-          <div class="polaroid-work-head"><div><h3 id="polaroidProductEditorTitle">新增商品</h3><p>所有商品都必須連結當日號碼牌才能購買，且不列入餐點低消。</p></div><button class="btn danger small" id="polaroidDeleteProduct" type="button" hidden>刪除商品</button></div>
-          <input id="polaroidProductId" type="hidden">
-          <div class="polaroid-product-fields">
-            <label>商品名稱<input id="polaroidProductName" maxlength="80" placeholder="例如：小顏的特製研磨抹茶"></label>
-            <label class="check"><input id="polaroidProductOnsite" type="checkbox" checked> 需安排拍攝（每客 3 份、同女僕 1 份）</label><label>分類<input id="polaroidProductCategory" maxlength="40" placeholder="簽繪／純拍／繪圖委託／個人照"></label>
-            <label>價格（Gil）<input id="polaroidProductPrice" type="number" min="0" step="10000" value="80000"></label>
-            <label>庫存（-1 代表不限量）<input id="polaroidProductStock" type="number" min="-1" value="10"></label>
-            <label>每人限購<input id="polaroidProductLimit" type="number" min="1" max="20" value="1"></label>
-            <label>工作方式<select id="polaroidProductMode"><option value="round">需要拍攝輪次</option><option value="delivery">完成後交付</option></select></label>
-            <label>主要負責女僕<select id="polaroidProductProvider"><option value="">請選擇</option></select></label>
-            <label>收入歸屬<select id="polaroidProductRevenue"><option value="maid">指定女僕</option><option value="split">多位女僕平均</option><option value="shared">共同收入</option></select></label>
-            <label class="wide">收入女僕（多選）<select id="polaroidProductRevenueMaids" multiple size="4"></select></label>
-            <label class="wide">商品說明<textarea id="polaroidProductDescription" maxlength="500" rows="3" placeholder="客人會在商品卡片與範例視窗看到這段文字。"></textarea></label>
-            <label class="check"><input id="polaroidProductEnabled" type="checkbox" checked> 公開販售</label>
-          </div>
-          <div class="polaroid-product-media"><label>商品封面<input id="polaroidProductImage" type="file" accept="image/jpeg,image/png,image/webp"></label><div id="polaroidProductImagePreview" class="polaroid-media-preview">尚未上傳封面</div></div>
-          <div class="polaroid-example-head"><div><h4>公開範例</h4><p>可在商品售完或停賣後繼續公開。</p></div><button class="btn ghost small" id="polaroidAddExample" type="button">＋ 增加範例</button></div>
-          <div id="polaroidExampleEditor" class="polaroid-example-editor"></div>
-          <div class="polaroid-save-row"><span id="polaroidProductStatus" aria-live="polite"></span><button type="button" class="btn primary" id="polaroidSaveProduct">儲存商品與範例</button></div>
-        </section>
-      </section>
-
-      <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="orders" hidden>
-        <div class="polaroid-admin-metrics"><div><span>拍攝服務件數</span><strong id="polaroidMetricOrders">0</strong></div><div><span>已完成</span><strong id="polaroidMetricDone">0</strong></div><div><span>等待處理</span><strong id="polaroidMetricPending">0</strong></div><div><span>未完成（含拍攝中）</span><strong id="polaroidMetricDeferred">0</strong></div></div>
-        <section class="panel photo-round-summary"><p>目前：<strong id="polaroidCurrentRound"></strong></p><p>下一輪：<strong id="polaroidNextRound"></strong></p><p>拍攝中女僕：<strong id="polaroidBusyCount"></strong></p><div id="polaroidMaidTotals" class="photo-maid-totals"></div></section><section class="panel"><div class="polaroid-work-head"><div><h3>全場工作概況</h3><p>待拍依原始下單時間排序；跳過不會改變順位。已完成列於下方。最後一輪未完成工作留待店長安排。</p></div></div><div id="polaroidAllTasks" class="polaroid-task-list"></div></section><details class="panel polaroid-cancelled-archive" id="polaroidCancelledArchive" hidden><summary>已取消訂單（<span id="polaroidCancelledCount">0</span> 項）</summary><p>取消紀錄只供核對，不占用商品庫存、女僕名額或本場收入。</p><div id="polaroidCancelledTasks" class="polaroid-task-list"></div></details>
-      </section>
-    </div>
-
-    <!-- ============ 客人留言 ============ -->
-    <div id="guestbookAdminTab" style="display:none;">
-      <div class="page-heading guestbook-admin-heading">
-        <div class="page-heading-copy"><span class="page-eyebrow">Guest Letters</span><h2>客人留言</h2><p>所有後台帳號可閱讀投稿；只有管理員可以編輯展示文字、刊登、取消刊登、刪除或自行新增官網留言。</p></div>
-        <button class="btn primary manager-only" data-manager-only id="guestbookAddDisplay" type="button">新增官網展示留言</button>
-      </div>
-      <div class="guestbook-admin-metrics" aria-label="留言概況">
-        <div><span>未讀</span><strong id="guestbookUnreadCount">0</strong></div>
-        <div><span>允許公開</span><strong id="guestbookAllowedCount">0</strong></div>
-        <div><span>目前刊登</span><strong id="guestbookPublishedCount">0</strong></div>
-        <div><span>不公開</span><strong id="guestbookPrivateCount">0</strong></div>
-      </div>
-      <div class="guestbook-admin-layout">
-        <section class="panel guestbook-inbox-panel">
-          <div class="guestbook-admin-panel-head"><h3>投稿列表</h3><div class="guestbook-admin-filters" role="group" aria-label="篩選留言"><button type="button" class="active" data-guestbook-filter="all">全部</button><button type="button" data-guestbook-filter="unread">未讀</button><button type="button" data-guestbook-filter="published">已刊登</button><button type="button" data-guestbook-filter="private">不公開</button></div></div>
-          <div id="guestbookSubmissionList" class="guestbook-admin-list"><span class="empty">正在讀取投稿…</span></div>
-        </section>
-        <section class="panel guestbook-detail-panel" id="guestbookDetailPanel">
-          <div id="guestbookDetailEmpty" class="guestbook-admin-empty">請從左側選擇一封留言。</div>
-          <div id="guestbookDetail" hidden>
-            <div class="guestbook-detail-tags" id="guestbookDetailTags"></div>
-            <h3 id="guestbookDetailTitle">留言詳情</h3>
-            <dl class="guestbook-detail-meta" id="guestbookDetailMeta"></dl>
-            <div class="guestbook-original"><span>客人投稿原文</span><p id="guestbookOriginalText"></p></div>
-            <label class="guestbook-admin-field manager-only" data-manager-only for="guestbookDisplayText">官網展示文字（與客人投稿原文分開保存）<textarea id="guestbookDisplayText" maxlength="1000" rows="6"></textarea></label>
-            <div class="guestbook-detail-actions manager-only" data-manager-only>
-              <button class="btn ghost" id="guestbookMarkRead" type="button">標示已讀</button>
-              <button class="btn primary" id="guestbookPublish" type="button">刊登留言</button>
-              <button class="btn ghost" id="guestbookUnpublish" type="button">取消刊登</button>
-              <button class="btn danger" id="guestbookDelete" type="button">永久刪除</button>
-            </div>
-            <p class="guestbook-readonly-note" id="guestbookReadonlyNote">一般帳號為唯讀模式，不可編輯、刊登或刪除。</p>
-            <p class="site-content-status" id="guestbookAdminStatus" aria-live="polite"></p>
-          </div>
-        </section>
-      </div>
-      <section class="panel guestbook-public-admin-panel manager-only" data-manager-only>
-        <div class="guestbook-admin-panel-head"><div><h3>官網已刊登留言</h3><p>可辨識客人投稿或管理員自行新增；取消刊登不會刪除客人原始投稿。</p></div></div>
-        <div id="guestbookPublicAdminList" class="guestbook-public-admin-list"><span class="empty">正在讀取官網留言…</span></div>
-      </section>
-      <section class="panel guestbook-manual-panel manager-only" data-manager-only id="guestbookManualPanel" hidden>
-        <div class="guestbook-admin-panel-head"><h3>新增官網展示留言</h3><button class="btn ghost small" id="guestbookManualClose" type="button">關閉</button></div>
-        <div class="guestbook-manual-grid">
-          <label>公開方式<select id="guestbookManualMode"><option value="anonymous">匿名公開</option><option value="named">具名公開</option></select></label>
-          <label>顯示名字<input id="guestbookManualName" type="text" maxlength="40" placeholder="具名公開時必填"></label>
-          <label>收件對象<input id="guestbookManualRecipient" type="text" maxlength="40" value="曇時全體成員"></label>
-          <label class="wide">展示文字<textarea id="guestbookManualText" maxlength="1000" rows="5"></textarea></label>
-        </div>
-        <button class="btn primary" id="guestbookManualSave" type="button">新增並刊登</button>
-        <p class="site-content-status" id="guestbookManualStatus" aria-live="polite"></p>
-      </section>
-    </div>
-
-    <!-- ============ 營業管理 ============ -->
-    <div id="operationsTab" class="manager-only" data-manager-only style="display:none;">
-      <div class="page-heading">
-        <div class="page-heading-copy">
-          <span class="page-eyebrow">Operations</span>
-          <h2>營業管理</h2>
-          <p>集中查看本場營業狀態、產生日報，以及調整這台裝置的通知設定。</p>
-        </div>
-      </div>
-
-      <section class="operations-section">
-        <h3 class="operations-section-title">目前營業場次</h3>
-        <div class="panel business-session-panel">
-          <div>
-            <label for="businessDateInput" class="admin-section-label">營業日期</label>
-            <input type="date" id="businessDateInput" aria-label="目前營業場次日期">
-          </div>
-          <div class="business-session-copy">
-            <strong id="businessSessionTitle">正在確認營業場次</strong>
-            <span id="businessSessionHelp">營業日期不會在午夜自動跳日；打烊後再由管理人員開啟下一場。</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="operations-section">
-        <h3 class="operations-section-title">場次概況</h3>
-        <div class="panel overview-panel">
-          <div class="overview-head">
-            <div>
-              <span class="overview-kicker">Live Operations</span>
-              <h2>本場營業總覽</h2>
-              <p id="overviewDate">即時整理目前場次的訂單與待處理事項</p>
-            </div>
-            <div class="overview-actions">
-              <button class="btn ghost small manager-only" data-manager-only id="viewDailyReport">查看本場日報</button>
-              <button class="btn primary small manager-only" data-manager-only id="operationToggle">結束營業並產生日報</button>
-            </div>
-          </div>
-          <div class="stats-row">
-            <div class="stat"><b id="statPending">0</b>待接單</div>
-            <div class="stat attention"><b id="statUnassigned">0</b>待指派</div>
-            <div class="stat caution"><b id="statOverdue">0</b>等待逾 10 分鐘</div>
-            <div class="stat"><b id="statSpecialPending">0</b>桌邊服務待完成</div>
-            <div class="stat"><b id="statPreparing">0</b>服務中</div>
-            <div class="stat"><b id="statCompleted">0</b>本場完成</div>
-            <div class="stat"><b id="statTotalGil">0</b>本場訂單總額</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="operations-section">
-        <h3 class="operations-section-title">新訂單通知</h3>
-        <p class="operations-section-note">提示音設定只保存在目前使用的裝置。</p>
-        <div class="panel sound-control-panel" aria-label="新訂單提示音設定">
-          <div class="sound-control-main">
-            <span class="sound-control-icon" aria-hidden="true">🔔</span>
-            <div class="sound-control-copy">
-              <strong>提示音</strong>
-              <span id="soundCurrentLabel">提示音目前關閉</span>
-            </div>
-            <button class="btn sound-master-toggle" id="soundToggle">開啟提醒</button>
-          </div>
-          <div class="sound-settings">
-            <div class="sound-field">
-              <label for="soundPreset">內建音效</label>
-              <select id="soundPreset">
-                <option value="chime">清亮提示</option>
-                <option value="bell">咖啡鈴聲</option>
-                <option value="soft">柔和三音</option>
-              </select>
-            </div>
-            <div class="sound-field">
-              <label for="soundVolume">音量</label>
-              <div class="sound-volume-row">
-                <input type="range" id="soundVolume" min="10" max="100" value="70">
-                <span class="sound-volume-value" id="soundVolumeValue">70%</span>
-              </div>
-            </div>
-            <label class="btn ghost small sound-upload">上傳音效<input type="file" id="customSoundFile" accept="audio/*"></label>
-            <button class="btn ghost small" id="soundTest">試播</button>
-            <div class="sound-file-note" id="customSoundStatus">可上傳 1.5 MB 內的短音效，設定只保存在這台裝置。</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="operations-section">
-        <h3 class="operations-section-title">系統與進階工具</h3>
-        <details class="panel operation-tools operations-tools-panel">
-          <summary>查看連線狀態與低頻率操作</summary>
-          <div class="operation-tools-content">
-            <div class="operation-tool-group">
-              <div class="operation-tool-copy">
-                <strong>候位號碼</strong>
-                <span>請先結束營業再重置；已完成的接待與既有訂單會保留。</span>
-              </div>
-              <button class="btn ghost small manager-only danger-action" data-manager-only id="resetVisitQueue" type="button">重置本場候位</button>
-            </div>
-            <div class="row" style="margin-top:14px;">
-              <button class="btn ghost small manager-only" data-manager-only id="resetOrderNumber" style="border-color:var(--rose-dim);color:var(--rose);">重置訂單編號</button>
-              <button class="btn ghost small manager-only" data-manager-only id="resetTodayOrders" style="border-color:var(--rose-dim);color:var(--rose);">重置本場全部訂單</button>
-              <button class="btn ghost small" id="clearCustomSound">恢復內建提示音</button>
-            </div>
-            <p class="operation-tools-note">「重置訂單編號」只改下一筆編號；「重置本場全部訂單」會永久刪除目前營業日期的訂單、歸還限量名額並從 #1 重新計號，不影響其他日期、預約、排班或菜單。</p>
-            <div class="system-strip" aria-label="系統狀態">
-              <span class="system-pill bad" id="systemDatabase">訂單連線中</span>
-              <span class="system-pill warn" id="systemOrdering">點餐狀態確認中</span>
-              <span class="system-pill warn" id="systemDiscord">Discord 未設定</span>
-              <span class="system-pill warn" id="systemSound">提示音關閉</span>
-            </div>
-          </div>
-        </details>
-      </section>
-    </div>
-
-    <!-- ============ 薪資結算 ============ -->
-    <div id="payrollTab" class="manager-only" data-manager-only style="display:none;">
-      <div class="page-heading payroll-page-heading">
-        <div class="page-heading-copy">
-          <span class="page-eyebrow">Payroll</span>
-          <h2>薪資結算</h2>
-          <p>完成訂單自動統計；預約營業額與臨時調整可手動輸入。此頁只供本次檢視與複製，不會寫入 Firebase。</p>
-        </div>
-        <button class="btn primary" type="button" id="payrollRecalculate">重新計算</button>
-      </div>
-
-      <div class="payroll-metrics" aria-live="polite">
-        <div class="payroll-metric"><span>共同營業額</span><strong id="payrollCommonTotal">0 Gil</strong></div>
-        <div class="payroll-metric"><span>每人共同分紅</span><strong id="payrollShareValue">0 Gil</strong></div>
-        <div class="payroll-metric"><span>拍立得個人收入合計（含未指派）</span><strong id="payrollSpecialTotal">0 Gil</strong></div>
-      </div>
-
-      <section class="panel payroll-settings-panel">
-        <div class="payroll-panel-head"><h3>本場計算設定</h3><span id="payrollBusinessDate">—</span></div>
-        <div class="payroll-fields">
-          <label>完成訂單共同收入<input class="payroll-readonly" id="payrollAutoCommon" type="number" value="0" readonly></label>
-          <label>預約營業額<input id="payrollReservationRevenue" type="number" value="0" min="0" inputmode="numeric"></label>
-          <label>共同收入加減調整<input id="payrollCommonAdjustment" type="number" value="0" inputmode="numeric"></label>
-          <label>共同收入手動覆蓋<input id="payrollCommonOverride" type="number" placeholder="留空使用自動結果" min="0" inputmode="numeric"></label>
-        </div>
-        <div class="payroll-staff-checks" id="payrollStaffChecks" aria-label="參與共同分紅的女僕"></div>
-        <div class="payroll-count-note" id="payrollCountNote">勾選參與共同分紅的成員。</div>
-        <div class="payroll-warning" id="payrollUnassignedWarning" hidden></div>
-      </section>
-
-      <section class="panel payroll-details-panel">
-        <div class="payroll-panel-head"><h3>個人薪資明細</h3><span>拍立得依各商品設定的收入歸屬計入</span></div>
-        <div class="payroll-table-wrap">
-          <table class="payroll-table">
-            <thead><tr><th>女僕</th><th>共同分紅</th><th>拍立得個人收入</th><th>個人收入調整</th><th>個人收入覆蓋</th><th>最終薪資</th><th></th></tr></thead>
-            <tbody id="payrollRows"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <div class="payroll-bottom-grid">
-        <section class="panel payroll-help-panel">
-          <div class="payroll-panel-head"><h3>計算說明</h3></div>
-          <p>共同收入優先採用「手動覆蓋」；留空時使用完成餐點訂單＋預約營業額＋拍立得商品所設定的共同收入＋加減調整。拍立得商品可逐項指定女僕、多人平均或共同收入。平分結果以四捨五入計算。</p>
-        </section>
-        <section class="panel payroll-slip-panel">
-          <div class="payroll-panel-head"><h3>薪資條預覽</h3><select id="payrollSlipStaff" aria-label="選擇薪資條女僕"></select></div>
-          <div class="payroll-slip" id="payrollSlip" aria-live="polite">尚無可顯示資料</div>
-          <div class="payroll-slip-actions"><button class="btn ghost small" type="button" id="payrollCopySlip">複製薪資條</button></div>
-        </section>
-      </div>
-    </div>
-
-    <!-- ============ 菜單管理 ============ -->
-    <div id="menuTab" class="manager-only" data-manager-only style="display:none;">
-      <div class="panel">
-        <p class="admin-section-label">🍰 新增餐點</p>
-        <div class="row">
-          <input type="text" id="newItemCategory" placeholder="分類（如：主食、甜點）" style="flex:1;min-width:120px;">
-          <input type="text" id="newItemName" placeholder="品名" style="flex:1;min-width:120px;">
-          <input type="text" id="newItemPrice" placeholder="價格（Gil）" style="width:110px;">
-        </div>
-        <div class="row" style="margin-top:8px;">
-          <input type="text" id="newItemNote" placeholder="備註（選填，顯示在品名下方）" style="flex:1;min-width:160px;">
-        </div>
-        <div class="menu-image-field" style="margin-top:8px;">
-          <label for="newItemImage">料理圖片（選填）</label>
-          <div class="menu-image-picker">
-            <div class="menu-image-preview empty" id="newItemImagePreview"><span>尚未選擇圖片</span></div>
-            <div class="menu-image-controls">
-              <input type="file" id="newItemImage" accept="image/jpeg,image/png,image/webp">
-              <p>支援 JPG、PNG、WebP。系統會轉為 WebP；前台完整顯示，不會裁切。</p>
-            </div>
-          </div>
-        </div>
-        <div class="row" style="margin-top:8px;">
-          <input type="text" id="newItemAddonLabel" placeholder="加購項目名稱（選填）" style="flex:1;min-width:140px;">
-          <input type="text" id="newItemAddonPrice" placeholder="加購價格" style="width:110px;">
-          <select id="newItemServiceType" aria-label="品項類型"><option value="food">一般餐點</option><option value="magic">蛋包飯魔法</option></select>
-          <select id="newItemServiceStaff" aria-label="服務負責女僕" disabled hidden><option value="">餐點不需指定</option></select>
-        </div>
-        <button class="btn primary" id="addMenuItem" style="margin-top:10px;">新增到菜單</button>
-        <p style="font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;">分類欄位打一樣的名稱會自動歸在同一區。拍立得、純拍與其他影像商品請到「拍立得 → 商品與範例」管理。</p>
-      </div>
-
-      <div class="panel">
-        <p class="admin-section-label">📖 目前菜單</p>
-        <p id="menuSaveStatus" class="menu-sort-note" aria-live="polite">菜單變更會在儲存後同步至主人點餐頁。</p>
-        <div id="menuManageList">尚未設定菜單</div>
-        <div class="row" style="margin-top:12px;">
-          <button class="btn ghost small" id="syncMenuPrices">套用內建預設價格</button>
-          <button class="btn ghost small" id="seedDefaultMenu">匯入預設菜單</button>
-        </div>
-        <p class="menu-sort-note">按每個品項右側的「編輯」，即可修改名稱、價格、備註、分類、加購內容與限量名額；儲存後會自動同步到官網及主人點餐頁。</p>
-        <p class="menu-sort-note">使用分類標題旁及各品項右側的 ↑ ↓，即可調整顯示順序。「套用內建預設價格」會覆蓋內建餐點目前的價格，只有需要還原時再使用。</p>
-      </div>
-    </div>
-
-    <!-- ============ 店員管理 ============ -->
-    <div id="staffTab" class="manager-only" data-manager-only style="display:none;">
-      <details class="panel duty-panel" open>
-        <summary class="duty-summary">
-          <span class="duty-summary-title">👥 各日排班設定</span>
-          <span class="duty-summary-right">
-            <span class="duty-summary-text" id="dutySummaryText">尚未設定排班</span>
-            <span class="duty-chevron" aria-hidden="true">⌄</span>
-          </span>
-        </summary>
-        <div class="duty-content">
-          <p class="panel-title">選擇日期與當日值班店員</p>
-          <div class="row" style="margin-bottom:10px;">
-            <input type="date" id="onDutyDate" aria-label="排班日期" style="min-width:150px;">
-          </div>
-          <p class="schedule-list-label">① 當日出勤店員</p>
-          <p class="schedule-list-help">用於接待操作身分、訂單指派、主人點餐與官網首頁出勤名單。</p>
-          <div id="staffCheckList" style="margin-bottom:14px;">尚未建立店員名單</div>
-          <p class="schedule-list-label">② 可接受預約指名</p>
-          <p class="schedule-list-help">只有勾選為當日出勤的女僕才能開放指名；取消勾選後，預約頁仍可選擇「不指定」。</p>
-          <div id="reservationStaffCheckList" style="margin-bottom:10px;">請先設定當日出勤店員</div>
-          <div class="row">
-            <button class="btn primary" id="updateTodayStaff">立即儲存</button>
-            <span class="schedule-save-status" id="scheduleSaveStatus">勾選後會自動儲存</span>
-          </div>
-          <p style="font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;">兩份名單會一起儲存：出勤名單同步至店內與官網，預約頁只讀取「可接受預約指名」名單。</p>
-        </div>
-      </details>
-
-      <div class="panel">
-        <p class="admin-section-label">🪪 店員名冊管理</p>
-        <p class="panel-title">新增店員</p>
-        <div class="row">
-          <input type="text" id="newStaffName" placeholder="店員名稱（必填）" style="flex:1;min-width:130px;">
-          <input type="text" id="newStaffRole" placeholder="職位（如：女僕／樂手）" style="flex:1;min-width:150px;">
-        </div>
-        <div class="row" style="margin-top:8px;">
-          <input type="text" id="newStaffQuote" placeholder="官網個人介紹（選填）" style="flex:1;min-width:180px;">
-          <input type="url" id="newStaffThreads" placeholder="Threads 網址（選填）" style="flex:1;min-width:180px;">
-          <button class="btn primary" id="addStaff">新增店員</button>
-        </div>
-        <p class="staff-help">新增或修改後會即時同步至官網「駐店成員」。頭貼可在新增完成後，從下方成員資料中設定。</p>
-        <div id="staffManageList" class="staff-manager-list">尚未建立店員名單</div>
-      </div>
-    </div>
-
-    <!-- ============ 預約管理 ============ -->
-    <div id="reservationsTab" class="manager-only" data-manager-only style="display:none;">
-      <div class="panel">
-        <p class="admin-section-label">📋 店規／注意事項</p>
-        <textarea id="rulesEditor" placeholder="輸入店規或注意事項"></textarea>
-        <div class="row" style="margin-top:8px;">
-          <button class="btn primary" id="saveRules">儲存店規</button>
-          <button class="btn ghost" id="hideRules">目前不顯示</button>
-        </div>
-        <p style="font-size:11.5px;color:var(--parchment-dim);margin:8px 0 0;">儲存後會顯示在預約表單下方。留空並儲存則不顯示這個區塊。</p>
-      </div>
-
-      <div class="panel">
-        <p class="admin-section-label">🕯 預約管理</p>
-        <p class="panel-title">開放可預約日期</p>
-        <div class="row">
-          <input type="date" id="newOpenDate" aria-label="新增可預約日期" style="min-width:140px;">
-          <button class="btn primary" id="addOpenDate">開放此日期</button>
-        </div>
-        <div id="openDateManageList" style="margin-top:10px;"></div>
-
-        <p class="panel-title" style="margin-top:16px;">目前預約總覽</p>
-        <div id="adminReservationList" style="font-size:12.5px;">尚無預約</div>
-      </div>
-
-    </div>
-
-    <!-- ============ 官網設定 ============ -->
-    <div id="siteSettingsTab" class="manager-only" data-manager-only style="display:none;">
-      <div class="panel">
-        <p class="admin-section-label">♪ 官網背景音樂</p>
-        <p class="panel-title">店歌播放設定</p>
-        <div class="site-music-grid">
-          <div class="site-music-field">
-            <label for="siteMusicTitle">官網顯示名稱</label>
-            <input type="text" id="siteMusicTitle" placeholder="例如：曇時店歌">
-          </div>
-          <div class="site-music-field">
-            <label>是否在官網顯示播放器</label>
-            <label class="site-music-toggle"><input type="checkbox" id="siteMusicEnabled">啟用背景音樂</label>
-          </div>
-          <div class="site-music-field wide">
-            <label for="siteMusicUrl">音樂檔網址</label>
-            <input type="text" id="siteMusicUrl" inputmode="url" placeholder="https://…/ephemere-theme.mp3">
-          </div>
-          <div class="site-music-field wide">
-            <label for="siteMusicVolume">主人第一次播放時的預設音量</label>
-            <div class="site-music-volume">
-              <input type="range" id="siteMusicVolume" min="5" max="100" value="30">
-              <output id="siteMusicVolumeValue" for="siteMusicVolume">30%</output>
-            </div>
-          </div>
-        </div>
-        <div class="row" style="margin-top:12px;">
-          <button class="btn primary" id="saveSiteMusic">儲存並同步官網</button>
-          <button class="btn ghost" id="previewSiteMusic">試播</button>
-          <button class="btn ghost" id="stopSiteMusicPreview">停止試播</button>
-        </div>
-        <p class="site-music-status" id="siteMusicStatus" aria-live="polite">尚未讀取官網音樂設定</p>
-        <p class="site-music-help">請先把 MP3、M4A 或 OGG 音樂檔上傳到官網的 GitHub 儲存庫，再將可公開播放的 HTTPS 網址貼在這裡。瀏覽器不允許網站直接自動播放有聲音，因此主人仍需先按一次播放鍵。</p>
-      </div>
-    </div>
-
-    <!-- ============ 官網內容管理 ============ -->
-    <div id="siteContentTab" class="manager-only" data-manager-only style="display:none;">
-      <details class="panel site-content-panel site-content-collapsible">
-        <summary class="site-content-collapse-summary"><span><strong>首頁主視覺</strong><small>店員合照與顯示焦點</small></span><i class="site-content-collapse-indicator" aria-hidden="true"></i></summary>
-        <div class="site-content-collapse-body">
-        <p class="site-content-lead">桌機與手機可分別調整。預覽會即時顯示官網裁切、文字遮擋區、水平與垂直位置及縮放比例；只調整位置或縮放時不需要重新上傳。</p>
-
-        <div class="site-hero-editor-grid">
-          <section class="site-hero-editor" data-hero-device="desktop">
-            <div class="site-content-heading"><strong>桌機版</strong><span>建議橫式 16:9、1920px 以上</span></div>
-            <div class="site-hero-preview site-hero-preview-desktop">
-              <img id="heroDesktopPreviewImage" alt="桌機版首頁照片預覽">
-              <span class="site-hero-obstruction" aria-hidden="true">首頁文字區</span>
-            </div>
-            <label class="site-upload-field">選擇桌機照片<input type="file" id="siteHeroDesktopFile" accept="image/jpeg,image/png,image/webp"></label>
-            <label class="site-range-field">水平焦點 <output id="heroDesktopFocalXValue">50%</output><input type="range" id="heroDesktopFocalX" min="0" max="100" value="50"></label>
-            <label class="site-range-field">垂直焦點 <output id="heroDesktopFocalYValue">50%</output><input type="range" id="heroDesktopFocalY" min="0" max="100" value="50"></label>
-            <label class="site-range-field">照片縮放 <output id="heroDesktopZoomValue">100%</output><input type="range" id="heroDesktopZoom" min="100" max="180" step="1" value="100"></label>
-            <p class="site-hero-editor-note">照片與框同比例時，100% 沒有裁切空間；移動焦點會自動調整為 110%，讓位置變化立即可見。</p>
-            <div class="site-hero-presets" aria-label="桌機照片快速定位">
-              <button class="btn ghost" type="button" data-hero-device="Desktop" data-hero-x="35">人物靠左</button>
-              <button class="btn ghost" type="button" data-hero-device="Desktop" data-hero-x="50">置中</button>
-              <button class="btn ghost" type="button" data-hero-device="Desktop" data-hero-x="70">人物靠右</button>
-            </div>
-          </section>
-
-          <section class="site-hero-editor" data-hero-device="mobile">
-            <div class="site-content-heading"><strong>手機版</strong><span>建議直式 4:5、1200px 以上</span></div>
-            <div class="site-hero-preview site-hero-preview-mobile">
-              <img id="heroMobilePreviewImage" alt="手機版首頁照片預覽">
-              <span class="site-hero-obstruction" aria-hidden="true">首頁文字區</span>
-            </div>
-            <label class="site-upload-field">選擇手機照片<input type="file" id="siteHeroMobileFile" accept="image/jpeg,image/png,image/webp"></label>
-            <label class="site-range-field">水平焦點 <output id="heroMobileFocalXValue">50%</output><input type="range" id="heroMobileFocalX" min="0" max="100" value="50"></label>
-            <label class="site-range-field">垂直焦點 <output id="heroMobileFocalYValue">50%</output><input type="range" id="heroMobileFocalY" min="0" max="100" value="50"></label>
-            <label class="site-range-field">照片縮放 <output id="heroMobileZoomValue">100%</output><input type="range" id="heroMobileZoom" min="100" max="180" step="1" value="100"></label>
-            <p class="site-hero-editor-note">照片與框同比例時，100% 沒有裁切空間；移動焦點會自動調整為 110%，讓位置變化立即可見。</p>
-            <div class="site-hero-presets" aria-label="手機照片快速定位">
-              <button class="btn ghost" type="button" data-hero-device="Mobile" data-hero-x="35">人物靠左</button>
-              <button class="btn ghost" type="button" data-hero-device="Mobile" data-hero-x="50">置中</button>
-              <button class="btn ghost" type="button" data-hero-device="Mobile" data-hero-x="70">人物靠右</button>
-            </div>
-          </section>
-        </div>
-
-        <div class="row site-content-actions">
-          <button class="btn primary" id="saveSiteHero">儲存並同步首頁</button>
-          <button class="btn ghost" id="resetSiteHero">恢復官網預設圖</button>
-        </div>
-        <p class="site-content-status" id="siteHeroStatus" aria-live="polite">正在讀取首頁設定…</p>
-        </div>
-      </details>
-
-      <details class="panel site-content-panel site-content-collapsible">
-        <summary class="site-content-collapse-summary"><span><strong>官網拍立得作品集</strong><small>官網服務介紹使用；商品個別範例請至「拍立得 → 商品與範例」</small></span><i class="site-content-collapse-indicator" aria-hidden="true"></i></summary>
-        <div class="site-content-collapse-body">
-        <p class="site-content-lead">先選擇作品所屬女僕；同一位女僕可新增不限張數。官網會先切換女僕，再以前後按鈕、圓點或手機滑動瀏覽她的作品。</p>
-
-        <div class="site-polaroid-form">
-          <label class="site-upload-field">拍立得圖片<input type="file" id="sitePolaroidFile" accept="image/jpeg,image/png,image/webp"></label>
-          <label>所屬女僕<select id="sitePolaroidStaff"><option value="">其他作品／尚未指定</option></select></label>
-          <label>作品名稱<input type="text" id="sitePolaroidTitle" maxlength="60" placeholder="例如：生日紀念拍立得"></label>
-          <label>圖片替代文字<input type="text" id="sitePolaroidAlt" maxlength="120" placeholder="描述照片內容，方便無障礙閱讀"></label>
-          <label class="wide">補充文字（選填）<textarea id="sitePolaroidCaption" maxlength="160" rows="2" placeholder="例如：生日紀念、主題活動成品"></textarea></label>
-          <label class="site-check-field"><input type="checkbox" id="sitePolaroidVisible" checked>立即顯示在官網</label>
-          <button class="btn primary" id="addSitePolaroid">上傳並新增</button>
-        </div>
-        <p class="site-content-status" id="sitePolaroidStatus" aria-live="polite">正在讀取拍立得資料…</p>
-        <div id="sitePolaroidList" class="site-polaroid-list"><span class="empty">正在讀取…</span></div>
-        </div>
-      </details>
-
-      <details class="panel site-content-panel studio-admin-panel site-content-collapsible">
-        <summary class="site-content-collapse-summary"><span><strong>攝影棚與往日相簿</strong><small>棚景內容管理</small></span><i class="site-content-collapse-indicator" aria-hidden="true"></i></summary>
-        <div class="site-content-collapse-body">
-        <p class="site-content-lead">現役棚會顯示在主要區域；換棚時將狀態改為「往日回憶」即可保留照片與介紹，不必刪除重建。</p>
-        <div class="studio-admin-layout">
-          <section class="studio-admin-list-panel">
-            <div class="guestbook-admin-panel-head"><h3>棚景列表</h3><button class="btn primary small" id="studioAdd" type="button">新增棚景</button></div>
-            <div id="studioAdminList" class="studio-admin-list"><span class="empty">正在讀取棚景…</span></div>
-          </section>
-          <section class="studio-admin-editor" id="studioAdminEditor">
-            <div class="guestbook-admin-panel-head"><h3 id="studioEditorTitle">編輯棚景</h3><span class="studio-admin-badge">管理員專用</span></div>
-            <div class="studio-admin-fields">
-              <label>棚名<input type="text" id="studioName" maxlength="80"></label>
-              <label>狀態<select id="studioStatus"><option value="active">現役攝影棚</option><option value="memory">往日回憶</option></select></label>
-              <label>排序<input type="number" id="studioSortOrder" min="0" max="999999" step="1" value="100"></label>
-              <label class="studio-visible-field"><input type="checkbox" id="studioVisible" checked> 顯示在官網</label>
-              <label class="wide">簡介<textarea id="studioSummary" maxlength="240" rows="3"></textarea></label>
-              <label class="wide">完整介紹<textarea id="studioDescription" maxlength="3000" rows="7"></textarea></label>
-            </div>
-            <label class="studio-upload-zone">加入棚景圖片（可一次多選）<input type="file" id="studioImagesInput" accept="image/jpeg,image/png,image/webp" multiple><span>JPG／PNG／WebP，每張不超過 12 MB；圖片上傳與移除僅限 tanjicafe@gmail.com。</span></label>
-            <div id="studioImageList" class="studio-image-list"><span class="empty">請選擇棚景或新增資料。</span></div>
-            <div class="studio-admin-actions"><button class="btn primary" id="studioSave" type="button">儲存棚景並同步官網</button><button class="btn ghost" id="studioCancel" type="button">取消本次修改</button></div>
-            <p class="site-content-status" id="studioAdminStatus" aria-live="polite"></p>
-          </section>
-        </div>
-        </div>
-      </details>
-    </div>
-
-    <!-- ============ 權限管理 ============ -->
-    <div id="accessTab" class="manager-only" data-manager-only style="display:none;">
-      <div class="panel">
-        <p class="admin-section-label">🔐 後台帳號權限</p>
-        <p class="access-intro">新帳號第一次登入後會自動列在這裡，預設可使用「接待、訂單、自己的拍立得工作」。將帳號改成「管理人員」後，才可使用完整店務、商品、薪資、官網與權限設定。</p>
-        <div id="accessUserList" class="access-list"><span class="empty">正在讀取帳號…</span></div>
-        <p id="accessMessage" class="access-message" aria-live="polite"></p>
-      </div>
-      <div class="panel">
-        <p class="panel-title">新增帳號方式</p>
-        <p class="access-intro">請先在 Firebase「Authentication → 使用者」建立 Email／密碼帳號，再請對方登入後台一次。該帳號會自動出現在上方名單，接著即可調整權限。</p>
-      </div>
-    </div>
-
-  </div>
-
-</div>
-
-<div class="transfer-modal-overlay" id="transferModalOverlay" hidden>
-  <div class="transfer-modal" role="dialog" aria-modal="true" aria-labelledby="transferModalTitle">
-    <div class="transfer-modal-head">
-      <div><span class="page-eyebrow">Reception Handoff</span><h3 id="transferModalTitle">更換主要接待</h3></div>
-      <button class="transfer-modal-close" id="transferModalClose" type="button" aria-label="關閉">×</button>
-    </div>
-    <div class="transfer-guest" id="transferGuestSummary"></div>
-    <p class="transfer-scope">主要接待與未完成的一般餐點訂單會一起轉交；獨立拍立得商品仍依商品設定的負責女僕處理。</p>
-    <div class="transfer-roster" id="transferRoster" role="radiogroup" aria-label="選擇新的主要接待"></div>
-    <div class="transfer-modal-actions">
-      <span id="transferModalStatus" role="status" aria-live="polite">請選擇新的主要接待</span>
-      <button class="btn ghost" id="transferModalCancel" type="button">取消</button>
-      <button class="btn primary" id="transferModalConfirm" type="button" disabled>立即轉交</button>
     </div>
   </div>
-</div>
 
-<div class="menu-edit-overlay" id="menuEditOverlay" role="dialog" aria-modal="true" aria-labelledby="menuEditTitle">
-  <div class="menu-edit-modal">
-    <h4 id="menuEditTitle">編輯菜單品項</h4>
-    <div class="menu-edit-grid">
-      <div class="menu-edit-field">
-        <label for="editItemCategory">分類名稱</label>
-        <input type="text" id="editItemCategory" maxlength="60" placeholder="例如：Main Course 主食">
-      </div>
-      <div class="menu-edit-field">
-        <label for="editItemPrice">價格（Gil）</label>
-        <input type="number" id="editItemPrice" min="0" step="1" inputmode="numeric">
-      </div>
-      <div class="menu-edit-field full">
-        <label for="editItemServiceType">品項類型</label>
-        <select id="editItemServiceType"><option value="food">一般餐點</option><option value="magic">蛋包飯魔法</option></select>
-      </div>
-      <div class="menu-edit-field full">
-        <label for="editItemServiceStaff" hidden>服務負責女僕</label>
-        <select id="editItemServiceStaff" disabled hidden><option value="">此類型不需指定</option></select>
-      </div>
-      <div class="menu-edit-field full">
-        <label for="editItemName">菜單名稱</label>
-        <input type="text" id="editItemName" maxlength="80" placeholder="輸入顯示給客人的品項名稱">
-      </div>
-      <div class="menu-edit-field full">
-        <label for="editItemNote">備註</label>
-        <textarea id="editItemNote" maxlength="180" placeholder="選填；會顯示在品項名稱下方"></textarea>
-      </div>
-      <div class="menu-edit-field full menu-image-field">
-        <label for="editItemImage">料理圖片</label>
-        <div class="menu-image-picker">
-          <div class="menu-image-preview empty" id="editItemImagePreview"><span>目前沒有圖片</span></div>
-          <div class="menu-image-controls">
-            <input type="file" id="editItemImage" accept="image/jpeg,image/png,image/webp">
-            <button class="btn ghost small" type="button" id="removeItemImage">移除目前圖片</button>
-            <p>選擇新圖片後按「儲存修改」才會上傳；圖片會完整置中顯示。</p>
-          </div>
-        </div>
-      </div>
-      <div class="menu-edit-field">
-        <label for="editItemAddonLabel">加購項目名稱</label>
-        <input type="text" id="editItemAddonLabel" maxlength="80" placeholder="沒有加購可留空">
-      </div>
-      <div class="menu-edit-field">
-        <label for="editItemAddonPrice">加購價格（Gil）</label>
-        <input type="number" id="editItemAddonPrice" min="0" step="1" inputmode="numeric">
-      </div>
-      <div class="menu-edit-field full">
-        <label><input type="checkbox" id="editItemAvailable" checked> 開放這個品項供主人點餐</label>
-      </div>
-      <div class="menu-edit-field">
-        <label><input type="checkbox" id="editItemStockEnabled"> 啟用限量名額</label>
-      </div>
-      <div class="menu-edit-field">
-        <label for="editItemStockRemaining">目前剩餘份數／名額</label>
-        <input type="number" id="editItemStockRemaining" min="0" step="1" inputmode="numeric" disabled>
-      </div>
-    </div>
-    <p class="menu-edit-help">限量名額會在主人送出訂單時自動扣除；取消尚未完成的訂單時會自動歸還。儲存後，官網與線上點餐頁都會同步更新。</p>
-    <div class="menu-edit-actions">
-      <button class="btn ghost" id="menuEditCancel">取消</button>
-      <button class="btn primary" id="menuEditSave">儲存修改</button>
-    </div>
-  </div>
-</div>
-
-<div class="menu-edit-overlay" id="reportOverlay" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
-  <div class="menu-edit-modal">
-    <h4 id="reportTitle">本場日報</h4>
-    <div class="report-text" id="reportText">整理中…</div>
-    <div class="menu-edit-actions">
-      <button class="btn ghost" id="reportClose">關閉</button>
-      <button class="btn primary" id="reportCopy">複製日報</button>
-    </div>
-  </div>
-</div>
-
-<div class="photo-modal-overlay" id="photoModalOverlay">
-  <div class="photo-modal">
-    <div class="staff-photo-editor-head">
-      <div><p class="staff-photo-editor-kicker">STAFF PORTRAIT</p><h4>設定店員照片</h4></div>
-      <span id="photoEditorStaffName"></span>
-    </div>
-    <input type="file" id="photoFileInput" accept="image/jpeg,image/png,image/webp" class="staff-photo-file">
-    <p class="staff-photo-editor-help">照片會保留原始比例。名冊與個人頁可分別調整焦點與縮放；預覽會即時同步。</p>
-    <div class="staff-photo-preview-grid">
-      <section class="staff-photo-preview-card">
-        <div class="staff-photo-preview-title"><span>01</span><strong>名冊斜切預覽</strong></div>
-        <div class="staff-directory-preview"><img id="photoDirectoryPreview" alt="名冊照片預覽"></div>
-        <label>水平焦點 <output id="photoDirectoryXValue">50%</output><input type="range" id="photoDirectoryX" min="0" max="100" value="50"></label>
-        <label>垂直焦點 <output id="photoDirectoryYValue">50%</output><input type="range" id="photoDirectoryY" min="0" max="100" value="50"></label>
-        <label>照片縮放 <output id="photoDirectoryZoomValue">100%</output><input type="range" id="photoDirectoryZoom" min="100" max="220" value="100"></label>
-      </section>
-      <section class="staff-photo-preview-card">
-        <div class="staff-photo-preview-title"><span>02</span><strong>個人頁預覽</strong></div>
-        <div class="staff-profile-preview"><span class="staff-profile-preview-vol">VOL.</span><img id="photoProfilePreview" alt="個人頁照片預覽"><i></i></div>
-        <label>水平焦點 <output id="photoProfileXValue">50%</output><input type="range" id="photoProfileX" min="0" max="100" value="50"></label>
-        <label>垂直焦點 <output id="photoProfileYValue">50%</output><input type="range" id="photoProfileY" min="0" max="100" value="50"></label>
-        <label>照片縮放 <output id="photoProfileZoomValue">100%</output><input type="range" id="photoProfileZoom" min="100" max="220" value="100"></label>
-      </section>
-    </div>
-    <div class="photo-modal-actions">
-      <button class="btn ghost" id="photoModalCancel">取消</button>
-      <button class="btn primary" id="photoModalSave">儲存照片與位置</button>
-    </div>
-  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js"></script>
-<script src="guest-core.js?v=20260908-v21"></script>
-<script src="guest-cleanup.js?v=20260908-v21"></script>
-<script src="guest-actions.js?v=20260908-v21"></script>
-<script src="guest-local.js?v=20260908-v21"></script>
-<script src="guest-registry.js?v=20260913-v31"></script>
-<script src="admin.js?v=20260917-v53"></script>
-<script src="site-content-admin.js?v=20260826a"></script>
-<script src="guestbook-admin.js?v=20260910-v25"></script>
-<script src="studio-admin.js?v=20260909-v22"></script>
-<script src="admin-workspace-preview.js?v=20260905c"></script>
-<script src="schedule.js?v=53"></script><script src="polaroid-admin.js?v=53"></script>
+<script>
+(function(){
+
+  var firebaseConfig = {
+    apiKey: "AIzaSyAPIpmaLgXp3TVTV7y-yrH63xkMtAuYMSQ",
+    authDomain: "lephemere-queue-c38d5.firebaseapp.com",
+    databaseURL: "https://lephemere-queue-c38d5-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "lephemere-queue-c38d5",
+    storageBucket: "lephemere-queue-c38d5.firebasestorage.app",
+    messagingSenderId: "35595928973",
+    appId: "1:35595928973:web:36a8a4695fd293061d29c4"
+  };
+
+  var isConfigured = firebaseConfig.apiKey.indexOf('貼上') === -1;
+  if(!isConfigured){ document.getElementById('configWarn').style.display = 'block'; }
+
+  var menuItems = {}; // id -> {category,name,price,note,addonLabel,addonPrice}
+  var categoryOrder = []; // first-seen order
+  var activeMenuCategory = '__all__';
+
+  var cart = {}; // id -> {name, price, qty, addon:{label,price}|null, assignments:[用餐者]}
+  var pendingAddons = {}; // remembers add-ons selected before the base item is added
+  var db, menuRef, operationStatusRef, functionsClient, submitOrderFn, submitSharedOrderFn, createSharedTableCodeFn, joinSharedTableFn;
+  var tableShareCode='', tableShareVisitId='', tableShareLoading=false;
+  var sharedJoinChallenge='', sharedMemberLabel='';
+  var visitsRef, visitQueueCounterRef, staffRosterRef, todayStaffRef;
+  var currentVisitorUid = '';
+  var activeVisitListenerRef = null;
+  var operationStatus = { isOpen:false, businessDate:'' };
+  var operationStatusLoaded = false;
+  var visits = {};
+  var staffRoster = {};
+  var todayStaff = {};
+  var activeVisit = null;
+  var activeVisitId = localStorage.getItem('lephemereActiveVisitId') || '';
+  var activeVisitSessionId = sessionStorage.getItem('lephemereActiveVisitSessionId') || '';
+  var visitRecoveryPending = !!activeVisitId && activeVisitSessionId!==activeVisitId;
+  var browseMode = false;
+  var menuSyncTimer = null;
+  var menuSyncBusy = false;
+
+  function petals(){
+    var wrap = document.getElementById('wrap');
+    for(var i=0;i<6;i++){
+      var p = document.createElement('div');
+      p.className='petal';
+      p.style.left=(Math.random()*100)+'%';
+      p.style.animationDuration=(10+Math.random()*8)+'s';
+      p.style.animationDelay=(Math.random()*10)+'s';
+      wrap.appendChild(p);
+    }
+  }
+  petals();
+
+  function tickClock(){
+    var d=new Date();
+    document.getElementById('connText').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  }
+  tickClock();
+  setInterval(tickClock,15000);
+
+  function escapeHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+  function fmtGil(n){ return (n||0).toLocaleString('en-US') + ' Gil'; }
+
+  function partyMemberName(value){ return String(value||'').split('｜')[0].trim(); }
+  function hasCharacterName(value){ return String(value||'').trim().length>0; }
+  function syncCompanionRows(){
+    var rows=Array.prototype.slice.call(document.querySelectorAll('#visitCompanionList .companion-row'));
+    rows.forEach(function(row,index){
+      var number=index+2;
+      row.querySelector('.companion-index').textContent=number;
+      row.querySelector('[data-companion-name]').setAttribute('aria-label','同行者 '+number+' 的角色名稱');
+      row.querySelector('[data-companion-world]').setAttribute('aria-label','同行者 '+number+' 的伺服器');
+      row.querySelector('.companion-remove').setAttribute('aria-label','移除同行者 '+number);
+    });
+    var size=rows.length+1;
+    document.getElementById('visitPartySize').value=String(size);
+    document.getElementById('visitPartySizeDisplay').value=size+' 人（含領號代表）';
+    document.getElementById('visitPartyCount').textContent='目前共 '+size+' 人';
+  }
+  function addCompanionInput(){
+    var list=document.getElementById('visitCompanionList');
+    var row=document.createElement('div');
+    row.className='companion-row';
+    var index=document.createElement('span'); index.className='companion-index';
+    var nameLabel=document.createElement('label'); nameLabel.textContent='角色名稱';
+    var nameInput=document.createElement('input'); nameInput.type='text'; nameInput.maxLength=40; nameInput.placeholder='請輸入角色名稱'; nameInput.setAttribute('data-companion-name',''); nameLabel.appendChild(nameInput);
+    var worldLabel=document.createElement('label'); worldLabel.textContent='伺服器';
+    var worldSelect=document.createElement('select'); worldSelect.innerHTML=document.getElementById('visitWorld').innerHTML; worldSelect.setAttribute('data-companion-world',''); worldLabel.appendChild(worldSelect);
+    var remove=document.createElement('button'); remove.type='button'; remove.className='companion-remove'; remove.textContent='×';
+    remove.addEventListener('click',function(){ row.remove(); syncCompanionRows(); });
+    row.appendChild(index); row.appendChild(nameLabel); row.appendChild(worldLabel); row.appendChild(remove);
+    list.appendChild(row); syncCompanionRows(); nameInput.focus();
+  }
+
+  function currentDiners(){
+    var size=Math.max(1,Number(activeVisit && activeVisit.partySize || 1));
+    var saved=activeVisit && Array.isArray(activeVisit.partyMembers) ? activeVisit.partyMembers : [];
+    var diners=[];
+    for(var i=0;i<size;i++){
+      var name=partyMemberName(saved[i]);
+      if(!name && i===0) name=String(activeVisit && activeVisit.characterName || document.getElementById('custName').value || '').trim();
+      diners.push(name || (i===0?'領號代表':'同行者 '+(i+1)));
+    }
+    return diners;
+  }
+
+  function assignmentOptions(selected){
+    var values=currentDiners().concat(['全桌共享','尚未指定']);
+    return values.map(function(name){ return '<option value="'+escapeHtml(name)+'" '+(name===selected?'selected':'')+'>'+escapeHtml(name)+'</option>'; }).join('');
+  }
+
+  function normalizeAssignments(line){
+    var assignments=Array.isArray(line.assignments) ? line.assignments.slice(0,line.qty) : [];
+    var fallback=currentDiners().length===1 ? currentDiners()[0] : '尚未指定';
+    while(assignments.length<line.qty) assignments.push(fallback);
+    line.assignments=assignments;
+    return assignments;
+  }
+
+  function renderDinerRoster(){
+    var el=document.getElementById('dinerRoster');
+    if(!el) return;
+    var diners=currentDiners();
+    if(!activeVisit || diners.length<=1){ el.style.display='none'; el.textContent=''; return; }
+    el.style.display='block';
+    el.textContent='本組用餐者｜'+diners.join('・')+'。請在每份餐點下方選擇歸屬。';
+  }
+
+  if(isConfigured){
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    functionsClient = firebase.app().functions('asia-southeast1');
+    submitOrderFn = functionsClient.httpsCallable('submitOrder');
+    submitSharedOrderFn = functionsClient.httpsCallable('submitSharedOrder');
+    createSharedTableCodeFn = functionsClient.httpsCallable('polaroidCreateShareCode');
+    joinSharedTableFn = functionsClient.httpsCallable('joinSharedVisit');
+    menuRef = db.ref('lephemere/menu');
+    operationStatusRef = db.ref('lephemere/operationStatus');
+    visitsRef = db.ref('lephemere/visits');
+    visitQueueCounterRef = db.ref('lephemere/visitQueueCounter');
+    staffRosterRef = db.ref('lephemere/staffRoster');
+
+    db.ref('.info/connected').on('value', function(snap){
+      document.getElementById('connDot').className = snap.val()===true ? 'dot online' : 'dot offline';
+    });
+
+    operationStatusRef.on('value', function(snap){
+      operationStatus = snap.val() || { isOpen:false, businessDate:'' };
+      operationStatusLoaded = true;
+      watchDutySchedule(visitDateKey());
+      renderOperationStatus();
+      renderMenu();
+      if(activeVisit) updateVisitStatus();
+    });
+
+    firebase.auth().onAuthStateChanged(function(user){
+      if(user){
+        currentVisitorUid=user.uid;
+        watchActiveVisit(activeVisitId);
+      }else{
+        firebase.auth().signInAnonymously().catch(function(){
+          document.getElementById('configWarn').textContent='暫時無法開始登記，請重新整理；若仍無法使用，請聯絡女僕。';
+          document.getElementById('configWarn').style.display='block';
+        });
+      }
+    });
+
+    staffRosterRef.on('value', function(snap){
+      staffRoster = snap.val() || {};
+      renderVisitPreference();
+    });
+
+    menuRef.on('value', applyMenuSnapshot, function(){
+      setMenuSyncStatus('即時連線中斷，正在重新取得菜單…', true);
+    });
+
+    refreshMenuSnapshot();
+    menuSyncTimer = setInterval(refreshMenuSnapshot, 5000);
+    window.addEventListener('focus', refreshMenuSnapshot);
+    window.addEventListener('online', refreshMenuSnapshot);
+    document.addEventListener('visibilitychange', function(){
+      if(!document.hidden) refreshMenuSnapshot();
+    });
+  }
+
+  function visitDateKey(){
+    if(operationStatus && /^\d{4}-\d{2}-\d{2}$/.test(operationStatus.businessDate||'')) return operationStatus.businessDate;
+    var d = new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  function watchDutySchedule(date){
+    if(!db || !date) return;
+    var nextRef = db.ref('lephemere/staffSchedules/'+date);
+    if(todayStaffRef && todayStaffRef.toString()===nextRef.toString()) return;
+    if(todayStaffRef) todayStaffRef.off();
+    todayStaffRef = nextRef;
+    todayStaffRef.on('value', function(snap){
+      var schedule = snap.val();
+      todayStaff = { staffIds:schedule && Array.isArray(schedule.staffIds) ? schedule.staffIds : [] };
+      renderVisitPreference();
+    });
+  }
+
+  function watchActiveVisit(id){
+    if(activeVisitListenerRef) activeVisitListenerRef.off();
+    activeVisitListenerRef=null;
+    visits={};
+    if(!id || !visitsRef){ updateVisitStatus(); return; }
+    activeVisitListenerRef=visitsRef.child(id);
+    activeVisitListenerRef.on('value',function(snap){
+      visits={};
+      if(snap.exists()) visits[id]=snap.val();
+      updateVisitStatus();
+    },function(){
+      forgetLocalVisit();
+    });
+  }
+
+  function setVisitView(view){
+    ['visitGate','visitRegister','sharedTablePanel','browsePanel','visitRecoveryPanel','visitStatusPanel'].forEach(function(id){
+      document.getElementById(id).style.display = id===view ? 'block' : 'none';
+    });
+  }
+
+  function setGuestTab(orderingEnabled, showOrder){
+    var queueTab=document.getElementById('queueTab');
+    var orderTab=document.getElementById('orderTab');
+    orderTab.disabled=!orderingEnabled;
+    queueTab.classList.toggle('is-active', !showOrder);
+    orderTab.classList.toggle('is-active', !!showOrder);
+  }
+
+  function openOrderView(){
+    if(!activeVisit || (activeVisit.status!=='assigned' && activeVisit.status!=='serving')) return;
+    document.getElementById('orderFlow').style.display='block';
+    setGuestTab(true, true);
+    document.getElementById('orderFlow').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  document.getElementById('queueTab').addEventListener('click',function(){
+    setGuestTab(!!activeVisit && (activeVisit.status==='assigned' || activeVisit.status==='serving'), false);
+    var target=activeVisit ? document.getElementById('visitStatusPanel') : document.getElementById('visitGate');
+    if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  document.getElementById('orderTab').addEventListener('click',openOrderView);
+
+  function renderVisitPreference(){
+    var select = document.getElementById('visitPreference');
+    if(!select) return;
+    var selected = select.value;
+    var duty = Array.isArray(todayStaff.staffIds) ? todayStaff.staffIds : [];
+    var ids = duty.filter(function(id){ return staffRoster[id] && String(staffRoster[id].name||'').trim()!=='蒼'; });
+    ids.sort(function(a,b){
+      return String((staffRoster[a]||{}).name||'').localeCompare(String((staffRoster[b]||{}).name||''),'zh-Hant');
+    });
+    select.innerHTML = '<option value="">任何有空的女僕皆可（等待較短）</option>' + ids.map(function(id){
+      return '<option value="'+escapeHtml(id)+'">希望由 '+escapeHtml((staffRoster[id]||{}).name||'未命名女僕')+' 接待（可能等候較久）</option>';
+    }).join('');
+    if(ids.indexOf(selected)!==-1) select.value = selected;
+  }
+
+  function waitingVisits(){
+    return Object.keys(visits).map(function(id){ return Object.assign({id:id}, visits[id]||{}); }).filter(function(v){
+      return v.businessDate===visitDateKey() && v.status==='waiting';
+    }).sort(function(a,b){ return Number(a.createdAt||0)-Number(b.createdAt||0); });
+  }
+
+  function updateVisitStatus(){
+    activeVisit = activeVisitId && visits[activeVisitId] ? Object.assign({id:activeVisitId}, visits[activeVisitId]) : null;
+    if(activeVisit && activeVisit.ownerUid!==currentVisitorUid && !sharedMemberLabel){
+      sharedMemberLabel=localStorage.getItem('lephemereSharedMember:'+activeVisitId)||'';
+    }
+    if(!activeVisit){
+      if(activeVisitId){ localStorage.removeItem('lephemereActiveVisitId'); sessionStorage.removeItem('lephemereActiveVisitSessionId'); activeVisitId=''; }
+      visitRecoveryPending=false;
+      if(!browseMode) setVisitView('visitGate');
+      document.getElementById('orderFlow').style.display = 'none';
+      setGuestTab(false, false);
+      renderOperationStatus();
+      renderMenu();
+      return;
+    }
+    if(operationStatusLoaded && (activeVisit.businessDate!==visitDateKey() || (operationStatus.sessionId && activeVisit.sessionId && activeVisit.sessionId!==operationStatus.sessionId))){
+      localStorage.removeItem('lephemereActiveVisitId');
+      sessionStorage.removeItem('lephemereActiveVisitSessionId');
+      activeVisitId=''; activeVisit=null; browseMode=false;
+      visitRecoveryPending=false;
+      setVisitView('visitGate');
+      document.getElementById('orderFlow').style.display='none';
+      setGuestTab(false, false);
+      renderOperationStatus();
+      renderMenu();
+      return;
+    }
+    if(['completed','cancelled','no_show'].indexOf(activeVisit.status)!==-1){
+      localStorage.removeItem('lephemereActiveVisitId');
+      sessionStorage.removeItem('lephemereActiveVisitSessionId');
+      activeVisitId=''; activeVisit=null; browseMode=true;
+      visitRecoveryPending=false;
+      setVisitView('browsePanel');
+      showBrowseMenu(false);
+      renderOperationStatus();
+      renderMenu();
+      return;
+    }
+    if(visitRecoveryPending){
+      browseMode=false;
+      setVisitView('visitRecoveryPanel');
+      document.getElementById('orderFlow').style.display='none';
+      setGuestTab(false, false);
+      document.getElementById('recoveryTicketNumber').textContent=activeVisit.queueNumber||'候位中';
+      document.getElementById('recoveryVisitName').textContent=(activeVisit.characterName||'未填角色名')+(activeVisit.world?' @ '+activeVisit.world:'');
+      renderOperationStatus();
+      renderMenu();
+      return;
+    }
+    browseMode=false;
+    setVisitView('visitStatusPanel');
+    document.getElementById('visitTicketNumber').textContent = activeVisit.queueNumber || '候位中';
+    var legacyService = activeVisit.status==='special_service';
+    var assigned = activeVisit.status==='assigned' || activeVisit.status==='serving';
+    document.getElementById('visitStatusBadge').textContent = legacyService ? '接待即將完成' : (assigned ? (activeVisit.status==='serving'?'接待進行中':'已安排接待') : '等待接待');
+    document.getElementById('visitStatusTitle').textContent = legacyService ? '本次桌邊接待即將完成' : (assigned ? '女僕已接下您的接待' : '女僕正在依序為大家準備');
+    document.getElementById('visitAssignee').textContent = (assigned||legacyService) ? '負責女僕｜'+(activeVisit.assignedStaffName||'店員') : '';
+    document.getElementById('visitStatusMeta').textContent = legacyService ? '如仍有餐點或服務需要確認，請直接告知負責女僕。' : (assigned ? '請留意遊戲內的招呼；接待開始後即可在下方點餐。' : '候位號碼已登記｜同行 '+Number(activeVisit.partySize||1)+' 人');
+    document.getElementById('visitStatusHelp').textContent = legacyService ? '拍立得商品請另至拍立得網站登記。' : (assigned ? '若需要離開、轉交其他女僕或結束接待，請直接告知負責女僕。' : (activeVisit.preferredStaffName ? '您希望由 '+activeVisit.preferredStaffName+' 接待，因此等待時間可能較長。' : '請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。'));
+    document.getElementById('sharedTableLinkCard').style.display=activeVisit.ownerUid===currentVisitorUid?'':'none';
+    if(activeVisit.ownerUid===currentVisitorUid) ensureTableShareCode();
+    document.getElementById('cancelVisitQueue').style.display = activeVisit.status==='waiting'&&activeVisit.ownerUid===currentVisitorUid ? 'inline-block' : 'none';
+    document.getElementById('orderFlow').style.display = assigned ? 'block' : 'none';
+    setGuestTab(assigned, assigned);
+    if(assigned){
+      document.getElementById('cartPanel').style.display='block';
+      document.getElementById('orderDataPanel').style.display='block';
+      document.getElementById('orderSubmitPanel').style.display='block';
+      if(!document.getElementById('custName').value) document.getElementById('custName').value=activeVisit.ownerUid===currentVisitorUid?(activeVisit.characterName||''):(partyMemberName(sharedMemberLabel)||activeVisit.characterName||'');
+      document.getElementById('orderQueueNumber').textContent='候位 '+(activeVisit.queueNumber||'—');
+      document.getElementById('orderGuestName').textContent=(activeVisit.characterName||'主人')+'・'+Number(activeVisit.partySize||1)+' 位';
+    }
+    renderDinerRoster();
+    renderCart();
+    renderOperationStatus();
+    renderMenu();
+  }
+
+  function showBrowseMenu(show){
+    document.getElementById('orderFlow').style.display = 'none';
+    setGuestTab(false, false);
+  }
+
+  document.getElementById('chooseService').addEventListener('click', function(){ setVisitView('visitRegister'); });
+  document.getElementById('chooseBrowse').addEventListener('click', function(){ browseMode=true; setVisitView('browsePanel'); showBrowseMenu(false); });
+  document.getElementById('chooseSharedTable').addEventListener('click', function(){ setVisitView('sharedTablePanel'); });
+  document.getElementById('backSharedTable').addEventListener('click', function(){ setVisitView('visitGate'); });
+  document.getElementById('backVisitChoice').addEventListener('click', function(){ setVisitView('visitGate'); });
+  document.getElementById('browseToQueue').addEventListener('click', function(){ browseMode=false; showBrowseMenu(false); setVisitView('visitRegister'); });
+  document.getElementById('visitKind').addEventListener('change', function(){
+    document.getElementById('visitReservation').style.display = this.value==='reservation' ? 'block' : 'none';
+  });
+  document.getElementById('addVisitCompanion').addEventListener('click',addCompanionInput);
+  syncCompanionRows();
+
+  function forgetLocalVisit(){
+    localStorage.removeItem('lephemereActiveVisitId');
+    sessionStorage.removeItem('lephemereActiveVisitSessionId');
+    activeVisitId=''; activeVisitSessionId=''; activeVisit=null; visitRecoveryPending=false; browseMode=false; sharedMemberLabel=''; sharedJoinChallenge='';
+    if(activeVisitListenerRef){activeVisitListenerRef.off();activeVisitListenerRef=null;}
+    visits={};
+    document.getElementById('successBox').style.display='none';
+    document.getElementById('orderFlow').style.display='none';
+    setVisitView('visitGate');
+    renderOperationStatus();
+    renderMenu();
+  }
+
+  document.getElementById('resumeVisit').addEventListener('click',function(){
+    if(!activeVisitId) return;
+    activeVisitSessionId=activeVisitId;
+    sessionStorage.setItem('lephemereActiveVisitSessionId',activeVisitId);
+    visitRecoveryPending=false;
+    updateVisitStatus();
+  });
+  document.getElementById('forgetRecoveredVisit').addEventListener('click',forgetLocalVisit);
+  document.getElementById('forgetVisitSession').addEventListener('click',function(){
+    if(confirm('確定這不是你的候位號碼嗎？\n移除此頁的紀錄不會取消原本候位。')) forgetLocalVisit();
+  });
+
+  document.getElementById('joinVisitQueue').addEventListener('click', function(){
+    var err = document.getElementById('visitError');
+    var name = document.getElementById('visitCharacter').value.trim();
+    if(!hasCharacterName(name)){ err.textContent='請填寫角色名稱'; err.style.display='block'; return; }
+    if(!document.getElementById('visitWorld').value){ err.textContent='請選擇角色所在伺服器'; err.style.display='block'; return; }
+    var companionRows=Array.prototype.slice.call(document.querySelectorAll('#visitCompanionList .companion-row'));
+    for(var companionIndex=0;companionIndex<companionRows.length;companionIndex++){
+      var companionName=companionRows[companionIndex].querySelector('[data-companion-name]').value.trim();
+      var companionWorld=companionRows[companionIndex].querySelector('[data-companion-world]').value.trim();
+      if(!hasCharacterName(companionName)){ err.textContent='請填寫同行者 '+(companionIndex+2)+' 的角色名稱'; err.style.display='block'; return; }
+      if(!companionWorld){ err.textContent='請選擇同行者 '+(companionIndex+2)+' 所在的伺服器'; err.style.display='block'; return; }
+    }
+    if(operationStatus.isOpen===false){ err.textContent='本場接待已結束，目前無法領取候位號碼'; err.style.display='block'; return; }
+    if(!currentVisitorUid){ err.textContent='正在建立安全訪客身分，請稍後再試'; err.style.display='block'; return; }
+    if(!visitsRef){ err.textContent='目前尚未連線，請稍後再試'; err.style.display='block'; return; }
+    err.style.display='none';
+    var btn=this; btn.disabled=true; btn.textContent='正在領號…';
+    var day=visitDateKey();
+    visitQueueCounterRef.child(day).transaction(function(current){ return Number(current||0)+1; }).then(function(result){
+      if(!result.committed) throw new Error('queue-number');
+      var number=Number(result.snapshot.val()||0);
+      var id=visitsRef.push().key;
+      var staffId=document.getElementById('visitPreference').value;
+      if(staffId && String((staffRoster[staffId]||{}).name||'').trim()==='蒼') staffId='';
+      var staffName=staffId && staffRoster[staffId] ? staffRoster[staffId].name||'' : '';
+      var now=Date.now();
+      var partySize=Number(document.getElementById('visitPartySize').value||1);
+      var partyMembers=[name+'｜'+document.getElementById('visitWorld').value.trim()];
+      document.querySelectorAll('#visitCompanionList .companion-row').forEach(function(row){
+        partyMembers.push(row.querySelector('[data-companion-name]').value.trim()+'｜'+row.querySelector('[data-companion-world]').value.trim());
+      });
+      var visitRecord={
+        queueNumber:'A'+String(number).padStart(3,'0'),
+        characterName:name,
+        world:document.getElementById('visitWorld').value.trim(),
+        partySize:partySize,
+        partyMembers:partyMembers,
+        visitKind:document.getElementById('visitKind').value,
+        reservationRef:document.getElementById('visitReservation').value.trim(),
+        preferredStaffId:staffId,
+        preferredStaffName:staffName,
+        ownerUid:currentVisitorUid,
+        status:'waiting',
+        businessDate:day,
+        sessionId:operationStatus.sessionId||'',
+        createdAt:now,
+        updatedAt:now
+      };
+      return visitsRef.child(id).set(visitRecord).then(function(){
+        activeVisitId=id;
+        localStorage.setItem('lephemereActiveVisitId',id);
+        activeVisitSessionId=id;
+        sessionStorage.setItem('lephemereActiveVisitSessionId',id);
+        visitRecoveryPending=false;
+        watchActiveVisit(id);
+        // watchActiveVisit 會先清空舊快照；要在啟動監聽後再放回剛建立的資料，
+        // 否則下一行更新畫面時會誤判候位不存在並清除新號碼。
+        visits[id]=visitRecord;
+        updateVisitStatus();
+      });
+    }).catch(function(error){
+      console.error('候位登記失敗', error);
+      var code=String((error&&error.code)||'').toLowerCase();
+      var message=String((error&&error.message)||'').toLowerCase();
+      if(code.indexOf('permission')!==-1 || message.indexOf('permission')!==-1){
+        err.textContent='暫時無法完成領號，請聯絡女僕協助登記。';
+      }else if(code.indexOf('network')!==-1 || message.indexOf('network')!==-1){
+        err.textContent='目前網路連線不穩定，請確認連線後再試一次';
+      }else if(message.indexOf('queue-number')!==-1){
+        err.textContent='候位號碼建立失敗，請店員協助登記';
+      }else{
+        err.textContent='候位登記失敗，請店員協助登記';
+      }
+      err.style.display='block';
+    }).finally(function(){ btn.disabled=false; btn.textContent='領取候位號碼'; renderOperationStatus(); });
+  });
+
+  document.getElementById('cancelVisitQueue').addEventListener('click', function(){
+    if(!activeVisitId || !visitsRef) return;
+    if(!confirm('確定取消候位並改為自由參觀嗎？')) return;
+    visitsRef.child(activeVisitId).update({status:'cancelled',cancelledAt:Date.now(),updatedAt:Date.now()});
+  });
+  function friendlyCallableError(err,fallback){var code=String(err&&err.code||'').toLowerCase();if(code.indexOf('permission')!==-1)return '目前無法取得本桌資料，請由領取號碼牌的人重新開啟此頁。';if(code.indexOf('network')!==-1||code.indexOf('unavailable')!==-1)return '網路連線不穩定，請稍後再試。';return fallback}
+  function ensureTableShareCode(){
+    if(!activeVisitId||!createSharedTableCodeFn||tableShareLoading)return;
+    if(tableShareVisitId===activeVisitId&&tableShareCode){document.getElementById('sharedTableShareCode').textContent=tableShareCode;document.getElementById('copySharedTableCode').disabled=false;return}
+    tableShareLoading=true;document.getElementById('sharedTableShareCode').textContent='取得中…';document.getElementById('tableAccessStatus').textContent='';
+    createSharedTableCodeFn({visitId:activeVisitId}).then(function(res){tableShareCode=String(res.data&&res.data.shareCode||'');tableShareVisitId=activeVisitId;if(!/^\d{6}$/.test(tableShareCode))throw new Error('missing-code');document.getElementById('sharedTableShareCode').textContent=tableShareCode;document.getElementById('copySharedTableCode').disabled=false}).catch(function(err){document.getElementById('sharedTableShareCode').textContent='暫時無法取得';document.getElementById('tableAccessStatus').textContent=friendlyCallableError(err,'暫時無法取得共桌密碼，請稍後重新整理。')}).finally(function(){tableShareLoading=false})
+  }
+  document.getElementById('copySharedTableCode').addEventListener('click',function(){
+    if(!activeVisit||!tableShareCode)return;var message=tableShareCode;
+    var status=document.getElementById('tableAccessStatus');
+    navigator.clipboard.writeText(message).then(function(){status.textContent='已複製六位數共桌密碼。'}).catch(function(){status.textContent='請手動記下這組六位數密碼。'})
+  });
+  document.getElementById('joinSharedTable').addEventListener('click',function(){
+    var code=document.getElementById('sharedTableCode').value.trim(),status=document.getElementById('sharedTableStatus'),btn=this;
+    if(!/^\d{6}$/.test(code)){status.textContent='請輸入六位數共桌密碼。';return}
+    if(!joinSharedTableFn){status.textContent='目前尚未連線，請稍後再試。';return}
+    btn.disabled=true;status.textContent='正在核對共桌資料…';
+    joinSharedTableFn({shareCode:code}).then(function(res){var d=res.data||{};if(!d.challenge||!Array.isArray(d.members))throw new Error('沒有取得本桌角色');sharedJoinChallenge=d.challenge;document.getElementById('sharedMemberSelect').innerHTML=d.members.map(function(member){return '<option value="'+escapeHtml(member)+'">'+escapeHtml(partyMemberName(member))+'</option>';}).join('');document.getElementById('sharedMemberForm').style.display='block';btn.style.display='none';status.textContent='請選擇你在本桌使用的角色。'}).catch(function(){sharedJoinChallenge='';document.getElementById('sharedMemberForm').style.display='none';status.textContent='共桌密碼不正確或已失效，請重新確認。'}).finally(function(){btn.disabled=false});
+  });
+  document.getElementById('confirmSharedMember').addEventListener('click',function(){
+    if(!sharedJoinChallenge)return;var member=document.getElementById('sharedMemberSelect').value,status=document.getElementById('sharedTableStatus'),btn=this;btn.disabled=true;status.textContent='正在連接本桌…';
+    joinSharedTableFn({challenge:sharedJoinChallenge,memberLabel:member}).then(function(res){var d=res.data||{};if(!d.visitId)throw new Error('沒有取得本桌資料');sharedMemberLabel=d.memberLabel||member;activeVisitId=d.visitId;activeVisitSessionId=d.visitId;localStorage.setItem('lephemereActiveVisitId',d.visitId);localStorage.setItem('lephemereSharedMember:'+d.visitId,sharedMemberLabel);sessionStorage.setItem('lephemereActiveVisitSessionId',d.visitId);visitRecoveryPending=false;sharedJoinChallenge='';watchActiveVisit(d.visitId);status.textContent='已連接本桌。';}).catch(function(){sharedJoinChallenge='';document.getElementById('sharedMemberForm').style.display='none';document.getElementById('joinSharedTable').style.display='';status.textContent='連接已逾時，請重新輸入共桌密碼。';}).finally(function(){btn.disabled=false;});
+  });
+  setInterval(function(){ if(activeVisit) updateVisitStatus(); },30000);
+
+  function renderOperationStatus(){
+    var closed = operationStatus.isOpen===false;
+    document.getElementById('operationBanner').style.display = closed ? 'block' : 'none';
+    document.getElementById('chooseService').disabled=closed;
+    document.getElementById('browseToQueue').disabled=closed;
+    var queueBtn=document.getElementById('joinVisitQueue');
+    if(closed){queueBtn.disabled=true;queueBtn.textContent='本場接待已結束';}
+    else if(queueBtn.textContent!=='正在領號…'){queueBtn.disabled=false;queueBtn.textContent='領取候位號碼';}
+    var btn = document.getElementById('submitOrder');
+    var canOrder = !!activeVisit && !visitRecoveryPending && (activeVisit.status==='assigned' || activeVisit.status==='serving');
+    btn.disabled = closed || !canOrder;
+    btn.textContent = closed ? '目前未開放點餐' : (canOrder ? '送出訂單' : '接待後即可點餐');
+  }
+
+  // ---------- menu rendering ----------
+  function itemIsAvailable(item){
+    return !!item && item.available!==false && item.available!=='false' && item.available!==0;
+  }
+
+  function isLegacyPhotoMenuItem(item){
+    var type=String(item&&item.serviceType||'').toLowerCase();
+    var source=String(item&&item.name||'')+' '+String(item&&item.category||'');
+    return type==='polaroid'||type==='lens'||/拍立得|純拍|lens|個人攝影|專屬留影/i.test(source);
+  }
+
+  function itemHasStockLimit(item){
+    return !!item && (item.stockEnabled===true || item.stockEnabled==='true' || item.stockEnabled===1);
+  }
+
+  function itemStockRemaining(item){
+    return Math.max(0, Math.floor(Number(item && item.stockRemaining || 0)));
+  }
+
+  function setMenuSyncStatus(message, isError){
+    var el = document.getElementById('menuSyncStatus');
+    if(!el) return;
+    el.textContent = message;
+    el.className = 'menu-sync-status' + (isError ? ' error' : '');
+  }
+
+  function applyMenuSnapshot(snap){
+    applyMenuData(snap.val());
+  }
+
+  function applyMenuData(nextMenu){
+    menuItems = nextMenu || {};
+    syncCartWithMenu();
+    categoryOrder = [];
+    Object.keys(menuItems).sort(function(a,b){
+      return Number(menuItems[a].sortOrder||0)-Number(menuItems[b].sortOrder||0);
+    }).forEach(function(id){
+      var cat = menuItems[id].category || '其他';
+      if(categoryOrder.indexOf(cat) === -1) categoryOrder.push(cat);
+    });
+    renderMenu();
+    renderCart();
+    setMenuSyncStatus('菜單已更新・' + new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'}), false);
+  }
+
+  function refreshMenuSnapshot(){
+    if(!menuRef || menuSyncBusy) return Promise.resolve();
+    menuSyncBusy = true;
+    var refreshBtn = document.getElementById('refreshMenuBtn');
+    if(refreshBtn) refreshBtn.disabled = true;
+    var publicMenuUrl = firebaseConfig.databaseURL.replace(/\/$/, '') + '/lephemere/menu.json';
+    return fetch(publicMenuUrl, {cache:'no-store'}).then(function(response){
+      if(!response.ok) throw new Error('public-menu-http-'+response.status);
+      return response.json();
+    }).then(function(data){
+      applyMenuData(data);
+    }).catch(function(){
+      return menuRef.once('value').then(function(snap){
+        applyMenuSnapshot(snap);
+      }).catch(function(){
+        setMenuSyncStatus('菜單載入失敗，請按「立即更新菜單」', true);
+      });
+    }).then(function(){
+      menuSyncBusy = false;
+      if(refreshBtn) refreshBtn.disabled = false;
+    });
+  }
+
+  document.getElementById('refreshMenuBtn').addEventListener('click', function(){
+    setMenuSyncStatus('正在直接取得最新菜單…', false);
+    refreshMenuSnapshot();
+  });
+
+  function syncCartWithMenu(){
+    var syncedCart = {};
+    var syncedAddons = {};
+    var menuIds = Object.keys(menuItems);
+
+    Object.keys(cart).forEach(function(oldId){
+      var line = cart[oldId];
+      var newId = oldId;
+      var latest = menuItems[newId];
+
+      if(!latest){
+        newId = menuIds.find(function(id){ return menuItems[id].name === line.name; });
+        latest = newId ? menuItems[newId] : null;
+      }
+      if(!latest) return;
+      if(isLegacyPhotoMenuItem(latest)) return;
+      if(!itemIsAvailable(latest)) return;
+      var allowedQty = Number(line.qty||0);
+      if(itemHasStockLimit(latest)){
+        allowedQty = Math.min(allowedQty, itemStockRemaining(latest));
+      }
+      if(allowedQty<=0) return;
+
+      var addon = null;
+      if(line.addon && latest.addonLabel){
+        addon = { label:latest.addonLabel, price:latest.addonPrice };
+        syncedAddons[newId] = true;
+      }
+      syncedCart[newId] = {
+        name:latest.name,
+        price:latest.price,
+        qty:allowedQty,
+        addon:addon,
+        assignments:Array.isArray(line.assignments) ? line.assignments.slice(0,allowedQty) : []
+      };
+      normalizeAssignments(syncedCart[newId]);
+    });
+
+    Object.keys(pendingAddons).forEach(function(oldId){
+      if(!pendingAddons[oldId]) return;
+      var newId = oldId;
+      if(!menuItems[newId]){
+        var oldName = cart[oldId] ? cart[oldId].name : '';
+        newId = menuIds.find(function(id){ return menuItems[id].name === oldName; });
+      }
+      if(newId && menuItems[newId] && menuItems[newId].addonLabel){
+        syncedAddons[newId] = true;
+      }
+    });
+
+    cart = syncedCart;
+    pendingAddons = syncedAddons;
+  }
+
+  function groupedMenu(){
+    var groups = {};
+    categoryOrder.forEach(function(c){ groups[c] = []; });
+    Object.keys(menuItems).forEach(function(id){
+      var item = menuItems[id];
+      if(isLegacyPhotoMenuItem(item)) return;
+      var cat = item.category || '其他';
+      if(!groups[cat]) groups[cat] = [];
+      groups[cat].push(Object.assign({id:id}, item));
+    });
+    Object.keys(groups).forEach(function(cat){
+      groups[cat].sort(function(a,b){ return Number(a.sortOrder||0)-Number(b.sortOrder||0); });
+    });
+    return groups;
+  }
+
+  function renderMenu(){
+    var el = document.getElementById('menuList');
+    var nav = document.getElementById('categoryNav');
+    var groups = groupedMenu();
+    if(categoryOrder.length === 0){
+      el.innerHTML = '<span class="empty">菜單尚未開放，請稍候或詢問女僕。</span>';
+      if(nav) nav.innerHTML='';
+      return;
+    }
+    if(activeMenuCategory!=='__all__' && categoryOrder.indexOf(activeMenuCategory)===-1){
+      activeMenuCategory='__all__';
+    }
+    var html = '';
+    function isPolaroidLimitNote(note){
+      return /每位店員每次營業限量開放\s*3\s*張拍立得服務/.test(note || '');
+    }
+    var visibleCategories=[];
+    categoryOrder.forEach(function(cat){
+      var items = groups[cat] || [];
+      if(items.length === 0) return;
+      var categoryParts = String(cat || '其他').split('※');
+      var categoryTitle = (categoryParts.shift() || '其他').trim();
+      visibleCategories.push({title:categoryTitle,key:cat});
+    });
+    visibleCategories.forEach(function(categoryEntry){
+      if(activeMenuCategory!=='__all__' && categoryEntry.key!==activeMenuCategory) return;
+      var cat=categoryEntry.key;
+      var items=groups[cat] || [];
+      var categoryParts = String(cat || '其他').split('※');
+      var categoryTitle = (categoryParts.shift() || '其他').trim();
+      var categoryNote = categoryParts.join('※').trim();
+      html += '<div class="cat-title">'+escapeHtml(categoryTitle)+'</div>';
+      var limitNoteItem = items.find(function(item){ return isPolaroidLimitNote(item.note); });
+      var limitText = categoryNote || (limitNoteItem ? String(limitNoteItem.note || '').replace(/^\s*※\s*/, '') : '');
+      if(limitText){
+        html += '<div class="category-notice">'
+          + '<span class="category-notice-label">LIMITED</span>'
+          + '<span>'+escapeHtml(limitText)+'</span>'
+          + '</div>';
+      }
+      items.forEach(function(item){
+        var qty = cart[item.id] ? cart[item.id].qty : 0;
+        var soldOut = !itemIsAvailable(item) || (itemHasStockLimit(item) && itemStockRemaining(item)<=0);
+        var canOrder = !!activeVisit && (activeVisit.status==='assigned' || activeVisit.status==='serving');
+        var orderingDisabled = soldOut || operationStatus.isOpen===false || !canOrder;
+        var availability = '';
+        if(!itemIsAvailable(item)) availability = '<span class="availability soldout">暫停供應</span>';
+        else if(itemHasStockLimit(item) && itemStockRemaining(item)<=0) availability = '<span class="availability soldout">本次額滿</span>';
+        else if(itemHasStockLimit(item)) availability = '<span class="availability">剩餘 '+itemStockRemaining(item)+' 份</span>';
+        var imageHtml = item.imageUrl
+          ? '<div class="item-image"><img src="'+escapeHtml(item.imageUrl)+'" alt="'+escapeHtml(item.name)+'" loading="lazy"></div>'
+          : '';
+        html += '<div class="item-row '+(soldOut?'unavailable':'')+'">'
+          + imageHtml
+          + '<div class="item-name">'+escapeHtml(item.name)
+          + (item.note && !isPolaroidLimitNote(item.note) ? '<span class="item-note">'+escapeHtml(item.note)+'</span>' : '')
+          + availability
+          + (item.addonLabel ? '<div class="addon-row"><input type="checkbox" id="addon-'+item.id+'" '+((cart[item.id]&&cart[item.id].addon)||pendingAddons[item.id]?'checked':'')+' '+(orderingDisabled?'disabled':'')+'><label for="addon-'+item.id+'">'+escapeHtml(item.addonLabel)+' ＋'+fmtGil(item.addonPrice)+'</label></div>' : '')
+          + '</div>'
+          + '<div class="item-price">'+fmtGil(item.price)+'</div>'
+          + '<div class="stepper">'
+          + '<button class="step-btn" data-dec="'+item.id+'">－</button>'
+          + '<span class="step-qty" id="qty-'+item.id+'">'+qty+'</span>'
+          + '<button class="step-btn" data-inc="'+item.id+'" '+(orderingDisabled?'disabled':'')+'>＋</button>'
+          + '</div>'
+          + '</div>';
+      });
+    });
+    el.innerHTML = html;
+    if(nav){
+      nav.innerHTML='<button type="button" class="category-link '+(activeMenuCategory==='__all__'?'is-active':'')+'" data-category-index="all">全部</button>'
+        + visibleCategories.map(function(entry,index){
+          return '<button type="button" class="category-link '+(activeMenuCategory===entry.key?'is-active':'')+'" data-category-index="'+index+'">'+escapeHtml(entry.title)+'</button>';
+        }).join('');
+      nav.querySelectorAll('[data-category-index]').forEach(function(button){
+        button.addEventListener('click',function(){
+          var index=button.getAttribute('data-category-index');
+          activeMenuCategory=index==='all' ? '__all__' : visibleCategories[Number(index)].key;
+          renderMenu();
+        });
+      });
+    }
+
+    el.querySelectorAll('[data-inc]').forEach(function(btn){
+      btn.addEventListener('click', function(){ changeQty(btn.getAttribute('data-inc'), 1); });
+    });
+    el.querySelectorAll('[data-dec]').forEach(function(btn){
+      btn.addEventListener('click', function(){ changeQty(btn.getAttribute('data-dec'), -1); });
+    });
+    el.querySelectorAll('[id^="addon-"]').forEach(function(cb){
+      cb.addEventListener('change', function(){
+        var itemId = cb.id.replace('addon-','');
+        var item = menuItems[itemId];
+        pendingAddons[itemId] = cb.checked;
+        if(cart[itemId]){
+          cart[itemId].addon = cb.checked ? { label:item.addonLabel, price:item.addonPrice } : null;
+        }
+        renderCart();
+      });
+    });
+  }
+
+  function changeQty(id, delta){
+    var item = menuItems[id];
+    if(!item) return;
+    if(delta>0 && (operationStatus.isOpen===false || !itemIsAvailable(item) || !activeVisit || (activeVisit.status!=='assigned' && activeVisit.status!=='serving'))) return;
+    var current = cart[id] ? cart[id].qty : 0;
+    var next = Math.max(0, current + delta);
+    if(delta>0 && itemHasStockLimit(item)){
+      next = Math.min(next, itemStockRemaining(item));
+    }
+    if(next === 0){
+      delete cart[id];
+      delete pendingAddons[id];
+      var addonEl = document.getElementById('addon-'+id);
+      if(addonEl) addonEl.checked = false;
+    } else {
+      if(!cart[id]){
+        cart[id] = {
+          name:item.name,
+          price:item.price,
+          qty:0,
+          addon:pendingAddons[id] ? { label:item.addonLabel, price:item.addonPrice } : null,
+          assignments:[]
+        };
+      }
+      cart[id].qty = next;
+      normalizeAssignments(cart[id]);
+    }
+    var qtyEl = document.getElementById('qty-'+id);
+    if(qtyEl) qtyEl.textContent = next;
+    renderCart();
+  }
+
+  function cartTotal(){
+    var total = 0;
+    Object.keys(cart).forEach(function(id){
+      var line = cart[id];
+      total += line.price * line.qty;
+      if(line.addon) total += line.addon.price * line.qty;
+    });
+    return total;
+  }
+
+  function renderCart(){
+    var el = document.getElementById('cartList');
+    var ids = Object.keys(cart);
+    if(ids.length === 0){
+      el.innerHTML = '<span class="empty-cart">尚未選擇餐點</span>';
+      return;
+    }
+    var html = '';
+    ids.forEach(function(id){
+      var line = cart[id];
+      var assignments=normalizeAssignments(line);
+      html += '<div class="cart-line-block"><div class="cart-line-main"><span>'+escapeHtml(line.name)+' × '+line.qty+'</span><span>'+fmtGil(line.price*line.qty)+'</span></div>';
+      if(line.addon){
+        html += '<div class="cart-line"><span>＋'+escapeHtml(line.addon.label)+' × '+line.qty+'</span><span>'+fmtGil(line.addon.price*line.qty)+'</span></div>';
+      }
+      html += '<div class="diner-assignments">';
+      assignments.forEach(function(assigned,index){
+        html += '<label class="diner-assignment"><span>第 '+(index+1)+' 份</span><select data-assignment-item="'+escapeHtml(id)+'" data-assignment-index="'+index+'">'+assignmentOptions(assigned)+'</select></label>';
+      });
+      html += '</div></div>';
+    });
+    html += '<div class="cart-total"><span>總計</span><span>'+fmtGil(cartTotal())+'</span></div>';
+    el.innerHTML = html;
+    el.querySelectorAll('[data-assignment-item]').forEach(function(select){
+      select.addEventListener('change',function(){
+        var id=select.getAttribute('data-assignment-item');
+        var index=Number(select.getAttribute('data-assignment-index'));
+        if(cart[id]){
+          normalizeAssignments(cart[id]);
+          cart[id].assignments[index]=select.value;
+        }
+      });
+    });
+  }
+
+  // ---------- submit ----------
+  function simpleHash(text){
+    var hash = 2166136261;
+    for(var i=0;i<text.length;i++){
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash>>>0).toString(36);
+  }
+
+  function submissionFingerprint(name, note, items){
+    return JSON.stringify({visitId:activeVisitId,sessionId:operationStatus.sessionId||'',name:name,note:note,items:items});
+  }
+
+  function pendingRequest(fingerprint){
+    var key = 'lephemerePendingOrder:'+activeVisitId;
+    try{
+      var existing = JSON.parse(localStorage.getItem(key)||'null');
+      if(existing && existing.fingerprint===fingerprint && existing.requestId) return existing;
+      var requestId = 'req-'+simpleHash(fingerprint+'|'+Math.floor(Date.now()/300000));
+      var created = {requestId:requestId,fingerprint:fingerprint,createdAt:Date.now()};
+      localStorage.setItem(key, JSON.stringify(created));
+      return created;
+    }catch(e){
+      return {requestId:'req-'+simpleHash(fingerprint+'|'+Math.floor(Date.now()/300000)),fingerprint:fingerprint};
+    }
+  }
+
+  function clearPendingRequest(){
+    try{ localStorage.removeItem('lephemerePendingOrder:'+activeVisitId); }catch(e){}
+  }
+
+  function orderFailureText(error){
+    var details = error && error.details || {};
+    var reason = details.reason || '';
+    if(reason==='BUSINESS_CLOSED') return '本場點餐已結束，請直接詢問女僕。';
+    if(reason==='SESSION_CHANGED') return '營業場次已更新，請重新整理頁面後再送單。';
+    if(reason==='VISIT_NOT_FOUND') return '找不到您的候位資料，請重新領號或詢問女僕。';
+    if(reason==='VISIT_NOT_ASSIGNED') return '尚未由女僕接待，目前不能送出訂單。';
+    if(reason==='ITEM_UNAVAILABLE') return (details.itemName||'部分餐點')+'目前暫停供應，請重新確認菜單。';
+    if(reason==='OUT_OF_STOCK') return (details.itemName||'限量餐點')+'剩餘 '+Number(details.remaining||0)+' 份，請調整數量後重試。';
+    if(reason==='MINIMUM_NOT_MET') return '餐點金額尚未達低消，目前合計 '+fmtGil(Number(details.total||0))+'。';
+    if(reason==='TRANSACTION_RETRY') return '同時有其他客人送單，庫存正在更新；請按「重試送單」。';
+    if(reason==='AUTH_NOT_READY') return '訪客身分尚未建立完成，請稍候幾秒再重試。';
+    var code = String(error && error.code || '');
+    if(/unavailable|deadline-exceeded|internal/.test(code)) return '目前連線不穩定，請稍後按「重試送單」。';
+    return (error && error.message) ? '送出失敗：'+error.message : '送出失敗，請按「重試送單」。';
+  }
+
+  document.getElementById('submitOrder').addEventListener('click', function(){
+    if(!isConfigured) return;
+    var errEl = document.getElementById('orderError');
+    var name = document.getElementById('custName').value.trim();
+    var note = document.getElementById('custNote').value.trim();
+    var ids = Object.keys(cart);
+
+    if(operationStatus.isOpen===false){
+      errEl.textContent = '目前已結束線上點餐，請直接詢問女僕';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    if(!activeVisit || (activeVisit.status!=='assigned' && activeVisit.status!=='serving')){
+      errEl.textContent = '請先完成候位，並由女僕接下您的接待後再點餐';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    if(!name){
+      errEl.textContent = '請填寫角色名／稱呼';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(ids.length === 0){
+      errEl.textContent = '請至少選擇一項餐點';
+      errEl.style.display = 'block';
+      return;
+    }
+    var total = cartTotal();
+    if(total < 30000){
+      errEl.textContent = '每位入座客人的餐點低消為 30,000 Gil，請再選擇其他餐點。';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.textContent = '正在確認價格與供應數量…';
+    errEl.style.color = 'var(--gold)';
+    errEl.style.display = 'block';
+
+    var submitBtn = document.getElementById('submitOrder');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '確認訂單中…';
+
+    var items = ids.map(function(id){
+      var line = cart[id];
+      return { id:id, qty:line.qty, addonSelected:!!line.addon, assignments:normalizeAssignments(line).slice() };
+    });
+    var fingerprint = submissionFingerprint(name, note, items);
+    var pending = pendingRequest(fingerprint);
+
+    var isSharedVisitor=activeVisit.ownerUid!==currentVisitorUid;
+    var orderCallable=isSharedVisitor?submitSharedOrderFn:submitOrderFn;
+    if(isSharedVisitor&&!sharedMemberLabel)sharedMemberLabel=localStorage.getItem('lephemereSharedMember:'+activeVisitId)||'';
+    orderCallable({requestId:pending.requestId,visitId:activeVisitId,name:name,note:note,diners:currentDiners(),items:items,memberLabel:sharedMemberLabel}).then(function(result){
+      var data = result && result.data || {};
+      errEl.textContent = '訂單已成功送出。';
+      document.getElementById('successNumber').textContent = '#'+(data.orderNumber||'—');
+      document.getElementById('orderFlow').style.display = 'none';
+      setGuestTab(true, false);
+      document.getElementById('successBox').style.display = 'block';
+      clearPendingRequest();
+      cart = {};
+      pendingAddons = {};
+      document.getElementById('custNote').value = '';
+      renderMenu();
+      renderCart();
+      submitBtn.disabled = false;
+      submitBtn.textContent = '送出訂單';
+    }).catch(function(err){
+      errEl.textContent = orderFailureText(err);
+      errEl.style.color = 'var(--rose)';
+      errEl.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = '重試送單';
+    });
+  });
+
+  document.getElementById('newOrderBtn').addEventListener('click', function(){
+    document.getElementById('successBox').style.display = 'none';
+    document.getElementById('orderFlow').style.display = 'block';
+    setGuestTab(true, true);
+  });
+
+})();
+</script>
 
 </body>
 </html>
