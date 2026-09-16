@@ -299,9 +299,9 @@
       </section>
 
       <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="session" hidden id="polaroidManagerArea">
-        <details class="panel polaroid-session-editor" open><summary><span><strong>本場拍立得設定</strong><small>現場合照每客 3 張、同女僕每客 1 張為固定限制</small></span></summary>
-          <div class="polaroid-session-fields"><label>場次名稱<input id="polaroidSessionTitle" maxlength="100" placeholder="例如：2026/09/22 曇時一般營業"></label><label>營業日期<input id="polaroidBusinessDate" type="date"></label><label>其他商品每客上限<input id="polaroidMaxProducts" type="number" min="1" max="50" value="5"></label><label>同時最多拍攝女僕人數<input id="polaroidSimultaneous" type="number" min="1" max="20" value="2"></label><label class="check"><input id="polaroidSessionOpen" type="checkbox" checked> 啟用本場拍立得網站</label><label class="check"><input id="polaroidSalesOpen" type="checkbox" checked> 接受新現場合照（取消勾選並儲存後停止）</label><label class="check"><input id="polaroidOtherSalesOpen" type="checkbox" checked> 開放商品接單總開關</label></div>
-          <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><p class="polaroid-help">新單安排到最近尚未結束的輪次；未完成自動遞延並保留下單順位。時間以台灣時間為準，跨午夜輪次請放在最後。</p><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕</h4><p class="polaroid-help">勾選開放現場合照的女僕，個別設定本場張數；預設 3 張。系統不判斷女僕是否有空。</p><div id="polaroidMaidEditor"></div></div></div>
+        <details class="panel polaroid-session-editor" open><summary><span><strong>本場拍立得設定</strong><small>需安排拍攝的服務每客 3 份、同女僕每客 1 份為固定限制</small></span></summary>
+          <div class="polaroid-session-fields"><label>場次名稱<input id="polaroidSessionTitle" maxlength="100" placeholder="例如：2026/09/22 曇時一般營業"></label><label>營業日期<input id="polaroidBusinessDate" type="date"></label><label>其他商品每客上限<input id="polaroidMaxProducts" type="number" min="1" max="50" value="5"></label><label>同時最多拍攝女僕人數<input id="polaroidSimultaneous" type="number" min="1" max="20" value="2"></label><label class="check"><input id="polaroidSessionOpen" type="checkbox" checked> 啟用本場拍立得網站</label><label class="check"><input id="polaroidSalesOpen" type="checkbox" checked> 接受新拍攝登記（取消勾選並儲存後停止）</label><label class="check"><input id="polaroidOtherSalesOpen" type="checkbox" checked> 開放商品接單總開關</label></div>
+          <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><p class="polaroid-help">新單安排到最近尚未結束的輪次；未完成自動遞延並保留下單順位。時間以台灣時間為準，跨午夜輪次請放在最後。</p><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕</h4><p class="polaroid-help">勾選開放本場拍攝服務的女僕，個別設定本場接單數；預設 3 份。系統不判斷女僕是否有空。</p><div id="polaroidMaidEditor"></div></div></div>
           <div class="polaroid-save-row"><span id="polaroidSaveStatus" aria-live="polite"></span><button type="button" class="btn primary" id="polaroidSaveSession">儲存場次與輪次</button></div>
         </details>
       </section>
@@ -312,8 +312,8 @@
           <div class="polaroid-work-head"><div><h3 id="polaroidProductEditorTitle">新增商品</h3><p>所有商品都必須連結當日號碼牌才能購買，且不列入餐點低消。</p></div><button class="btn danger small" id="polaroidDeleteProduct" type="button" hidden>刪除商品</button></div>
           <input id="polaroidProductId" type="hidden">
           <div class="polaroid-product-fields">
-            <label>商品名稱<input id="polaroidProductName" maxlength="80" placeholder="例如：小顏・現場合照"></label>
-            <label class="check"><input id="polaroidProductOnsite" type="checkbox" checked> 現場合照（每客 3 張、同女僕 1 張）</label><label>分類<input id="polaroidProductCategory" maxlength="40" placeholder="現場合照／純拍／限定商品"></label>
+            <label>商品名稱<input id="polaroidProductName" maxlength="80" placeholder="例如：小顏的特製研磨抹茶"></label>
+            <label class="check"><input id="polaroidProductOnsite" type="checkbox" checked> 需安排拍攝（每客 3 份、同女僕 1 份）</label><label>分類<input id="polaroidProductCategory" maxlength="40" placeholder="簽繪／純拍／繪圖委託／個人照"></label>
             <label>價格（Gil）<input id="polaroidProductPrice" type="number" min="0" step="10000" value="80000"></label>
             <label>庫存（-1 代表不限量）<input id="polaroidProductStock" type="number" min="-1" value="10"></label>
             <label>每人限購<input id="polaroidProductLimit" type="number" min="1" max="20" value="1"></label>
@@ -332,7 +332,7 @@
       </section>
 
       <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="orders" hidden>
-        <div class="polaroid-admin-metrics"><div><span>現場合照張數</span><strong id="polaroidMetricOrders">0</strong></div><div><span>已完成</span><strong id="polaroidMetricDone">0</strong></div><div><span>等待處理</span><strong id="polaroidMetricPending">0</strong></div><div><span>未完成（含拍攝中）</span><strong id="polaroidMetricDeferred">0</strong></div></div>
+        <div class="polaroid-admin-metrics"><div><span>拍攝服務件數</span><strong id="polaroidMetricOrders">0</strong></div><div><span>已完成</span><strong id="polaroidMetricDone">0</strong></div><div><span>等待處理</span><strong id="polaroidMetricPending">0</strong></div><div><span>未完成（含拍攝中）</span><strong id="polaroidMetricDeferred">0</strong></div></div>
         <section class="panel photo-round-summary"><p>目前：<strong id="polaroidCurrentRound"></strong></p><p>下一輪：<strong id="polaroidNextRound"></strong></p><p>拍攝中女僕：<strong id="polaroidBusyCount"></strong></p><div id="polaroidMaidTotals" class="photo-maid-totals"></div></section><section class="panel"><div class="polaroid-work-head"><div><h3>全場工作概況</h3><p>待拍依原始下單時間排序；跳過不會改變順位。已完成列於下方。最後一輪未完成工作留待店長安排。</p></div></div><div id="polaroidAllTasks" class="polaroid-task-list"></div></section>
       </section>
     </div>

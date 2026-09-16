@@ -2,7 +2,7 @@
   'use strict';
   var GUEST_LIMIT=3,PER_MAID_LIMIT=1;
   function providers(t){return Array.from(new Set((Array.isArray(t.providerIds)?t.providerIds:Object.values(t.providerIds||{})).concat(t.maidId||[]).filter(Boolean)))}
-  function onsite(p){return p.isOnsitePhoto===true||(p.isOnsitePhoto!==false&&p.processingMode!=='delivery'&&(/現場合照/.test(p.category||'')||/^onsite_/.test(p.id||p.productId||'')))}
+  function onsite(p){return p.isOnsitePhoto===true||(p.isOnsitePhoto!==false&&p.processingMode!=='delivery'&&/^onsite_/.test(p.id||p.productId||''))}
   function finished(t){return ['completed','delivered','cancelled'].indexOf(t.status)!==-1}
   function slots(s){
     if(!/^\d{4}-\d{2}-\d{2}$/.test(s.businessDate||''))throw new Error('請設定有效營業日期。');
@@ -30,9 +30,9 @@
   function assertPurchase(s,selected,key,time){
     var mine=counts(s,key),sold=counts(s),picked=0,seen={};
     selected.forEach(function(p){if(p.processingMode!=='delivery'&&!next(s,time))throw new Error('最後一輪已結束，現場拍攝已停止接單。');if(!onsite(p))return;
-      if(s.onsiteSalesOpen===false)throw new Error('本場已停止接受新現場合照。');picked++;
-      var ids=providers(p);if(!ids.length)throw new Error('現場合照尚未設定女僕。');ids.forEach(function(id){if(!s.maids||!s.maids[id]||s.maids[id].enabled===false)throw new Error('選擇的女僕未開放本場現場合照。');if((mine.maids[id]||0)+(seen[id]||0)>=PER_MAID_LIMIT)throw new Error('同一位女僕，每位客人每場最多購買 1 張現場合照。');if((sold.maids[id]||0)+(seen[id]||0)>=quota(s,id))throw new Error('這位女僕本場現場合照名額已滿。');seen[id]=(seen[id]||0)+1});
-    });if(mine.total+picked>GUEST_LIMIT)throw new Error('每位客人每場最多購買 3 張現場合照。');
+      if(s.onsiteSalesOpen===false)throw new Error('本場已停止接受新拍攝登記。');picked++;
+      var ids=providers(p);if(!ids.length)throw new Error('此拍攝服務尚未設定女僕。');ids.forEach(function(id){if(!s.maids||!s.maids[id]||s.maids[id].enabled===false)throw new Error('選擇的女僕未開放本場拍攝服務。');if((mine.maids[id]||0)+(seen[id]||0)>=PER_MAID_LIMIT)throw new Error('同一位女僕，每位客人每場最多登記 1 份需拍攝服務。');if((sold.maids[id]||0)+(seen[id]||0)>=quota(s,id))throw new Error('這位女僕本場拍攝服務名額已滿。');seen[id]=(seen[id]||0)+1});
+    });if(mine.total+picked>GUEST_LIMIT)throw new Error('每位客人每場最多登記 3 份需拍攝服務。');
   }
   function roll(s,time){var changed=false;allTasks(s).forEach(function(row){var t=s.orders[row.orderId].tasks[row.taskId];if(t.taskType!=='shoot'||finished(t)||t.status==='shooting')return;var id=effective(s,t,time);if(id&&id!==t.roundId){t.originalRoundId=t.originalRoundId||t.roundId;t.roundId=id;t.deferredAt=time;t.awaitingArrangement=false;if(t.status==='deferred')t.status='pending';changed=true}else if(!id&&!t.awaitingArrangement){t.awaitingArrangement=true;changed=true}});if(!next(s,time)&&s.onsiteSalesOpen!==false){s.onsiteSalesOpen=false;changed=true}return changed}
   return{GUEST_LIMIT:GUEST_LIMIT,PER_MAID_LIMIT:PER_MAID_LIMIT,providers:providers,onsite:onsite,onsiteTask:onsiteTask,finished:finished,slots:slots,next:next,effective:effective,allTasks:allTasks,counts:counts,quota:quota,assertPurchase:assertPurchase,roll:roll};
