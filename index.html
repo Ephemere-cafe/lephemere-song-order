@@ -280,7 +280,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       <output id="tableAccessStatus" aria-live="polite"></output>
     </div>
     <button class="btn ghost" id="cancelVisitQueue" type="button" style="margin-top:12px;">取消候位／改為自由參觀</button>
-    <button class="btn ghost" id="forgetVisitSession" type="button" style="margin-top:8px;border:0;width:100%;font-size:11px;">這不是我的候位號碼</button>
+    <button class="btn ghost" id="forgetVisitSession" type="button" style="margin-top:12px;width:100%;">切換客人／連接其他桌</button>
   </div>
 
   <div id="successBox" class="success-box" style="display:none;">
@@ -680,7 +680,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       document.getElementById('cartPanel').style.display='block';
       document.getElementById('orderDataPanel').style.display='block';
       document.getElementById('orderSubmitPanel').style.display='block';
-      if(!document.getElementById('custName').value) document.getElementById('custName').value=activeVisit.ownerUid===currentVisitorUid?(activeVisit.characterName||''):(partyMemberName(sharedMemberLabel)||activeVisit.characterName||'');
+      if(!document.getElementById('custName').value) document.getElementById('custName').value=sharedMemberLabel?(partyMemberName(sharedMemberLabel)||activeVisit.characterName||''):(activeVisit.characterName||'');
       document.getElementById('orderQueueNumber').textContent='候位 '+(activeVisit.queueNumber||'—');
       document.getElementById('orderGuestName').textContent=(activeVisit.characterName||'主人')+'・'+Number(activeVisit.partySize||1)+' 位';
     }
@@ -708,6 +708,9 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   syncCompanionRows();
 
   function forgetLocalVisit(){
+    var previousVisitId=activeVisitId;
+    if(previousVisitId) localStorage.removeItem('lephemereSharedMember:'+previousVisitId);
+    cart={}; pendingAddons={};
     localStorage.removeItem('lephemereActiveVisitId');
     sessionStorage.removeItem('lephemereActiveVisitSessionId');
     activeVisitId=''; activeVisitSessionId=''; activeVisit=null; visitRecoveryPending=false; browseMode=false; sharedMemberLabel=''; sharedJoinChallenge='';
@@ -715,6 +718,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     visits={};
     document.getElementById('successBox').style.display='none';
     document.getElementById('orderFlow').style.display='none';
+    document.getElementById('custName').value='';
+    document.getElementById('custNote').value='';
     setVisitView('visitGate');
     renderOperationStatus();
     renderMenu();
@@ -729,7 +734,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   });
   document.getElementById('forgetRecoveredVisit').addEventListener('click',forgetLocalVisit);
   document.getElementById('forgetVisitSession').addEventListener('click',function(){
-    if(confirm('確定這不是你的候位號碼嗎？\n移除此頁的紀錄不會取消原本候位。')) forgetLocalVisit();
+    if(confirm('要切換成另一位客人或連接其他桌嗎？\n尚未送出的餐點會清空；原候位與已送出的訂單不受影響。')) forgetLocalVisit();
   });
 
   document.getElementById('joinVisitQueue').addEventListener('click', function(){
@@ -1274,7 +1279,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     var fingerprint = submissionFingerprint(name, note, items);
     var pending = pendingRequest(fingerprint);
 
-    var isSharedVisitor=activeVisit.ownerUid!==currentVisitorUid;
+    var isSharedVisitor=activeVisit.ownerUid!==currentVisitorUid||!!sharedMemberLabel;
     var orderCallable=isSharedVisitor?submitSharedOrderFn:submitOrderFn;
     if(isSharedVisitor&&!sharedMemberLabel)sharedMemberLabel=localStorage.getItem('lephemereSharedMember:'+activeVisitId)||'';
     orderCallable({requestId:pending.requestId,visitId:activeVisitId,name:name,note:note,diners:currentDiners(),items:items,memberLabel:sharedMemberLabel}).then(function(result){
