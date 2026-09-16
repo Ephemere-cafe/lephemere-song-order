@@ -1109,6 +1109,19 @@
     return Object.keys(orders).map(function(id){ return Object.assign({id:id},orders[id]||{}); }).filter(function(o){ return o.visitId===visitId; }).sort(function(a,b){ return Number(b.createdAt||0)-Number(a.createdAt||0); });
   }
 
+  function checkoutForVisit(visitId){
+    var dining=ordersForVisit(visitId).filter(function(order){return order.status!=='cancelled';});
+    var diningTotal=dining.reduce(function(sum,order){return sum+Number(order.total||0);},0);
+    var photo=window.LephemerePolaroidCheckout?window.LephemerePolaroidCheckout(visitId):{orderCount:0,itemCount:0,total:0,items:[]};
+    return {diningOrders:dining.length,diningTotal:diningTotal,photoOrders:Number(photo.orderCount||0),photoItems:Number(photo.itemCount||0),photoTotal:Number(photo.total||0),photoDetails:photo.items||[],total:diningTotal+Number(photo.total||0)};
+  }
+
+  function checkoutHtml(visitId){
+    var bill=checkoutForVisit(visitId);if(!bill.diningOrders&&!bill.photoOrders)return'';
+    var details=bill.photoDetails.map(function(item){return '<span>'+escapeHtml(item.memberLabel)+'｜'+escapeHtml(item.productName)+'・'+fmtGil(item.price)+'</span>';}).join('');
+    return '<section class="visit-checkout"><div class="visit-checkout-title"><strong>本桌收款總覽</strong><span>送餐時一起收取</span></div><div class="visit-checkout-values"><span>餐點 <b>'+fmtGil(bill.diningTotal)+'</b></span><span>拍攝／簽繪 <b>'+fmtGil(bill.photoTotal)+'</b></span><span class="visit-checkout-total">應收合計 <b>'+fmtGil(bill.total)+'</b></span></div>'+(details?'<div class="visit-checkout-details">'+details+'</div>':'')+'</section>';
+  }
+
   function specialAssignmentPlan(visitId){
     var missing=[];
     var jobs=[];
@@ -1231,7 +1244,7 @@
       actions+='<button class="btn transfer small" data-open-transfer="'+v.id+'">更換主要接待</button>';
     }
     var noteAction=isMine?'<div class="guest-note-actions"><button class="btn ghost small" data-edit-visit-note="'+v.id+'">編輯備註</button></div>':'';
-    var overview=v.status!=='waiting'?'<div class="guest-overview"><div class="guest-overview-head"><span>訂單與服務</span><span>'+linkedOrders.length+' 筆訂單</span></div><div class="guest-order-list">'+guestOrdersHtml(v)+'</div><details class="guest-note"><summary>店內交接備註｜'+escapeHtml(v.internalNote||'尚未填寫')+'</summary>'+noteAction+'</details></div>':'';
+    var overview=v.status!=='waiting'?'<div class="guest-overview">'+checkoutHtml(v.id)+'<div class="guest-overview-head"><span>餐點訂單與服務</span><span>'+linkedOrders.length+' 筆餐點訂單</span></div><div class="guest-order-list">'+guestOrdersHtml(v)+'</div><details class="guest-note"><summary>店內交接備註｜'+escapeHtml(v.internalNote||'尚未填寫')+'</summary>'+noteAction+'</details></div>':'';
     return '<article data-gr-visit="'+escapeHtml(v.id)+'" class="visit-card '+(index===0&&v.status==='waiting'?'next ':'')+(isMine?'mine ':'')+urgency+'"><div class="visit-card-top"><div><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':(v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分'))+'</span></div><div class="visit-owner-line">'+(v.status==='waiting'?'<span>尚未指派</span>':'<span class="visit-owner-label">主要接待</span><strong>'+escapeHtml(v.assignedStaffName||'未命名女僕')+'</strong>')+(isMine?'<span class="visit-owner-badge">我的接待</span>':'')+'</div><div class="visit-meta">'+(v.status==='waiting'?'依序候位中':(v.status==='serving'?'接待進行中':'等待開始接待'))+'</div><div class="visit-tags">'+tags+'</div>'+(actions?'<div class="visit-actions">'+actions+'</div>':'')+overview+'</article>';
   }
 
@@ -2122,7 +2135,7 @@
   });
   document.getElementById('payrollSlipStaff').addEventListener('change',renderPayrollSlip);
   document.getElementById('payrollRecalculate').addEventListener('click',renderPayroll);
-  window.addEventListener('polaroid-accounting-updated',function(){var tab=document.getElementById('payrollTab');if(tab&&tab.style.display!=='none')renderPayroll();});
+  window.addEventListener('polaroid-accounting-updated',function(){var tab=document.getElementById('payrollTab');if(tab&&tab.style.display!=='none')renderPayroll();renderReception();renderOrders();});
   document.getElementById('payrollCopySlip').addEventListener('click',function(){
     var button=this;
     var text=document.getElementById('payrollSlip').textContent||'';
@@ -2433,8 +2446,8 @@
       }
       var tableKey=(groupByDate?orderBusinessDate(o)+'|':'')+orderTableKey(o);
       if(tableKey!==openTable){
-        var tableStat=tableStats[tableKey],tableVisit=visits[tableStat.visitId]||allVisitHistory[tableStat.visitId]||{},statusParts=Object.keys(tableStat.statuses).map(function(key){return (STATUS_LABEL[key]||key)+' '+tableStat.statuses[key];});
-        html+='<div class="order-table-heading"><div><span class="order-table-kicker">同桌訂單</span><strong>'+(tableStat.queueNumber?'候位 '+escapeHtml(tableStat.queueNumber):'未連結號碼牌')+'・'+escapeHtml(tableVisit.characterName||o.name||'未填名稱')+'</strong><small>'+Number(tableVisit.partySize||1)+' 人・'+tableStat.count+' 張獨立訂單・'+escapeHtml(statusParts.join('／'))+'</small></div><b>'+fmtGil(tableStat.total)+'</b></div>';
+        var tableStat=tableStats[tableKey],tableVisit=visits[tableStat.visitId]||allVisitHistory[tableStat.visitId]||{},statusParts=Object.keys(tableStat.statuses).map(function(key){return (STATUS_LABEL[key]||key)+' '+tableStat.statuses[key];}),bill=tableStat.visitId?checkoutForVisit(tableStat.visitId):{diningTotal:tableStat.total,photoTotal:0,total:tableStat.total};
+        html+='<div class="order-table-heading"><div><span class="order-table-kicker">同桌訂單</span><strong>'+(tableStat.queueNumber?'候位 '+escapeHtml(tableStat.queueNumber):'未連結號碼牌')+'・'+escapeHtml(tableVisit.characterName||o.name||'未填名稱')+'</strong><small>'+Number(tableVisit.partySize||1)+' 人・'+tableStat.count+' 張餐點訂單・'+escapeHtml(statusParts.join('／'))+'</small></div><div class="order-table-checkout"><small>餐點 '+fmtGil(bill.diningTotal)+' ＋ 拍攝／簽繪 '+fmtGil(bill.photoTotal)+'</small><b>本桌應收 '+fmtGil(bill.total)+'</b></div></div>';
         openTable=tableKey;
       }
       var regularItems = (o.items||[]).filter(function(it){ return !standaloneSpecialType(it); });
