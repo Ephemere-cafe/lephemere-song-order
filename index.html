@@ -149,6 +149,9 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 .success-box .num{font-family:'Noto Serif TC',serif;font-size:30px;color:var(--sage);margin:6px 0;}
 .success-copy{max-width:540px;margin:0 auto;font-size:12.5px;line-height:1.8;color:var(--parchment-dim);}
 .success-note{max-width:540px;margin:8px auto 0;font-size:11.5px;line-height:1.7;color:var(--gold-dim);}
+.success-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.success-actions .btn{width:100%}
+.visit-total-panel{position:relative;z-index:1;text-align:left}.visit-total-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px}.visit-total-head h2{margin:3px 0 4px;font-family:'Noto Serif TC',serif;font-size:22px}.visit-total-head p{margin:0;color:var(--parchment-dim);font-size:11.5px;line-height:1.65}.visit-total-refresh{flex:none}.visit-total-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px}.visit-total-card{display:grid;gap:5px;padding:13px;border:1px solid var(--line);border-radius:9px;background:rgba(25,20,32,.45)}.visit-total-card span{color:var(--parchment-dim);font-size:10.5px}.visit-total-card strong{color:var(--gold);font-family:'Noto Serif TC',serif;font-size:18px}.visit-total-card.grand{border-color:rgba(202,160,107,.42);background:rgba(202,160,107,.08)}.visit-total-alert{margin:0 0 14px;padding:10px 12px;border:1px solid rgba(192,123,138,.42);border-radius:8px;background:rgba(192,123,138,.09);color:#e2a9b5;font-size:12px;line-height:1.7}.visit-total-details{display:grid;grid-template-columns:1fr 1fr;gap:12px}.visit-total-section{padding:13px;border:1px solid var(--line);border-radius:9px}.visit-total-section h3{margin:0 0 9px;color:var(--mist);font-size:12px;letter-spacing:.06em}.visit-total-line{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(243,236,225,.07);font-size:12px;color:var(--parchment-dim)}.visit-total-line:last-child{border-bottom:0}.visit-total-line span{min-width:0}.visit-total-line small{display:block;margin-top:3px;color:var(--gold-dim);line-height:1.5}.visit-total-line b{flex:none;color:var(--parchment);font-weight:500}.visit-total-empty{margin:0;color:var(--parchment-dim);font-size:12px}.visit-total-status{margin:12px 0 0;color:var(--parchment-dim);font-size:11px}
+.site-loader{position:fixed;inset:0;z-index:120;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;padding:24px;background:rgba(25,20,32,.985);color:var(--parchment);text-align:center;transition:opacity .4s ease,visibility .4s ease}.site-loader.is-hidden{opacity:0;visibility:hidden;pointer-events:none}.site-loader strong{font-family:'Noto Serif TC',serif;font-size:20px;font-weight:600;letter-spacing:.12em}.site-loader>span:last-child{font-size:12px;color:var(--parchment-dim);letter-spacing:.06em}.order-loader-mark{position:relative;width:96px;height:82px;margin-bottom:8px}.loader-dish{position:absolute;left:17px;bottom:15px;width:62px;height:11px;border:2px solid var(--gold);border-radius:50%;box-shadow:0 8px 22px rgba(202,160,107,.18)}.loader-dish:before{content:'';position:absolute;left:7px;bottom:5px;width:44px;height:27px;border:2px solid var(--gold);border-bottom:0;border-radius:44px 44px 0 0;transform-origin:center bottom;animation:loader-breathe 1.8s ease-in-out infinite}.loader-dish:after{content:'';position:absolute;left:27px;bottom:34px;width:7px;height:7px;border:2px solid var(--gold);border-radius:50%}.loader-steam{position:absolute;top:4px;width:8px;height:27px;border-left:2px solid var(--rose);border-radius:50%;opacity:.75;animation:loader-steam 1.5s ease-in-out infinite}.loader-steam.one{left:36px}.loader-steam.two{left:54px;animation-delay:.45s}@keyframes loader-breathe{0%,100%{transform:scaleX(.96)}50%{transform:scaleX(1.05)}}@keyframes loader-steam{0%{opacity:0;transform:translateY(7px) scale(.8)}45%{opacity:.85}100%{opacity:0;transform:translateY(-7px) translateX(3px) scale(1.1)}}
 .photo-prompt-overlay{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:20px;background:rgba(15,12,20,.76);}
 .photo-prompt-overlay[hidden],.photo-quick-entry[hidden]{display:none!important;}
 .photo-prompt-dialog{position:relative;width:min(460px,100%);padding:30px;background:var(--card);border:1px solid var(--gold-dim);border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.35);text-align:center;color:var(--parchment);}
@@ -158,16 +161,16 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 .photo-prompt-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:20px;}
 .photo-prompt-actions .btn{display:flex;align-items:center;justify-content:center;text-decoration:none;}
 .photo-prompt-close{position:absolute;right:10px;top:8px;width:38px;height:38px;border:0;background:transparent;color:var(--parchment-dim);font-size:25px;cursor:pointer;}
-.photo-quick-entry{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:38;display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;background:var(--card);border:1px solid var(--gold-dim);border-radius:999px;box-shadow:0 12px 34px rgba(0,0,0,.3);color:var(--parchment);}
-.photo-quick-entry span{font-size:12px;}.photo-quick-entry a{text-decoration:none;padding:8px 13px;}
-@media(max-width:520px){.photo-prompt-actions{grid-template-columns:1fr}.photo-quick-entry span{display:none}.photo-quick-entry{padding:7px;bottom:12px;right:12px}.photo-quick-entry a{padding:9px 13px}}
+.photo-quick-entry{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:38}.photo-quick-card{display:grid;grid-template-columns:38px auto 20px;align-items:center;gap:10px;min-width:222px;padding:11px 13px 11px 11px;background:linear-gradient(135deg,#34202a,#241923);border:1px solid rgba(202,160,107,.64);border-radius:16px;box-shadow:0 14px 38px rgba(0,0,0,.36),inset 0 1px rgba(255,255,255,.05);color:var(--parchment);text-decoration:none;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}.photo-quick-card:hover{transform:translateY(-2px);border-color:var(--gold);box-shadow:0 17px 42px rgba(0,0,0,.42)}.photo-quick-icon{display:grid;place-items:center;width:38px;height:38px;border:1px solid rgba(202,160,107,.45);border-radius:50%;background:rgba(202,160,107,.1);color:var(--gold);font-size:17px}.photo-quick-copy{display:grid;gap:2px}.photo-quick-copy small{color:var(--gold);font-size:10px;letter-spacing:.12em}.photo-quick-copy strong{font-family:'Noto Serif TC',serif;font-size:14px;font-weight:600;letter-spacing:.04em}.photo-quick-arrow{color:var(--rose);font-size:18px;transition:transform .18s ease}.photo-quick-card:hover .photo-quick-arrow{transform:translateX(3px)}
+@media(max-width:520px){.photo-prompt-actions{grid-template-columns:1fr}.photo-quick-entry{right:12px;bottom:12px}.photo-quick-card{min-width:0;padding:9px 11px 9px 9px;grid-template-columns:34px auto 17px;border-radius:14px}.photo-quick-icon{width:34px;height:34px}.photo-quick-copy small{font-size:9px}.photo-quick-copy strong{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.loader-dish:before,.loader-steam{animation:none}.site-loader,.photo-quick-card,.photo-quick-arrow{transition:none}}
 .guide-overlay{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:20px;background:rgba(24,19,24,.72);}
 .guide-overlay[hidden]{display:none!important;}
 .guide-dialog{position:relative;width:min(680px,100%);max-height:calc(100vh - 40px);overflow:auto;padding:30px;background:#fffdf9;border:1px solid #dccdbd;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.28);color:#40332f;}
 .guide-dialog h2{margin:4px 42px 8px 0;font-family:'Noto Serif TC',serif;font-size:27px;color:#5d3340;}.guide-intro{margin:0 0 20px;color:#77665e;font-size:14px;line-height:1.8;}
 .guide-close{position:absolute;right:10px;top:8px;width:40px;height:40px;border:0;background:transparent;color:#77665e;font-size:27px;cursor:pointer;}
 .guide-list{display:grid;gap:12px;margin:0;padding:0;list-style:none;counter-reset:guide;}.guide-list li{position:relative;padding:16px 16px 16px 52px;border:1px solid #e6d9cd;background:#faf6ef;line-height:1.75;counter-increment:guide;}.guide-list li:before{content:counter(guide);position:absolute;left:16px;top:16px;width:25px;height:25px;display:grid;place-items:center;border-radius:50%;background:#6f3d4b;color:#fff;font-size:12px}.guide-list strong{display:block;margin-bottom:3px;color:#3e2d2c;font-size:15px}.guide-list span{display:block;color:#77665e;font-size:13px}.guide-list a{color:#7b4051}.guide-footer{display:flex;justify-content:flex-end;margin-top:18px}.guide-footer .btn{min-width:120px}.guide-tab{margin-left:auto;}
-@media(max-width:560px){.guide-dialog{padding:24px 16px}.guide-dialog h2{font-size:23px}.guide-list li{padding:14px 12px 14px 46px}.guide-list li:before{left:12px;top:14px}.guide-tab{margin-left:0}}
+@media(max-width:560px){.guide-dialog{padding:24px 16px}.guide-dialog h2{font-size:23px}.guide-list li{padding:14px 12px 14px 46px}.guide-list li:before{left:12px;top:14px}.guide-tab{margin-left:0}.visit-total-cards,.visit-total-details,.success-actions{grid-template-columns:1fr}.visit-total-head{display:block}.visit-total-refresh{margin-top:10px;width:100%}}
 .empty{font-size:12.5px;color:var(--parchment-dim);}
 </style>
 <link rel="stylesheet" href="assets/unified-cafe-ui.css?v=20260825">
@@ -175,6 +178,11 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 <link rel="stylesheet" href="assets/guest-cafe-ui.css?v=20260916-v46">
 </head>
 <body>
+<div id="siteLoader" class="site-loader" role="status" aria-live="polite">
+  <div class="order-loader-mark" aria-hidden="true"><span class="loader-dish"></span><span class="loader-steam one"></span><span class="loader-steam two"></span></div>
+  <strong>正在準備今晚的菜單</strong>
+  <span id="siteLoaderText">連接營業場次與最新菜單中…</span>
+</div>
 <div class="wrap" id="wrap">
 
   <div class="header">
@@ -190,6 +198,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   <nav class="guest-tabs" aria-label="服務頁面">
     <button class="guest-tab is-active" id="queueTab" type="button">領取號碼牌</button>
     <button class="guest-tab" id="orderTab" type="button" disabled>線上點餐</button>
+    <button class="guest-tab" id="totalTab" type="button" disabled>本次消費</button>
     <button class="guest-tab guide-tab" id="openGuide" type="button" aria-haspopup="dialog">使用說明</button>
   </nav>
 
@@ -307,8 +316,16 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <div class="num" id="successNumber"></div>
     <div class="success-copy">曇時已收到您的訂單，請留在座位稍候。餐點準備完成後，女僕會為您送上，並於送餐時收取本次訂單費用。</div>
     <div class="success-note">如需修改或取消訂單，請告知女僕並提供上方編號。</div>
-    <button class="btn ghost" id="newOrderBtn" style="margin-top:12px;">繼續加點</button>
+    <div class="success-actions"><button class="btn ghost" id="newOrderBtn">繼續加點</button><button class="btn ghost" id="showVisitTotal" type="button">查看本次消費</button></div>
   </div>
+
+  <section id="visitTotalPanel" class="panel visit-total-panel" style="display:none;" aria-labelledby="visitTotalTitle">
+    <div class="visit-total-head"><div><p class="panel-title">TONIGHT'S TOTAL</p><h2 id="visitTotalTitle">本次消費</h2><p>同桌餐點與拍攝服務會合併計算，追加訂單後也會同步更新。</p></div><button class="btn ghost visit-total-refresh" id="refreshVisitTotal" type="button">重新整理</button></div>
+    <div class="visit-total-cards"><div class="visit-total-card"><span>餐點小計</span><strong id="visitDiningTotal">0 Gil</strong></div><div class="visit-total-card"><span>拍攝／服務小計</span><strong id="visitPhotoTotal">0 Gil</strong></div><div class="visit-total-card grand"><span>本次總計</span><strong id="visitGrandTotal">0 Gil</strong></div></div>
+    <div id="visitTotalAlert"></div>
+    <div id="visitTotalDetails" class="visit-total-details"><p class="visit-total-empty">正在讀取本桌消費…</p></div>
+    <p id="visitTotalStatus" class="visit-total-status" aria-live="polite"></p>
+  </section>
 
   <div id="orderFlow" class="order-shell" style="display:none;">
     <header class="order-heading">
@@ -371,8 +388,11 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   </div>
 </div>
 <div class="photo-quick-entry" id="photoQuickEntry" hidden>
-  <span>拍立得／紀念服務</span>
-  <a class="btn primary" href="https://ephemere-photo.pages.dev/" target="_blank" rel="noopener">前往拍立得</a>
+  <a class="photo-quick-card" href="https://ephemere-photo.pages.dev/" target="_blank" rel="noopener" aria-label="前往拍攝與紀念服務網站">
+    <span class="photo-quick-icon" aria-hidden="true">✦</span>
+    <span class="photo-quick-copy"><small>PHOTO &amp; MEMORY</small><strong>拍攝與紀念服務</strong></span>
+    <span class="photo-quick-arrow" aria-hidden="true">→</span>
+  </a>
 </div>
 <div class="guide-overlay" id="guideOverlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle" hidden>
   <section class="guide-dialog">
@@ -436,7 +456,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
   var cart = {}; // id -> {name, price, qty, addon:{label,price}|null, assignments:[用餐者]}
   var pendingAddons = {}; // remembers add-ons selected before the base item is added
-  var db, menuRef, operationStatusRef, functionsClient, submitOrderFn, submitSharedOrderFn, createSharedTableCodeFn, joinSharedTableFn;
+  var db, menuRef, operationStatusRef, functionsClient, submitOrderFn, submitSharedOrderFn, createSharedTableCodeFn, joinSharedTableFn, getVisitReceiptFn;
   var tableShareCode='', tableShareVisitId='', tableShareLoading=false;
   var sharedJoinChallenge='', sharedMemberLabel='';
   var visitsRef, visitQueueCounterRef, staffRosterRef, todayStaffRef;
@@ -454,6 +474,21 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   var browseMode = false;
   var menuSyncTimer = null;
   var menuSyncBusy = false;
+  var visitReceipt = null;
+  var visitReceiptBusy = false;
+  var siteLoaderStarted = Date.now();
+  var siteReady = {auth:false, operation:false, menu:false};
+
+  function finishSiteLoader(force){
+    if(!force && (!siteReady.auth || !siteReady.operation || !siteReady.menu)) return;
+    var loader=document.getElementById('siteLoader');
+    if(!loader || loader.classList.contains('is-hidden')) return;
+    var wait=Math.max(0,650-(Date.now()-siteLoaderStarted));
+    setTimeout(function(){loader.classList.add('is-hidden');setTimeout(function(){loader.hidden=true},450)},wait);
+  }
+  function markSiteReady(key){siteReady[key]=true;finishSiteLoader(false)}
+  setTimeout(function(){finishSiteLoader(true)},6500);
+  if(!isConfigured) finishSiteLoader(true);
 
   function petals(){
     var wrap = document.getElementById('wrap');
@@ -551,6 +586,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     submitSharedOrderFn = functionsClient.httpsCallable('submitSharedOrder');
     createSharedTableCodeFn = functionsClient.httpsCallable('polaroidCreateShareCode');
     joinSharedTableFn = functionsClient.httpsCallable('joinSharedVisit');
+    getVisitReceiptFn = functionsClient.httpsCallable('polaroidGetVisitReceipt');
     menuRef = db.ref('lephemere/menu');
     operationStatusRef = db.ref('lephemere/operationStatus');
     visitsRef = db.ref('lephemere/visits');
@@ -564,6 +600,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     operationStatusRef.on('value', function(snap){
       operationStatus = snap.val() || { isOpen:false, businessDate:'' };
       operationStatusLoaded = true;
+      markSiteReady('operation');
       watchDutySchedule(visitDateKey());
       renderOperationStatus();
       renderMenu();
@@ -573,9 +610,11 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     firebase.auth().onAuthStateChanged(function(user){
       if(user){
         currentVisitorUid=user.uid;
+        markSiteReady('auth');
         watchActiveVisit(activeVisitId);
       }else{
         firebase.auth().signInAnonymously().catch(function(){
+          markSiteReady('auth');
           document.getElementById('configWarn').textContent='暫時無法開始登記，請重新整理；若仍無法使用，請聯絡女僕。';
           document.getElementById('configWarn').style.display='block';
         });
@@ -593,7 +632,9 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
     refreshMenuSnapshot();
     menuSyncTimer = setInterval(refreshMenuSnapshot, 5000);
+    setInterval(function(){if(activeVisit)fetchVisitTotal(false)},15000);
     window.addEventListener('focus', refreshMenuSnapshot);
+    window.addEventListener('focus',function(){if(activeVisit)fetchVisitTotal(false)});
     window.addEventListener('online', refreshMenuSnapshot);
     document.addEventListener('visibilitychange', function(){
       if(!document.hidden) refreshMenuSnapshot();
@@ -640,12 +681,36 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     });
   }
 
-  function setGuestTab(orderingEnabled, showOrder){
+  function visitOrderStatus(status,task){
+    if(status==='pending'&&task&&task.lastNotifiedAt)return'已通知，尚未拍攝';
+    return{pending:'尚未拍攝',shooting:'拍攝中',completed:'拍攝完成',delivered:'已完成並交付',deferred:'暫時跳過（保留順位）',no_show:'暫時未到',cancelled:'已取消'}[status]||status||'等待安排中';
+  }
+
+  function renderVisitTotal(){
+    var details=document.getElementById('visitTotalDetails'),alertHost=document.getElementById('visitTotalAlert');
+    if(!activeVisit||!visitReceipt){document.getElementById('visitDiningTotal').textContent='0 Gil';document.getElementById('visitPhotoTotal').textContent='0 Gil';document.getElementById('visitGrandTotal').textContent='0 Gil';alertHost.innerHTML='';details.innerHTML='<p class="visit-total-empty">尚未取得本桌消費資料。</p>';return}
+    var dining=Array.isArray(visitReceipt.dining)?visitReceipt.dining:Object.values(visitReceipt.dining||{}),photos=Array.isArray(visitReceipt.photo)?visitReceipt.photo:Object.values(visitReceipt.photo||{}),diningRows=[];
+    dining.forEach(function(order){(Array.isArray(order.items)?order.items:Object.values(order.items||{})).forEach(function(item){var qty=Number(item.qty||0),amount=Number(item.price||0)*qty+Number(item.addon&&item.addon.price||0)*qty,name=escapeHtml(item.name||'餐點')+' × '+qty+(item.addon?' ＋ '+escapeHtml(item.addon.label):'');diningRows.push('<div class="visit-total-line"><span>'+name+'</span><b>'+fmtGil(amount)+'</b></div>')})});
+    var photoRows=photos.map(function(task){var when=task.taskType==='delivery'?'完成後交付':task.roundId?((task.roundLabel||'')+' '+(task.startTime||'')+'–'+(task.endTime||'')):'等待安排中',name=(task.memberLabel||'').split('｜')[0]+'｜'+(task.maidName||'')+'｜'+(task.productName||'服務');return'<div class="visit-total-line"><span>'+escapeHtml(name)+'<small>'+escapeHtml(when+'・'+visitOrderStatus(task.status,task))+'</small></span><b>'+fmtGil(Number(task.price||0))+'</b></div>'});
+    var diningTotal=Number(visitReceipt.diningTotal||0),photoTotal=Number(visitReceipt.photoTotal||0);document.getElementById('visitDiningTotal').textContent=fmtGil(diningTotal);document.getElementById('visitPhotoTotal').textContent=fmtGil(photoTotal);document.getElementById('visitGrandTotal').textContent=fmtGil(diningTotal+photoTotal);alertHost.innerHTML=visitReceipt.paymentAttention===true?'<p class="visit-total-alert">⚠ 已結清後又有新增訂單，離店前請向女僕再次確認金額。</p>':'';details.innerHTML='<section class="visit-total-section"><h3>餐點明細</h3>'+(diningRows.join('')||'<p class="visit-total-empty">尚無餐點訂單。</p>')+'</section><section class="visit-total-section"><h3>拍攝／服務明細</h3>'+(photoRows.join('')||'<p class="visit-total-empty">尚無拍攝或服務訂單。</p>')+'</section>';
+  }
+
+  function fetchVisitTotal(showLoading){
+    if(!activeVisitId||!getVisitReceiptFn||visitReceiptBusy)return Promise.resolve();
+    visitReceiptBusy=true;if(showLoading)document.getElementById('visitTotalStatus').textContent='正在更新本桌消費…';
+    return getVisitReceiptFn({visitId:activeVisitId}).then(function(result){visitReceipt=result&&result.data||null;renderVisitTotal();document.getElementById('visitTotalStatus').textContent='已更新・'+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}).catch(function(error){if(showLoading)document.getElementById('visitTotalStatus').textContent='暫時無法取得消費明細，請稍後再試。';console.warn('visit total',error)}).finally(function(){visitReceiptBusy=false});
+  }
+
+  function setGuestTab(orderingEnabled, showOrder, showTotal){
     var queueTab=document.getElementById('queueTab');
     var orderTab=document.getElementById('orderTab');
+    var totalTab=document.getElementById('totalTab');
     orderTab.disabled=!orderingEnabled;
-    queueTab.classList.toggle('is-active', !showOrder);
+    totalTab.disabled=!activeVisit;
+    queueTab.classList.toggle('is-active', !showOrder&&!showTotal);
     orderTab.classList.toggle('is-active', !!showOrder);
+    totalTab.classList.toggle('is-active', !!showTotal);
+    document.getElementById('visitTotalPanel').style.display=showTotal?'block':'none';
   }
 
   function openOrderView(){
@@ -655,12 +720,22 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     document.getElementById('orderFlow').scrollIntoView({behavior:'smooth',block:'start'});
   }
 
+  function openTotalView(){
+    if(!activeVisit)return;
+    setGuestTab(activeVisit.status==='assigned'||activeVisit.status==='serving',false,true);
+    fetchVisitTotal(true);
+    document.getElementById('visitTotalPanel').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
   document.getElementById('queueTab').addEventListener('click',function(){
     setGuestTab(!!activeVisit && (activeVisit.status==='assigned' || activeVisit.status==='serving'), false);
     var target=activeVisit ? document.getElementById('visitStatusPanel') : document.getElementById('visitGate');
     if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
   });
   document.getElementById('orderTab').addEventListener('click',openOrderView);
+  document.getElementById('totalTab').addEventListener('click',openTotalView);
+  document.getElementById('showVisitTotal').addEventListener('click',openTotalView);
+  document.getElementById('refreshVisitTotal').addEventListener('click',function(){fetchVisitTotal(true)});
 
   function renderVisitPreference(){
     var select = document.getElementById('visitPreference');
@@ -690,6 +765,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       sharedMemberLabel=localStorage.getItem('lephemereSharedMember:'+activeVisitId)||'';
     }
     if(!activeVisit){
+      visitReceipt=null;
+      renderVisitTotal();
       if(activeVisitId){ localStorage.removeItem('lephemereActiveVisitId'); sessionStorage.removeItem('lephemereActiveVisitSessionId'); activeVisitId=''; }
       visitRecoveryPending=false;
       if(!browseMode) setVisitView('visitGate');
@@ -759,6 +836,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     }
     renderDinerRoster();
     renderCart();
+    fetchVisitTotal(false);
     renderOperationStatus();
     renderMenu();
   }
@@ -964,6 +1042,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
   function applyMenuData(nextMenu){
     menuItems = nextMenu || {};
+    markSiteReady('menu');
     syncCartWithMenu();
     categoryOrder = [];
     Object.keys(menuItems).sort(function(a,b){
@@ -1368,6 +1447,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       setGuestTab(true, false);
       document.getElementById('successBox').style.display = 'block';
       unlockPhotoEntry();
+      fetchVisitTotal(false);
       clearPendingRequest();
       cart = {};
       pendingAddons = {};
