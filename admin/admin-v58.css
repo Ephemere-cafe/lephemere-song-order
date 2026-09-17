@@ -1,22 +1,40 @@
 /* v58｜訂單工作區簡潔卡片版 */
-#ordersTab .order-console{margin-bottom:14px;border-color:#c8d7de;background:#f3f7f9}
+#ordersTab{color:#17364b}
+#ordersTab .order-console{margin-bottom:14px;border-color:#b9ccd5;background:#eef4f6;box-shadow:0 8px 24px rgba(28,58,76,.06)}
 #ordersTab .order-console-head{display:block;padding:13px 18px 5px;background:transparent;border:0}
-#ordersTab .order-console-head h2{font-size:14px}
-#ordersTab .order-console-head p{font-size:10.5px}
+#ordersTab .order-console-head h2{color:#17364b;font-size:14px}
+#ordersTab .order-console-head p{color:#536f7e;font-size:10.5px}
 #ordersTab .order-console-head .identity-panel{display:none}
 #ordersTab .order-filter-bar{grid-template-columns:minmax(500px,auto) minmax(320px,1fr);gap:16px;padding:10px 18px 14px;border:0}
+#ordersTab #orderSubTabs .tab{color:#365a6e;background:#fff;border-color:#c4d3da;font-weight:600}
+#ordersTab #orderSubTabs .tab:hover{color:#17364b;background:#e5eef2;border-color:#9db6c2}
+#ordersTab #orderSubTabs .tab.active{color:#fff;background:#2c6688;border-color:#2c6688}
 #ordersTab .order-tools{display:grid;grid-template-columns:minmax(230px,1fr) auto;gap:8px}
-#ordersTab .order-tools input{min-height:42px;background:#fff}
-#ordersTab .order-search-hint{align-self:center;white-space:nowrap}
-#ordersTab .order-history-status{grid-column:1/-1;font-size:10px}
-#ordersTab .order-list-heading{margin:5px 2px 9px}
+#ordersTab .order-tools input{min-height:42px;color:#17364b;background:#fff;border-color:#afc3cd}
+#ordersTab .order-tools input::placeholder{color:#718893;opacity:1}
+#ordersTab .order-search-hint{align-self:center;color:#536f7e;white-space:nowrap}
+#ordersTab .order-history-status{grid-column:1/-1;color:#647d89;font-size:10px}
+#ordersTab .order-list-heading{margin:5px 2px 9px;color:#17364b}
+#ordersTab .order-list-heading span{color:#536f7e}
 
-#ordersTab .order-table-heading{margin:14px 0 10px;padding:13px 16px;border-radius:9px;border-left-width:5px}
+/* 日期、同桌摘要與訂單卡全部改為高對比淺色層級 */
+#ordersTab .order-day-group{margin-bottom:14px;border:1px solid #b8cbd4;border-radius:11px;background:#f2f6f7;box-shadow:0 5px 16px rgba(31,59,74,.06);overflow:hidden}
+#ordersTab .order-day-group>summary{padding:13px 16px;color:#17364b;background:#dfeaf0;border-bottom:1px solid transparent}
+#ordersTab .order-day-group[open]>summary{border-bottom-color:#b8cbd4}
+#ordersTab .order-day-title{color:#9b4f32;font-size:15px;font-weight:700}
+#ordersTab .order-day-meta{color:#365a6e;font-size:12px;font-weight:600}
+#ordersTab .order-day-arrow{color:#2c6688}
+#ordersTab .order-day-list{padding:2px 12px 12px;border-top:0;background:#f7fafb}
+
+#ordersTab .order-table-heading{margin:12px 0 10px;padding:13px 16px;border:1px solid #aac2ce;border-left:5px solid #2c6688;border-radius:9px;background:#e8f1f5}
+#ordersTab .order-table-heading strong{color:#14364c}
+#ordersTab .order-table-heading small{color:#4d6d7d}
+#ordersTab .order-table-kicker{color:#a65334;font-weight:700}
 #ordersTab .order-table-checkout{display:grid!important;justify-items:end;gap:3px;text-align:right}
-#ordersTab .order-table-checkout small{color:#5f7785}
-#ordersTab .order-table-checkout b{font-family:'Noto Serif TC',serif;font-size:17px;color:#b45d32}
+#ordersTab .order-table-checkout small{color:#48697a}
+#ordersTab .order-table-checkout b{font-family:'Noto Serif TC',serif;font-size:17px;color:#a94724}
 
-#ordersTab .order-card-v58{position:relative;padding:0!important;overflow:hidden;border-radius:10px;background:#fff;box-shadow:none}
+#ordersTab .order-card-v58{position:relative;padding:0!important;overflow:hidden;border:1px solid #bdced6;border-radius:10px;color:#17364b;background:#fff;box-shadow:0 3px 10px rgba(28,58,76,.05)}
 #ordersTab .order-card-v58::before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:#9eb2bd}
 #ordersTab .order-card-v58.is-expanded::before{background:#2c6688}
 #ordersTab .order-card-summary{display:grid;grid-template-columns:minmax(200px,.95fr) minmax(280px,1.8fr) 115px minmax(145px,.72fr) 125px auto;align-items:center;gap:14px;padding:13px 15px 13px 20px}
@@ -36,8 +54,18 @@
 #ordersTab .order-card-amount strong{color:#b45d32;font-family:'Noto Serif TC',serif;font-size:15px;white-space:nowrap}
 #ordersTab .order-card-primary{display:flex;justify-content:flex-end;gap:7px;min-width:max-content}
 #ordersTab .order-card-primary .btn{min-height:38px;padding:8px 12px}
+#ordersTab .order-card-primary .btn.primary{color:#fff;background:#2c6688;border-color:#2c6688}
+#ordersTab .order-card-primary .btn.ghost,#ordersTab .order-detail-toggle{color:#365a6e;background:#fff;border-color:#aec3cd}
+#ordersTab .status-badge{font-weight:700}
+#ordersTab .status-pending{color:#913f55;background:#f6e5ea}
+#ordersTab .status-preparing{color:#76500f;background:#f8edd2}
+#ordersTab .status-served{color:#514374;background:#ebe7f5}
+#ordersTab .status-completed{color:#386247;background:#e6f0e8}
+#ordersTab .status-cancelled{color:#69767d;background:#edf0f1}
+#ordersTab .visit-tag{color:#355f77;background:#e7f0f4;border-color:#bed0d9}
+#ordersTab .notification-badge{color:#3f684a;background:#edf6ee;border-color:#bfd2c2}
 
-#ordersTab .order-card-detail{padding:0 15px 14px 20px;border-top:1px solid #dfe8ec;background:#fbfcfc}
+#ordersTab .order-card-detail{padding:0 15px 14px 20px;border-top:1px solid #cedce2;background:#f6f9fa}
 #ordersTab .order-card-detail[hidden]{display:none!important}
 #ordersTab .order-detail-items{padding:12px 0 10px}
 #ordersTab .order-card-detail h4{margin:0 0 7px;color:#17364b;font-size:11.5px}
@@ -46,6 +74,9 @@
 #ordersTab .order-detail-controls{display:grid;grid-template-columns:minmax(280px,.9fr) minmax(360px,1.1fr);gap:14px;padding-top:10px;border-top:1px solid #e3ebee}
 #ordersTab .order-service{min-height:48px;margin:0;padding:7px 9px;background:#fff}
 #ordersTab .handoff-note{margin:0;background:#fff}
+#ordersTab .order-service select,#ordersTab .handoff-note textarea{color:#17364b;background:#fff;border-color:#aec3cd}
+#ordersTab .special-service-row{color:#365a6e;background:#fff9ed;border-color:#ddc9a6}
+#ordersTab .special-service-row select{color:#17364b;background:#fff;border-color:#c7b693}
 #ordersTab .order-more-actions{margin-top:10px;border-top:1px solid #e3ebee}
 #ordersTab .order-more-actions>summary{display:inline-flex;margin-top:10px;padding:7px 10px;border:1px solid #c5d3da;border-radius:7px;color:#526c7a;background:#fff;cursor:pointer;font-size:11px;list-style:none}
 #ordersTab .order-more-actions>summary::-webkit-details-marker{display:none}
