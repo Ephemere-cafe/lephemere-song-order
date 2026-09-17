@@ -1,0 +1,30 @@
+/* v59｜點餐、號碼牌與拍立得統一入口 */
+.guest-tabs{position:sticky;top:0;z-index:35}
+.guest-tab-photo{position:relative}
+.guest-tab-photo::after{content:'✦';margin-left:5px;color:var(--guest-gold,var(--gold));font-size:10px}
+.guest-tab-photo.is-active::after{color:currentColor}
+.photo-service-panel{position:relative;z-index:1;margin-top:14px;padding:0;overflow:hidden;border:1px solid #d8c9ba;border-radius:14px;background:#fffaf4;color:#493a35;box-shadow:0 16px 42px rgba(39,28,25,.1)}
+.photo-service-panel[hidden]{display:none!important}
+.photo-service-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 20px;border-bottom:1px solid #e5d8cc;background:linear-gradient(135deg,#fffaf4,#f4e9dd)}
+.photo-service-copy{display:grid;gap:4px}
+.photo-service-copy small{color:#9c674e;font-size:10px;font-weight:700;letter-spacing:.16em}
+.photo-service-copy h2{margin:0;color:#3e2d2c;font-family:'Noto Serif TC',serif;font-size:22px}
+.photo-service-copy p{margin:0;color:#77665e;font-size:11.5px;line-height:1.6}
+.photo-service-actions{display:flex;align-items:center;gap:8px;flex:none}
+.photo-service-actions a{text-decoration:none}
+.photo-frame-shell{position:relative;height:min(78vh,860px);min-height:620px;background:#f8f2ea}
+.photo-service-frame{display:block;width:100%;height:100%;border:0;background:#f8f2ea}
+.photo-frame-note{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;padding:10px 18px;border-top:1px solid #e5d8cc;color:#806e65;background:#fffdf9;font-size:10.5px;line-height:1.5}
+.photo-frame-note strong{color:#5b443d}
+.photo-inline-button{appearance:none;font:inherit}
+.guide-inline-photo{padding:0;border:0;background:transparent;color:#7b4051;text-decoration:underline;cursor:pointer}
+@media(max-width:680px){
+  .guest-tabs{top:0;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+  .guest-tabs::-webkit-scrollbar{display:none}
+  .guest-tab{flex:0 0 auto}
+  .photo-service-head{align-items:flex-start;flex-direction:column;padding:15px}
+  .photo-service-actions{width:100%}
+  .photo-service-actions .btn{flex:1;text-align:center}
+  .photo-frame-shell{height:76vh;min-height:540px}
+  .photo-frame-note{align-items:flex-start;flex-direction:column;padding:10px 14px}
+}
