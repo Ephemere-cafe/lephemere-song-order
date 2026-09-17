@@ -1,0 +1,91 @@
+/* v58｜訂單工作區簡潔卡片版 */
+#ordersTab .order-console{margin-bottom:14px;border-color:#c8d7de;background:#f3f7f9}
+#ordersTab .order-console-head{display:block;padding:13px 18px 5px;background:transparent;border:0}
+#ordersTab .order-console-head h2{font-size:14px}
+#ordersTab .order-console-head p{font-size:10.5px}
+#ordersTab .order-console-head .identity-panel{display:none}
+#ordersTab .order-filter-bar{grid-template-columns:minmax(500px,auto) minmax(320px,1fr);gap:16px;padding:10px 18px 14px;border:0}
+#ordersTab .order-tools{display:grid;grid-template-columns:minmax(230px,1fr) auto;gap:8px}
+#ordersTab .order-tools input{min-height:42px;background:#fff}
+#ordersTab .order-search-hint{align-self:center;white-space:nowrap}
+#ordersTab .order-history-status{grid-column:1/-1;font-size:10px}
+#ordersTab .order-list-heading{margin:5px 2px 9px}
+
+#ordersTab .order-table-heading{margin:14px 0 10px;padding:13px 16px;border-radius:9px;border-left-width:5px}
+#ordersTab .order-table-checkout{display:grid!important;justify-items:end;gap:3px;text-align:right}
+#ordersTab .order-table-checkout small{color:#5f7785}
+#ordersTab .order-table-checkout b{font-family:'Noto Serif TC',serif;font-size:17px;color:#b45d32}
+
+#ordersTab .order-card-v58{position:relative;padding:0!important;overflow:hidden;border-radius:10px;background:#fff;box-shadow:none}
+#ordersTab .order-card-v58::before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:#9eb2bd}
+#ordersTab .order-card-v58.is-expanded::before{background:#2c6688}
+#ordersTab .order-card-summary{display:grid;grid-template-columns:minmax(200px,.95fr) minmax(280px,1.8fr) 115px minmax(145px,.72fr) 125px auto;align-items:center;gap:14px;padding:13px 15px 13px 20px}
+#ordersTab .order-card-identity{display:grid;align-content:center;gap:6px;min-width:0}
+#ordersTab .order-notification{min-width:0}
+#ordersTab .order-card-main{display:grid;gap:4px;min-width:0;color:#5f7682;font-size:11.5px}
+#ordersTab .order-card-main .order-name{margin:0;color:#17364b;font-size:14px;font-weight:700}
+#ordersTab .order-card-main>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ordersTab .order-card-main>small{overflow:hidden;color:#91624f;text-overflow:ellipsis;white-space:nowrap}
+#ordersTab .order-card-main .special-tags{margin:1px 0 0}
+#ordersTab .order-card-timing{display:grid;gap:4px;color:#718690;font-size:10.5px}
+#ordersTab .order-card-timing .order-elapsed{margin:0;text-align:left}
+#ordersTab .order-card-assignee,#ordersTab .order-card-amount{display:grid;gap:4px;min-width:0}
+#ordersTab .order-card-assignee small,#ordersTab .order-card-amount small{color:#718690;font-size:9.5px}
+#ordersTab .order-card-assignee strong{overflow:hidden;color:#294c60;font-size:11.5px;text-overflow:ellipsis;white-space:nowrap}
+#ordersTab .order-card-assignee strong.is-unassigned{color:#996827}
+#ordersTab .order-card-amount strong{color:#b45d32;font-family:'Noto Serif TC',serif;font-size:15px;white-space:nowrap}
+#ordersTab .order-card-primary{display:flex;justify-content:flex-end;gap:7px;min-width:max-content}
+#ordersTab .order-card-primary .btn{min-height:38px;padding:8px 12px}
+
+#ordersTab .order-card-detail{padding:0 15px 14px 20px;border-top:1px solid #dfe8ec;background:#fbfcfc}
+#ordersTab .order-card-detail[hidden]{display:none!important}
+#ordersTab .order-detail-items{padding:12px 0 10px}
+#ordersTab .order-card-detail h4{margin:0 0 7px;color:#17364b;font-size:11.5px}
+#ordersTab .order-detail-items .order-items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 18px;margin:0;color:#566e7b;font-size:11.5px}
+#ordersTab .order-item-assignment{margin:1px 0 4px;color:#7a8e98;font-size:10.5px}
+#ordersTab .order-detail-controls{display:grid;grid-template-columns:minmax(280px,.9fr) minmax(360px,1.1fr);gap:14px;padding-top:10px;border-top:1px solid #e3ebee}
+#ordersTab .order-service{min-height:48px;margin:0;padding:7px 9px;background:#fff}
+#ordersTab .handoff-note{margin:0;background:#fff}
+#ordersTab .order-more-actions{margin-top:10px;border-top:1px solid #e3ebee}
+#ordersTab .order-more-actions>summary{display:inline-flex;margin-top:10px;padding:7px 10px;border:1px solid #c5d3da;border-radius:7px;color:#526c7a;background:#fff;cursor:pointer;font-size:11px;list-style:none}
+#ordersTab .order-more-actions>summary::-webkit-details-marker{display:none}
+#ordersTab .order-more-actions[open]>summary{color:#fff;background:#6d7f89;border-color:#6d7f89}
+#ordersTab .order-more-actions .order-actions{margin:8px 0 0}
+
+@media(max-width:1250px){
+  #ordersTab .order-filter-bar{grid-template-columns:1fr}
+  #ordersTab .order-card-summary{grid-template-columns:minmax(180px,.8fr) minmax(260px,1.5fr) 105px 125px auto}
+  #ordersTab .order-card-identity{grid-column:1;grid-row:1}
+  #ordersTab .order-card-assignee{grid-column:1;grid-row:2}
+  #ordersTab .order-card-main{grid-column:2;grid-row:1/3}
+  #ordersTab .order-card-timing{grid-column:3;grid-row:1/3}
+  #ordersTab .order-card-amount{grid-column:4;grid-row:1/3}
+  #ordersTab .order-card-primary{grid-column:5;grid-row:1/3}
+}
+@media(max-width:900px){
+  #ordersTab .order-card-summary{grid-template-columns:minmax(170px,.8fr) minmax(220px,1.3fr) 105px auto}
+  #ordersTab .order-card-identity{grid-column:1;grid-row:1}
+  #ordersTab .order-card-assignee{grid-column:1;grid-row:2}
+  #ordersTab .order-card-main{grid-column:2;grid-row:1/3}
+  #ordersTab .order-card-timing{grid-column:3;grid-row:1}
+  #ordersTab .order-card-amount{grid-column:3;grid-row:2}
+  #ordersTab .order-card-primary{grid-column:4;grid-row:1/3}
+  #ordersTab .order-detail-controls{grid-template-columns:1fr}
+}
+@media(max-width:680px){
+  #ordersTab .order-console-head{padding:12px 13px 4px}
+  #ordersTab .order-filter-bar{padding:9px 13px 13px}
+  #ordersTab .order-tools{grid-template-columns:1fr}
+  #ordersTab .order-card-summary{grid-template-columns:1fr auto;padding:13px 12px 13px 17px}
+  #ordersTab .order-card-identity,#ordersTab .order-card-main,#ordersTab .order-card-timing,#ordersTab .order-card-assignee,#ordersTab .order-card-amount,#ordersTab .order-card-primary{grid-column:auto;grid-row:auto}
+  #ordersTab .order-card-main{grid-column:1/-1}
+  #ordersTab .order-card-timing{grid-column:1}
+  #ordersTab .order-card-assignee{grid-column:1}
+  #ordersTab .order-card-amount{grid-column:2;grid-row:3/5;align-self:end;text-align:right}
+  #ordersTab .order-card-primary{grid-column:1/-1;justify-content:stretch}
+  #ordersTab .order-card-primary .btn{flex:1}
+  #ordersTab .order-card-detail{padding:0 12px 12px 17px}
+  #ordersTab .order-detail-items .order-items{grid-template-columns:1fr}
+  #ordersTab .order-table-heading{align-items:stretch}
+  #ordersTab .order-table-checkout{justify-items:start;text-align:left}
+}

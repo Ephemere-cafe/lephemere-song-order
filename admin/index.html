@@ -12,7 +12,8 @@
 <link rel="stylesheet" href="polaroid-admin.css?v=20260914-v34">
 <link rel="stylesheet" href="admin-v33.css?v=20260914-v33">
 <link rel="stylesheet" href="admin-v35.css?v=20260914-v35">
-  <link rel="stylesheet" href="polaroid-v36.css?v=57"></head>
+  <link rel="stylesheet" href="polaroid-v36.css?v=57">
+  <link rel="stylesheet" href="admin-v58.css?v=58"></head>
 <body>
 <div class="wrap" id="wrap">
 
@@ -168,12 +169,12 @@
   <details class="photo-macro-settings"><summary>編輯我的通知範本</summary><p class="macro-editor-hint">套用在目前選擇的女僕。請保留 {輪次}、{開始時間}、{結束時間}，選擇客人後會依訂單自動填入，不需每次手動改時間。</p><label for="photoMacroTemplate">通知範本</label><textarea id="photoMacroTemplate" maxlength="1000" rows="4"></textarea><div class="macro-variable-list"><span>{角色名}</span><span>{伺服器}</span><span>{候位號碼}</span><span>{女僕名}</span><span>{商品名}</span><span>{輪次}</span><span>{開始時間}</span><span>{結束時間}</span></div><button type="button" class="btn ghost small" id="photoMacroSave">儲存我的拍攝通知範本</button></details>
 </section>
         <section class="panel macro-editor-panel photo-macro-panel due-photo-macro-panel">
-  <div class="macro-editor-head"><div><h3>到時拍攝提醒</h3><p>拍攝輪次開始後，快速通知目前應到場的客人。</p></div><span class="macro-editor-tag due">到時提醒</span></div>
-  <label for="photoDueMacroTask">1. 選擇目前時段客人</label><select id="photoDueMacroTask"><option value="">選擇已到時段的客人</option></select>
-  <p id="photoDueMacroEmpty" class="macro-editor-hint">目前沒有已到拍攝時段的客人。</p>
+  <div class="macro-editor-head"><div><h3>到時拍攝提醒</h3><p>依現場狀況選擇待拍客人，不受目前時間限制。</p></div><span class="macro-editor-tag due">到時提醒</span></div>
+  <label for="photoDueMacroTask">1. 選擇要提醒的客人</label><select id="photoDueMacroTask"><option value="">選擇要提醒的客人</option></select>
+  <p id="photoDueMacroEmpty" class="macro-editor-hint">目前沒有可提醒的待拍客人。</p>
   <div id="photoDueMacroMessage" hidden><p id="photoDueMacroRound" class="photo-macro-round"></p><p id="photoDueMacroNoticeState" class="photo-macro-notice-state"></p><label for="photoDueMacroPreview">2. 確認到時提醒（可修改）</label><textarea id="photoDueMacroPreview" maxlength="1500" rows="4"></textarea><p class="macro-editor-hint">這則訊息用於輪次已開始時提醒客人前來，與事前告知時段的「拍攝時段通知」分開記錄。</p><div class="photo-macro-actions"><button type="button" class="btn primary" id="photoDueMacroCopy" disabled>3. 一鍵複製到時提醒</button><button type="button" class="btn ghost" id="photoDueMacroMarkNotified" disabled>4. 標記已提醒</button></div></div>
   <span id="photoDueMacroStatus" role="status" aria-live="polite"></span>
-  <details class="photo-macro-settings"><summary>編輯我的到時提醒範本</summary><p class="macro-editor-hint">只套用在輪次開始後的提醒，不會修改拍攝時段通知。</p><label for="photoDueMacroTemplate">到時提醒範本</label><textarea id="photoDueMacroTemplate" maxlength="1000" rows="4"></textarea><div class="macro-variable-list"><span>{角色名}</span><span>{伺服器}</span><span>{候位號碼}</span><span>{女僕名}</span><span>{商品名}</span><span>{輪次}</span><span>{開始時間}</span><span>{結束時間}</span></div><button type="button" class="btn ghost small" id="photoDueMacroSave">儲存我的到時提醒範本</button></details>
+  <details class="photo-macro-settings"><summary>編輯我的到時提醒範本</summary><p class="macro-editor-hint">由現場人員判斷發送時機，不會修改拍攝時段通知。</p><label for="photoDueMacroTemplate">到時提醒範本</label><textarea id="photoDueMacroTemplate" maxlength="1000" rows="4"></textarea><div class="macro-variable-list"><span>{角色名}</span><span>{伺服器}</span><span>{候位號碼}</span><span>{女僕名}</span><span>{商品名}</span><span>{輪次}</span><span>{開始時間}</span><span>{結束時間}</span></div><button type="button" class="btn ghost small" id="photoDueMacroSave">儲存我的到時提醒範本</button></details>
 </section>
 <div id="personalRegularMacroHost"></div>
       </div>
@@ -304,7 +305,7 @@
 
       <section class="polaroid-pane" data-polaroid-panel="work">
         <section class="panel polaroid-my-work"><div class="polaroid-work-head"><div><h3 id="polaroidMyTitle">我的拍立得工作</h3><p id="polaroidMyHint">請先在上方選擇操作女僕。</p></div><div hidden class="polaroid-status-actions" id="polaroidStatusActions"><button data-polaroid-status="available">可拍</button><button data-polaroid-status="serving">接待中</button><button data-polaroid-status="shooting">拍攝中</button><button data-polaroid-status="away">暫離</button><button data-polaroid-status="off">下班</button></div></div><div id="polaroidMyTasks" class="polaroid-task-list"><div class="queue-empty">正在讀取工作清單…</div></div></section>
-        <section class="panel"><div class="polaroid-work-head"><div><h3>現在到拍攝時段</h3><p>只顯示目前輪次且尚未完成的工作，可直接開啟通知巨集。</p></div></div><div id="polaroidDueTasks" class="polaroid-task-list"><div class="queue-empty">正在確認目前輪次…</div></div></section>
+        <section class="panel"><div class="polaroid-work-head"><div><h3>拍攝提醒清單</h3><p>顯示所有尚未完成的拍攝工作，可依現場狀況隨時開啟到時提醒。</p></div></div><div id="polaroidDueTasks" class="polaroid-task-list"><div class="queue-empty">正在整理待拍工作…</div></div></section>
       </section>
 
       <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="session" hidden id="polaroidManagerArea">

@@ -25,6 +25,7 @@
   var staffPresence = {};
   var assignmentHistory = {};
   var currentOrderFilter = 'active';
+  var orderDetailState = {};
   var currentSpecialFilter = 'all';
   var orderSearchTerm = '';
   var receptionSearchTerm = '';
@@ -2390,6 +2391,10 @@
       return;
     }
     var arr = Object.keys(orders).map(function(id){ var o=orders[id]; o.id=id; return o; });
+    var orderCounts={active:0,mine:0,unassigned:0,completed:0,cancelled:0,all:arr.length,history:0};
+    arr.forEach(function(o){var current=orderBelongsToBusiness(o),working=o.status==='pending'||o.status==='preparing'||o.status==='served';if(current&&working)orderCounts.active++;if(current&&working&&currentStaffId&&o.assignedStaffId===currentStaffId)orderCounts.mine++;if(current&&working&&!o.assignedStaffId)orderCounts.unassigned++;if(o.status==='completed')orderCounts.completed++;if(o.status==='cancelled')orderCounts.cancelled++;if(!current)orderCounts.history++});
+    var orderFilterLabels={active:'進行中',mine:'我的訂單',unassigned:'待指派',completed:'已完成',cancelled:'已取消',all:'全部',history:'歷史訂單'};
+    document.querySelectorAll('#orderSubTabs [data-filter]').forEach(function(btn){var key=btn.getAttribute('data-filter');btn.textContent=(orderFilterLabels[key]||key)+' '+Number(orderCounts[key]||0)});
 
     arr = arr.filter(function(o){
       if(currentOrderFilter==='active') return orderBelongsToBusiness(o) && (o.status==='pending' || o.status==='preparing' || o.status==='served');
@@ -2480,20 +2485,21 @@
       var safeStatus = STATUS_LABEL[o.status] ? o.status : 'pending';
 
       var assignedId = o.assignedStaffId || '';
-      var actionsHtml = '';
+      var primaryActionsHtml = '';
+      var secondaryActionsHtml = '';
       if(NEXT_STATUS[o.status]){
-        actionsHtml += '<button class="btn primary small" data-advance="'+o.id+'">'+NEXT_LABEL[o.status]+'</button>';
+        primaryActionsHtml += '<button class="btn primary small" data-advance="'+o.id+'">'+NEXT_LABEL[o.status]+'</button>';
       }
       if(PREV_STATUS[o.status]){
-        actionsHtml += '<button class="btn ghost small" data-revert-order="'+o.id+'">↶ '+PREV_LABEL[o.status]+'</button>';
+        secondaryActionsHtml += '<button class="btn ghost small" data-revert-order="'+o.id+'">↶ '+PREV_LABEL[o.status]+'</button>';
       }
       if(o.status!=='completed' && o.status!=='cancelled'){
-        actionsHtml += '<button class="btn ghost small" data-cancel-order="'+o.id+'">取消訂單</button>';
+        secondaryActionsHtml += '<button class="btn ghost small" data-cancel-order="'+o.id+'">取消訂單</button>';
       }
       if(!assignedId && currentStaffId && o.status!=='completed' && o.status!=='cancelled'){
-        actionsHtml = '<button class="btn ghost small" data-claim-order="'+o.id+'">由我接待</button>'+actionsHtml;
+        primaryActionsHtml = '<button class="btn ghost small" data-claim-order="'+o.id+'">由我接待</button>'+primaryActionsHtml;
       }
-      if(isManager()) actionsHtml += '<button class="btn ghost small" data-delete-order="'+o.id+'" style="border-color:var(--rose-dim);color:var(--rose);">刪除</button>';
+      if(isManager()) secondaryActionsHtml += '<button class="btn ghost small" data-delete-order="'+o.id+'" style="border-color:var(--rose-dim);color:var(--rose);">刪除</button>';
 
       var dutyDate = activeDutyDate();
       var activeSchedule = scheduleForDate(dutyDate);
@@ -2527,27 +2533,29 @@
         +'<div class="row" style="justify-content:flex-end;margin-top:7px;"><button class="btn ghost small" data-save-internal-note="'+o.id+'">儲存交接備註</button></div></div>'
         +'</details>';
 
-      html += '<div class="order-card">'
-        + '<div class="order-top">'
-        + '<div><span class="order-num">#'+escapeHtml(String(o.orderNumber||'—'))+'</span> '+(o.queueNumber?'<span class="visit-tag">候位 '+escapeHtml(o.queueNumber)+'</span> ':'')+'<span class="status-badge status-'+safeStatus+'">'+STATUS_LABEL[safeStatus]+'</span>'
-        + '<div>'+notificationHtml(o, 'order', o.id)+'</div>'
-        + '<div class="order-name">'+escapeHtml(o.name||'')+'</div>'
-        + (o.note ? '<div class="order-note">備註：'+escapeHtml(o.note)+'</div>' : '')
-        + '</div>'
-        + '<div class="order-time">'+fmtTime(o.createdAt)+elapsedHtml+'</div>'
-        + '</div>'
-        + tagsHtml
-        + '<div class="order-items">'+itemsHtml+'</div>'
-        + '<div class="order-total">合計 '+fmtGil(o.total)+'</div>'
-        + serviceHtml
-        + internalNoteHtml
-        + '<div class="order-actions">'+actionsHtml+'</div>'
-        + '</div>';
+      var working=o.status==='pending'||o.status==='preparing'||o.status==='served',expanded=Object.prototype.hasOwnProperty.call(orderDetailState,o.id)?orderDetailState[o.id]:working;
+      var itemSummary=regularItems.map(function(it){return escapeHtml(it.name)+' × '+escapeHtml(String(Number(it.qty)||0))}).join('・')||'特殊服務訂單';
+      var moreActionsHtml=secondaryActionsHtml?'<details class="order-more-actions"><summary>更多操作</summary><div class="order-actions">'+secondaryActionsHtml+'</div></details>':'';
+      html += '<article class="order-card order-card-v58 '+(expanded?'is-expanded':'is-collapsed')+'" data-order-card="'+o.id+'">'
+        +'<div class="order-card-summary">'
+        +'<div class="order-card-identity"><div><span class="order-num">#'+escapeHtml(String(o.orderNumber||'—'))+'</span> '+(o.queueNumber?'<span class="visit-tag">候位 '+escapeHtml(o.queueNumber)+'</span> ':'')+'<span class="status-badge status-'+safeStatus+'">'+STATUS_LABEL[safeStatus]+'</span></div><div class="order-notification">'+notificationHtml(o,'order',o.id)+'</div></div>'
+        +'<div class="order-card-main"><strong class="order-name">'+escapeHtml(o.name||'未填名稱')+'</strong><span>'+itemSummary+'</span>'+(o.note?'<small>備註：'+escapeHtml(o.note)+'</small>':'')+tagsHtml+'</div>'
+        +'<div class="order-card-timing"><span>'+fmtTime(o.createdAt)+'</span>'+elapsedHtml+'</div>'
+        +'<div class="order-card-assignee"><small>目前服務店員</small><strong class="'+(assignedId?'':'is-unassigned')+'">'+escapeHtml(o.assignedStaffName||'尚未指派')+'</strong></div>'
+        +'<div class="order-card-amount"><small>餐點合計</small><strong>'+fmtGil(o.total)+'</strong></div>'
+        +'<div class="order-card-primary">'+primaryActionsHtml+'<button class="btn ghost small order-detail-toggle" type="button" data-toggle-order-details="'+o.id+'" aria-expanded="'+(expanded?'true':'false')+'">'+(expanded?'收合':'展開')+'</button></div>'
+        +'</div>'
+        +'<div class="order-card-detail" '+(expanded?'':'hidden')+'><div class="order-detail-items"><h4>餐點明細</h4><div class="order-items">'+itemsHtml+'</div></div><div class="order-detail-controls"><div><h4>服務安排</h4>'+serviceHtml+'</div><div><h4>店內交接</h4>'+internalNoteHtml+'</div></div>'+moreActionsHtml+'</div>'
+        +'</article>';
     });
     if(groupByDate && openDay!==null) html += '</div></details>';
     el.innerHTML = html;
     updateElapsedLabels();
     bindNotificationRetries(el);
+
+    el.querySelectorAll('[data-toggle-order-details]').forEach(function(btn){
+      btn.addEventListener('click',function(){var id=btn.getAttribute('data-toggle-order-details'),card=btn.closest('[data-order-card]'),detail=card&&card.querySelector('.order-card-detail'),expanded=btn.getAttribute('aria-expanded')==='true';if(!card||!detail)return;orderDetailState[id]=!expanded;btn.setAttribute('aria-expanded',String(!expanded));btn.textContent=expanded?'展開':'收合';detail.hidden=expanded;card.classList.toggle('is-expanded',!expanded);card.classList.toggle('is-collapsed',expanded)});
+    });
 
     el.querySelectorAll('[data-special-progress]').forEach(function(select){
       select.addEventListener('change', function(){
