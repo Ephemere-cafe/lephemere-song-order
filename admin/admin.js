@@ -13,7 +13,7 @@
   var isConfigured = firebaseConfig.apiKey.indexOf('貼上') === -1;
   if(!isConfigured){ document.getElementById('configWarn').style.display = 'block'; }
 
-  var db, storage, functionsClient, retryDiscordNotificationFn;
+  var db, storage, functionsClient, retryDiscordNotificationFn, createShareCodeFn, setVisitPaymentStatusFn;
   var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, staffSchedulesRef, menuRef, nextOrderNumberRef, operationStatusRef, dailyReportsRef, adminUsersRef, adminOwnerUidRef, siteMusicRef;
   var visitsRef, visitQueueCounterRef, staffPresenceRef, assignmentHistoryRef;
   var recentOrdersQuery, ordersQuery, todayVisitsQuery, allVisitsHistoryQuery, currentVisitsBusinessDate = '';
@@ -39,6 +39,7 @@
   var customSoundName = '';
   var orderAudioContext = null;
   var currentStaffId = '';
+  var visitShareCodes = {};
   var transferModalVisitId = '';
   var transferModalTargetId = '';
   var transferInProgress = false;
@@ -530,6 +531,8 @@
     storage = firebase.storage();
     functionsClient = firebase.app().functions('asia-southeast1');
     retryDiscordNotificationFn = functionsClient.httpsCallable('retryDiscordNotification');
+    createShareCodeFn = functionsClient.httpsCallable('polaroidCreateShareCode');
+    setVisitPaymentStatusFn = functionsClient.httpsCallable('polaroidSetVisitPaymentStatus');
     ordersRef = db.ref('lephemere/orders');
     nextOrderNumberRef = db.ref('lephemere/nextOrderNumber');
     openDatesRef = db.ref('lephemere/openDates');
@@ -1117,9 +1120,10 @@
   }
 
   function checkoutHtml(visitId){
-    var bill=checkoutForVisit(visitId);if(!bill.diningOrders&&!bill.photoOrders)return'';
+    var bill=checkoutForVisit(visitId),visit=visits[visitId]||{};if(!bill.diningOrders&&!bill.photoOrders)return'';
     var details=bill.photoDetails.map(function(item){return '<span>'+escapeHtml(item.memberLabel)+'｜'+escapeHtml(item.productName)+'・'+fmtGil(item.price)+'</span>';}).join('');
-    return '<section class="visit-checkout"><div class="visit-checkout-title"><strong>本桌收款總覽</strong><span>送餐時一起收取</span></div><div class="visit-checkout-values"><span>餐點 <b>'+fmtGil(bill.diningTotal)+'</b></span><span>拍攝／簽繪 <b>'+fmtGil(bill.photoTotal)+'</b></span><span class="visit-checkout-total">應收合計 <b>'+fmtGil(bill.total)+'</b></span></div>'+(details?'<div class="visit-checkout-details">'+details+'</div>':'')+'</section>';
+    var status=visit.paymentAttention===true?'<strong class="payment-attention">⚠ 結清後有新增訂單</strong>':(visit.paymentStatus==='settled'?'<strong class="payment-settled">✓ 已結清</strong>':'<span>尚未結清</span>'),label=visit.paymentAttention===true?'再次結清':(visit.paymentStatus==='settled'?'重新確認結清':'標記已結清');
+    return '<section class="visit-checkout"><div class="visit-checkout-title"><strong>本桌收款總覽</strong><span>送餐時一起收取</span></div><div class="visit-checkout-values"><span>餐點 <b>'+fmtGil(bill.diningTotal)+'</b></span><span>拍攝／簽繪 <b>'+fmtGil(bill.photoTotal)+'</b></span><span class="visit-checkout-total">應收合計 <b>'+fmtGil(bill.total)+'</b></span></div>'+(details?'<div class="visit-checkout-details">'+details+'</div>':'')+'<div class="payment-row">'+status+'<button type="button" class="btn ghost small" data-settle-visit="'+escapeAttr(visitId)+'">'+label+'</button></div></section>';
   }
 
   function specialAssignmentPlan(visitId){
@@ -1243,9 +1247,10 @@
       actions+='<button class="btn ghost small" data-copy-call="'+v.id+'">複製接待文字</button>';
       actions+='<button class="btn transfer small" data-open-transfer="'+v.id+'">更換主要接待</button>';
     }
+    var shareCode=visitShareCodes[v.id]||'讀取中',shareTools='<div class="visit-share-code"><span>本桌密碼 <b data-share-code-value="'+escapeAttr(v.id)+'">'+escapeHtml(shareCode)+'</b></span><button type="button" class="btn ghost small" data-copy-share-code="'+escapeAttr(v.id)+'" '+(visitShareCodes[v.id]?'':'disabled')+'>複製密碼</button></div>';
     var noteAction=isMine?'<div class="guest-note-actions"><button class="btn ghost small" data-edit-visit-note="'+v.id+'">編輯備註</button></div>':'';
     var overview=v.status!=='waiting'?'<div class="guest-overview">'+checkoutHtml(v.id)+'<div class="guest-overview-head"><span>餐點訂單與服務</span><span>'+linkedOrders.length+' 筆餐點訂單</span></div><div class="guest-order-list">'+guestOrdersHtml(v)+'</div><details class="guest-note"><summary>店內交接備註｜'+escapeHtml(v.internalNote||'尚未填寫')+'</summary>'+noteAction+'</details></div>':'';
-    return '<article data-gr-visit="'+escapeHtml(v.id)+'" class="visit-card '+(index===0&&v.status==='waiting'?'next ':'')+(isMine?'mine ':'')+urgency+'"><div class="visit-card-top"><div><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':(v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分'))+'</span></div><div class="visit-owner-line">'+(v.status==='waiting'?'<span>尚未指派</span>':'<span class="visit-owner-label">主要接待</span><strong>'+escapeHtml(v.assignedStaffName||'未命名女僕')+'</strong>')+(isMine?'<span class="visit-owner-badge">我的接待</span>':'')+'</div><div class="visit-meta">'+(v.status==='waiting'?'依序候位中':(v.status==='serving'?'接待進行中':'等待開始接待'))+'</div><div class="visit-tags">'+tags+'</div>'+(actions?'<div class="visit-actions">'+actions+'</div>':'')+overview+'</article>';
+    return '<article data-gr-visit="'+escapeHtml(v.id)+'" class="visit-card '+(index===0&&v.status==='waiting'?'next ':'')+(isMine?'mine ':'')+urgency+(v.paymentAttention===true?' payment-warning ':'')+'"><div class="visit-card-top"><div><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':(v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分'))+'</span></div><div class="visit-owner-line">'+(v.status==='waiting'?'<span>尚未指派</span>':'<span class="visit-owner-label">主要接待</span><strong>'+escapeHtml(v.assignedStaffName||'未命名女僕')+'</strong>')+(isMine?'<span class="visit-owner-badge">我的接待</span>':'')+'</div><div class="visit-meta">'+(v.status==='waiting'?'依序候位中':(v.status==='serving'?'接待進行中':'等待開始接待'))+'</div><div class="visit-tags">'+tags+'</div>'+shareTools+(actions?'<div class="visit-actions">'+actions+'</div>':'')+overview+'</article>';
   }
 
   function setNavCount(id,count){
@@ -1354,6 +1359,8 @@
     recent.querySelector('strong').textContent=recentText;
   }
 
+  function ensureVisitShareCodes(rows){if(!createShareCodeFn)return;rows.forEach(function(v){if(!v||!v.id||visitShareCodes[v.id]||visitShareCodes[v.id]===null)return;visitShareCodes[v.id]=null;createShareCodeFn({visitId:v.id}).then(function(res){var code=String(res&&res.data&&res.data.shareCode||'');if(!/^\d{6}$/.test(code))throw new Error('invalid-code');visitShareCodes[v.id]=code;document.querySelectorAll('[data-share-code-value="'+CSS.escape(v.id)+'"]').forEach(function(el){el.textContent=code});document.querySelectorAll('[data-copy-share-code="'+CSS.escape(v.id)+'"]').forEach(function(button){button.disabled=false})}).catch(function(){delete visitShareCodes[v.id];document.querySelectorAll('[data-share-code-value="'+CSS.escape(v.id)+'"]').forEach(function(el){el.textContent='讀取失敗'})})})}
+
   function renderReception(){
     var waiting=visitRows(['waiting']);
     var visibleWaiting=waiting.filter(function(visit){
@@ -1387,6 +1394,7 @@
     document.getElementById('visitWaitingList').innerHTML=visibleWaiting.length?visibleWaiting.map(function(v,i){return visitCard(v,i,false);}).join(''):(waiting.length?'<div class="queue-empty">沒有符合搜尋或篩選條件的候位主人。</div>':'<div class="queue-empty">目前沒有人候位。<br>自由參觀的客人不會出現在這裡。</div>');
     document.getElementById('myVisitList').innerHTML=mine.length?mine.map(function(v,i){return visitCard(v,i,true);}).join(''):'<div class="queue-empty">你目前沒有接待中的主人。<br>有空時可接待下一組。</div>';
     document.getElementById('teamVisitList').innerHTML=teammates.length?teammates.map(function(v,i){return visitCard(v,i,false);}).join(''):'<div class="queue-empty">其他女僕目前沒有接待中的主人。</div>';
+    ensureVisitShareCodes(visibleWaiting.concat(active));
     var label={available:'可接待',serving:'接待中',photo:'拍照中',away:'暫離'};
     document.getElementById('staffPresenceCount').textContent=ids.length;
     document.getElementById('staffPresenceList').innerHTML=ids.length?ids.map(function(id){
@@ -1686,6 +1694,10 @@
     if(!confirm('已在遊戲內叫號，但 '+(visit.queueNumber||'這組')+' 沒有回應嗎？\n確認後會移出候位隊列。')) return;
     visitsRef.child(id).update({status:'no_show',noShowAt:Date.now(),updatedAt:Date.now()});
   });
+  document.addEventListener('click',function(e){
+    var copy=e.target.closest('[data-copy-share-code]');if(copy){var code=visitShareCodes[copy.getAttribute('data-copy-share-code')]||'';if(!code)return;navigator.clipboard.writeText(code).then(function(){var old=copy.textContent;copy.textContent='已複製';setTimeout(function(){copy.textContent=old},1200)}).catch(function(){prompt('請複製本桌密碼：',code)});return}
+    var settle=e.target.closest('[data-settle-visit]');if(settle){var visitId=settle.getAttribute('data-settle-visit'),bill=checkoutForVisit(visitId);if(!confirm('確認已收取本桌合計 '+fmtGil(bill.total)+' 嗎？'))return;settle.disabled=true;setVisitPaymentStatusFn({visitId:visitId}).catch(function(err){alert(err.message||'結清狀態更新失敗');settle.disabled=false});return}
+  });
   document.getElementById('myVisitList').addEventListener('click',function(e){
     var edit=e.target.closest('[data-edit-visit-note]');
     if(edit){
@@ -1700,6 +1712,7 @@
     if(!id || !visits[id] || visits[id].assignedStaffId!==currentStaffId) return;
     if(start) visitsRef.child(id).update({status:'serving',serviceStartedAt:Date.now(),updatedAt:Date.now()});
     if(complete){
+      if(visits[id].paymentAttention===true){alert('⚠ 本桌結清後有新增訂單，請先再次收款並按「再次結清」，才能完成接待。');return;}
       var linkedOrders=ordersForVisit(id);
       var unfinishedOrders=linkedOrders.filter(function(order){return order.status!=='completed'&&order.status!=='cancelled';});
       if(unfinishedOrders.length){
@@ -1887,9 +1900,7 @@
         });
       }
     });
-    if(collectSpecialTags(items).some(function(tag){return tag.key==='magic';})){
-      tasks.push({key:'magic',type:'magic',label:'♥ 蛋包飯魔法'});
-    }
+    /* 蛋包飯魔法只作為餐點加購明細顯示，不建立獨立接待工作。 */
     return tasks;
   }
 

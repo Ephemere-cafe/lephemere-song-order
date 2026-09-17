@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="polaroid-admin.css?v=20260914-v34">
 <link rel="stylesheet" href="admin-v33.css?v=20260914-v33">
 <link rel="stylesheet" href="admin-v35.css?v=20260914-v35">
-  <link rel="stylesheet" href="polaroid-v36.css?v=53"></head>
+  <link rel="stylesheet" href="polaroid-v36.css?v=56"></head>
 <body>
 <div class="wrap" id="wrap">
 
@@ -291,11 +291,12 @@
         <button type="button" class="active" data-polaroid-pane="work">我的工作</button>
         <button type="button" class="manager-only" data-manager-only data-polaroid-pane="session">場次與輪次</button>
         <button type="button" class="manager-only" data-manager-only data-polaroid-pane="products">商品與範例</button>
-        <button type="button" class="manager-only" data-manager-only data-polaroid-pane="orders">本場訂單</button>
+        <button type="button" data-polaroid-pane="orders">全場拍攝狀況</button>
       </div>
 
       <section class="polaroid-pane" data-polaroid-panel="work">
         <section class="panel polaroid-my-work"><div class="polaroid-work-head"><div><h3 id="polaroidMyTitle">我的拍立得工作</h3><p id="polaroidMyHint">請先在上方選擇操作女僕。</p></div><div hidden class="polaroid-status-actions" id="polaroidStatusActions"><button data-polaroid-status="available">可拍</button><button data-polaroid-status="serving">接待中</button><button data-polaroid-status="shooting">拍攝中</button><button data-polaroid-status="away">暫離</button><button data-polaroid-status="off">下班</button></div></div><div id="polaroidMyTasks" class="polaroid-task-list"><div class="queue-empty">正在讀取工作清單…</div></div></section>
+        <section class="panel"><div class="polaroid-work-head"><div><h3>現在到拍攝時段</h3><p>只顯示目前輪次且尚未完成的工作，可直接開啟通知巨集。</p></div></div><div id="polaroidDueTasks" class="polaroid-task-list"><div class="queue-empty">正在確認目前輪次…</div></div></section>
       </section>
 
       <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="session" hidden id="polaroidManagerArea">
@@ -331,7 +332,7 @@
         </section>
       </section>
 
-      <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="orders" hidden>
+      <section class="polaroid-pane" data-polaroid-panel="orders" hidden>
         <div class="polaroid-admin-metrics"><div><span>拍攝服務件數</span><strong id="polaroidMetricOrders">0</strong></div><div><span>已完成</span><strong id="polaroidMetricDone">0</strong></div><div><span>等待處理</span><strong id="polaroidMetricPending">0</strong></div><div><span>未完成（含拍攝中）</span><strong id="polaroidMetricDeferred">0</strong></div></div>
         <section class="panel photo-round-summary"><p>目前：<strong id="polaroidCurrentRound"></strong></p><p>下一輪：<strong id="polaroidNextRound"></strong></p><p>拍攝中女僕：<strong id="polaroidBusyCount"></strong></p><div id="polaroidMaidTotals" class="photo-maid-totals"></div></section><section class="panel"><div class="polaroid-work-head"><div><h3>全場工作概況</h3><p>待拍依原始下單時間排序；跳過不會改變順位。已完成列於下方。最後一輪未完成工作留待店長安排。</p></div></div><div id="polaroidAllTasks" class="polaroid-task-list"></div></section><details class="panel polaroid-cancelled-archive" id="polaroidCancelledArchive" hidden><summary>已取消訂單（<span id="polaroidCancelledCount">0</span> 項）</summary><p>取消紀錄只供核對，不占用商品庫存、女僕名額或本場收入。</p><div id="polaroidCancelledTasks" class="polaroid-task-list"></div></details>
       </section>
@@ -970,7 +971,7 @@
 <script src="guestbook-admin.js?v=20260910-v25"></script>
 <script src="studio-admin.js?v=20260909-v22"></script>
 <script src="admin-workspace-preview.js?v=20260905c"></script>
-<script src="schedule.js?v=53"></script><script src="polaroid-admin.js?v=53"></script>
+<script src="schedule.js?v=56"></script><script src="polaroid-admin.js?v=56"></script>
 
 </body>
 </html>
