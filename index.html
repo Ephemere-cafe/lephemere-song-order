@@ -176,6 +176,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 <link rel="stylesheet" href="assets/unified-cafe-ui.css?v=20260825">
 <link rel="stylesheet" href="assets/readability-scale.css?v=20260826">
 <link rel="stylesheet" href="assets/guest-cafe-ui.css?v=20260916-v46">
+<link rel="stylesheet" href="assets/guest-unified-portal.css?v=59">
 </head>
 <body>
 <div id="siteLoader" class="site-loader" role="status" aria-live="polite">
@@ -198,6 +199,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   <nav class="guest-tabs" aria-label="服務頁面">
     <button class="guest-tab is-active" id="queueTab" type="button">領取號碼牌</button>
     <button class="guest-tab" id="orderTab" type="button" disabled>線上點餐</button>
+    <button class="guest-tab guest-tab-photo" id="photoTab" type="button" disabled>拍立得／簽繪</button>
     <button class="guest-tab" id="totalTab" type="button" disabled>本次消費</button>
     <button class="guest-tab guide-tab" id="openGuide" type="button" aria-haspopup="dialog">使用說明</button>
   </nav>
@@ -327,6 +329,15 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <p id="visitTotalStatus" class="visit-total-status" aria-live="polite"></p>
   </section>
 
+  <section id="photoServicePanel" class="photo-service-panel" hidden aria-labelledby="photoServiceTitle">
+    <header class="photo-service-head">
+      <div class="photo-service-copy"><small>PHOTO &amp; MEMORY</small><h2 id="photoServiceTitle">拍立得／簽繪服務</h2><p>沿用本桌六位數密碼，選擇自己的角色後即可購買與查看最新拍攝安排。</p></div>
+      <div class="photo-service-actions"><button class="btn ghost" id="reloadPhotoService" type="button">重新整理</button><a class="btn ghost" href="https://ephemere-photo.pages.dev/" target="_blank" rel="noopener">另開完整頁面</a></div>
+    </header>
+    <div class="photo-frame-shell"><iframe id="photoServiceFrame" class="photo-service-frame" title="曇時拍立得與簽繪服務" data-photo-base="https://ephemere-photo.pages.dev/" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+    <p class="photo-frame-note"><strong>同行者請選擇自己的角色。</strong><span>拍攝訂單、時段、庫存與本次消費仍使用原有系統即時同步。</span></p>
+  </section>
+
   <div id="orderFlow" class="order-shell" style="display:none;">
     <header class="order-heading">
       <div>
@@ -383,16 +394,16 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <p>餐點訂單已成功送出。前往拍立得網站後，請輸入本桌六位數密碼，並選擇自己的角色。</p>
     <div class="photo-prompt-actions">
       <button class="btn ghost" id="photoPromptLater" type="button">稍後再看</button>
-      <a class="btn primary" id="photoPromptGo" href="https://ephemere-photo.pages.dev/" target="_blank" rel="noopener">前往拍立得</a>
+      <button class="btn primary photo-inline-button" id="photoPromptGo" type="button">前往拍立得</button>
     </div>
   </div>
 </div>
 <div class="photo-quick-entry" id="photoQuickEntry" hidden>
-  <a class="photo-quick-card" href="https://ephemere-photo.pages.dev/" target="_blank" rel="noopener" aria-label="前往拍攝與紀念服務網站">
+  <button class="photo-quick-card photo-inline-button" id="photoQuickOpen" type="button" aria-label="開啟拍攝與紀念服務">
     <span class="photo-quick-icon" aria-hidden="true">✦</span>
     <span class="photo-quick-copy"><small>PHOTO &amp; MEMORY</small><strong>拍攝與紀念服務</strong></span>
     <span class="photo-quick-arrow" aria-hidden="true">→</span>
-  </a>
+  </button>
 </div>
 <div class="guide-overlay" id="guideOverlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle" hidden>
   <section class="guide-dialog">
@@ -404,7 +415,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       <li><strong>多人同行如何分享密碼？</strong><span>同桌所有人共用同一組六位數密碼。代表人可以按「複製共桌密碼」，再將密碼提供給同行者。</span></li>
       <li><strong>代表人可以幫整桌點餐</strong><span>代表人可以一次選擇整桌餐點，並替每份餐點指定用餐者，不需要每位同行者分別送單。</span></li>
       <li><strong>同行者也可以自己點餐</strong><span>同行者在入店方式選擇「我是同行者」，輸入同桌密碼並選擇自己的角色，即可進入同桌菜單自行送單。</span></li>
-      <li><strong>如何進入拍立得網站？</strong><span>餐點訂單送出後會出現提醒，也可以直接前往 <a href="https://ephemere-photo.pages.dev/" target="_blank" rel="noopener">曇時拍立得網站</a>，再輸入本桌六位數密碼。</span></li>
+      <li><strong>如何進入拍立得服務？</strong><span>餐點訂單送出後會出現提醒，也可以使用上方「拍立得／簽繪」分頁，在同一個網站完成購買與查看拍攝安排。</span></li>
       <li><strong>進入後請選擇自己的角色</strong><span>拍立得網站確認密碼後會列出本桌角色。請選擇自己的角色再購買，避免訂單與拍攝時段登記到朋友名下。</span></li>
     </ol>
     <div class="guide-footer"><button class="btn primary" id="guideDone" type="button">我知道了</button></div>
@@ -442,9 +453,20 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     var key=photoEntryKey();
     try{return !!key&&localStorage.getItem(key)==='1'}catch(_){return false}
   }
+  function photoReceiptExists(){
+    if(!visitReceipt)return false;
+    var rows=Array.isArray(visitReceipt.photo)?visitReceipt.photo:Object.values(visitReceipt.photo||{});
+    return rows.some(function(row){return row&&row.status!=='cancelled'});
+  }
+  function photoEntryAllowed(){
+    if(!activeVisit||['completed','cancelled','no_show'].indexOf(activeVisit.status)!==-1)return false;
+    var isCompanion=activeVisit.ownerUid!==currentVisitorUid||!!sharedMemberLabel;
+    return photoEntryUnlocked()||isCompanion||photoReceiptExists();
+  }
   function renderPhotoEntry(){
-    var allowed=!!activeVisit&&['completed','cancelled','no_show'].indexOf(activeVisit.status)===-1&&photoEntryUnlocked();
+    var allowed=photoEntryAllowed();
     document.getElementById('photoQuickEntry').hidden=!allowed;
+    document.getElementById('photoTab').disabled=!allowed;
   }
   function unlockPhotoEntry(){
     var key=photoEntryKey();
@@ -453,6 +475,17 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     document.getElementById('photoPromptOverlay').hidden=false;
   }
   function closePhotoPrompt(){document.getElementById('photoPromptOverlay').hidden=true}
+  function photoAccessCode(){
+    var input=document.getElementById('sharedTableCode'),candidate=tableShareCode||(input&&input.value.trim())||'';
+    return /^\d{6}$/.test(candidate)?candidate:'';
+  }
+  function setPhotoFrameSource(force){
+    var frame=document.getElementById('photoServiceFrame');if(!frame)return;
+    var code=photoAccessCode(),base=frame.getAttribute('data-photo-base')||'https://ephemere-photo.pages.dev/';
+    var target=base+(base.indexOf('?')===-1?'?':'&')+'embed=1'+(code?'&shareCode='+encodeURIComponent(code):'');
+    if(force||!frame.dataset.loaded||frame.dataset.loadedCode!==code){frame.src=target;frame.dataset.loaded='1';frame.dataset.loadedCode=code}
+  }
+  function resetPhotoFrame(){var frame=document.getElementById('photoServiceFrame');if(!frame)return;frame.src='about:blank';delete frame.dataset.loaded;delete frame.dataset.loadedCode;document.getElementById('photoServicePanel').hidden=true}
 
   var cart = {}; // id -> {name, price, qty, addon:{label,price}|null, assignments:[用餐者]}
   var pendingAddons = {}; // remembers add-ons selected before the base item is added
@@ -698,19 +731,24 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   function fetchVisitTotal(showLoading){
     if(!activeVisitId||!getVisitReceiptFn||visitReceiptBusy)return Promise.resolve();
     visitReceiptBusy=true;if(showLoading)document.getElementById('visitTotalStatus').textContent='正在更新本桌消費…';
-    return getVisitReceiptFn({visitId:activeVisitId}).then(function(result){visitReceipt=result&&result.data||null;renderVisitTotal();document.getElementById('visitTotalStatus').textContent='已更新・'+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}).catch(function(error){if(showLoading)document.getElementById('visitTotalStatus').textContent='暫時無法取得消費明細，請稍後再試。';console.warn('visit total',error)}).finally(function(){visitReceiptBusy=false});
+    return getVisitReceiptFn({visitId:activeVisitId}).then(function(result){visitReceipt=result&&result.data||null;renderVisitTotal();renderPhotoEntry();document.getElementById('visitTotalStatus').textContent='已更新・'+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}).catch(function(error){if(showLoading)document.getElementById('visitTotalStatus').textContent='暫時無法取得消費明細，請稍後再試。';console.warn('visit total',error)}).finally(function(){visitReceiptBusy=false});
   }
 
-  function setGuestTab(orderingEnabled, showOrder, showTotal){
+  function setGuestTab(orderingEnabled, showOrder, showTotal, showPhoto){
     var queueTab=document.getElementById('queueTab');
     var orderTab=document.getElementById('orderTab');
+    var photoTab=document.getElementById('photoTab');
     var totalTab=document.getElementById('totalTab');
     orderTab.disabled=!orderingEnabled;
     totalTab.disabled=!activeVisit;
-    queueTab.classList.toggle('is-active', !showOrder&&!showTotal);
+    photoTab.disabled=!photoEntryAllowed();
+    queueTab.classList.toggle('is-active', !showOrder&&!showTotal&&!showPhoto);
     orderTab.classList.toggle('is-active', !!showOrder);
+    photoTab.classList.toggle('is-active', !!showPhoto);
     totalTab.classList.toggle('is-active', !!showTotal);
     document.getElementById('visitTotalPanel').style.display=showTotal?'block':'none';
+    document.getElementById('photoServicePanel').hidden=!showPhoto;
+    document.getElementById('orderFlow').style.display=showOrder?'block':'none';
   }
 
   function openOrderView(){
@@ -727,12 +765,21 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     document.getElementById('visitTotalPanel').scrollIntoView({behavior:'smooth',block:'start'});
   }
 
+  function openPhotoView(){
+    if(!photoEntryAllowed())return;
+    setPhotoFrameSource(false);
+    setGuestTab(activeVisit&&(['assigned','serving'].indexOf(activeVisit.status)!==-1),false,false,true);
+    closePhotoPrompt();
+    document.getElementById('photoServicePanel').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
   document.getElementById('queueTab').addEventListener('click',function(){
     setGuestTab(!!activeVisit && (activeVisit.status==='assigned' || activeVisit.status==='serving'), false);
     var target=activeVisit ? document.getElementById('visitStatusPanel') : document.getElementById('visitGate');
     if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
   });
   document.getElementById('orderTab').addEventListener('click',openOrderView);
+  document.getElementById('photoTab').addEventListener('click',openPhotoView);
   document.getElementById('totalTab').addEventListener('click',openTotalView);
   document.getElementById('showVisitTotal').addEventListener('click',openTotalView);
   document.getElementById('refreshVisitTotal').addEventListener('click',function(){fetchVisitTotal(true)});
@@ -766,6 +813,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     }
     if(!activeVisit){
       visitReceipt=null;
+      resetPhotoFrame();
       renderVisitTotal();
       if(activeVisitId){ localStorage.removeItem('lephemereActiveVisitId'); sessionStorage.removeItem('lephemereActiveVisitSessionId'); activeVisitId=''; }
       visitRecoveryPending=false;
@@ -1472,8 +1520,11 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   });
   document.getElementById('closePhotoPrompt').addEventListener('click',closePhotoPrompt);
   document.getElementById('photoPromptLater').addEventListener('click',closePhotoPrompt);
-  document.getElementById('photoPromptGo').addEventListener('click',closePhotoPrompt);
+  document.getElementById('photoPromptGo').addEventListener('click',openPhotoView);
+  document.getElementById('photoQuickOpen').addEventListener('click',openPhotoView);
+  document.getElementById('reloadPhotoService').addEventListener('click',function(){setPhotoFrameSource(true)});
   document.getElementById('photoPromptOverlay').addEventListener('click',function(e){if(e.target===this)closePhotoPrompt()});
+  window.addEventListener('message',function(event){if(event.origin!=='https://ephemere-photo.pages.dev')return;var data=event.data||{};if(data.type==='lephemere-photo-order-created'||data.type==='lephemere-photo-receipt-updated')fetchVisitTotal(false)});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!document.getElementById('photoPromptOverlay').hidden)closePhotoPrompt()});
   function openGuide(){document.getElementById('guideOverlay').hidden=false;setTimeout(function(){document.getElementById('closeGuide').focus()},0)}
   function closeGuide(){document.getElementById('guideOverlay').hidden=true;document.getElementById('openGuide').focus()}
