@@ -16,7 +16,7 @@
   var db, storage, functionsClient, retryDiscordNotificationFn, createShareCodeFn, setVisitPaymentStatusFn;
   var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, staffSchedulesRef, menuRef, nextOrderNumberRef, operationStatusRef, dailyReportsRef, adminUsersRef, adminOwnerUidRef, siteMusicRef;
   var visitsRef, visitQueueCounterRef, staffPresenceRef, assignmentHistoryRef;
-  var recentOrdersQuery, ordersQuery, todayVisitsQuery, allVisitsHistoryQuery, currentVisitsBusinessDate = '';
+  var recentOrdersQuery, ordersQuery, todayVisitsQuery, allVisitsHistoryQuery, currentVisitsBusinessDate = '', visitsRetryTimer = null;
 
   var orders = {};
   var visits = {};
@@ -558,6 +558,7 @@
     db.ref('.info/connected').on('value', function(snap){
       isDatabaseConnected = snap.val()===true;
       document.getElementById('connDot').className = isDatabaseConnected ? 'dot online' : 'dot offline';
+      if(isDatabaseConnected&&attached)watchBusinessVisits(currentBusinessDate(),true);
       renderSystemStatus();
     });
 
@@ -591,8 +592,9 @@
   }
 
   var attached = false;
-  function watchBusinessVisits(date){
-    if(!visitsRef || !isScheduleDate(date) || currentVisitsBusinessDate===date) return;
+  function watchBusinessVisits(date,force){
+    if(!visitsRef || !isScheduleDate(date) || (!force&&currentVisitsBusinessDate===date)) return;
+    if(visitsRetryTimer){clearTimeout(visitsRetryTimer);visitsRetryTimer=null}
     if(todayVisitsQuery) todayVisitsQuery.off();
     currentVisitsBusinessDate = date;
     todayVisitsQuery = visitsRef.orderByChild('businessDate').equalTo(date);
@@ -602,7 +604,9 @@
     }, function(err){
       console.error('Business visit sync failed', err);
       visits = {};
+      currentVisitsBusinessDate='';
       renderReception();
+      if(attached)visitsRetryTimer=setTimeout(function(){watchBusinessVisits(currentBusinessDate(),true)},2500);
     });
   }
 
@@ -665,6 +669,8 @@
     watchOrders(recentOrdersQuery, 'recent');
 
     watchBusinessVisits(currentBusinessDate());
+    window.addEventListener('focus',function(){if(attached)watchBusinessVisits(currentBusinessDate(),true)});
+    window.addEventListener('online',function(){if(attached)watchBusinessVisits(currentBusinessDate(),true)});
 
     staffPresenceRef.on('value', function(snap){
       staffPresence = snap.val() || {};
@@ -1124,7 +1130,7 @@
     var bill=checkoutForVisit(visitId),visit=visits[visitId]||{};if(!bill.diningOrders&&!bill.photoOrders)return'';
     var details=bill.photoDetails.map(function(item){return '<span>'+escapeHtml(item.memberLabel)+'｜'+escapeHtml(item.productName)+'・'+fmtGil(item.price)+'</span>';}).join('');
     var status=visit.paymentAttention===true?'<strong class="payment-attention">⚠ 結清後有新增訂單</strong>':(visit.paymentStatus==='settled'?'<strong class="payment-settled">✓ 已結清</strong>':'<span>尚未結清</span>'),label=visit.paymentAttention===true?'再次結清':(visit.paymentStatus==='settled'?'重新確認結清':'標記已結清');
-    return '<section class="visit-checkout"><div class="visit-checkout-title"><strong>本桌收款總覽</strong><span>送餐時一起收取</span></div><div class="visit-checkout-values"><span>餐點 <b>'+fmtGil(bill.diningTotal)+'</b></span><span>拍攝／簽繪 <b>'+fmtGil(bill.photoTotal)+'</b></span><span class="visit-checkout-total">應收合計 <b>'+fmtGil(bill.total)+'</b></span></div>'+(details?'<div class="visit-checkout-details">'+details+'</div>':'')+'<div class="payment-row">'+status+'<button type="button" class="btn ghost small" data-settle-visit="'+escapeAttr(visitId)+'">'+label+'</button></div></section>';
+    return '<section class="visit-checkout"><div class="visit-checkout-title"><strong>本桌收款總覽</strong><span>送餐時一起收取</span></div><div class="visit-checkout-values"><span>餐點 <b>'+fmtGil(bill.diningTotal)+'</b></span><span>拍攝／紀念服務 <b>'+fmtGil(bill.photoTotal)+'</b></span><span class="visit-checkout-total">應收合計 <b>'+fmtGil(bill.total)+'</b></span></div>'+(details?'<div class="visit-checkout-details">'+details+'</div>':'')+'<div class="payment-row">'+status+'<button type="button" class="btn ghost small" data-settle-visit="'+escapeAttr(visitId)+'">'+label+'</button></div></section>';
   }
 
   function specialAssignmentPlan(visitId){
@@ -2463,7 +2469,7 @@
       var tableKey=(groupByDate?orderBusinessDate(o)+'|':'')+orderTableKey(o);
       if(tableKey!==openTable){
         var tableStat=tableStats[tableKey],tableVisit=visits[tableStat.visitId]||allVisitHistory[tableStat.visitId]||{},statusParts=Object.keys(tableStat.statuses).map(function(key){return (STATUS_LABEL[key]||key)+' '+tableStat.statuses[key];}),bill=tableStat.visitId?checkoutForVisit(tableStat.visitId):{diningTotal:tableStat.total,photoTotal:0,total:tableStat.total};
-        html+='<div class="order-table-heading"><div><span class="order-table-kicker">同桌訂單</span><strong>'+(tableStat.queueNumber?'候位 '+escapeHtml(tableStat.queueNumber):'未連結號碼牌')+'・'+escapeHtml(tableVisit.characterName||o.name||'未填名稱')+'</strong><small>'+Number(tableVisit.partySize||1)+' 人・'+tableStat.count+' 張餐點訂單・'+escapeHtml(statusParts.join('／'))+'</small></div><div class="order-table-checkout"><small>餐點 '+fmtGil(bill.diningTotal)+' ＋ 拍攝／簽繪 '+fmtGil(bill.photoTotal)+'</small><b>本桌應收 '+fmtGil(bill.total)+'</b></div></div>';
+        html+='<div class="order-table-heading"><div><span class="order-table-kicker">同桌訂單</span><strong>'+(tableStat.queueNumber?'候位 '+escapeHtml(tableStat.queueNumber):'未連結號碼牌')+'・'+escapeHtml(tableVisit.characterName||o.name||'未填名稱')+'</strong><small>'+Number(tableVisit.partySize||1)+' 人・'+tableStat.count+' 張餐點訂單・'+escapeHtml(statusParts.join('／'))+'</small></div><div class="order-table-checkout"><small>餐點 '+fmtGil(bill.diningTotal)+' ＋ 拍攝／紀念服務 '+fmtGil(bill.photoTotal)+'</small><b>本桌應收 '+fmtGil(bill.total)+'</b></div></div>';
         openTable=tableKey;
       }
       var regularItems = (o.items||[]).filter(function(it){ return !standaloneSpecialType(it); });

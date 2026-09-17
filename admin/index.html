@@ -295,22 +295,22 @@
 
     <!-- ============ 拍立得與獨立商品系統 ============ -->
     <div id="polaroidTab" style="display:none;">
-      <div class="page-heading polaroid-page-heading"><div class="page-heading-copy"><span class="page-eyebrow">Polaroid Management</span><h2>拍立得與商品</h2><p>拍攝、商品交付、範例與收入歸屬集中在這裡；拍立得網站的消費不列入餐點低消。</p></div><span class="polaroid-live" id="polaroidSessionBadge">場次確認中</span></div>
-      <div class="polaroid-admin-tabs" id="polaroidAdminTabs" role="tablist" aria-label="拍立得工作區">
+      <div class="page-heading polaroid-page-heading"><div class="page-heading-copy"><span class="page-eyebrow">Polaroid Management</span><h2>拍攝／紀念服務</h2><p>拍攝、商品交付、範例與收入歸屬集中在這裡；拍攝／紀念服務的消費不列入餐點低消。</p></div><span class="polaroid-live" id="polaroidSessionBadge">場次確認中</span></div>
+      <div class="polaroid-admin-tabs" id="polaroidAdminTabs" role="tablist" aria-label="拍攝與紀念服務工作區">
         <button type="button" class="active" data-polaroid-pane="work">我的工作</button>
         <button type="button" class="manager-only" data-manager-only data-polaroid-pane="session">場次與輪次</button>
         <button type="button" class="manager-only" data-manager-only data-polaroid-pane="products">商品與範例</button>
-        <button type="button" data-polaroid-pane="orders">全場拍攝狀況</button>
+        <button type="button" data-polaroid-pane="orders">全場服務狀況</button>
       </div>
 
       <section class="polaroid-pane" data-polaroid-panel="work">
-        <section class="panel polaroid-my-work"><div class="polaroid-work-head"><div><h3 id="polaroidMyTitle">我的拍立得工作</h3><p id="polaroidMyHint">請先在上方選擇操作女僕。</p></div><div hidden class="polaroid-status-actions" id="polaroidStatusActions"><button data-polaroid-status="available">可拍</button><button data-polaroid-status="serving">接待中</button><button data-polaroid-status="shooting">拍攝中</button><button data-polaroid-status="away">暫離</button><button data-polaroid-status="off">下班</button></div></div><div id="polaroidMyTasks" class="polaroid-task-list"><div class="queue-empty">正在讀取工作清單…</div></div></section>
+        <section class="panel polaroid-my-work"><div class="polaroid-work-head"><div><h3 id="polaroidMyTitle">我的服務工作</h3><p id="polaroidMyHint">請先在上方選擇操作女僕。</p></div><div hidden class="polaroid-status-actions" id="polaroidStatusActions"><button data-polaroid-status="available">可拍</button><button data-polaroid-status="serving">接待中</button><button data-polaroid-status="shooting">拍攝中</button><button data-polaroid-status="away">暫離</button><button data-polaroid-status="off">下班</button></div></div><div id="polaroidMyTasks" class="polaroid-task-list"><div class="queue-empty">正在讀取工作清單…</div></div></section>
         <section class="panel"><div class="polaroid-work-head"><div><h3>拍攝提醒清單</h3><p>顯示所有尚未完成的拍攝工作，可依現場狀況隨時開啟到時提醒。</p></div></div><div id="polaroidDueTasks" class="polaroid-task-list"><div class="queue-empty">正在整理待拍工作…</div></div></section>
       </section>
 
       <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="session" hidden id="polaroidManagerArea">
         <details class="panel polaroid-session-editor" open><summary><span><strong>本場拍立得設定</strong><small>需安排拍攝的服務每客 3 份、同女僕每客 1 份為固定限制</small></span></summary>
-          <div class="polaroid-session-fields"><label>場次名稱<input id="polaroidSessionTitle" maxlength="100" placeholder="例如：2026/09/22 曇時一般營業"></label><label>營業日期<input id="polaroidBusinessDate" type="date"></label><label>其他商品每客上限<input id="polaroidMaxProducts" type="number" min="1" max="50" value="5"></label><label>同時最多拍攝女僕人數<input id="polaroidSimultaneous" type="number" min="1" max="20" value="2"></label><label class="check"><input id="polaroidSessionOpen" type="checkbox" checked> 啟用本場拍立得網站</label><label class="check"><input id="polaroidSalesOpen" type="checkbox" checked> 接受新拍攝登記（取消勾選並儲存後停止）</label><label class="check"><input id="polaroidOtherSalesOpen" type="checkbox" checked> 開放商品接單總開關</label></div>
+          <div class="polaroid-session-fields"><label>場次名稱<input id="polaroidSessionTitle" maxlength="100" placeholder="例如：2026/09/22 曇時一般營業"></label><label>營業日期<input id="polaroidBusinessDate" type="date"></label><label>其他商品每客上限<input id="polaroidMaxProducts" type="number" min="1" max="50" value="5"></label><label>同時最多拍攝女僕人數<input id="polaroidSimultaneous" type="number" min="1" max="20" value="2"></label><label class="check"><input id="polaroidSessionOpen" type="checkbox" checked> 啟用本場服務區</label><label class="check"><input id="polaroidSalesOpen" type="checkbox" checked> 接受新拍攝登記（取消勾選並儲存後停止）</label><label class="check"><input id="polaroidOtherSalesOpen" type="checkbox" checked> 開放商品接單總開關</label></div>
           <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><p class="polaroid-help">新單安排到最近尚未結束的輪次；未完成自動遞延並保留下單順位。時間以台灣時間為準，跨午夜輪次請放在最後。</p><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕</h4><p class="polaroid-help">勾選開放本場拍攝服務的女僕，個別設定本場接單數；預設 3 份。系統不判斷女僕是否有空。</p><div id="polaroidMaidEditor"></div></div></div>
           <div class="polaroid-save-row"><span id="polaroidSaveStatus" aria-live="polite"></span><button type="button" class="btn primary" id="polaroidSaveSession">儲存場次與輪次</button></div>
         </details>
@@ -342,7 +342,7 @@
       </section>
 
       <section class="polaroid-pane" data-polaroid-panel="orders" hidden>
-        <div class="polaroid-admin-metrics"><div><span>拍攝服務件數</span><strong id="polaroidMetricOrders">0</strong></div><div><span>已完成</span><strong id="polaroidMetricDone">0</strong></div><div><span>等待處理</span><strong id="polaroidMetricPending">0</strong></div><div><span>未完成（含拍攝中）</span><strong id="polaroidMetricDeferred">0</strong></div></div>
+        <div class="polaroid-admin-metrics"><div><span>服務件數</span><strong id="polaroidMetricOrders">0</strong></div><div><span>已完成</span><strong id="polaroidMetricDone">0</strong></div><div><span>等待處理</span><strong id="polaroidMetricPending">0</strong></div><div><span>未完成（含拍攝中）</span><strong id="polaroidMetricDeferred">0</strong></div></div>
         <section class="panel photo-round-summary"><p>目前：<strong id="polaroidCurrentRound"></strong></p><p>下一輪：<strong id="polaroidNextRound"></strong></p><p>拍攝中女僕：<strong id="polaroidBusyCount"></strong></p><div id="polaroidMaidTotals" class="photo-maid-totals"></div></section><section class="panel"><div class="polaroid-work-head"><div><h3>全場工作概況</h3><p>待拍依原始下單時間排序；跳過不會改變順位。已完成列於下方。最後一輪未完成工作留待店長安排。</p></div></div><div id="polaroidAllTasks" class="polaroid-task-list"></div></section><details class="panel polaroid-cancelled-archive" id="polaroidCancelledArchive" hidden><summary>已取消訂單（<span id="polaroidCancelledCount">0</span> 項）</summary><p>取消紀錄只供核對，不占用商品庫存、女僕名額或本場收入。</p><div id="polaroidCancelledTasks" class="polaroid-task-list"></div></details>
       </section>
     </div>
