@@ -176,7 +176,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 <link rel="stylesheet" href="assets/unified-cafe-ui.css?v=20260825">
 <link rel="stylesheet" href="assets/readability-scale.css?v=20260826">
 <link rel="stylesheet" href="assets/guest-cafe-ui.css?v=20260916-v46">
-<link rel="stylesheet" href="assets/guest-unified-portal.css?v=61">
+<link rel="stylesheet" href="assets/guest-unified-portal.css?v=62">
 <link rel="stylesheet" href="assets/guest-photo-native.css?v=61">
 </head>
 <body>
@@ -323,10 +323,11 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   </div>
 
   <section id="visitTotalPanel" class="panel visit-total-panel" style="display:none;" aria-labelledby="visitTotalTitle">
-    <div class="visit-total-head"><div><p class="panel-title">TONIGHT'S TOTAL</p><h2 id="visitTotalTitle">本次消費</h2><p>同桌餐點與拍攝服務會合併計算，追加訂單後也會同步更新。</p></div><button class="btn ghost visit-total-refresh" id="refreshVisitTotal" type="button">重新整理</button></div>
-    <div class="visit-total-cards"><div class="visit-total-card"><span>餐點小計</span><strong id="visitDiningTotal">0 Gil</strong></div><div class="visit-total-card"><span>拍攝／服務小計</span><strong id="visitPhotoTotal">0 Gil</strong></div><div class="visit-total-card grand"><span>本次總計</span><strong id="visitGrandTotal">0 Gil</strong></div></div>
+    <div class="visit-total-head"><div><p class="panel-title">MY ORDERS · TONIGHT</p><h2 id="visitTotalTitle">本次消費與服務安排</h2><p>同步顯示餐點、拍攝／紀念服務、最新時段與本桌應付總額。</p></div><button class="btn ghost visit-total-refresh" id="refreshVisitTotal" type="button">重新整理</button></div>
+    <div id="visitTotalIdentity" class="visit-total-identity"></div>
     <div id="visitTotalAlert"></div>
     <div id="visitTotalDetails" class="visit-total-details"><p class="visit-total-empty">正在讀取本桌消費…</p></div>
+    <div class="visit-total-cards"><div class="visit-total-card"><span>餐點小計</span><strong id="visitDiningTotal">0 Gil</strong></div><div class="visit-total-card"><span>拍攝／服務小計</span><strong id="visitPhotoTotal">0 Gil</strong></div><div class="visit-total-card grand"><span>本次總計</span><strong id="visitGrandTotal">0 Gil</strong></div></div>
     <p id="visitTotalStatus" class="visit-total-status" aria-live="polite"></p>
   </section>
 
@@ -336,7 +337,6 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     
 <div id="photoNativeRoot" class="native-photo is-embedded" data-purchase-enabled="false">
   <div id="np-siteLoader" class="site-loader" role="status" aria-live="polite"><div class="loader-mark" aria-hidden="true"><span class="loader-photo"></span><span class="loader-spark spark-one">✦</span><span class="loader-spark spark-two">✧</span></div><strong>正在準備今晚的服務</strong><span id="np-siteLoaderText">確認場次與服務項目中…</span></div>
-  <nav class="native-service-nav" aria-label="拍攝與紀念服務頁面"><button data-view="shop" class="active">服務選購</button><button data-view="orders">我的服務與安排</button></nav>
   <div class="native-photo-main">
   <section id="np-shopView" class="view"><p class="eyebrow">POLAROID &amp; LIMITED EDITIONS</p><div class="page-intro"><div><h1>留下今晚的片刻</h1><p>瀏覽本場商品與作品範例，連結本桌後即可登記。</p></div><div id="np-sessionSummary" class="session-summary">正在確認本場資訊…</div></div><div id="np-accessNotice" class="access-notice access-pending"><button id="np-dismissAccessGate" class="access-gate-close" type="button" aria-label="先瀏覽商品，關閉連結本桌視窗">×</button><div class="access-copy"><strong>本桌角色</strong><span>沿用進入本桌時使用的密碼；可在上方直接切換自己的角色。</span></div><div id="np-ticketLinkForm" class="ticket-link-form" hidden><input id="np-linkShareCode" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="六位數共桌密碼" aria-label="六位數共桌密碼"><button id="np-verifyTable" type="button">確認本桌</button></div><div id="np-memberLinkForm" class="member-link-form" hidden><select id="np-linkMember" aria-label="選擇角色"></select><button id="np-confirmMember" type="button">以這個角色繼續</button></div><p id="np-linkStatus" class="link-status" aria-live="polite"></p><button id="np-switchLinkedIdentity" class="identity-switch" type="button" hidden>切換客人</button></div><div class="service-notice"><strong>需安排拍攝的服務：每客每場最多 3 份，同一位女僕最多 1 份。</strong><p>完成下單後不一定會立即拍攝，拍攝時段會透過遊戲內私訊另外通知。等待期間可以自由活動或暫時離店，只要在安排時段前回來即可。</p><p>若拍攝順延，會保留您的原先順序，並由女僕通知後續安排。相關消費不列入餐點低消。</p></div><section class="service-browser" aria-label="依女僕與服務類型篩選"><div class="maid-filter-copy"><div><h2>想和哪位女僕留下紀念？</h2><p>先選擇女僕，再查看她今晚開放的服務。</p></div><small>可左右滑動查看更多</small></div><div id="np-maidNav" class="maid-nav" aria-label="選擇女僕"></div></section><div class="service-filter-row"><strong id="np-serviceFilterTitle">全部服務</strong><div id="np-categoryNav" class="category-nav" aria-label="商品分類"></div></div><div class="shop-grid"><div id="np-productGrid" class="product-grid"><p class="empty">正在讀取本場商品…</p></div><aside class="cart"><p class="eyebrow">YOUR SELECTION</p><h2>今晚選擇</h2><div id="np-cartItems"><p class="empty">尚未選擇商品。</p></div><div class="cart-total"><span>合計</span><b id="np-cartTotal">0 Gil</b></div><button id="np-submitSelection" class="primary" disabled>確認登記</button><p class="cart-note">訂單送出後即進入拍攝排程，恕無法自行修改或取消，送出前請再次確認。特殊狀況請聯絡店長。</p></aside></div></section>
   <section id="np-ordersView" class="view" hidden><p class="eyebrow">MY ORDERS · TONIGHT</p><div class="page-intro"><div><h1>本次消費與拍攝安排</h1><p>這裡會同步顯示餐點、拍攝服務、最新時段與本桌應付總額。</p></div><div id="np-linkedIdentity" class="session-summary"></div></div><button id="np-refreshReceipt" class="outline receipt-refresh" type="button">更新訂單明細</button><div id="np-receiptSummary" class="receipt-summary"><p class="empty">正在讀取本桌消費…</p></div><h2 class="orders-subtitle">我的拍攝／服務狀態</h2><div id="np-orderList" class="order-list"><p class="empty">正在讀取你的訂單…</p></div></section>
@@ -344,7 +344,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   
 <div class="bottom-cart" id="np-bottomCart"><span><small id="np-mobileCartCount">尚未選擇</small><b id="np-mobileCartTotal">0 Gil</b></span><button data-open-cart>查看選擇</button></div>
 <div class="overlay" id="np-exampleOverlay" hidden><div class="example-dialog"><button type="button" class="close" data-close-example aria-label="關閉">×</button><div class="example-gallery"><div id="np-exampleThumbs" class="example-thumbs"></div><div class="example-stage"><img id="np-exampleMainImage" alt="拍立得範例"></div></div><div class="example-copy"><p class="eyebrow" id="np-exampleEyebrow">PHOTO EXAMPLES</p><div class="example-provider" id="np-exampleProvider"></div><h2 id="np-exampleTitle">作品範例</h2><p id="np-exampleDescription"></p><p class="example-note">實際成品依當日拍攝與設計為準。</p><button class="primary" id="np-exampleSelectProduct">選擇這項商品</button></div></div></div>
-<div class="overlay" id="np-successOverlay" hidden><div class="dialog success"><div class="seal">✓</div><p class="eyebrow">REGISTRATION COMPLETE</p><h2>已為今晚留下位置</h2><p id="np-successMessage"></p><button class="primary" data-show-orders>查看我的服務</button></div></div>
+<div class="overlay" id="np-successOverlay" hidden><div class="dialog success"><div class="seal">✓</div><p class="eyebrow">REGISTRATION COMPLETE</p><h2>已為今晚留下位置</h2><p id="np-successMessage"></p><button class="primary" data-show-orders>查看本次消費與安排</button></div></div>
 <div class="overlay" id="np-confirmOrderOverlay" hidden><div class="dialog order-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="np-confirmOrderTitle"><button type="button" class="close" id="np-closeOrderConfirm" aria-label="關閉">×</button><p class="eyebrow">FINAL CONFIRMATION</p><h2 id="np-confirmOrderTitle">送出前請最後確認</h2><p id="np-confirmRole" class="confirm-role"></p><div id="np-confirmOrderItems" class="confirm-order-items"></div><div class="cart-total"><span>合計</span><b id="np-confirmOrderTotal">0 Gil</b></div><p class="cart-note">送出後會進入拍攝排程，請確認目前角色與購買內容都正確。</p><div class="confirm-actions"><button type="button" class="outline" id="np-cancelOrderConfirm">返回修改</button><button type="button" class="primary" id="np-confirmOrderSubmit">確認送出</button></div></div></div>
 
 </div>
@@ -403,19 +403,12 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <button class="photo-prompt-close" id="closePhotoPrompt" type="button" aria-label="關閉拍立得提醒">×</button>
     <div class="photo-prompt-kicker">PHOTO &amp; MEMORY</div>
     <h2 id="photoPromptTitle">還想留下今晚的紀念嗎？</h2>
-    <p>餐點訂單已成功送出。前往拍攝／紀念服務區後，請輸入本桌六位數密碼，並選擇自己的角色。</p>
+    <p>餐點訂單已成功送出，現在可以前往拍攝／紀念服務區選購；本桌密碼與角色會自動沿用。</p>
     <div class="photo-prompt-actions">
       <button class="btn ghost" id="photoPromptLater" type="button">稍後再看</button>
       <button class="btn primary photo-inline-button" id="photoPromptGo" type="button">前往拍攝／紀念服務</button>
     </div>
   </div>
-</div>
-<div class="photo-quick-entry" id="photoQuickEntry" hidden>
-  <button class="photo-quick-card photo-inline-button" id="photoQuickOpen" type="button" aria-label="開啟拍攝與紀念服務">
-    <span class="photo-quick-icon" aria-hidden="true">✦</span>
-    <span class="photo-quick-copy"><small>PHOTO &amp; MEMORY</small><strong>拍攝與紀念服務</strong></span>
-    <span class="photo-quick-arrow" aria-hidden="true">→</span>
-  </button>
 </div>
 <div class="guide-overlay" id="guideOverlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle" hidden>
   <section class="guide-dialog">
@@ -471,11 +464,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     return rows.some(function(row){return row&&row.status!=='cancelled'});
   }
   function photoEntryAllowed(){return !!activeVisit&&['assigned','serving'].indexOf(activeVisit.status)!==-1}
-  function renderPhotoEntry(){
-    var allowed=photoEntryAllowed();
-    document.getElementById('photoQuickEntry').hidden=!allowed;
-    document.getElementById('photoTab').disabled=!allowed;
-  }
+  function renderPhotoEntry(){document.getElementById('photoTab').disabled=!photoEntryAllowed()}
   function unlockPhotoEntry(){
     var key=photoEntryKey();
     try{if(key)localStorage.setItem(key,'1')}catch(_){}
@@ -516,7 +505,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   var cart = {}; // id -> {name, price, qty, addon:{label,price}|null, assignments:[用餐者]}
   var pendingAddons = {}; // remembers add-ons selected before the base item is added
   var db, menuRef, operationStatusRef, functionsClient, submitOrderFn, submitSharedOrderFn, createSharedTableCodeFn, joinSharedTableFn, getVisitReceiptFn;
-  var tableShareCode='', tableShareVisitId='', tableShareLoading=false;
+  var tableShareCode='', tableShareVisitId='', tableShareLoading=false, activeGuestView='queue';
   var sharedJoinChallenge='', sharedMemberLabel='';
   var visitsRef, visitQueueCounterRef, staffRosterRef, todayStaffRef;
   var currentVisitorUid = '';
@@ -746,12 +735,12 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   }
 
   function renderVisitTotal(){
-    var details=document.getElementById('visitTotalDetails'),alertHost=document.getElementById('visitTotalAlert');
+    var details=document.getElementById('visitTotalDetails'),alertHost=document.getElementById('visitTotalAlert'),identity=document.getElementById('visitTotalIdentity');if(identity)identity.textContent=currentPhotoMemberLabel()?'目前角色・'+partyMemberName(currentPhotoMemberLabel()):'';
     if(!activeVisit||!visitReceipt){document.getElementById('visitDiningTotal').textContent='0 Gil';document.getElementById('visitPhotoTotal').textContent='0 Gil';document.getElementById('visitGrandTotal').textContent='0 Gil';alertHost.innerHTML='';details.innerHTML='<p class="visit-total-empty">尚未取得本桌消費資料。</p>';return}
     var dining=Array.isArray(visitReceipt.dining)?visitReceipt.dining:Object.values(visitReceipt.dining||{}),photos=Array.isArray(visitReceipt.photo)?visitReceipt.photo:Object.values(visitReceipt.photo||{}),diningRows=[];
     dining.forEach(function(order){(Array.isArray(order.items)?order.items:Object.values(order.items||{})).forEach(function(item){var qty=Number(item.qty||0),amount=Number(item.price||0)*qty+Number(item.addon&&item.addon.price||0)*qty,name=escapeHtml(item.name||'餐點')+' × '+qty+(item.addon?' ＋ '+escapeHtml(item.addon.label):'');diningRows.push('<div class="visit-total-line"><span>'+name+'</span><b>'+fmtGil(amount)+'</b></div>')})});
     var photoRows=photos.map(function(task){var when=task.taskType==='delivery'?'完成後交付':task.roundId?((task.roundLabel||'')+' '+(task.startTime||'')+'–'+(task.endTime||'')):'等待安排中',name=(task.memberLabel||'').split('｜')[0]+'｜'+(task.maidName||'')+'｜'+(task.productName||'服務');return'<div class="visit-total-line"><span>'+escapeHtml(name)+'<small>'+escapeHtml(when+'・'+visitOrderStatus(task.status,task))+'</small></span><b>'+fmtGil(Number(task.price||0))+'</b></div>'});
-    var diningTotal=Number(visitReceipt.diningTotal||0),photoTotal=Number(visitReceipt.photoTotal||0);document.getElementById('visitDiningTotal').textContent=fmtGil(diningTotal);document.getElementById('visitPhotoTotal').textContent=fmtGil(photoTotal);document.getElementById('visitGrandTotal').textContent=fmtGil(diningTotal+photoTotal);alertHost.innerHTML=visitReceipt.paymentAttention===true?'<p class="visit-total-alert">⚠ 已結清後又有新增訂單，離店前請向女僕再次確認金額。</p>':'';details.innerHTML='<section class="visit-total-section"><h3>餐點明細</h3>'+(diningRows.join('')||'<p class="visit-total-empty">尚無餐點訂單。</p>')+'</section><section class="visit-total-section"><h3>拍攝／服務明細</h3>'+(photoRows.join('')||'<p class="visit-total-empty">尚無拍攝或服務訂單。</p>')+'</section>';
+    var diningTotal=Number(visitReceipt.diningTotal||0),photoTotal=Number(visitReceipt.photoTotal||0);document.getElementById('visitDiningTotal').textContent=fmtGil(diningTotal);document.getElementById('visitPhotoTotal').textContent=fmtGil(photoTotal);document.getElementById('visitGrandTotal').textContent=fmtGil(diningTotal+photoTotal);alertHost.innerHTML=visitReceipt.paymentAttention===true?'<p class="visit-total-alert">⚠ 已結清後又有新增訂單，離店前請向女僕再次確認金額。</p>':'';details.innerHTML='<section class="visit-total-section"><h3>餐點</h3>'+(diningRows.join('')||'<p class="visit-total-empty">尚無餐點訂單。</p>')+'</section><section class="visit-total-section"><h3>拍攝／服務</h3>'+(photoRows.join('')||'<p class="visit-total-empty">尚無拍攝或服務訂單。</p>')+'</section>';
   }
 
   function fetchVisitTotal(showLoading){
@@ -760,7 +749,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     return getVisitReceiptFn({visitId:activeVisitId}).then(function(result){visitReceipt=result&&result.data||null;renderVisitTotal();renderPhotoEntry();syncNativePhoto();document.getElementById('visitTotalStatus').textContent='已更新・'+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}).catch(function(error){if(showLoading)document.getElementById('visitTotalStatus').textContent='暫時無法取得消費明細，請稍後再試。';console.warn('visit total',error)}).finally(function(){visitReceiptBusy=false});
   }
 
-  function setGuestTab(orderingEnabled, showOrder, showTotal, showPhoto){
+  function setGuestTab(orderingEnabled, showOrder, showTotal, showPhoto){activeGuestView=showPhoto?'photo':showTotal?'total':showOrder?'order':'queue';
     var queueTab=document.getElementById('queueTab');
     var orderTab=document.getElementById('orderTab');
     var photoTab=document.getElementById('photoTab');
@@ -899,7 +888,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     if(activeVisit.ownerUid===currentVisitorUid) ensureTableShareCode();
     document.getElementById('cancelVisitQueue').style.display = activeVisit.status==='waiting'&&activeVisit.ownerUid===currentVisitorUid ? 'inline-block' : 'none';
     document.getElementById('orderFlow').style.display = assigned ? 'block' : 'none';
-    setGuestTab(assigned, assigned);
+    if(!assigned)setGuestTab(false,false);else if(activeGuestView==='photo')setGuestTab(true,false,false,true);else if(activeGuestView==='total')setGuestTab(true,false,true,false);else setGuestTab(true,true,false,false);
     if(assigned){
       document.getElementById('cartPanel').style.display='block';
       document.getElementById('orderDataPanel').style.display='block';
@@ -1547,10 +1536,10 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   document.getElementById('closePhotoPrompt').addEventListener('click',closePhotoPrompt);
   document.getElementById('photoPromptLater').addEventListener('click',closePhotoPrompt);
   document.getElementById('photoPromptGo').addEventListener('click',openPhotoView);
-  document.getElementById('photoQuickOpen').addEventListener('click',openPhotoView);
+  
   document.getElementById('reloadPhotoService').addEventListener('click',function(){syncNativePhoto();if(window.LephemerePhotoNative)window.LephemerePhotoNative.refresh()});document.getElementById('photoRoleSelect').addEventListener('change',function(){photoSelectedMemberLabel=this.value;var code=photoAccessCode();if(code&&window.LephemerePhotoNative)window.LephemerePhotoNative.connect(code,this.value)});window.addEventListener('lephemere-photo-native-ready',syncNativePhoto);
   document.getElementById('photoPromptOverlay').addEventListener('click',function(e){if(e.target===this)closePhotoPrompt()});
-  window.addEventListener('lephemere-photo-order-created',function(){fetchVisitTotal(false)});
+  window.addEventListener('lephemere-photo-order-created',function(){fetchVisitTotal(false)});window.addEventListener('lephemere-photo-open-total',openTotalView);
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!document.getElementById('photoPromptOverlay').hidden)closePhotoPrompt()});
   function openGuide(){document.getElementById('guideOverlay').hidden=false;setTimeout(function(){document.getElementById('closeGuide').focus()},0)}
   function closeGuide(){document.getElementById('guideOverlay').hidden=true;document.getElementById('openGuide').focus()}
@@ -1563,7 +1552,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 })();
 </script>
 <script src="photo/assets/schedule.js?v=43"></script>
-<script src="assets/guest-photo-native.js?v=61"></script>
+<script src="assets/guest-photo-native.js?v=62"></script>
 </body>
 </html>
 
