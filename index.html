@@ -149,6 +149,25 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 .success-box .num{font-family:'Noto Serif TC',serif;font-size:30px;color:var(--sage);margin:6px 0;}
 .success-copy{max-width:540px;margin:0 auto;font-size:12.5px;line-height:1.8;color:var(--parchment-dim);}
 .success-note{max-width:540px;margin:8px auto 0;font-size:11.5px;line-height:1.7;color:var(--gold-dim);}
+.photo-prompt-overlay{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:20px;background:rgba(15,12,20,.76);}
+.photo-prompt-overlay[hidden],.photo-quick-entry[hidden]{display:none!important;}
+.photo-prompt-dialog{position:relative;width:min(460px,100%);padding:30px;background:var(--card);border:1px solid var(--gold-dim);border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.35);text-align:center;color:var(--parchment);}
+.photo-prompt-dialog h2{margin:8px 0 10px;font-family:'Noto Serif TC',serif;font-size:25px;font-weight:600;}
+.photo-prompt-dialog p{margin:0 auto 18px;max-width:360px;color:var(--parchment-dim);font-size:13px;line-height:1.8;}
+.photo-prompt-kicker{color:var(--gold);font-size:11px;letter-spacing:.16em;}
+.photo-prompt-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:20px;}
+.photo-prompt-actions .btn{display:flex;align-items:center;justify-content:center;text-decoration:none;}
+.photo-prompt-close{position:absolute;right:10px;top:8px;width:38px;height:38px;border:0;background:transparent;color:var(--parchment-dim);font-size:25px;cursor:pointer;}
+.photo-quick-entry{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:38;display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;background:var(--card);border:1px solid var(--gold-dim);border-radius:999px;box-shadow:0 12px 34px rgba(0,0,0,.3);color:var(--parchment);}
+.photo-quick-entry span{font-size:12px;}.photo-quick-entry a{text-decoration:none;padding:8px 13px;}
+@media(max-width:520px){.photo-prompt-actions{grid-template-columns:1fr}.photo-quick-entry span{display:none}.photo-quick-entry{padding:7px;bottom:12px;right:12px}.photo-quick-entry a{padding:9px 13px}}
+.guide-overlay{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:20px;background:rgba(24,19,24,.72);}
+.guide-overlay[hidden]{display:none!important;}
+.guide-dialog{position:relative;width:min(680px,100%);max-height:calc(100vh - 40px);overflow:auto;padding:30px;background:#fffdf9;border:1px solid #dccdbd;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.28);color:#40332f;}
+.guide-dialog h2{margin:4px 42px 8px 0;font-family:'Noto Serif TC',serif;font-size:27px;color:#5d3340;}.guide-intro{margin:0 0 20px;color:#77665e;font-size:14px;line-height:1.8;}
+.guide-close{position:absolute;right:10px;top:8px;width:40px;height:40px;border:0;background:transparent;color:#77665e;font-size:27px;cursor:pointer;}
+.guide-list{display:grid;gap:12px;margin:0;padding:0;list-style:none;counter-reset:guide;}.guide-list li{position:relative;padding:16px 16px 16px 52px;border:1px solid #e6d9cd;background:#faf6ef;line-height:1.75;counter-increment:guide;}.guide-list li:before{content:counter(guide);position:absolute;left:16px;top:16px;width:25px;height:25px;display:grid;place-items:center;border-radius:50%;background:#6f3d4b;color:#fff;font-size:12px}.guide-list strong{display:block;margin-bottom:3px;color:#3e2d2c;font-size:15px}.guide-list span{display:block;color:#77665e;font-size:13px}.guide-list a{color:#7b4051}.guide-footer{display:flex;justify-content:flex-end;margin-top:18px}.guide-footer .btn{min-width:120px}.guide-tab{margin-left:auto;}
+@media(max-width:560px){.guide-dialog{padding:24px 16px}.guide-dialog h2{font-size:23px}.guide-list li{padding:14px 12px 14px 46px}.guide-list li:before{left:12px;top:14px}.guide-tab{margin-left:0}}
 .empty{font-size:12.5px;color:var(--parchment-dim);}
 </style>
 <link rel="stylesheet" href="assets/unified-cafe-ui.css?v=20260825">
@@ -171,6 +190,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   <nav class="guest-tabs" aria-label="服務頁面">
     <button class="guest-tab is-active" id="queueTab" type="button">領取號碼牌</button>
     <button class="guest-tab" id="orderTab" type="button" disabled>線上點餐</button>
+    <button class="guest-tab guide-tab" id="openGuide" type="button" aria-haspopup="dialog">使用說明</button>
   </nav>
 
   <div id="configWarn" class="configwarn" style="display:none;">
@@ -271,11 +291,10 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <div class="visit-meta" id="visitStatusMeta"></div>
     <p class="visit-help" id="visitStatusHelp">請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。</p>
     <div class="table-access-card" id="sharedTableLinkCard">
-      <div class="table-access-copy"><span class="table-access-kicker">本桌共桌密碼</span><strong>同行者只需輸入這組六位數密碼</strong><p>可用於連接同桌菜單，也可在拍立得網站登記自己的商品。</p></div>
+      <div class="table-access-copy"><span class="table-access-kicker">本桌共桌密碼</span><strong>同行者只需輸入這組六位數密碼</strong><p>可用於連接同桌菜單，代表人或同行者都能使用。</p></div>
       <div class="table-access-code"><b id="sharedTableShareCode">取得中…</b></div>
       <div class="table-access-actions">
         <button class="btn ghost" id="copySharedTableCode" type="button" disabled>複製共桌密碼</button>
-        <a class="btn primary" id="openPolaroidSite" href="https://ephemere-photo.pages.dev/" target="_blank" rel="noopener">前往拍立得網站</a>
       </div>
       <output id="tableAccessStatus" aria-live="polite"></output>
     </div>
@@ -339,6 +358,39 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
 </div>
 
+<div class="photo-prompt-overlay" id="photoPromptOverlay" role="dialog" aria-modal="true" aria-labelledby="photoPromptTitle" hidden>
+  <div class="photo-prompt-dialog">
+    <button class="photo-prompt-close" id="closePhotoPrompt" type="button" aria-label="關閉拍立得提醒">×</button>
+    <div class="photo-prompt-kicker">PHOTO &amp; MEMORY</div>
+    <h2 id="photoPromptTitle">還想留下今晚的紀念嗎？</h2>
+    <p>餐點訂單已成功送出。前往拍立得網站後，請輸入本桌六位數密碼，並選擇自己的角色。</p>
+    <div class="photo-prompt-actions">
+      <button class="btn ghost" id="photoPromptLater" type="button">稍後再看</button>
+      <a class="btn primary" id="photoPromptGo" href="https://ephemere-photo.pages.dev/" target="_blank" rel="noopener">前往拍立得</a>
+    </div>
+  </div>
+</div>
+<div class="photo-quick-entry" id="photoQuickEntry" hidden>
+  <span>拍立得／紀念服務</span>
+  <a class="btn primary" href="https://ephemere-photo.pages.dev/" target="_blank" rel="noopener">前往拍立得</a>
+</div>
+<div class="guide-overlay" id="guideOverlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle" hidden>
+  <section class="guide-dialog">
+    <button class="guide-close" id="closeGuide" type="button" aria-label="關閉使用說明">×</button>
+    <h2 id="guideTitle">點餐與拍立得使用說明</h2>
+    <p class="guide-intro">第一次來店或忘記操作方式時，可以隨時從頁面上方的「使用說明」重新開啟。</p>
+    <ol class="guide-list">
+      <li><strong>六位數密碼有什麼用途？</strong><span>代表人領取號碼牌後，系統會提供本桌專用密碼。它用來讓同行者連接同一桌，也能用於進入拍立得網站。</span></li>
+      <li><strong>多人同行如何分享密碼？</strong><span>同桌所有人共用同一組六位數密碼。代表人可以按「複製共桌密碼」，再將密碼提供給同行者。</span></li>
+      <li><strong>代表人可以幫整桌點餐</strong><span>代表人可以一次選擇整桌餐點，並替每份餐點指定用餐者，不需要每位同行者分別送單。</span></li>
+      <li><strong>同行者也可以自己點餐</strong><span>同行者在入店方式選擇「我是同行者」，輸入同桌密碼並選擇自己的角色，即可進入同桌菜單自行送單。</span></li>
+      <li><strong>如何進入拍立得網站？</strong><span>餐點訂單送出後會出現提醒，也可以直接前往 <a href="https://ephemere-photo.pages.dev/" target="_blank" rel="noopener">曇時拍立得網站</a>，再輸入本桌六位數密碼。</span></li>
+      <li><strong>進入後請選擇自己的角色</strong><span>拍立得網站確認密碼後會列出本桌角色。請選擇自己的角色再購買，避免訂單與拍攝時段登記到朋友名下。</span></li>
+    </ol>
+    <div class="guide-footer"><button class="btn primary" id="guideDone" type="button">我知道了</button></div>
+  </section>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
@@ -362,6 +414,25 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   var menuItems = {}; // id -> {category,name,price,note,addonLabel,addonPrice}
   var categoryOrder = []; // first-seen order
   var activeMenuCategory = '__all__';
+  function photoEntryKey(){
+    var sessionId=String(operationStatus&&operationStatus.sessionId||visitDateKey()||'');
+    return activeVisitId&&sessionId ? 'lephemerePhotoEntry:'+sessionId+':'+activeVisitId : '';
+  }
+  function photoEntryUnlocked(){
+    var key=photoEntryKey();
+    try{return !!key&&localStorage.getItem(key)==='1'}catch(_){return false}
+  }
+  function renderPhotoEntry(){
+    var allowed=!!activeVisit&&['completed','cancelled','no_show'].indexOf(activeVisit.status)===-1&&photoEntryUnlocked();
+    document.getElementById('photoQuickEntry').hidden=!allowed;
+  }
+  function unlockPhotoEntry(){
+    var key=photoEntryKey();
+    try{if(key)localStorage.setItem(key,'1')}catch(_){}
+    renderPhotoEntry();
+    document.getElementById('photoPromptOverlay').hidden=false;
+  }
+  function closePhotoPrompt(){document.getElementById('photoPromptOverlay').hidden=true}
 
   var cart = {}; // id -> {name, price, qty, addon:{label,price}|null, assignments:[用餐者]}
   var pendingAddons = {}; // remembers add-ons selected before the base item is added
@@ -614,6 +685,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
   function updateVisitStatus(){
     activeVisit = activeVisitId && visits[activeVisitId] ? Object.assign({id:activeVisitId}, visits[activeVisitId]) : null;
+    renderPhotoEntry();
     if(activeVisit && activeVisit.ownerUid!==currentVisitorUid && !sharedMemberLabel){
       sharedMemberLabel=localStorage.getItem('lephemereSharedMember:'+activeVisitId)||'';
     }
@@ -632,6 +704,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       sessionStorage.removeItem('lephemereActiveVisitSessionId');
       activeVisitId=''; activeVisit=null; browseMode=false;
       visitRecoveryPending=false;
+      renderPhotoEntry();
       setVisitView('visitGate');
       document.getElementById('orderFlow').style.display='none';
       setGuestTab(false, false);
@@ -720,6 +793,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     document.getElementById('orderFlow').style.display='none';
     document.getElementById('custName').value='';
     document.getElementById('custNote').value='';
+    renderPhotoEntry();
     setVisitView('visitGate');
     renderOperationStatus();
     renderMenu();
@@ -1095,6 +1169,10 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         var itemId = cb.id.replace('addon-','');
         var item = menuItems[itemId];
         pendingAddons[itemId] = cb.checked;
+        if(cb.checked && !cart[itemId]){
+          changeQty(itemId, 1);
+          return;
+        }
         if(cart[itemId]){
           cart[itemId].addon = cb.checked ? { label:item.addonLabel, price:item.addonPrice } : null;
         }
@@ -1289,6 +1367,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       document.getElementById('orderFlow').style.display = 'none';
       setGuestTab(true, false);
       document.getElementById('successBox').style.display = 'block';
+      unlockPhotoEntry();
       clearPendingRequest();
       cart = {};
       pendingAddons = {};
@@ -1311,6 +1390,18 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     document.getElementById('orderFlow').style.display = 'block';
     setGuestTab(true, true);
   });
+  document.getElementById('closePhotoPrompt').addEventListener('click',closePhotoPrompt);
+  document.getElementById('photoPromptLater').addEventListener('click',closePhotoPrompt);
+  document.getElementById('photoPromptGo').addEventListener('click',closePhotoPrompt);
+  document.getElementById('photoPromptOverlay').addEventListener('click',function(e){if(e.target===this)closePhotoPrompt()});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!document.getElementById('photoPromptOverlay').hidden)closePhotoPrompt()});
+  function openGuide(){document.getElementById('guideOverlay').hidden=false;setTimeout(function(){document.getElementById('closeGuide').focus()},0)}
+  function closeGuide(){document.getElementById('guideOverlay').hidden=true;document.getElementById('openGuide').focus()}
+  document.getElementById('openGuide').addEventListener('click',openGuide);
+  document.getElementById('closeGuide').addEventListener('click',closeGuide);
+  document.getElementById('guideDone').addEventListener('click',closeGuide);
+  document.getElementById('guideOverlay').addEventListener('click',function(e){if(e.target===this)closeGuide()});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!document.getElementById('guideOverlay').hidden)closeGuide()});
 
 })();
 </script>
