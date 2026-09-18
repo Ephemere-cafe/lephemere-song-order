@@ -52,9 +52,10 @@
 .photo-purchase-gate.is-open{background:#edf4eb;color:#3f6048}
 .photo-purchase-gate span{color:#6c6b5f}
 #photoNativeRoot .photo-session-summary{display:none}
-#photoNativeRoot .native-photo-main{margin-top:0}
+#photoServicePanel #photoNativeRoot .native-photo-main{margin:0 auto 80px}
+#photoServicePanel #photoNativeRoot .access-notice.linked{display:none}
 #photoNativeRoot .access-notice:not(.gate-open){margin:12px 20px 0;padding:12px 16px}
 
-@media(max-width:800px){.photo-service-head{align-items:stretch;padding:20px 18px}.photo-service-copy h2{font-size:31px}.photo-service-actions{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:end;width:100%;padding:13px 0 0;border-left:0;border-top:1px solid #dfcbbb}.photo-role-picker select{width:100%;min-width:0}.photo-refresh-button{white-space:nowrap}.photo-purchase-gate{align-items:flex-start;padding:11px 18px}}
+@media(max-width:800px){.photo-service-head{align-items:stretch;padding:20px 18px}.photo-service-copy h2{font-size:31px}.photo-service-actions{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:end;width:100%;padding:13px 0 0;border-left:0;border-top:1px solid #dfcbbb}.photo-role-picker select{width:100%;min-width:0}.photo-refresh-button{white-space:nowrap}.photo-purchase-gate{align-items:flex-start;padding:11px 18px}#photoServicePanel #photoNativeRoot .native-photo-main{margin:0 auto 92px}}
 @media(max-width:520px){.photo-service-actions{grid-template-columns:1fr 1fr}.photo-visit-ticket{grid-column:1/-1}.photo-refresh-button{height:42px}.photo-purchase-gate{flex-direction:column;gap:4px}}
 
