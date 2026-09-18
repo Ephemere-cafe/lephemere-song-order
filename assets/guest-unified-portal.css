@@ -37,3 +37,24 @@
 #visitStatusPanel{display:grid;grid-template-columns:150px minmax(260px,1fr) minmax(300px,430px);align-items:center;gap:16px;padding:18px 22px;text-align:left}#visitStatusPanel .visit-status-label,#visitStatusPanel .visit-ticket{grid-column:1}#visitStatusPanel .visit-ticket{margin:0;font-size:42px}#visitStatusPanel #visitStatusTitle,#visitStatusPanel .visit-assignee,#visitStatusPanel .visit-meta,#visitStatusPanel .visit-help{grid-column:2;margin:2px 0}#visitStatusPanel .table-access-card{grid-column:3;grid-row:1 / span 6;margin:0;padding:14px}#visitStatusPanel #cancelVisitQueue,#visitStatusPanel #forgetVisitSession{grid-column:2;width:auto!important;margin:4px 0 0!important;justify-self:start}.success-box.success-box-compact{display:flex;align-items:center;gap:18px;padding:13px 16px;text-align:left}.success-inline-copy{display:flex;align-items:center;gap:18px;min-width:0}.success-inline-copy strong{color:#496450;white-space:nowrap}.success-inline-copy span{color:#68756c;font-size:12px}.success-box-compact .success-actions{display:flex;flex:none;margin:0 0 0 auto}.success-box-compact .success-actions .btn{width:auto;min-width:120px}.photo-service-panel{margin-top:12px}.photo-service-head{padding:15px 18px}.photo-service-copy h2{font-size:20px}.photo-purchase-gate{padding:9px 18px}.native-photo .access-notice.linked{display:none}.native-photo-main .page-intro{padding-top:22px;padding-bottom:16px}.native-photo-main .page-intro h1{font-size:30px}.service-notice.service-notice-compact{display:flex;align-items:flex-start;gap:14px;padding:13px 16px}.service-notice-compact strong{flex:none}.service-notice-compact p{margin:0}.visit-member-totals{margin:0 0 14px;padding:13px 16px;border:1px solid #d9c8b5;border-radius:10px;background:#fffaf4}.visit-member-totals>strong{display:block;margin-bottom:8px;color:#4f3734}.visit-member-totals>div{display:flex;gap:10px;flex-wrap:wrap}.visit-member-totals span{padding:7px 10px;border:1px solid #e2d3c3;border-radius:999px;background:#fff}.visit-member-totals small{display:block;margin-top:8px;color:#85736a}
 @media(max-width:800px){#visitStatusPanel{display:block;text-align:center}#visitStatusPanel .table-access-card{margin-top:12px}#visitStatusPanel #cancelVisitQueue,#visitStatusPanel #forgetVisitSession{width:100%!important}.success-box.success-box-compact,.success-inline-copy{align-items:stretch;flex-direction:column}.success-box-compact .success-actions{width:100%;margin:0}.success-box-compact .success-actions .btn{flex:1}.service-notice.service-notice-compact{display:block}.service-notice-compact p{margin-top:6px}.visit-member-totals>div{display:grid}.visit-member-totals span{border-radius:8px}}
 
+/* v64｜服務頁僅重整頂部，商品與今晚選擇維持原版 */
+.photo-service-panel{border-radius:0;background:#fffaf4}
+.photo-service-head{align-items:flex-end;padding:25px 30px 20px;border-bottom:1px solid #dfcbbb;background:#fffaf4}
+.photo-service-copy{gap:9px}
+.photo-service-copy small{color:#a8673a;font-size:11px;letter-spacing:.26em}
+.photo-service-copy h2{font-size:40px;font-weight:400;letter-spacing:.04em}
+.photo-service-actions{align-items:flex-end;padding-left:24px;border-left:2px solid #99506a}
+.photo-visit-ticket{align-self:center;color:#806d65;font-size:12px;white-space:nowrap}
+.photo-role-picker{color:#806d65;font-size:11px}
+.photo-role-picker select{min-width:150px;padding:10px 12px;border-radius:0;background:#fffdf9;color:#392a29}
+.photo-refresh-button{min-height:40px;padding:9px 13px;border:1px solid #d8c9ba;background:#fffdf9;color:#5b443d;cursor:pointer}
+.photo-purchase-gate{min-height:44px;padding:11px 30px;border-bottom:1px solid #d8c9ba;background:#f4eee5;color:#74542f;font-size:12px}
+.photo-purchase-gate.is-open{background:#edf4eb;color:#3f6048}
+.photo-purchase-gate span{color:#6c6b5f}
+#photoNativeRoot .photo-session-summary{display:none}
+#photoNativeRoot .native-photo-main{margin-top:0}
+#photoNativeRoot .access-notice:not(.gate-open){margin:12px 20px 0;padding:12px 16px}
+
+@media(max-width:800px){.photo-service-head{align-items:stretch;padding:20px 18px}.photo-service-copy h2{font-size:31px}.photo-service-actions{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:end;width:100%;padding:13px 0 0;border-left:0;border-top:1px solid #dfcbbb}.photo-role-picker select{width:100%;min-width:0}.photo-refresh-button{white-space:nowrap}.photo-purchase-gate{align-items:flex-start;padding:11px 18px}}
+@media(max-width:520px){.photo-service-actions{grid-template-columns:1fr 1fr}.photo-visit-ticket{grid-column:1/-1}.photo-refresh-button{height:42px}.photo-purchase-gate{flex-direction:column;gap:4px}}
+
