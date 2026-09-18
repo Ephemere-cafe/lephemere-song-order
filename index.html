@@ -183,7 +183,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 <div id="siteLoader" class="site-loader" role="status" aria-live="polite">
   <div class="order-loader-mark" aria-hidden="true"><span class="loader-dish"></span><span class="loader-steam one"></span><span class="loader-steam two"></span></div>
   <strong>正在準備今晚的菜單</strong>
-  <span id="siteLoaderText">連接營業場次與最新菜單中…</span>
+  <span id="siteLoaderText">女僕正在整理今晚的菜單…</span>
 </div>
 <div class="wrap" id="wrap">
 
@@ -193,7 +193,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       <div><h1>曇 時</h1><p>Cafe l'Éphémère</p></div>
     </div>
     <div class="clock">
-      <div><span class="dot offline" id="connDot"></span><span id="connText">連線中...</span></div>
+      <div><span class="dot offline" id="connDot"></span><span id="connText">正在連上曇時…</span></div>
     </div>
   </div>
 
@@ -202,43 +202,43 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <button class="guest-tab" id="orderTab" type="button" disabled>線上點餐</button>
     <button class="guest-tab guest-tab-photo" id="photoTab" type="button" disabled>拍攝／紀念服務</button>
     <button class="guest-tab" id="totalTab" type="button" disabled>本次消費</button>
-    <button class="guest-tab guide-tab" id="openGuide" type="button" aria-haspopup="dialog">使用說明</button>
+    <button class="guest-tab guide-tab" id="openGuide" type="button" aria-haspopup="dialog">來店指南</button>
   </nav>
 
   <div id="configWarn" class="configwarn" style="display:none;">
-    網站暫時無法使用，請聯絡女僕協助。
+    今晚的服務頁暫時無法開啟，請讓女僕為您協助。
   </div>
 
   <div id="operationBanner" class="status-banner" style="display:none;">
-    目前已結束線上點餐，菜單仍可瀏覽。若您已在店內，請直接詢問女僕。
+    今晚的線上點餐已結束，菜單仍可瀏覽。若您已在店內，請直接告知女僕。
   </div>
 
   <div id="visitGate" class="panel">
     <p class="panel-title">入店方式</p>
     <div class="visit-choice-grid">
-      <button class="visit-choice" id="chooseService" type="button"><strong>需要女僕接待</strong><span>準備用餐、聊天或體驗服務，登記後依序候位。</span></button>
-      <button class="visit-choice" id="chooseBrowse" type="button"><strong>自由參觀</strong><span>只想看看裝潢、拍照、等朋友或自由交流，不占接待名額。</span></button>
-      <button class="visit-choice" id="chooseSharedTable" type="button"><strong>我是同行者</strong><span>輸入桌主提供的六位數共桌密碼，即可查看同桌菜單。</span></button>
+      <button class="visit-choice" id="chooseService" type="button"><strong>由女僕為您服務</strong><span>想享用餐點、聊天或體驗服務，請先領取候位號碼。</span></button>
+      <button class="visit-choice" id="chooseBrowse" type="button"><strong>自由參觀</strong><span>想看看店內、拍照、等待同行友人或自由交流，可直接入店，不需候位。</span></button>
+      <button class="visit-choice" id="chooseSharedTable" type="button"><strong>與同行者會合</strong><span>輸入代表人分享的六位數本桌通行密碼，即可加入同桌。</span></button>
     </div>
-    <p class="visit-help">一組同行主人只需由一位代表登記。若之後想接受服務，可隨時加入候位。</p>
+    <p class="visit-help">同行的主人與大小姐只需由一位代表領號；若稍後想享用餐點或由女僕服務，也能隨時加入候位。</p>
   </div>
 
   <div id="sharedTablePanel" class="panel" style="display:none;">
-    <p class="panel-title">連接本桌</p>
+    <p class="panel-title">加入本桌</p>
     <div class="visit-form">
-      <label>共桌密碼<input id="sharedTableCode" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="請輸入六位數密碼"></label>
+      <label>本桌通行密碼<input id="sharedTableCode" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="請輸入六位數通行密碼"></label>
       <div id="sharedMemberForm" style="display:none;">
-        <label>選擇你的角色<select id="sharedMemberSelect" aria-label="選擇同行角色"></select></label>
-        <button class="btn primary" id="confirmSharedMember" type="button">以這個角色繼續</button>
+        <label>選擇您的角色<select id="sharedMemberSelect" aria-label="選擇同行角色"></select></label>
+        <button class="btn primary" id="confirmSharedMember" type="button">以此角色加入</button>
       </div>
       <p id="sharedTableStatus" class="visit-help" aria-live="polite"></p>
-      <button class="btn primary" id="joinSharedTable" type="button">確認密碼</button>
+      <button class="btn primary" id="joinSharedTable" type="button">確認並加入</button>
       <button class="btn ghost" id="backSharedTable" type="button">返回</button>
     </div>
   </div>
 
   <div id="visitRegister" class="panel" style="display:none;">
-    <p class="panel-title">接待候位登記</p>
+    <p class="panel-title">今晚的入店候位</p>
     <div class="visit-form">
       <div class="visit-form-row">
         <label>角色名稱<input type="text" id="visitCharacter" maxlength="40" placeholder="請輸入角色名稱" aria-describedby="characterNameNotice"></label>
@@ -254,7 +254,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         </select></label>
       </div>
       <div class="character-name-notice" id="characterNameNotice" role="note">
-        <strong>請填寫角色名稱與所在伺服器，以便現場核對與後續服務紀錄。</strong>
+        <strong>請留下角色名稱與所在伺服器，方便女僕與您會合並準備今晚的服務。</strong>
       </div>
       <div class="visit-form-row">
         <label>本次同行人數<input type="text" id="visitPartySizeDisplay" value="1 人（含領號代表）" readonly></label>
@@ -270,7 +270,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         <button class="btn companion-add" id="addVisitCompanion" type="button">＋ 新增一位同行者</button>
       </div>
       <input type="text" id="visitReservation" maxlength="60" placeholder="預約名稱／預約碼（一般來店可留空）" style="display:none;">
-      <label>接待偏好<select id="visitPreference"><option value="">任何有空的女僕皆可（等待較短）</option></select></label>
+      <label>女僕偏好<select id="visitPreference"><option value="">由今晚方便的女僕為您服務（等待較短）</option></select></label>
       <p id="visitError" style="font-size:12px;color:var(--rose);margin:0;display:none;"></p>
       <button class="btn primary" id="joinVisitQueue" type="button">領取候位號碼</button>
       <button class="btn ghost" id="backVisitChoice" type="button">返回</button>
@@ -279,48 +279,48 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
   <div id="browsePanel" class="panel" style="display:none;">
     <span class="browse-badge">自由參觀</span>
-    <h2 style="font-family:'Noto Serif TC',serif;font-size:17px;margin:10px 0 5px;">歡迎自在探索曇時</h2>
-    <p class="visit-help">您目前不在接待隊列中，可以自由參觀、拍照或等待朋友。若想開始用餐或接受女僕服務，再加入候位即可。</p>
-    <button class="btn primary" id="browseToQueue" type="button" style="margin-top:12px;">我想接受接待</button>
+    <h2 style="font-family:'Noto Serif TC',serif;font-size:17px;margin:10px 0 5px;">歡迎自在參觀曇時</h2>
+    <p class="visit-help">您目前不需候位，可以自在參觀、拍照或等待同行友人。若想享用餐點或由女僕為您服務，再領取候位號碼即可。</p>
+    <button class="btn primary" id="browseToQueue" type="button" style="margin-top:12px;">我想領取候位號碼</button>
   </div>
 
   <div id="visitRecoveryPanel" class="panel visit-status-card" style="display:none;">
-    <div class="visit-status-label">找到尚未結束的候位</div>
+    <div class="visit-status-label">找到今晚尚未完成的候位</div>
     <div class="visit-ticket" id="recoveryTicketNumber">A000</div>
     <div id="recoveryVisitName" style="font-family:'Noto Serif TC',serif;font-size:16px;"></div>
-    <p class="visit-help">這個瀏覽器留有尚未結束的候位紀錄。請確認是否為你的號碼；重新開啟頁面不會改變原本順位。</p>
+    <p class="visit-help">這裡保留了今晚尚未完成的候位。請確認是否為您的號碼；重新開啟頁面不會改變原本順位。</p>
     <div class="visit-recovery-actions">
-      <button class="btn primary" id="resumeVisit" type="button">繼續這次候位</button>
+      <button class="btn primary" id="resumeVisit" type="button">繼續今晚的候位</button>
       <button class="btn ghost" id="forgetRecoveredVisit" type="button">這不是我的號碼</button>
     </div>
   </div>
 
   <div id="visitStatusPanel" class="panel visit-status-card" style="display:none;">
-    <div class="visit-status-label" id="visitStatusBadge">等待接待</div>
+    <div class="visit-status-label" id="visitStatusBadge">候位中</div>
     <div class="visit-ticket" id="visitTicketNumber">A000</div>
-    <div id="visitStatusTitle" style="font-family:'Noto Serif TC',serif;font-size:16px;">女僕正在為您準備</div>
+    <div id="visitStatusTitle" style="font-family:'Noto Serif TC',serif;font-size:16px;">女僕正在為您的入店做準備</div>
     <div class="visit-assignee" id="visitAssignee"></div>
     <div class="visit-meta" id="visitStatusMeta"></div>
     <p class="visit-help" id="visitStatusHelp">請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。</p>
     <div class="table-access-card" id="sharedTableLinkCard">
-      <div class="table-access-copy"><span class="table-access-kicker">本桌共桌密碼</span><strong>同行者只需輸入這組六位數密碼</strong><p>可用於連接同桌菜單，代表人或同行者都能使用。</p></div>
+      <div class="table-access-copy"><span class="table-access-kicker">本桌通行密碼</span><strong>請將這組六位數密碼分享給同行者</strong><p>同行的主人與大小姐可用它加入同桌。</p></div>
       <div class="table-access-code"><b id="sharedTableShareCode">取得中…</b></div>
       <div class="table-access-actions">
-        <button class="btn ghost" id="copySharedTableCode" type="button" disabled>複製共桌密碼</button>
+        <button class="btn ghost" id="copySharedTableCode" type="button" disabled>複製通行密碼</button>
       </div>
       <output id="tableAccessStatus" aria-live="polite"></output>
     </div>
-    <button class="btn ghost" id="cancelVisitQueue" type="button" style="margin-top:12px;">取消候位／改為自由參觀</button>
-    <button class="btn ghost" id="forgetVisitSession" type="button" style="margin-top:12px;width:100%;">切換客人／連接其他桌</button>
+    <button class="btn ghost" id="cancelVisitQueue" type="button" style="margin-top:12px;">取消候位，繼續自由參觀</button>
+    <button class="btn ghost" id="forgetVisitSession" type="button" style="margin-top:12px;width:100%;">切換角色／加入其他桌</button>
   </div>
 
   <div id="successBox" class="success-box success-box-compact" style="display:none;">
-    <div class="success-inline-copy"><strong>✓ 餐點訂單 <span id="successNumber"></span> 已完成下訂</strong><span>現在可以選購拍攝／紀念服務；需要加點時可隨時回到餐點頁。</span></div>
+    <div class="success-inline-copy"><strong>✓ 女僕已收到餐點 <span id="successNumber"></span></strong><span>餐點已為您送出；若想留下今晚的紀念，現在可以前往服務區選購。</span></div>
     <div class="success-actions"><button class="btn ghost" id="newOrderBtn">繼續加點</button><button class="btn ghost" id="showVisitTotal" type="button">查看本次消費</button></div>
   </div>
 
   <section id="visitTotalPanel" class="panel visit-total-panel" style="display:none;" aria-labelledby="visitTotalTitle">
-    <div class="visit-total-head"><div><p class="panel-title">MY ORDERS · TONIGHT</p><h2 id="visitTotalTitle">本次消費與服務安排</h2><p>同步顯示餐點、拍攝／紀念服務、最新時段與本桌應付總額。</p></div><button class="btn ghost visit-total-refresh" id="refreshVisitTotal" type="button">重新整理</button></div>
+    <div class="visit-total-head"><div><p class="panel-title">MY ORDERS · TONIGHT</p><h2 id="visitTotalTitle">本次消費與服務安排</h2><p>今晚的餐點、紀念服務與本桌應付金額，都整理在這裡。</p></div><button class="btn ghost visit-total-refresh" id="refreshVisitTotal" type="button">重新整理</button></div>
     <div id="visitTotalIdentity" class="visit-total-identity"></div><div id="visitMemberTotals" class="visit-member-totals"></div>
     <div id="visitTotalAlert"></div>
     <div id="visitTotalDetails" class="visit-total-details"><p class="visit-total-empty">正在讀取本桌消費…</p></div>
@@ -333,16 +333,16 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <div id="photoPurchaseGate" class="photo-purchase-gate"><strong>可先瀏覽</strong><span>送出餐點訂單後，即可選購本場服務。</span></div>
     
 <div id="photoNativeRoot" class="native-photo is-embedded" data-purchase-enabled="false">
-  <div id="np-siteLoader" class="site-loader" role="status" aria-live="polite"><div class="loader-mark" aria-hidden="true"><span class="loader-photo"></span><span class="loader-spark spark-one">✦</span><span class="loader-spark spark-two">✧</span></div><strong>正在準備今晚的服務</strong><span id="np-siteLoaderText">確認場次與服務項目中…</span></div>
+  <div id="np-siteLoader" class="site-loader" role="status" aria-live="polite"><div class="loader-mark" aria-hidden="true"><span class="loader-photo"></span><span class="loader-spark spark-one">✦</span><span class="loader-spark spark-two">✧</span></div><strong>女僕正在準備今晚的服務</strong><span id="np-siteLoaderText">整理服務項目中…</span></div>
   <div class="native-photo-main">
-  <section id="np-shopView" class="view"><div id="np-sessionSummary" class="session-summary photo-session-summary" aria-live="polite">正在確認本場資訊…</div><div id="np-accessNotice" class="access-notice access-pending"><button id="np-dismissAccessGate" class="access-gate-close" type="button" aria-label="先瀏覽商品，關閉角色確認提示">×</button><div class="access-copy"><strong>正在確認角色</strong><span>請稍候，確認完成後即可選購服務。</span></div><div id="np-ticketLinkForm" class="ticket-link-form" hidden><input id="np-linkShareCode" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="六位數共桌密碼" aria-label="六位數共桌密碼"><button id="np-verifyTable" type="button">確認本桌</button></div><div id="np-memberLinkForm" class="member-link-form" hidden><select id="np-linkMember" aria-label="選擇角色"></select><button id="np-confirmMember" type="button">以這個角色繼續</button></div><p id="np-linkStatus" class="link-status" aria-live="polite"></p><button id="np-switchLinkedIdentity" class="identity-switch" type="button" hidden>切換客人</button></div><section class="service-browser" aria-label="依女僕與服務類型篩選"><div class="maid-filter-copy"><div><h2>想和哪位女僕留下紀念？</h2><p>先選擇女僕，再查看她今晚開放的服務。</p></div><small>可左右滑動查看更多</small></div><div id="np-maidNav" class="maid-nav" aria-label="選擇女僕"></div></section><div class="service-filter-row"><strong id="np-serviceFilterTitle">全部服務</strong><div id="np-categoryNav" class="category-nav" aria-label="商品分類"></div></div><div class="shop-grid"><div id="np-productGrid" class="product-grid"><p class="empty">正在讀取本場商品…</p></div><aside class="cart"><p class="eyebrow">YOUR SELECTION</p><h2>今晚選擇</h2><div id="np-cartItems"><p class="empty">尚未選擇商品。</p></div><div class="cart-total"><span>合計</span><b id="np-cartTotal">0 Gil</b></div><button id="np-submitSelection" class="primary" disabled>確認登記</button><p class="cart-note">訂單送出後即進入拍攝排程，恕無法自行修改或取消，送出前請再次確認。特殊狀況請聯絡店長。</p></aside></div></section>
-  <section id="np-ordersView" class="view" hidden><p class="eyebrow">MY ORDERS · TONIGHT</p><div class="page-intro"><div><h1>本次消費與服務安排</h1><p>這裡會同步顯示餐點、拍攝／紀念服務、最新時段與本桌應付總額。</p></div><div id="np-linkedIdentity" class="session-summary"></div></div><button id="np-refreshReceipt" class="outline receipt-refresh" type="button">更新訂單明細</button><div id="np-receiptSummary" class="receipt-summary"><p class="empty">正在讀取本桌消費…</p></div><h2 class="orders-subtitle">我的服務狀態</h2><div id="np-orderList" class="order-list"><p class="empty">正在讀取你的訂單…</p></div></section>
+  <section id="np-shopView" class="view"><div id="np-sessionSummary" class="session-summary photo-session-summary" aria-live="polite">正在確認本場資訊…</div><div id="np-accessNotice" class="access-notice access-pending"><button id="np-dismissAccessGate" class="access-gate-close" type="button" aria-label="先瀏覽商品，關閉角色確認提示">×</button><div class="access-copy"><strong>正在確認本桌角色</strong><span>請稍候，確認完成後即可選購服務。</span></div><div id="np-ticketLinkForm" class="ticket-link-form" hidden><input id="np-linkShareCode" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="六位數本桌通行密碼" aria-label="六位數本桌通行密碼"><button id="np-verifyTable" type="button">確認通行密碼</button></div><div id="np-memberLinkForm" class="member-link-form" hidden><select id="np-linkMember" aria-label="選擇角色"></select><button id="np-confirmMember" type="button">以此角色加入</button></div><p id="np-linkStatus" class="link-status" aria-live="polite"></p><button id="np-switchLinkedIdentity" class="identity-switch" type="button" hidden>切換角色</button></div><section class="service-browser" aria-label="依女僕與服務類型篩選"><div class="maid-filter-copy"><div><h2>想和哪位女僕留下紀念？</h2><p>先選擇女僕，再查看她今晚開放的服務。</p></div><small>可左右滑動查看更多</small></div><div id="np-maidNav" class="maid-nav" aria-label="選擇女僕"></div></section><div class="service-filter-row"><strong id="np-serviceFilterTitle">全部服務</strong><div id="np-categoryNav" class="category-nav" aria-label="商品分類"></div></div><div class="shop-grid"><div id="np-productGrid" class="product-grid"><p class="empty">正在讀取本場商品…</p></div><aside class="cart"><p class="eyebrow">YOUR SELECTION</p><h2>今晚選擇</h2><div id="np-cartItems"><p class="empty">尚未選擇商品。</p></div><div class="cart-total"><span>合計</span><b id="np-cartTotal">0 Gil</b></div><button id="np-submitSelection" class="primary" disabled>送出服務訂單</button><p class="cart-note">送出後，女僕會為您安排服務；如需調整或取消，請直接告知店長。</p></aside></div></section>
+  <section id="np-ordersView" class="view" hidden><p class="eyebrow">MY ORDERS · TONIGHT</p><div class="page-intro"><div><h1>本次消費與服務安排</h1><p>今晚的餐點、紀念服務與本桌應付金額，都整理在這裡。</p></div><div id="np-linkedIdentity" class="session-summary"></div></div><button id="np-refreshReceipt" class="outline receipt-refresh" type="button">更新訂單明細</button><div id="np-receiptSummary" class="receipt-summary"><p class="empty">正在讀取本桌消費…</p></div><h2 class="orders-subtitle">我的服務狀態</h2><div id="np-orderList" class="order-list"><p class="empty">正在整理您的服務訂單…</p></div></section>
 </div>
   
 <div class="bottom-cart" id="np-bottomCart"><span><small id="np-mobileCartCount">尚未選擇</small><b id="np-mobileCartTotal">0 Gil</b></span><button data-open-cart>查看選擇</button></div>
 <div class="overlay" id="np-exampleOverlay" hidden><div class="example-dialog"><button type="button" class="close" data-close-example aria-label="關閉">×</button><div class="example-gallery"><div id="np-exampleThumbs" class="example-thumbs"></div><div class="example-stage"><img id="np-exampleMainImage" alt="拍立得範例"></div></div><div class="example-copy"><p class="eyebrow" id="np-exampleEyebrow">PHOTO EXAMPLES</p><div class="example-provider" id="np-exampleProvider"></div><h2 id="np-exampleTitle">作品範例</h2><p id="np-exampleDescription"></p><p class="example-note">實際成品依當日拍攝與設計為準。</p><button class="primary" id="np-exampleSelectProduct">選擇這項商品</button></div></div></div>
 <div class="overlay" id="np-successOverlay" hidden><div class="dialog success"><div class="seal">✓</div><p class="eyebrow">REGISTRATION COMPLETE</p><h2>已為今晚留下位置</h2><p id="np-successMessage"></p><button class="primary" data-show-orders>查看本次消費與安排</button></div></div>
-<div class="overlay" id="np-confirmOrderOverlay" hidden><div class="dialog order-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="np-confirmOrderTitle"><button type="button" class="close" id="np-closeOrderConfirm" aria-label="關閉">×</button><p class="eyebrow">FINAL CONFIRMATION</p><h2 id="np-confirmOrderTitle">送出前請最後確認</h2><p id="np-confirmRole" class="confirm-role"></p><div id="np-confirmOrderItems" class="confirm-order-items"></div><div class="cart-total"><span>合計</span><b id="np-confirmOrderTotal">0 Gil</b></div><p class="cart-note">送出後會進入拍攝排程，請確認目前角色與購買內容都正確。</p><div class="confirm-actions"><button type="button" class="outline" id="np-cancelOrderConfirm">返回修改</button><button type="button" class="primary" id="np-confirmOrderSubmit">確認送出</button></div></div></div>
+<div class="overlay" id="np-confirmOrderOverlay" hidden><div class="dialog order-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="np-confirmOrderTitle"><button type="button" class="close" id="np-closeOrderConfirm" aria-label="關閉">×</button><p class="eyebrow">FINAL CONFIRMATION</p><h2 id="np-confirmOrderTitle">送出服務訂單前請再次確認</h2><p id="np-confirmRole" class="confirm-role"></p><div id="np-confirmOrderItems" class="confirm-order-items"></div><div class="cart-total"><span>合計</span><b id="np-confirmOrderTotal">0 Gil</b></div><p class="cart-note">請確認目前角色與選購內容；送出後將由女僕為您安排服務。</p><div class="confirm-actions"><button type="button" class="outline" id="np-cancelOrderConfirm">返回修改</button><button type="button" class="primary" id="np-confirmOrderSubmit">送出服務訂單</button></div></div></div>
 
 </div>
   </section>
@@ -363,8 +363,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <div class="order-layout">
     <main class="panel menu-panel" id="cartPanel">
       <div class="menu-sync-row">
-        <div class="menu-sync-status" id="menuSyncStatus" aria-live="polite">正在載入最新菜單…</div>
-        <button class="menu-refresh-btn" id="refreshMenuBtn" type="button">立即更新菜單</button>
+        <div class="menu-sync-status" id="menuSyncStatus" aria-live="polite">女僕正在整理最新菜單…</div>
+        <button class="menu-refresh-btn" id="refreshMenuBtn" type="button">更新菜單</button>
       </div>
       <div id="menuList"><span class="empty">菜單載入中...</span></div>
     </main>
@@ -372,21 +372,21 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <aside class="order-summary">
     <div class="panel" id="orderDataPanel">
       <p class="summary-kicker">已選品項</p>
-      <h3>目前點單</h3>
+      <h3>今晚點單</h3>
       <div id="dinerRoster" class="diner-roster" style="display:none;"></div>
       <div id="cartList"><span class="empty-cart">尚未選擇餐點</span></div>
     </div>
 
     <div class="panel" id="orderSubmitPanel">
-      <p class="summary-kicker">訂購資料</p>
+      <p class="summary-kicker">送單資訊</p>
       <div class="row">
         <input type="text" id="custName" maxlength="40" autocomplete="name" placeholder="角色名／稱呼">
       </div>
       <div class="row" style="margin-top:8px;">
-        <input type="text" id="custNote" maxlength="120" placeholder="備註（座位、指定服務等，選填）">
+        <input type="text" id="custNote" maxlength="120" placeholder="備註（座位、餐點需求等，選填）">
       </div>
       <p id="orderError" style="font-size:12px;color:var(--rose);margin:10px 0 0;display:none;"></p>
-      <button class="btn primary" id="submitOrder" style="margin-top:12px;">送出訂單</button>
+      <button class="btn primary" id="submitOrder" style="margin-top:12px;">送出餐點</button>
     </div>
     </aside>
     </div>
@@ -399,7 +399,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     <button class="photo-prompt-close" id="closePhotoPrompt" type="button" aria-label="關閉拍立得提醒">×</button>
     <div class="photo-prompt-kicker">PHOTO &amp; MEMORY</div>
     <h2 id="photoPromptTitle">還想留下今晚的紀念嗎？</h2>
-    <p>餐點訂單已成功送出，現在可以前往拍攝／紀念服務區選購；本桌密碼與角色會自動沿用。</p>
+    <p>女僕已收到您的餐點。若想留下今晚的紀念，現在可以前往拍攝／紀念服務區。</p>
     <div class="photo-prompt-actions">
       <button class="btn ghost" id="photoPromptLater" type="button">稍後再看</button>
       <button class="btn primary photo-inline-button" id="photoPromptGo" type="button">前往拍攝／紀念服務</button>
@@ -408,18 +408,18 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 </div>
 <div class="guide-overlay" id="guideOverlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle" hidden>
   <section class="guide-dialog">
-    <button class="guide-close" id="closeGuide" type="button" aria-label="關閉使用說明">×</button>
-    <h2 id="guideTitle">點餐與紀念服務使用說明</h2>
-    <p class="guide-intro">第一次來店或忘記操作方式時，可以隨時從頁面上方的「使用說明」重新開啟。</p>
+    <button class="guide-close" id="closeGuide" type="button" aria-label="關閉來店指南">×</button>
+    <h2 id="guideTitle">今晚的來店指南</h2>
+    <p class="guide-intro">歡迎回來，主人與大小姐。若是第一次光臨曇時，請讓女僕陪您快速認識候位、點餐與紀念服務。</p>
     <ol class="guide-list">
-      <li><strong>六位數密碼有什麼用途？</strong><span>代表人領取號碼牌後，系統會提供本桌專用密碼。它用來讓同行者連接同一桌，也能用於進入拍攝／紀念服務區。</span></li>
-      <li><strong>多人同行如何分享密碼？</strong><span>同桌所有人共用同一組六位數密碼。代表人可以按「複製共桌密碼」，再將密碼提供給同行者。</span></li>
-      <li><strong>代表人可以幫整桌點餐</strong><span>代表人可以一次選擇整桌餐點，並替每份餐點指定用餐者，不需要每位同行者分別送單。</span></li>
-      <li><strong>同行者也可以自己點餐</strong><span>同行者在入店方式選擇「我是同行者」，輸入同桌密碼並選擇自己的角色，即可進入同桌菜單自行送單。</span></li>
-      <li><strong>如何購買拍攝／紀念服務？</strong><span>送出至少一筆餐點訂單後即可購買；下單前仍可使用上方「拍攝／紀念服務」分頁瀏覽拍立得、純拍、繪圖與簽繪範例。同桌密碼只需輸入一次，服務區會自動沿用。</span></li>
-      <li><strong>進入後請選擇自己的角色</strong><span>拍攝／紀念服務區確認密碼後會列出本桌角色。請選擇自己的角色再購買，避免訂單與拍攝時段登記到朋友名下。</span></li>
+      <li><strong>領取本桌的通行密碼</strong><span>代表人領取候位號碼後，會獲得一組六位數通行密碼。同行的主人與大小姐可使用密碼加入同桌，也能前往拍攝／紀念服務區。</span></li>
+      <li><strong>邀請同行者加入本桌</strong><span>同桌共用同一組通行密碼。代表人只要按下「複製通行密碼」，再分享給同行者即可。</span></li>
+      <li><strong>由代表人為整桌點餐</strong><span>代表人可以一次挑選整桌餐點，並替每一份餐點指定享用者，讓女僕能更準確地為大家送上餐點。</span></li>
+      <li><strong>同行者也能自行點餐</strong><span>選擇「我是同行者」，輸入通行密碼並選好自己的角色，就能進入同桌菜單，自行挑選今晚想享用的餐點。</span></li>
+      <li><strong>留下今晚的紀念</strong><span>完成至少一筆餐點下訂後，即可選購拍立得、純拍、繪圖與簽繪等服務；下訂前也能先到「拍攝／紀念服務」瀏覽作品範例。</span></li>
+      <li><strong>請以自己的角色選購</strong><span>進入拍攝／紀念服務時，請選擇自己的角色再下訂，女僕才能將服務內容與拍攝安排正確記在您的名下。</span></li>
     </ol>
-    <div class="guide-footer"><button class="btn primary" id="guideDone" type="button">我知道了</button></div>
+    <div class="guide-footer"><button class="btn primary" id="guideDone" type="button">準備好入店了</button></div>
   </section>
 </div>
 
@@ -661,7 +661,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       }else{
         firebase.auth().signInAnonymously().catch(function(){
           markSiteReady('auth');
-          document.getElementById('configWarn').textContent='暫時無法開始登記，請重新整理；若仍無法使用，請聯絡女僕。';
+          document.getElementById('configWarn').textContent='今晚的服務頁暫時無法開啟，請重新整理；若仍無法使用，請讓女僕為您協助。';
           document.getElementById('configWarn').style.display='block';
         });
       }
@@ -673,7 +673,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     });
 
     menuRef.on('value', applyMenuSnapshot, function(){
-      setMenuSyncStatus('即時連線中斷，正在重新取得菜單…', true);
+      setMenuSyncStatus('菜單暫時無法更新，正在重新整理…', true);
     });
 
     refreshMenuSnapshot();
@@ -741,7 +741,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   function renderVisitTotal(){
     var details=document.getElementById('visitTotalDetails'),alertHost=document.getElementById('visitTotalAlert'),identity=document.getElementById('visitTotalIdentity'),memberHost=document.getElementById('visitMemberTotals');
     if(identity)identity.textContent=currentPhotoMemberLabel()?'目前服務角色：'+partyMemberName(currentPhotoMemberLabel())+'｜以下金額為本桌合計':'以下金額為本桌合計';
-    if(!activeVisit||!visitReceipt){document.getElementById('visitDiningTotal').textContent='0 Gil';document.getElementById('visitPhotoTotal').textContent='0 Gil';document.getElementById('visitGrandTotal').textContent='0 Gil';alertHost.innerHTML='';if(memberHost)memberHost.innerHTML='';details.innerHTML='<p class="visit-total-empty">尚未取得本桌消費資料。</p>';return}
+    if(!activeVisit||!visitReceipt){document.getElementById('visitDiningTotal').textContent='0 Gil';document.getElementById('visitPhotoTotal').textContent='0 Gil';document.getElementById('visitGrandTotal').textContent='0 Gil';alertHost.innerHTML='';if(memberHost)memberHost.innerHTML='';details.innerHTML='<p class="visit-total-empty">尚未取得本桌消費明細。</p>';return}
     var dining=Array.isArray(visitReceipt.dining)?visitReceipt.dining:Object.values(visitReceipt.dining||{}),photos=Array.isArray(visitReceipt.photo)?visitReceipt.photo:Object.values(visitReceipt.photo||{}),diningRows=[],memberTotals={};
     photoMemberLabels().forEach(function(label){var name=partyMemberName(label);if(name&&!Object.prototype.hasOwnProperty.call(memberTotals,name))memberTotals[name]=0});
     dining.forEach(function(order){(Array.isArray(order.items)?order.items:Object.values(order.items||{})).forEach(function(item){var qty=Number(item.qty||0),unit=Number(item.price||0)+Number(item.addon&&item.addon.price||0),amount=unit*qty,name=escapeHtml(item.name||'餐點')+' × '+qty+(item.addon?' ＋ '+escapeHtml(item.addon.label):'');diningRows.push('<div class="visit-total-line"><span>'+name+'</span><b>'+fmtGil(amount)+'</b></div>');var assignments=Array.isArray(item.assignments)?item.assignments:[];for(var i=0;i<qty;i++)addMemberAmount(memberTotals,assignments[i]||'尚未指定',unit)})});
@@ -816,7 +816,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     ids.sort(function(a,b){
       return String((staffRoster[a]||{}).name||'').localeCompare(String((staffRoster[b]||{}).name||''),'zh-Hant');
     });
-    select.innerHTML = '<option value="">任何有空的女僕皆可（等待較短）</option>' + ids.map(function(id){
+    select.innerHTML = '<option value="">由今晚方便的女僕為您服務（等待較短）</option>' + ids.map(function(id){
       return '<option value="'+escapeHtml(id)+'">希望由 '+escapeHtml((staffRoster[id]||{}).name||'未命名女僕')+' 接待（可能等候較久）</option>';
     }).join('');
     if(ids.indexOf(selected)!==-1) select.value = selected;
@@ -889,11 +889,11 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     document.getElementById('visitTicketNumber').textContent = activeVisit.queueNumber || '候位中';
     var legacyService = activeVisit.status==='special_service';
     var assigned = activeVisit.status==='assigned' || activeVisit.status==='serving';
-    document.getElementById('visitStatusBadge').textContent = legacyService ? '接待即將完成' : (assigned ? (activeVisit.status==='serving'?'接待進行中':'已安排接待') : '等待接待');
-    document.getElementById('visitStatusTitle').textContent = legacyService ? '本次桌邊接待即將完成' : (assigned ? '女僕已接下您的接待' : '女僕正在依序為大家準備');
-    document.getElementById('visitAssignee').textContent = (assigned||legacyService) ? '負責女僕｜'+(activeVisit.assignedStaffName||'店員') : '';
-    document.getElementById('visitStatusMeta').textContent = legacyService ? '如仍有餐點或服務需要確認，請直接告知負責女僕。' : (assigned ? '請留意遊戲內的招呼；接待開始後即可在下方點餐。' : '候位號碼已登記｜同行 '+Number(activeVisit.partySize||1)+' 人');
-    document.getElementById('visitStatusHelp').textContent = legacyService ? '拍攝／紀念服務請至上方服務分頁登記。' : (assigned ? '若需要離開、轉交其他女僕或結束接待，請直接告知負責女僕。' : (activeVisit.preferredStaffName ? '您希望由 '+activeVisit.preferredStaffName+' 接待，因此等待時間可能較長。' : '請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。'));
+    document.getElementById('visitStatusBadge').textContent = legacyService ? '服務即將完成' : (assigned ? (activeVisit.status==='serving'?'女僕服務中':'女僕已準備') : '候位中');
+    document.getElementById('visitStatusTitle').textContent = legacyService ? '今晚的桌邊服務即將完成' : (assigned ? '女僕已準備為您服務' : '女僕正在依序為主人與大小姐準備');
+    document.getElementById('visitAssignee').textContent = (assigned||legacyService) ? '今晚女僕｜'+(activeVisit.assignedStaffName||'女僕') : '';
+    document.getElementById('visitStatusMeta').textContent = legacyService ? '如仍有餐點或服務需要確認，請直接告知今晚為您服務的女僕。' : (assigned ? '請留意遊戲內的招呼；與女僕會合後即可在下方點餐。' : '候位號碼已領取｜同行 '+Number(activeVisit.partySize||1)+' 人');
+    document.getElementById('visitStatusHelp').textContent = legacyService ? '拍攝／紀念服務請至上方服務分頁選購。' : (assigned ? '若需要暫時離開或結束本次服務，請直接告知女僕。' : (activeVisit.preferredStaffName ? '您希望由 '+activeVisit.preferredStaffName+' 為您服務，因此等待時間可能較長。' : '請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。'));
     document.getElementById('sharedTableLinkCard').style.display=activeVisit.ownerUid===currentVisitorUid?'':'none';
     if(activeVisit.ownerUid===currentVisitorUid) ensureTableShareCode();
     document.getElementById('cancelVisitQueue').style.display = activeVisit.status==='waiting'&&activeVisit.ownerUid===currentVisitorUid ? 'inline-block' : 'none';
@@ -966,7 +966,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   });
   document.getElementById('forgetRecoveredVisit').addEventListener('click',forgetLocalVisit);
   document.getElementById('forgetVisitSession').addEventListener('click',function(){
-    if(confirm('要切換成另一位客人或連接其他桌嗎？\n尚未送出的餐點會清空；原候位與已送出的訂單不受影響。')) forgetLocalVisit();
+    if(confirm('要切換角色或加入其他桌嗎？\n尚未送出的餐點會清空；原候位與已送出的訂單不受影響。')) forgetLocalVisit();
   });
 
   document.getElementById('joinVisitQueue').addEventListener('click', function(){
@@ -982,8 +982,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       if(!companionWorld){ err.textContent='請選擇同行者 '+(companionIndex+2)+' 所在的伺服器'; err.style.display='block'; return; }
     }
     if(operationStatus.isOpen===false){ err.textContent='本場接待已結束，目前無法領取候位號碼'; err.style.display='block'; return; }
-    if(!currentVisitorUid){ err.textContent='正在建立安全訪客身分，請稍後再試'; err.style.display='block'; return; }
-    if(!visitsRef){ err.textContent='目前尚未連線，請稍後再試'; err.style.display='block'; return; }
+    if(!currentVisitorUid){ err.textContent='正在為您準備入店資料，請稍候再試'; err.style.display='block'; return; }
+    if(!visitsRef){ err.textContent='目前無法連上候位服務，請稍後再試'; err.style.display='block'; return; }
     err.style.display='none';
     var btn=this; btn.disabled=true; btn.textContent='正在領號…';
     var day=visitDateKey();
@@ -1034,13 +1034,13 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       var code=String((error&&error.code)||'').toLowerCase();
       var message=String((error&&error.message)||'').toLowerCase();
       if(code.indexOf('permission')!==-1 || message.indexOf('permission')!==-1){
-        err.textContent='暫時無法完成領號，請聯絡女僕協助登記。';
+        err.textContent='暫時無法完成領號，請讓女僕為您協助。';
       }else if(code.indexOf('network')!==-1 || message.indexOf('network')!==-1){
         err.textContent='目前網路連線不穩定，請確認連線後再試一次';
       }else if(message.indexOf('queue-number')!==-1){
-        err.textContent='候位號碼建立失敗，請店員協助登記';
+        err.textContent='暫時無法取得候位號碼，請讓女僕為您協助';
       }else{
-        err.textContent='候位登記失敗，請店員協助登記';
+        err.textContent='暫時無法完成候位，請讓女僕為您協助';
       }
       err.style.display='block';
     }).finally(function(){ btn.disabled=false; btn.textContent='領取候位號碼'; renderOperationStatus(); });
@@ -1056,23 +1056,23 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     if(!activeVisitId||!createSharedTableCodeFn||tableShareLoading)return;
     if(tableShareVisitId===activeVisitId&&tableShareCode){document.getElementById('sharedTableShareCode').textContent=tableShareCode;document.getElementById('copySharedTableCode').disabled=false;return}
     tableShareLoading=true;document.getElementById('sharedTableShareCode').textContent='取得中…';document.getElementById('tableAccessStatus').textContent='';
-    createSharedTableCodeFn({visitId:activeVisitId}).then(function(res){tableShareCode=String(res.data&&res.data.shareCode||'');tableShareVisitId=activeVisitId;try{localStorage.setItem('lephemereTableCode:'+activeVisitId,tableShareCode)}catch(_){}syncNativePhoto();if(!/^\d{6}$/.test(tableShareCode))throw new Error('missing-code');document.getElementById('sharedTableShareCode').textContent=tableShareCode;document.getElementById('copySharedTableCode').disabled=false}).catch(function(err){document.getElementById('sharedTableShareCode').textContent='暫時無法取得';document.getElementById('tableAccessStatus').textContent=friendlyCallableError(err,'暫時無法取得共桌密碼，請稍後重新整理。')}).finally(function(){tableShareLoading=false})
+    createSharedTableCodeFn({visitId:activeVisitId}).then(function(res){tableShareCode=String(res.data&&res.data.shareCode||'');tableShareVisitId=activeVisitId;try{localStorage.setItem('lephemereTableCode:'+activeVisitId,tableShareCode)}catch(_){}syncNativePhoto();if(!/^\d{6}$/.test(tableShareCode))throw new Error('missing-code');document.getElementById('sharedTableShareCode').textContent=tableShareCode;document.getElementById('copySharedTableCode').disabled=false}).catch(function(err){document.getElementById('sharedTableShareCode').textContent='暫時無法取得';document.getElementById('tableAccessStatus').textContent=friendlyCallableError(err,'暫時無法取得本桌通行密碼，請稍後重新整理。')}).finally(function(){tableShareLoading=false})
   }
   document.getElementById('copySharedTableCode').addEventListener('click',function(){
     if(!activeVisit||!tableShareCode)return;var message=tableShareCode;
     var status=document.getElementById('tableAccessStatus');
-    navigator.clipboard.writeText(message).then(function(){status.textContent='已複製六位數共桌密碼。'}).catch(function(){status.textContent='請手動記下這組六位數密碼。'})
+    navigator.clipboard.writeText(message).then(function(){status.textContent='已複製本桌通行密碼。'}).catch(function(){status.textContent='請手動記下這組六位數通行密碼。'})
   });
   document.getElementById('joinSharedTable').addEventListener('click',function(){
     var code=document.getElementById('sharedTableCode').value.trim(),status=document.getElementById('sharedTableStatus'),btn=this;
-    if(!/^\d{6}$/.test(code)){status.textContent='請輸入六位數共桌密碼。';return}
-    if(!joinSharedTableFn){status.textContent='目前尚未連線，請稍後再試。';return}
-    btn.disabled=true;status.textContent='正在核對共桌資料…';
-    joinSharedTableFn({shareCode:code}).then(function(res){var d=res.data||{};if(!d.challenge||!Array.isArray(d.members))throw new Error('沒有取得本桌角色');sharedJoinChallenge=d.challenge;document.getElementById('sharedMemberSelect').innerHTML=d.members.map(function(member){return '<option value="'+escapeHtml(member)+'">'+escapeHtml(partyMemberName(member))+'</option>';}).join('');document.getElementById('sharedMemberForm').style.display='block';btn.style.display='none';status.textContent='請選擇你在本桌使用的角色。'}).catch(function(){sharedJoinChallenge='';document.getElementById('sharedMemberForm').style.display='none';status.textContent='共桌密碼不正確或已失效，請重新確認。'}).finally(function(){btn.disabled=false});
+    if(!/^\d{6}$/.test(code)){status.textContent='請輸入六位數本桌通行密碼。';return}
+    if(!joinSharedTableFn){status.textContent='目前無法連上本桌，請稍後再試。';return}
+    btn.disabled=true;status.textContent='正在確認本桌通行密碼…';
+    joinSharedTableFn({shareCode:code}).then(function(res){var d=res.data||{};if(!d.challenge||!Array.isArray(d.members))throw new Error('沒有取得本桌角色');sharedJoinChallenge=d.challenge;document.getElementById('sharedMemberSelect').innerHTML=d.members.map(function(member){return '<option value="'+escapeHtml(member)+'">'+escapeHtml(partyMemberName(member))+'</option>';}).join('');document.getElementById('sharedMemberForm').style.display='block';btn.style.display='none';status.textContent='請選擇您在本桌使用的角色。'}).catch(function(){sharedJoinChallenge='';document.getElementById('sharedMemberForm').style.display='none';status.textContent='本桌通行密碼不正確或已失效，請重新確認。'}).finally(function(){btn.disabled=false});
   });
   document.getElementById('confirmSharedMember').addEventListener('click',function(){
-    if(!sharedJoinChallenge)return;var member=document.getElementById('sharedMemberSelect').value,status=document.getElementById('sharedTableStatus'),btn=this;btn.disabled=true;status.textContent='正在連接本桌…';
-    joinSharedTableFn({challenge:sharedJoinChallenge,memberLabel:member}).then(function(res){var d=res.data||{};if(!d.visitId)throw new Error('沒有取得本桌資料');sharedMemberLabel=d.memberLabel||member;activeVisitId=d.visitId;tableShareCode=String(document.getElementById('sharedTableCode').value||'').trim();tableShareVisitId=d.visitId;try{localStorage.setItem('lephemereTableCode:'+d.visitId,tableShareCode)}catch(_){}activeVisitSessionId=d.visitId;localStorage.setItem('lephemereActiveVisitId',d.visitId);localStorage.setItem('lephemereSharedMember:'+d.visitId,sharedMemberLabel);sessionStorage.setItem('lephemereActiveVisitSessionId',d.visitId);visitRecoveryPending=false;sharedJoinChallenge='';watchActiveVisit(d.visitId);status.textContent='已連接本桌。';}).catch(function(){sharedJoinChallenge='';document.getElementById('sharedMemberForm').style.display='none';document.getElementById('joinSharedTable').style.display='';status.textContent='連接已逾時，請重新輸入共桌密碼。';}).finally(function(){btn.disabled=false;});
+    if(!sharedJoinChallenge)return;var member=document.getElementById('sharedMemberSelect').value,status=document.getElementById('sharedTableStatus'),btn=this;btn.disabled=true;status.textContent='正在為您加入本桌…';
+    joinSharedTableFn({challenge:sharedJoinChallenge,memberLabel:member}).then(function(res){var d=res.data||{};if(!d.visitId)throw new Error('沒有取得本桌資料');sharedMemberLabel=d.memberLabel||member;activeVisitId=d.visitId;tableShareCode=String(document.getElementById('sharedTableCode').value||'').trim();tableShareVisitId=d.visitId;try{localStorage.setItem('lephemereTableCode:'+d.visitId,tableShareCode)}catch(_){}activeVisitSessionId=d.visitId;localStorage.setItem('lephemereActiveVisitId',d.visitId);localStorage.setItem('lephemereSharedMember:'+d.visitId,sharedMemberLabel);sessionStorage.setItem('lephemereActiveVisitSessionId',d.visitId);visitRecoveryPending=false;sharedJoinChallenge='';watchActiveVisit(d.visitId);status.textContent='已加入本桌。';}).catch(function(){sharedJoinChallenge='';document.getElementById('sharedMemberForm').style.display='none';document.getElementById('joinSharedTable').style.display='';status.textContent='確認時間已逾時，請重新輸入本桌通行密碼。';}).finally(function(){btn.disabled=false;});
   });
   setInterval(function(){ if(activeVisit) updateVisitStatus(); },30000);
 
@@ -1087,7 +1087,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     var btn = document.getElementById('submitOrder');
     var canOrder = !!activeVisit && !visitRecoveryPending && (activeVisit.status==='assigned' || activeVisit.status==='serving');
     btn.disabled = closed || !canOrder;
-    btn.textContent = closed ? '目前未開放點餐' : (canOrder ? '送出訂單' : '接待後即可點餐');
+    btn.textContent = closed ? '目前未開放點餐' : (canOrder ? '送出餐點' : '與女僕會合後即可點餐');
   }
 
   // ---------- menu rendering ----------
@@ -1453,17 +1453,17 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     var details = error && error.details || {};
     var reason = details.reason || '';
     if(reason==='BUSINESS_CLOSED') return '本場點餐已結束，請直接詢問女僕。';
-    if(reason==='SESSION_CHANGED') return '營業場次已更新，請重新整理頁面後再送單。';
-    if(reason==='VISIT_NOT_FOUND') return '找不到您的候位資料，請重新領號或詢問女僕。';
-    if(reason==='VISIT_NOT_ASSIGNED') return '尚未由女僕接待，目前不能送出訂單。';
+    if(reason==='SESSION_CHANGED') return '今晚的菜單已更新，請重新整理頁面後再送單。';
+    if(reason==='VISIT_NOT_FOUND') return '找不到您今晚的候位，請重新領號或詢問女僕。';
+    if(reason==='VISIT_NOT_ASSIGNED') return '女僕尚未與您會合，目前不能送出餐點。';
     if(reason==='ITEM_UNAVAILABLE') return (details.itemName||'部分餐點')+'目前暫停供應，請重新確認菜單。';
     if(reason==='OUT_OF_STOCK') return (details.itemName||'限量餐點')+'剩餘 '+Number(details.remaining||0)+' 份，請調整數量後重試。';
     if(reason==='MINIMUM_NOT_MET') return '餐點金額尚未達低消，目前合計 '+fmtGil(Number(details.total||0))+'。';
     if(reason==='TRANSACTION_RETRY') return '同時有其他客人送單，庫存正在更新；請按「重試送單」。';
-    if(reason==='AUTH_NOT_READY') return '訪客身分尚未建立完成，請稍候幾秒再重試。';
+    if(reason==='AUTH_NOT_READY') return '正在確認您的入店身分，請稍候幾秒再試。';
     var code = String(error && error.code || '');
     if(/unavailable|deadline-exceeded|internal/.test(code)) return '目前連線不穩定，請稍後按「重試送單」。';
-    return (error && error.message) ? '送出失敗：'+error.message : '送出失敗，請按「重試送單」。';
+    return '暫時無法送出餐點，請按「重試送單」或詢問女僕。';
   }
 
   document.getElementById('submitOrder').addEventListener('click', function(){
@@ -1480,7 +1480,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     }
 
     if(!activeVisit || (activeVisit.status!=='assigned' && activeVisit.status!=='serving')){
-      errEl.textContent = '請先完成候位，並由女僕接下您的接待後再點餐';
+      errEl.textContent = '請先領取候位號碼，並與女僕會合後再點餐';
       errEl.style.display = 'block';
       return;
     }
@@ -1507,7 +1507,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
     var submitBtn = document.getElementById('submitOrder');
     submitBtn.disabled = true;
-    submitBtn.textContent = '確認訂單中…';
+    submitBtn.textContent = '正在為您送出餐點…';
 
     var items = ids.map(function(id){
       var line = cart[id];
@@ -1521,7 +1521,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     if(isSharedVisitor&&!sharedMemberLabel)sharedMemberLabel=localStorage.getItem('lephemereSharedMember:'+activeVisitId)||'';
     orderCallable({requestId:pending.requestId,visitId:activeVisitId,name:name,note:note,diners:currentDiners(),items:items,memberLabel:sharedMemberLabel}).then(function(result){
       var data = result && result.data || {};
-      errEl.textContent = '訂單已成功送出。';
+      errEl.textContent = '女僕已收到您的餐點。';
       document.getElementById('successNumber').textContent = '#'+(data.orderNumber||'—');
       document.getElementById('orderFlow').style.display = 'none';
       setGuestTab(true, false);
@@ -1535,7 +1535,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       renderMenu();
       renderCart();
       submitBtn.disabled = false;
-      submitBtn.textContent = '送出訂單';
+      submitBtn.textContent = '送出餐點';
     }).catch(function(err){
       errEl.textContent = orderFailureText(err);
       errEl.style.color = 'var(--rose)';
