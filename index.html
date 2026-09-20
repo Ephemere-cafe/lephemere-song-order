@@ -497,7 +497,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     if(ticket)ticket.textContent=activeVisit&&activeVisit.queueNumber?'候位 '+activeVisit.queueNumber:'本桌服務';
     var gate=document.getElementById('photoPurchaseGate'),enabled=hasDiningOrderForPhoto();
     if(gate){gate.classList.toggle('is-open',enabled);gate.innerHTML=enabled?'<strong>現在可選購</strong><span>需要安排時間的服務，送出後會通知時段。</span>':'<strong>可先瀏覽</strong><span>送出餐點訂單後，即可選購本場服務。</span>'}
-    if(module){module.setPurchaseEnabled(enabled);if(code&&current)module.connect(code,current)}
+    if(module){module.setPurchaseEnabled(enabled);if(code&&current)module.connect(code,current,activeVisitId)}
   }
 
   var cart = {}; // id -> {name, price, qty, addon:{label,price}|null, assignments:[用餐者]}
@@ -1554,7 +1554,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   document.getElementById('photoPromptLater').addEventListener('click',closePhotoPrompt);
   document.getElementById('photoPromptGo').addEventListener('click',openPhotoView);
   
-  document.getElementById('reloadPhotoService').addEventListener('click',function(){syncNativePhoto();if(window.LephemerePhotoNative)window.LephemerePhotoNative.refresh()});document.getElementById('photoRoleSelect').addEventListener('change',function(){photoSelectedMemberLabel=this.value;var code=photoAccessCode();if(code&&window.LephemerePhotoNative)window.LephemerePhotoNative.connect(code,this.value)});window.addEventListener('lephemere-photo-native-ready',syncNativePhoto);
+  document.getElementById('reloadPhotoService').addEventListener('click',function(){syncNativePhoto();if(window.LephemerePhotoNative)window.LephemerePhotoNative.refresh()});document.getElementById('photoRoleSelect').addEventListener('change',function(){photoSelectedMemberLabel=this.value;var code=photoAccessCode();if(code&&window.LephemerePhotoNative)window.LephemerePhotoNative.connect(code,this.value,activeVisitId)});window.addEventListener('lephemere-photo-native-ready',syncNativePhoto);
   document.getElementById('photoPromptOverlay').addEventListener('click',function(e){if(e.target===this)closePhotoPrompt()});
   window.addEventListener('lephemere-photo-order-created',function(){fetchVisitTotal(false)});window.addEventListener('lephemere-photo-open-total',openTotalView);
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!document.getElementById('photoPromptOverlay').hidden)closePhotoPrompt()});
@@ -1569,7 +1569,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 })();
 </script>
 <script src="photo/assets/schedule.js?v=43"></script>
-<script src="assets/guest-photo-native.js?v=62"></script>
+<script src="assets/guest-photo-native.js?v=20260919-v67"></script>
 </body>
 </html>
 
