@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>曇時 管理後台</title>
+  <script>
+    (function(){
+      try {
+        var savedTheme = localStorage.getItem('lephemereAdminTheme');
+        document.documentElement.dataset.adminTheme = savedTheme === 'dark' ? 'dark' : 'light';
+      } catch (error) {
+        document.documentElement.dataset.adminTheme = 'light';
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="admin-ui-v6.css?v=20260905c">
   <link rel="stylesheet" href="admin-ui-v10.css?v=20260907-v13">
 <link rel="stylesheet" href="guest-registry.css?v=20260908-v21">
@@ -13,7 +23,10 @@
 <link rel="stylesheet" href="admin-v33.css?v=20260914-v33">
 <link rel="stylesheet" href="admin-v35.css?v=20260914-v35">
   <link rel="stylesheet" href="polaroid-v36.css?v=57">
-  <link rel="stylesheet" href="admin-v58.css?v=58b"></head>
+  <link rel="stylesheet" href="admin-v58.css?v=58b">
+  <link rel="stylesheet" href="admin-workbench-v67.css?v=20260919-v67">
+  <link rel="stylesheet" href="admin-theme-toggle.css?v=20260919-v67">
+</head>
 <body>
 <div class="wrap" id="wrap">
 
@@ -22,8 +35,12 @@
       <h1>曇時 Cafe l'Éphémère</h1>
       <p>管理後台</p>
     </div>
-    <div class="clock">
+    <div class="clock header-tools">
       <div><span class="dot offline" id="connDot"></span><span id="connText">連線中...</span></div>
+      <button class="theme-toggle" id="adminThemeToggle" type="button" aria-pressed="false" aria-label="切換為夜間模式">
+        <span class="theme-toggle-icon" id="adminThemeIcon" aria-hidden="true">☾</span>
+        <span id="adminThemeLabel">夜間模式</span>
+      </button>
     </div>
   </div>
 
@@ -39,7 +56,7 @@
       <button class="btn primary" id="adminLoginBtn">登入</button>
     </div>
     <p id="loginError" style="font-size:12px;color:var(--rose);margin:8px 0 0;display:none;">帳號或密碼錯誤</p>
-    <p class="login-help">登入後會依帳號權限顯示可使用的功能。女僕可使用接待、訂單與自己的拍立得工作；管理人員可使用完整店務與網站設定。</p>
+    <p class="login-help">登入後會依帳號權限顯示可使用的功能。女僕可使用現場工作台與自己的拍攝／紀念服務；管理人員可使用完整店務與網站設定。</p>
   </div>
 
   <div id="adminArea" style="display:none;">
@@ -47,9 +64,9 @@
     <div class="main-tabs" id="mainTabs">
       <span class="main-tab-group-label">營業中</span>
       <button type="button" class="main-tab active manager-only" data-main="today" data-manager-only><span>今日總覽</span></button>
-      <button type="button" class="main-tab" data-main="reception"><span>接待</span><span class="main-tab-count" id="navReceptionCount" hidden>0</span></button>
+      <button type="button" class="main-tab" data-main="reception"><span>現場工作台</span><span class="main-tab-count" id="navReceptionCount" hidden>0</span></button>
       <button type="button" class="main-tab" data-main="macros"><span>我的巨集</span></button>
-      <button type="button" class="main-tab" data-main="orders"><span>訂單</span><span class="main-tab-count" id="navOrderCount" hidden>0</span></button>
+      <button type="button" class="main-tab manager-only" data-main="orders" data-manager-only><span>訂單紀錄</span><span class="main-tab-count" id="navOrderCount" hidden>0</span></button>
       <button type="button" class="main-tab" data-main="polaroid"><span>拍立得</span><span class="main-tab-count" id="navPolaroidCount" hidden>0</span></button>
       <button type="button" class="main-tab" data-main="guestbook"><span>留言</span><span class="main-tab-count" id="navGuestbookCount" hidden>0</span></button>
       <span class="main-tab-group-label manager-only" data-manager-only>店務</span>
@@ -68,7 +85,7 @@
     <div class="global-identity">
       <div class="global-identity-copy">
         <strong>操作女僕</strong>
-        <span id="globalDutyDateHint">這個身分會套用接待、訂單、拍立得工作與交接紀錄。</span>
+        <span id="globalDutyDateHint">選擇一次即可，這個身分會套用接待、送餐、拍攝／紀念服務與交接紀錄。</span>
       </div>
       <div class="global-identity-control">
         <span class="operator-live" id="operatorLiveBadge"><i></i> 尚未選擇操作者</span>
@@ -184,7 +201,7 @@
     <!-- ============ 接待候位 ============ -->
     <div id="receptionTab" style="display:none;">
       <div class="page-heading">
-        <div class="page-heading-copy"><span class="page-eyebrow">Reception</span><h2>接待工作區</h2><p>優先顯示自己的主要工作；其他資訊需要時再展開。</p></div>
+        <div class="page-heading-copy"><span class="page-eyebrow">Live service desk</span><h2>我的現場工作</h2><p>從接待、送餐到本輪服務完成，都在同一頁處理。</p></div>
       </div>
       <div class="panel reception-console">
         <div class="reception-console-head">
@@ -224,7 +241,7 @@
         <div class="page-heading-copy">
           <span class="page-eyebrow">Orders</span>
           <h2>訂單工作區</h2>
-          <p>依序處理待接單、服務中與已完成的訂單。</p>
+          <p>供管理人員查閱完整訂單、處理例外與歷史紀錄。</p>
         </div>
       </div>
 
@@ -826,7 +843,7 @@
     <div id="accessTab" class="manager-only" data-manager-only style="display:none;">
       <div class="panel">
         <p class="admin-section-label">🔐 後台帳號權限</p>
-        <p class="access-intro">新帳號第一次登入後會自動列在這裡，預設可使用「接待、訂單、自己的拍立得工作」。將帳號改成「管理人員」後，才可使用完整店務、商品、薪資、官網與權限設定。</p>
+        <p class="access-intro">新帳號第一次登入後會自動列在這裡，預設可使用「現場工作台」與自己的拍攝／紀念服務。將帳號改成「管理人員」後，才可使用完整店務、商品、薪資、官網與權限設定。</p>
         <div id="accessUserList" class="access-list"><span class="empty">正在讀取帳號…</span></div>
         <p id="accessMessage" class="access-message" aria-live="polite"></p>
       </div>
@@ -975,12 +992,13 @@
 <script src="guest-actions.js?v=20260908-v21"></script>
 <script src="guest-local.js?v=20260908-v21"></script>
 <script src="guest-registry.js?v=20260913-v31"></script>
-<script src="admin.js?v=20260917-v53"></script>
+<script src="admin.js?v=20260919-v67"></script>
 <script src="site-content-admin.js?v=20260826a"></script>
 <script src="guestbook-admin.js?v=20260910-v25"></script>
 <script src="studio-admin.js?v=20260909-v22"></script>
 <script src="admin-workspace-preview.js?v=20260905c"></script>
-<script src="schedule.js?v=56"></script><script src="polaroid-admin.js?v=57"></script>
+<script src="schedule.js?v=56"></script><script src="polaroid-admin.js?v=20260919-v67"></script>
+<script src="admin-theme-toggle.js?v=20260919-v67"></script>
 
 </body>
 </html>

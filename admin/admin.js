@@ -1194,7 +1194,7 @@
     return level;
   }
 
-  function guestOrdersHtml(v){
+  function guestOrdersHtml(v,isMine){
     var linked=ordersForVisit(v.id);
     if(!linked.length) return '<div class="guest-order-empty">目前尚未送出訂單</div>';
     return linked.map(function(o){
@@ -1207,8 +1207,18 @@
         var state=specialTaskState(o,task);
         return task.label+'：'+(state==='completed'?'完成':((state==='preparing'||state==='in_progress')?'進行中':'待處理'));
       }).join('・');
-      return '<div class="guest-order"><div class="guest-order-top"><span>#'+escapeHtml(o.orderNumber||'—')+'・'+escapeHtml(STATUS_LABEL[o.status]||o.status||'處理中')+'</span><span class="'+(overdue?'guest-order-alert':'')+'">'+(overdue?'待處理 '+waitMinutes(o.createdAt)+' 分':'')+(o.total?' '+fmtGil(o.total):'')+'</span></div><div class="guest-order-items">'+(items||'未列出品項')+(specialText?'<br>'+escapeHtml(specialText):'')+'</div></div>';
+      var hasDining=(o.items||[]).some(function(item){return !standaloneSpecialType(item);});
+      var deliver=isMine&&hasDining&&o.status!=='completed'&&o.status!=='cancelled'
+        ? '<button type="button" class="btn primary small guest-order-deliver" data-deliver-visit-order="'+escapeAttr(o.id)+'">餐點已送達</button>' : '';
+      return '<div class="guest-order"><div class="guest-order-top"><span>#'+escapeHtml(o.orderNumber||'—')+'・'+escapeHtml(STATUS_LABEL[o.status]||o.status||'處理中')+'</span><span class="'+(overdue?'guest-order-alert':'')+'">'+(overdue?'待處理 '+waitMinutes(o.createdAt)+' 分':'')+(o.total?' '+fmtGil(o.total):'')+'</span></div><div class="guest-order-items">'+(items||'未列出品項')+(specialText?'<br>'+escapeHtml(specialText):'')+'</div>'+deliver+'</div>';
     }).join('');
+  }
+
+  function visitRoundIsComplete(v,linkedOrders){
+    var completedAt=Number(v&&v.tableServiceCompletedAt||0);
+    if(!completedAt) return false;
+    var latest=(linkedOrders||[]).filter(function(order){return order.status!=='cancelled';}).reduce(function(value,order){return Math.max(value,Number(order.createdAt||0));},0);
+    return completedAt>=latest;
   }
 
   function receptionAlertsData(waiting,active){
@@ -1241,11 +1251,12 @@
       tags+='<span class="visit-tag">成員｜'+escapeHtml(v.partyMembers.join('・'))+'</span>';
     }
     var actions='';
+    var roundComplete=visitRoundIsComplete(v,linkedOrders);
     if(isMine){
       if(v.status==='assigned') actions+='<button class="btn primary small" data-start-visit="'+v.id+'">開始接待</button>';
       actions+='<button class="btn ghost small" data-copy-call="'+v.id+'">複製接待文字</button>';
       var hasPendingSpecial=linkedOrders.some(function(order){return collectSpecialTasks(order.items||[]).some(function(task){return specialTaskState(order,task)!=='completed';});});
-      actions+='<button class="btn ghost small" data-complete-visit="'+v.id+'">'+(hasPendingSpecial?'桌邊接待完成':'結束接待')+'</button>';
+      if(!roundComplete) actions+='<button class="btn ghost small" data-complete-visit="'+v.id+'">'+(hasPendingSpecial?'完成本輪桌邊服務':'完成本輪服務')+'</button>';
       actions+='<button class="btn transfer small" data-open-transfer="'+v.id+'">更換主要接待</button>';
     }else if(v.status==='waiting'){
       actions+='<button class="btn primary small" data-copy-call="'+v.id+'">複製叫號</button>';
@@ -1256,7 +1267,9 @@
     }
     var shareCode=visitShareCodes[v.id]||'讀取中',shareTools='<div class="visit-share-code"><span>本桌密碼 <b data-share-code-value="'+escapeAttr(v.id)+'">'+escapeHtml(shareCode)+'</b></span><button type="button" class="btn ghost small" data-copy-share-code="'+escapeAttr(v.id)+'" '+(visitShareCodes[v.id]?'':'disabled')+'>複製密碼</button></div>';
     var noteAction=isMine?'<div class="guest-note-actions"><button class="btn ghost small" data-edit-visit-note="'+v.id+'">編輯備註</button></div>':'';
-    var overview=v.status!=='waiting'?'<div class="guest-overview">'+checkoutHtml(v.id)+'<div class="guest-overview-head"><span>餐點訂單與服務</span><span>'+linkedOrders.length+' 筆餐點訂單</span></div><div class="guest-order-list">'+guestOrdersHtml(v)+'</div><details class="guest-note"><summary>店內交接備註｜'+escapeHtml(v.internalNote||'尚未填寫')+'</summary>'+noteAction+'</details></div>':'';
+    if(isManager()&&v.status!=='waiting') actions+='<button class="btn danger small" data-close-visit="'+v.id+'">主人離店・結束本桌</button>';
+    var roundState=roundComplete?'<div class="visit-round-complete"><strong>✓ 本輪服務已完成</strong><span>本桌仍保留，可直接加點；有新訂單時會重新顯示處理按鈕。</span></div>':'';
+    var overview=v.status!=='waiting'?'<div class="guest-overview">'+roundState+checkoutHtml(v.id)+'<div class="guest-overview-head"><span>餐點訂單與服務</span><span>'+linkedOrders.length+' 筆餐點訂單</span></div><div class="guest-order-list">'+guestOrdersHtml(v,isMine)+'</div><details class="guest-note"><summary>店內交接備註｜'+escapeHtml(v.internalNote||'尚未填寫')+'</summary>'+noteAction+'</details></div>':'';
     return '<article data-gr-visit="'+escapeHtml(v.id)+'" class="visit-card '+(index===0&&v.status==='waiting'?'next ':'')+(isMine?'mine ':'')+urgency+(v.paymentAttention===true?' payment-warning ':'')+'"><div class="visit-card-top"><div><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':(v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分'))+'</span></div><div class="visit-owner-line">'+(v.status==='waiting'?'<span>尚未指派</span>':'<span class="visit-owner-label">主要接待</span><strong>'+escapeHtml(v.assignedStaffName||'未命名女僕')+'</strong>')+(isMine?'<span class="visit-owner-badge">我的接待</span>':'')+'</div><div class="visit-meta">'+(v.status==='waiting'?'依序候位中':(v.status==='serving'?'接待進行中':'等待開始接待'))+'</div><div class="visit-tags">'+tags+'</div>'+shareTools+(actions?'<div class="visit-actions">'+actions+'</div>':'')+overview+'</article>';
   }
 
@@ -1621,6 +1634,8 @@
   ['visitHistoryDate','visitHistoryStatus','visitHistorySearch'].forEach(function(id){document.getElementById(id).addEventListener(id==='visitHistorySearch'?'input':'change',renderVisitHistory);});
 
   document.getElementById('receptionTab').addEventListener('click',function(e){
+    var close=e.target.closest('[data-close-visit]');
+    if(close){ closeVisitAfterDeparture(close.getAttribute('data-close-visit')); return; }
     var transfer=e.target.closest('[data-open-transfer]');
     if(transfer){ openTransferModal(transfer.getAttribute('data-open-transfer')); return; }
     var btn=e.target.closest('[data-copy-call]');
@@ -1706,6 +1721,15 @@
     var settle=e.target.closest('[data-settle-visit]');if(settle){var visitId=settle.getAttribute('data-settle-visit'),bill=checkoutForVisit(visitId);if(!confirm('確認已收取本桌合計 '+fmtGil(bill.total)+' 嗎？'))return;settle.disabled=true;setVisitPaymentStatusFn({visitId:visitId}).catch(function(err){alert(err.message||'結清狀態更新失敗');settle.disabled=false});return}
   });
   document.getElementById('myVisitList').addEventListener('click',function(e){
+    var deliver=e.target.closest('[data-deliver-visit-order]');
+    if(deliver){
+      var orderId=deliver.getAttribute('data-deliver-visit-order'),deliveryOrder=orders[orderId];
+      if(!deliveryOrder||!visits[deliveryOrder.visitId]||visits[deliveryOrder.visitId].assignedStaffId!==currentStaffId)return;
+      var deliveryStaff=staffRoster[currentStaffId]||{};
+      deliver.disabled=true;
+      ordersRef.child(orderId).update({status:'completed',assignedStaffId:currentStaffId,assignedStaffName:deliveryStaff.name||'未命名女僕',assignedAt:deliveryOrder.assignedAt||Date.now(),statusUpdatedAt:Date.now(),completedAt:Date.now(),updatedAt:Date.now()}).then(function(){showCopyToast('已記錄餐點送達',true)}).catch(function(){deliver.disabled=false;alert('更新失敗，請確認連線後再試。')});
+      return;
+    }
     var edit=e.target.closest('[data-edit-visit-note]');
     if(edit){
       var noteId=edit.getAttribute('data-edit-visit-note'), noteVisit=visits[noteId];
@@ -1719,7 +1743,7 @@
     if(!id || !visits[id] || visits[id].assignedStaffId!==currentStaffId) return;
     if(start) visitsRef.child(id).update({status:'serving',serviceStartedAt:Date.now(),updatedAt:Date.now()});
     if(complete){
-      if(visits[id].paymentAttention===true){alert('⚠ 本桌結清後有新增訂單，請先再次收款並按「再次結清」，才能完成接待。');return;}
+      if(visits[id].paymentAttention===true){alert('⚠ 本桌結清後有新增訂單，請先再次收款並按「再次結清」，才能完成本輪服務。');return;}
       var linkedOrders=ordersForVisit(id);
       var unfinishedOrders=linkedOrders.filter(function(order){return order.status!=='completed'&&order.status!=='cancelled';});
       if(unfinishedOrders.length){
@@ -1735,13 +1759,27 @@
         alert('這組主人還有桌邊特殊服務尚未完成，請先完成蛋包飯魔法等桌邊項目。');
         return;
       }
-      if(!confirm('確定結束 '+(visits[id].queueNumber||'這組')+' 的接待嗎？')) return;
-      visitsRef.child(id).update({status:'completed',completedAt:Date.now(),updatedAt:Date.now()}).then(function(){
-        var other=visitRows(['assigned','serving']).some(function(v){return v.id!==id&&v.assignedStaffId===currentStaffId;});
-        if(!other) staffPresenceRef.child(currentStaffId).set({status:'available',updatedAt:Date.now()});
-      });
+      visitsRef.child(id).update({tableServiceCompletedAt:Date.now(),tableServiceCompletedByStaffId:currentStaffId,tableServiceCompletedByStaffName:(staffRoster[currentStaffId]||{}).name||'未命名女僕',updatedAt:Date.now()}).then(function(){showCopyToast('本輪服務已完成；本桌仍可直接加點',true)});
     }
   });
+
+  function closeVisitAfterDeparture(id){
+    if(!isManager()) return;
+    var visit=visits[id];if(!visit||['assigned','serving','special_service'].indexOf(visit.status)===-1)return;
+    if(visit.paymentAttention===true){alert('⚠ 本桌結清後有新增訂單，請先再次收款並按「再次結清」。');return;}
+    var linkedOrders=ordersForVisit(id),unfinishedOrders=linkedOrders.filter(function(order){return order.status!=='completed'&&order.status!=='cancelled';});
+    if(unfinishedOrders.length){alert('這組主人還有 '+unfinishedOrders.length+' 筆餐點訂單尚未完成。');return;}
+    var unfinishedServices=[];
+    linkedOrders.forEach(function(order){collectSpecialTasks(order.items||[]).forEach(function(task){if(specialTaskState(order,task)!=='completed')unfinishedServices.push(task)});});
+    var photoBill=checkoutForVisit(id),unfinishedPhoto=(photoBill.photoDetails||[]).filter(function(item){return ['completed','delivered','cancelled'].indexOf(item.status)===-1;});
+    if(unfinishedServices.length||unfinishedPhoto.length){alert('本桌仍有拍攝或紀念服務尚未完成，請完成後再關閉本桌。');return;}
+    if(!confirm('確認主人已離店，並結束 '+(visit.queueNumber||'這一桌')+' 嗎？\n結束後客人將不能再加點。'))return;
+    var now=Date.now(),staffId=visit.assignedStaffId||'';
+    visitsRef.child(id).update({status:'completed',completedAt:now,closedAt:now,closedByUid:currentAuthUser?currentAuthUser.uid:'',updatedAt:now}).then(function(){
+      var other=visitRows(['assigned','serving']).some(function(row){return row.id!==id&&row.assignedStaffId===staffId;});
+      if(staffId&&!other)staffPresenceRef.child(staffId).set({status:'available',updatedAt:Date.now()});
+    });
+  }
   document.getElementById('transferRoster').addEventListener('click',function(e){
     var target=e.target.closest('[data-transfer-target]'); if(!target || target.disabled) return;
     transferModalTargetId=target.getAttribute('data-transfer-target'); renderTransferModal();

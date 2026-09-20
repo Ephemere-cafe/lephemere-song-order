@@ -1,0 +1,80 @@
+/* v67 現場工作台：保留既有版面，只加強員工當下需要操作的狀態與按鈕。 */
+.guest-order-deliver {
+  width: 100%;
+  margin-top: 10px;
+  min-height: 42px;
+  font-weight: 700;
+}
+
+.visit-round-complete {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border: 1px solid #b8c9b7;
+  border-left: 4px solid #718a72;
+  background: #edf3ea;
+  color: #314a38;
+}
+
+.visit-round-complete strong {
+  font-size: 14px;
+}
+
+.visit-round-complete span {
+  color: #5e6e61;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.polaroid-completed-archive {
+  margin-top: 14px;
+  border: 1px solid var(--line, #d9cabb);
+  background: color-mix(in srgb, var(--paper, #fffaf3) 94%, transparent);
+}
+
+.polaroid-completed-archive > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 46px;
+  padding: 0 14px;
+  cursor: pointer;
+  color: var(--ink, #33251f);
+  font-weight: 700;
+}
+
+.polaroid-completed-archive > summary small {
+  color: var(--muted, #8d7166);
+  font-weight: 400;
+}
+
+.polaroid-completed-list {
+  padding: 0 10px 10px;
+}
+
+.polaroid-my-work .polaroid-task.is-done {
+  opacity: .82;
+}
+
+html[data-admin-theme="dark"] .visit-round-complete {
+  border-color: #46604c;
+  border-left-color: #9bb49c;
+  background: #213129;
+  color: #d7ead8;
+}
+
+html[data-admin-theme="dark"] .visit-round-complete span {
+  color: #abc0ae;
+}
+
+html[data-admin-theme="dark"] .polaroid-completed-archive {
+  border-color: #554841;
+  background: #241f1d;
+}
+
+@media (max-width: 720px) {
+  .guest-order-deliver {
+    min-height: 46px;
+  }
+}

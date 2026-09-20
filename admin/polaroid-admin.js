@@ -50,10 +50,18 @@
     var otherOpen=!!session&&session.isOpen!==false&&session.salesOpen!==false,timedOpen=otherOpen&&session.onsiteSalesOpen!==false&&rs.some(function(r){return r.end>time});el('polaroidSessionBadge').textContent='拍攝'+(timedOpen?'接單中':'已停接')+'・其他服務'+(otherOpen?'接單中':'已停接');el('polaroidSessionBadge').classList.toggle('open',timedOpen||otherOpen);
   }
   function renderDueTasks(all){var host=el('polaroidDueTasks');if(!host)return;var remindable=all.filter(function(t){return t.taskType==='shoot'&&!done(t)});host.innerHTML=remindable.length?remindable.map(taskHtml).join(''):'<div class="queue-empty">目前沒有可提醒的待拍工作。</div>'}
+  function myTasksHtml(mine,id){
+    if(!id)return '<div class="queue-empty">請先選擇操作女僕。</div>';
+    if(!mine.length)return '<div class="queue-empty">目前沒有需要處理的服務工作。</div>';
+    var pending=mine.filter(function(t){return!done(t)}),completed=mine.filter(done);
+    var html=pending.length?pending.map(taskHtml).join(''):'<div class="queue-empty">目前沒有未完成的服務工作。</div>';
+    if(completed.length)html+='<details class="polaroid-completed-archive"><summary><span>最近完成的服務</span><small>'+completed.length+' 項・點此查看</small></summary><div class="polaroid-completed-list">'+completed.map(taskHtml).join('')+'</div></details>';
+    return html;
+  }
   function render(){
     var badge=el('polaroidSessionBadge'),id=staffId(),all=tasks(),cancelled=all.filter(function(t){return t.status==='cancelled'}),current=all.filter(function(t){return t.status!=='cancelled'}),mine=id?current.filter(function(t){return ownsTask(t,id)}):[];
     var otherOpen=!!session&&session.isOpen!==false&&session.salesOpen!==false,timedOpen=otherOpen&&session.onsiteSalesOpen!==false&&safeSlots().some(function(r){return r.end>timeNow()});badge.textContent=session?('拍攝'+(timedOpen?'接單中':'已停接')+'・其他服務'+(otherOpen?'接單中':'已停接')):'尚未建立本場設定';badge.classList.toggle('open',timedOpen||otherOpen);
-    el('polaroidMyTitle').textContent=id?staffName(id)+'的拍立得工作':'我的服務工作';el('polaroidMyHint').textContent=id?('未完成 '+mine.filter(function(t){return!done(t)}).length+' 項・已完成 '+mine.filter(done).length+' 項'):'請先在上方選擇操作女僕。';el('polaroidMyTasks').innerHTML=mine.length?mine.filter(function(t){return!done(t)}).concat(mine.filter(done)).map(taskHtml).join(''):'<div class="queue-empty">'+(id?'目前沒有需要處理的服務工作。':'請先選擇操作女僕。')+'</div>';
+    el('polaroidMyTitle').textContent=id?staffName(id)+'的拍攝／紀念服務':'我的服務工作';el('polaroidMyHint').textContent=id?('待處理 '+mine.filter(function(t){return!done(t)}).length+' 項・本場已完成 '+mine.filter(done).length+' 項'):'請先在上方選擇操作女僕。';el('polaroidMyTasks').innerHTML=myTasksHtml(mine,id);
     document.querySelectorAll('[data-polaroid-status]').forEach(function(b){b.classList.toggle('active',!!session&&id&&session.maids&&session.maids[id]&&session.maids[id].status===b.dataset.polaroidStatus)});
     var pending=current.filter(function(t){return!done(t)}).length,completed=current.filter(done).length,deferred=current.filter(function(t){return t.status==='deferred'||t.status==='no_show'}).length;el('navPolaroidCount').hidden=!pending;el('navPolaroidCount').textContent=pending;el('polaroidMetricOrders').textContent=current.length;el('polaroidMetricDone').textContent=completed;el('polaroidMetricPending').textContent=pending;el('polaroidMetricDeferred').textContent=deferred;el('polaroidAllTasks').innerHTML=current.length?current.filter(function(t){return!done(t)}).concat(current.filter(done)).map(taskHtml).join(''):'<div class="queue-empty">本場尚無需要處理的商品訂單。</div>';el('polaroidCancelledArchive').hidden=!cancelled.length;el('polaroidCancelledCount').textContent=cancelled.length;el('polaroidCancelledTasks').innerHTML=cancelled.map(taskHtml).join('');
     renderOverview(current);renderDueTasks(current);renderMacro();renderDueMacro();if(isManager){fillEditor();renderProductList();if(!el('polaroidProductId').value)fillProductStaffOptions()}window.dispatchEvent(new CustomEvent('polaroid-accounting-updated'));
@@ -112,7 +120,7 @@
   });
   db.ref('.info/serverTimeOffset').on('value',function(s){clockOffset=Number(s.val()||0)});
   var lastRoundSignature='';
-  setInterval(function(){if(!session)return;var all=tasks().filter(function(t){return t.status!=='cancelled'}),signature=all.map(function(t){return t.taskId+':'+activeRound(t)}).join('|');renderOverview(all);renderDueTasks(all);renderDueMacro();if(signature!==lastRoundSignature){lastRoundSignature=signature;renderMacro();el('polaroidAllTasks').innerHTML=all.filter(function(t){return!done(t)}).concat(all.filter(done)).map(taskHtml).join('');var mine=all.filter(function(t){return ownsTask(t,staffId())});el('polaroidMyTasks').innerHTML=mine.filter(function(t){return!done(t)}).concat(mine.filter(done)).map(taskHtml).join('')}
+  setInterval(function(){if(!session)return;var all=tasks().filter(function(t){return t.status!=='cancelled'}),signature=all.map(function(t){return t.taskId+':'+activeRound(t)}).join('|');renderOverview(all);renderDueTasks(all);renderDueMacro();if(signature!==lastRoundSignature){lastRoundSignature=signature;renderMacro();el('polaroidAllTasks').innerHTML=all.filter(function(t){return!done(t)}).concat(all.filter(done)).map(taskHtml).join('');var id=staffId(),mine=all.filter(function(t){return ownsTask(t,id)});el('polaroidMyTasks').innerHTML=myTasksHtml(mine,id)}
   },15000);
 
   resetProductEditor();
