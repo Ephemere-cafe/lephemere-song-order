@@ -490,6 +490,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     var key=photoEntryKey();
     try{if(key)localStorage.setItem(key,'1')}catch(_){}
     renderPhotoEntry();
+    syncNativePhoto();
   }
   function closePhotoPrompt(){document.getElementById('photoPromptOverlay').hidden=true}
   function photoAccessCode(){
@@ -501,6 +502,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
 
   function hasDiningOrderForPhoto(){
+    if(photoEntryUnlocked())return true;
     if(!visitReceipt)return false;
     var rows=Array.isArray(visitReceipt.dining)?visitReceipt.dining:Object.values(visitReceipt.dining||{});
     return rows.some(function(row){return row&&row.status!=='cancelled'&&(Array.isArray(row.items)?row.items.length:Object.keys(row.items||{}).length)});
