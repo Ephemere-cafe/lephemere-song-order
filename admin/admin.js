@@ -1620,8 +1620,18 @@
       return current;
     }).then(function(result){
       if(!result.committed){ alert('這組主人剛剛已被其他女僕接下。'); return; }
+      var claimedVisit=result.snapshot&&typeof result.snapshot.val==='function'?result.snapshot.val():null;
+      visits[v.id]=Object.assign({},visits[v.id]||v,claimedVisit||{status:'assigned',assignedStaffId:currentStaffId,assignedStaffName:staff.name||'未命名女僕',assignedAt:Date.now(),updatedAt:Date.now()});
       expandedReceptionVisitId=v.id;
-      return Promise.all([staffPresenceRef.child(currentStaffId).set({status:'serving',updatedAt:Date.now()}),recordVisitAssignment(v.id,'',currentStaffId,'claim')]);
+      renderReception();
+      setTimeout(function(){
+        var card=document.querySelector('#myVisitList [data-gr-visit="'+CSS.escape(v.id)+'"]');
+        if(card) card.scrollIntoView({behavior:'smooth',block:'start'});
+      },0);
+      showCopyToast('已接下 '+(visits[v.id].queueNumber||'這組主人'),true);
+      return Promise.all([staffPresenceRef.child(currentStaffId).set({status:'serving',updatedAt:Date.now()}),recordVisitAssignment(v.id,'',currentStaffId,'claim')]).catch(function(error){
+        console.error('Claim follow-up sync failed',error);
+      });
     }).catch(function(error){
       console.error('Claim visit failed',error);
       alert('接待操作未完成，請確認連線後再試一次。');
