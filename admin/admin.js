@@ -1446,12 +1446,6 @@
     document.getElementById('receptionActiveMetric').textContent=mine.length;
     document.getElementById('receptionAvailableMetric').textContent=pendingMeals.length;
     document.getElementById('receptionAlertMetric').textContent=completedToday;
-    document.getElementById('receptionAlertCount').textContent=priorityCount+' 項';
-    document.getElementById('receptionAlerts').classList.toggle('visible',priorityCount>0);
-    var priorityHtml=myPendingMeals.map(function(order){var visit=visits[order.visitId]||{};var items=(order.items||[]).filter(function(item){return !standaloneSpecialType(item);}).map(function(item){return (item.name||'品項')+' × '+Number(item.qty||1);}).join('・');return '<div class="reception-alert-item"><span><strong>新餐點已送出・'+escapeHtml(visit.queueNumber||order.orderNumber||'本桌')+' '+escapeHtml(visit.characterName||order.name||'主人')+'</strong><small>'+escapeHtml(items||'請確認餐點內容')+'</small></span><button type="button" class="btn primary small" data-deliver-visit-order="'+escapeAttr(order.id)+'">餐點已送達</button></div>';}).join('');
-    priorityHtml+=alerts.map(function(a){return '<div class="reception-alert-item"><span><strong>'+escapeHtml(a.title)+'</strong><small>'+escapeHtml(a.detail)+'</small></span></div>';}).join('');
-    document.querySelector('#receptionAlerts .reception-alert-head>span').textContent=priorityCount?'請先完成以下工作':'目前沒有需要優先處理的工作';
-    document.getElementById('receptionAlertList').innerHTML=priorityHtml;
     document.getElementById('visitWaitingList').innerHTML=visibleWaiting.length?visibleWaiting.map(function(v,i){return visitCard(v,i,false);}).join(''):(waiting.length?'<div class="queue-empty">沒有符合搜尋或篩選條件的候位主人。</div>':'<div class="queue-empty">目前沒有人候位。<br>自由參觀的客人不會出現在這裡。</div>');
     if(mine.length){
       var expandedStillExists=mine.some(function(v){return v.id===expandedReceptionVisitId;});

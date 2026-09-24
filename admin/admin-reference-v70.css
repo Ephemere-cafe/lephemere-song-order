@@ -81,16 +81,6 @@ html,body,.wrap{background:var(--v70-cream)}
 .reception-console-actions{width:100%;justify-content:space-between}
 .reception-console .presence-row{display:flex}
 
-.reception-alerts{display:none;margin:0 0 16px;padding:0;border:0;border-left:4px solid #b95e75;border-radius:0;background:#fff1f3;box-shadow:none}
-.reception-alerts.visible{display:block}
-.reception-alert-head{display:none}
-#receptionAlertList{display:grid}
-.reception-alert-item{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:76px;padding:12px 18px;border:0;border-bottom:1px solid #efd8dd;background:transparent}
-.reception-alert-item:last-child{border-bottom:0}
-.reception-alert-item>span{display:block;min-width:0}
-.reception-alert-item strong{display:block;color:#372826;font-size:12px}
-.reception-alert-item small{display:block;margin-top:5px;color:#8f5e67;font-size:10px}
-.reception-alert-item .btn{min-width:118px}
 
 .reception-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 17px}
 .reception-metric{display:flex;flex-direction:column;justify-content:center;min-height:92px;padding:14px 18px;border:1px solid var(--v70-line);border-radius:11px;background:var(--v70-paper)}
@@ -184,10 +174,6 @@ html:not([data-admin-theme="dark"]) .sidebar-operator small,html:not([data-admin
 html:not([data-admin-theme="dark"]) .page-heading-copy h2,html:not([data-admin-theme="dark"]) .today-heading h2,html:not([data-admin-theme="dark"]) .reception-column-title{color:#202a35}
 html:not([data-admin-theme="dark"]) .page-eyebrow,html:not([data-admin-theme="dark"]) .overview-kicker,html:not([data-admin-theme="dark"]) .visit-now-card>span,html:not([data-admin-theme="dark"]) .visit-checkout-title>span{color:#55779f}
 html:not([data-admin-theme="dark"]) .page-heading p,html:not([data-admin-theme="dark"]) .operations-section-note{color:#6e7984}
-html:not([data-admin-theme="dark"]) .reception-alerts{background:#eaf1f8;border-color:#6688aa}
-html:not([data-admin-theme="dark"]) .reception-alert-item{border-color:#d5e1eb}
-html:not([data-admin-theme="dark"]) .reception-alert-item strong{color:#425b77}
-html:not([data-admin-theme="dark"]) .reception-alert-item small{color:#657a8d}
 html:not([data-admin-theme="dark"]) .reception-metric,html:not([data-admin-theme="dark"]) .reception-column,html:not([data-admin-theme="dark"]) .visit-card,html:not([data-admin-theme="dark"]) .visit-now-card{color:#202a35;background:#f9fbfc;border-color:#d3dbe3}
 html:not([data-admin-theme="dark"]) .reception-metric-label,html:not([data-admin-theme="dark"]) .visit-owner-line{color:#6e7984}
 html:not([data-admin-theme="dark"]) .reception-metric.priority .reception-metric-value{color:#55779f}
@@ -267,8 +253,6 @@ html[data-admin-theme="dark"] .reception-metric,
 html[data-admin-theme="dark"] .reception-column,
 html[data-admin-theme="dark"] .visit-card,
 html[data-admin-theme="dark"] .visit-now-card{background:#14151c;color:#f3f4f8;border-color:#292c36}
-html[data-admin-theme="dark"] .reception-alerts{background:#131722;border-color:#3970ff}
-html[data-admin-theme="dark"] .reception-alert-item strong,
 html[data-admin-theme="dark"] .visit-now-card h3,
 html[data-admin-theme="dark"] .visit-checkout h3{color:#f3f4f8}
 html[data-admin-theme="dark"] .reception-metric,html[data-admin-theme="dark"] .reception-column,html[data-admin-theme="dark"] .visit-card{background:#14151c!important;border-color:#292c36!important;box-shadow:0 14px 32px rgba(7,8,12,.2)}
