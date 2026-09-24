@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="admin-workbench-v67.css?v=20260919-v67">
   <link rel="stylesheet" href="admin-theme-toggle.css?v=20260919-v67">
   <link rel="stylesheet" href="admin-redesign-v69.css?v=20260924-v69">
-  <link rel="stylesheet" href="admin-reference-v70.css?v=20260924-v72">
+  <link rel="stylesheet" href="admin-reference-v70.css?v=20260924-v74">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -204,19 +204,7 @@
       <div class="reception-grid">
         <section class="reception-column my-visits-column"><div class="reception-column-title"><span>目前桌次</span><span class="reception-count" id="myVisitCount">0</span></div><div id="myVisitList"></div></section>
         <section class="reception-column reception-waiting-column"><div class="reception-column-title reception-queue-title"><span>等待接待</span><span class="reception-count" id="visitWaitingCount">0</span></div><div class="reception-filter-tools"><input type="search" id="receptionSearch" placeholder="搜尋主人／候位號碼" aria-label="搜尋主人名稱或候位號碼"><label><input type="checkbox" id="receptionAttentionOnly"> 只看需留意</label></div><div id="visitWaitingList"></div></section>
-        <details class="reception-column team-visits-panel"><summary class="reception-column-title"><span>其他成員接待中・可直接轉交</span><span class="reception-count" id="teamVisitCount">0</span></summary><div id="teamVisitList"></div></details>
-        <details class="reception-column team-status-panel"><summary class="reception-column-title"><span>成員狀態總覽</span><span class="reception-count" id="staffPresenceCount">0</span></summary><div class="team-grid" id="staffPresenceList"></div></details>
       </div>
-      <details class="panel visit-history-panel" id="visitHistoryPanel">
-        <summary><span><strong>號碼牌紀錄</strong><small>永久保留，可依日期、號碼、角色、伺服器、女僕或狀態查詢</small></span><span id="visitHistoryCount">尚未載入</span></summary>
-        <div class="visit-history-tools">
-          <label>營業日期<input type="date" id="visitHistoryDate"></label>
-          <label>狀態<select id="visitHistoryStatus"><option value="">全部狀態</option><option value="waiting">候位中</option><option value="assigned">已安排</option><option value="serving">接待中</option><option value="completed">已完成</option><option value="cancelled">已取消</option><option value="no_show">未到場</option></select></label>
-          <label class="visit-history-search">搜尋<input type="search" id="visitHistorySearch" placeholder="號碼、角色、伺服器、女僕、訂單或備註"></label>
-        </div>
-        <div id="visitHistoryList" class="visit-history-list"><div class="queue-empty">展開後載入永久號碼牌紀錄。</div></div>
-      </details>
-      <details class="panel"><summary style="cursor:pointer;color:var(--mist);font-size:12px;">最近接待操作紀錄</summary><div class="audit-list" id="assignmentHistoryList"><div class="queue-empty">尚無操作紀錄</div></div></details>
       <div class="copy-toast" id="copyToast" role="status" aria-live="polite">叫號文字已複製</div>
     </div>
 
@@ -229,6 +217,20 @@
           <p>供管理人員查閱完整訂單、處理例外與歷史紀錄。</p>
         </div>
       </div>
+
+      <section class="manager-records-section manager-only" data-manager-only>
+        <div class="manager-section-heading"><span class="page-eyebrow">Reception records</span><h3>接待與號碼牌紀錄</h3><p>永久紀錄與最近操作集中在管理區，不佔用女僕的現場工作畫面。</p></div>
+        <details class="panel visit-history-panel" id="visitHistoryPanel">
+          <summary><span><strong>號碼牌紀錄</strong><small>可依日期、號碼、角色、伺服器、女僕或狀態查詢</small></span><span id="visitHistoryCount">尚未載入</span></summary>
+          <div class="visit-history-tools">
+            <label>營業日期<input type="date" id="visitHistoryDate"></label>
+            <label>狀態<select id="visitHistoryStatus"><option value="">全部狀態</option><option value="waiting">候位中</option><option value="assigned">已安排</option><option value="serving">接待中</option><option value="completed">已完成</option><option value="cancelled">已取消</option><option value="no_show">未到場</option></select></label>
+            <label class="visit-history-search">搜尋<input type="search" id="visitHistorySearch" placeholder="號碼、角色、伺服器、女僕、訂單或備註"></label>
+          </div>
+          <div id="visitHistoryList" class="visit-history-list"><div class="queue-empty">展開後載入永久號碼牌紀錄。</div></div>
+        </details>
+        <details class="panel assignment-history-panel"><summary>最近接待操作紀錄</summary><div class="audit-list" id="assignmentHistoryList"><div class="queue-empty">尚無操作紀錄</div></div></details>
+      </section>
 
       <div class="panel order-console">
         <div class="order-console-head">
@@ -616,6 +618,11 @@
 
     <!-- ============ 店員管理 ============ -->
     <div id="staffTab" class="manager-only" data-manager-only style="display:none;">
+      <div class="page-heading manager-staff-heading"><div class="page-heading-copy"><span class="page-eyebrow">Staff status</span><h2>人員與排班</h2><p>先查看現場成員狀態，再處理排班與名冊。</p></div></div>
+      <section class="manager-team-section">
+        <details class="panel team-visits-panel" open><summary class="reception-column-title"><span>其他成員接待中・可直接轉交</span><span class="reception-count" id="teamVisitCount">0</span></summary><div id="teamVisitList"></div></details>
+        <details class="panel team-status-panel" open><summary class="reception-column-title"><span>成員狀態總覽</span><span class="reception-count" id="staffPresenceCount">0</span></summary><div class="team-grid" id="staffPresenceList"></div></details>
+      </section>
       <details class="panel duty-panel" open>
         <summary class="duty-summary">
           <span class="duty-summary-title">👥 各日排班設定</span>

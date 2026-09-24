@@ -1,14 +1,14 @@
-/* v72：依核准 PNG 完成現場／營運分流與參考圖夜間模式。所有資料 id 與 Firebase 操作維持原樣。 */
+/* v74：套用核准的霧灰藍／藍黑全區配色，並完成現場／營運資料分流；既有資料連動維持原樣。 */
 :root{
-  --v70-ink:#2f2321;
-  --v70-cream:#f4efe7;
-  --v70-paper:#fffaf4;
-  --v70-line:#ddcfc1;
-  --v70-wine:#82445b;
-  --v70-wine-dark:#6d354b;
-  --v70-sage:#748b77;
-  --v70-side:#211a20;
-  --v70-peach:#efb47f;
+  --v70-ink:#202a35;
+  --v70-cream:#eef1f4;
+  --v70-paper:#f9fbfc;
+  --v70-line:#d3dbe3;
+  --v70-wine:#55779f;
+  --v70-wine-dark:#46688e;
+  --v70-sage:#5f8272;
+  --v70-side:#1c2530;
+  --v70-peach:#9ab8d1;
 }
 
 html,body,.wrap{background:var(--v70-cream)}
@@ -164,6 +164,56 @@ html,body,.wrap{background:var(--v70-cream)}
 .reception-waiting-column .visit-actions .btn{width:100%}
 .reception-waiting-column .visit-actions .btn.primary{grid-row:1}
 
+/* C 案｜霧灰藍淺色模式。只覆寫視覺 token，不變更任何功能與資料流程。 */
+html:not([data-admin-theme="dark"]),html:not([data-admin-theme="dark"]) body,html:not([data-admin-theme="dark"]) .wrap{background:#eef1f4}
+html:not([data-admin-theme="dark"]) .header{background:#f9fbfc;border-color:#d3dbe3}
+html:not([data-admin-theme="dark"]) .header .brand,html:not([data-admin-theme="dark"]) .main-tabs{background:#1c2530;border-color:#344354}
+html:not([data-admin-theme="dark"]) .header .brand:before{background:#55779f}
+html:not([data-admin-theme="dark"]) .header>.global-identity{background:#f9fbfc;border-color:#d3dbe3}
+html:not([data-admin-theme="dark"]) .global-identity-copy strong{color:#596775}
+html:not([data-admin-theme="dark"]) .reference-operator-select,html:not([data-admin-theme="dark"]) #guestPreviewToggle{color:#2c3946;background:#f9fbfc;border-color:#cbd5de}
+html:not([data-admin-theme="dark"]) .global-identity-control>.reference-connection{color:#4f7560;background:#e8f1eb}
+html:not([data-admin-theme="dark"]) .main-tab{color:#bac6d0}
+html:not([data-admin-theme="dark"]) .main-tab:hover{color:#fff;background:#263443}
+html:not([data-admin-theme="dark"]) .main-tab.active,html:not([data-admin-theme="dark"]) .management-home-tab.section-active{color:#fff;background:#55779f!important;border-color:#55779f!important;box-shadow:inset 3px 0 #9ab8d1!important}
+html:not([data-admin-theme="dark"]) .main-tab-icon{color:#a8c2d7}
+html:not([data-admin-theme="dark"]) .main-tab-count{color:#203241;background:#dbe8f2}
+html:not([data-admin-theme="dark"]) .sidebar-theme-slot .theme-toggle,html:not([data-admin-theme="dark"]) .management-home-tab{color:#d8e2e9;background:transparent!important;border-color:#405365!important}
+html:not([data-admin-theme="dark"]) .sidebar-operator,html:not([data-admin-theme="dark"]) .main-tab-account{border-color:#344354}
+html:not([data-admin-theme="dark"]) .sidebar-operator small,html:not([data-admin-theme="dark"]) .management-home-tab small{color:#8fa2b1}
+html:not([data-admin-theme="dark"]) .page-heading-copy h2,html:not([data-admin-theme="dark"]) .today-heading h2,html:not([data-admin-theme="dark"]) .reception-column-title{color:#202a35}
+html:not([data-admin-theme="dark"]) .page-eyebrow,html:not([data-admin-theme="dark"]) .overview-kicker,html:not([data-admin-theme="dark"]) .visit-now-card>span,html:not([data-admin-theme="dark"]) .visit-checkout-title>span{color:#55779f}
+html:not([data-admin-theme="dark"]) .page-heading p,html:not([data-admin-theme="dark"]) .operations-section-note{color:#6e7984}
+html:not([data-admin-theme="dark"]) .reception-alerts{background:#eaf1f8;border-color:#6688aa}
+html:not([data-admin-theme="dark"]) .reception-alert-item{border-color:#d5e1eb}
+html:not([data-admin-theme="dark"]) .reception-alert-item strong{color:#425b77}
+html:not([data-admin-theme="dark"]) .reception-alert-item small{color:#657a8d}
+html:not([data-admin-theme="dark"]) .reception-metric,html:not([data-admin-theme="dark"]) .reception-column,html:not([data-admin-theme="dark"]) .visit-card,html:not([data-admin-theme="dark"]) .visit-now-card{color:#202a35;background:#f9fbfc;border-color:#d3dbe3}
+html:not([data-admin-theme="dark"]) .reception-metric-label,html:not([data-admin-theme="dark"]) .visit-owner-line{color:#6e7984}
+html:not([data-admin-theme="dark"]) .reception-metric.priority .reception-metric-value{color:#55779f}
+html:not([data-admin-theme="dark"]) .visit-wait{color:#55708a;background:#e7eef5}
+html:not([data-admin-theme="dark"]) .visit-progress:before{background:#d4dce4}
+html:not([data-admin-theme="dark"]) .visit-progress span{color:#7c8792}
+html:not([data-admin-theme="dark"]) .visit-progress span i{background:#f9fbfc;box-shadow:0 0 0 3px #f9fbfc}
+html:not([data-admin-theme="dark"]) .visit-progress span.active i{border-color:#55779f;background:#55779f;box-shadow:0 0 0 3px #dce7f0}
+html:not([data-admin-theme="dark"]) .visit-now-card .guest-order{background:#eef1f4}
+html:not([data-admin-theme="dark"]) .visit-now-card h3,html:not([data-admin-theme="dark"]) .visit-checkout h3{color:#202a35}
+html:not([data-admin-theme="dark"]) .visit-now-card>p,html:not([data-admin-theme="dark"]) .visit-checkout>p{color:#66727d}
+html:not([data-admin-theme="dark"]) .visit-checkout{background:#eef5f1;border-color:#cbdad1}
+html:not([data-admin-theme="dark"]) .visit-checkout-title strong{color:#55779f}
+html:not([data-admin-theme="dark"]) .visit-actions{background:#f4f7f9;border-color:#d3dbe3}
+html:not([data-admin-theme="dark"]) .panel,html:not([data-admin-theme="dark"]) .order-card,html:not([data-admin-theme="dark"]) .staff-editor-card,html:not([data-admin-theme="dark"]) .payroll-panel,html:not([data-admin-theme="dark"]) .polaroid-product-card,html:not([data-admin-theme="dark"]) .polaroid-admin-card{color:#202a35;background:#f9fbfc;border-color:#d3dbe3}
+html:not([data-admin-theme="dark"]) input,html:not([data-admin-theme="dark"]) select,html:not([data-admin-theme="dark"]) textarea{color:#273441;background:#f9fbfc;border-color:#cbd5de}
+html:not([data-admin-theme="dark"]) .btn.primary{color:#fff;background:#55779f;border-color:#55779f}
+html:not([data-admin-theme="dark"]) .btn.primary:hover{color:#fff;background:#46688e;border-color:#46688e}
+html:not([data-admin-theme="dark"]) .btn.ghost{color:#526777;border-color:#c5d1db}
+html:not([data-admin-theme="dark"]) .btn.ghost:hover{color:#2d465d;background:#e7eef4;border-color:#8fa9bf}
+html:not([data-admin-theme="dark"]) .operations-hub-card{color:#202a35;background:#f9fbfc;border-color:#d3dbe3}
+html:not([data-admin-theme="dark"]) .operations-hub-card:hover,html:not([data-admin-theme="dark"]) .operations-hub-card.is-primary{border-color:#6688aa;background:#f2f6fa;box-shadow:0 13px 28px rgba(45,65,82,.09)}
+html:not([data-admin-theme="dark"]) .operations-hub-icon{color:#55779f}
+html:not([data-admin-theme="dark"]) .operations-hub-card>small{color:#6e7984}
+html:not([data-admin-theme="dark"]) .operations-hub-tags i{color:#526777;background:#e8eef3}
+
 html[data-admin-theme="dark"]{
   --v70-ink:#f3f4f8;
   --v70-cream:#0d0e14;
@@ -239,6 +289,105 @@ html[data-admin-theme="dark"] .operations-hub-card>small{color:#8f929e}
 html[data-admin-theme="dark"] .operations-hub-tags i{color:#aeb8d5;background:#1b2030}
 html[data-admin-theme="dark"] .visit-progress span.done,
 html[data-admin-theme="dark"] .visit-progress span.active{color:#d5d8e0}
+
+/* v73｜管理資料離開現場頁；原有 id、監聽器與 Firebase 資料來源不變。 */
+.manager-team-section{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0 0 16px}
+.manager-team-section .team-visits-panel,.manager-team-section .team-status-panel{display:block;min-width:0;margin:0;padding:0;grid-column:auto;grid-row:auto;overflow:hidden}
+.manager-team-section summary{display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:12px 16px;cursor:pointer}
+.manager-team-section .team-visits-panel>div,.manager-team-section .team-status-panel>div{padding:12px}
+.manager-records-section{margin:0 0 18px}
+.manager-section-heading{margin:0 0 12px}.manager-section-heading h3{margin:4px 0 5px;font-family:"Noto Serif TC",serif;font-size:22px}.manager-section-heading p{margin:0;color:var(--admin-muted);font-size:11px}
+.manager-records-section .visit-history-panel{margin:0 0 10px}
+.assignment-history-panel>summary{cursor:pointer;color:var(--ink);font-size:12px;font-weight:700}
+
+/* v73｜淺色模式全區只使用霧灰藍色系。 */
+html:not([data-admin-theme="dark"]){
+  --ink:#202a35;--parchment:#202a35;--parchment-dim:#687584;--card:#f9fbfc;--line:#d3dbe3;
+  --gold:#55779f;--gold-dim:#46688e;--rose:#765c70;--rose-dim:#654d60;--sage:#5f8272;--sage-dim:#527365;
+  --mist:#687584;--ivory-blue:#55779f;--terracotta:#55779f;--admin-bg:#eef1f4;--admin-paper:#f9fbfc;
+  --admin-paper-strong:#fff;--admin-muted:#687584;--admin-night:#55779f;
+}
+html:not([data-admin-theme="dark"]) #adminArea>div:not(.main-tabs){color:#202a35}
+html:not([data-admin-theme="dark"]) :where(
+  .operation-tool-group,.polaroid-session-editor>summary,.polaroid-session-fields>.check,.polaroid-editor-grid>div,
+  .polaroid-round-row,.polaroid-maid-row,.polaroid-admin-tabs,.polaroid-product-thumb,.polaroid-media-preview,
+  .polaroid-example-row,.photo-maid-totals>div,.photo-macro-round,.polaroid-task,.polaroid-status-actions,
+  .polaroid-admin-metrics>div,.visit-checkout-values>span,.visit-share-code,.order-console,.identity-panel,
+  .special-workspace-head,.special-queue-title,.reception-column-title,.staff-editor-head,.presence-row,.presence-btn,
+  .guest-order,.audit-row,.report-text,.stat,.sound-control-panel,.business-session-panel,.menu-row,.menu-manage-row,
+  .access-user,.site-hero-editor,.site-polaroid-form,.site-polaroid-card,.payroll-metric,.payroll-staff-check,
+  .payroll-slip,.visit-history-card,.order-table-heading,.today-operation-state,.today-metrics,.today-metric,
+  .today-panel-head,.today-duty-mark,.today-recent,.gr-panel,.gr-stat,.gr-profile,.gr-table th,.gr-modal,
+  #ordersTab .order-day-group,#ordersTab .order-day-group>summary,#ordersTab .order-day-list,
+  #ordersTab .order-card-v58,#ordersTab .order-card-detail,#ordersTab .order-service,#ordersTab .handoff-note,
+  #ordersTab .order-more-actions>summary,.menu-edit-modal,.photo-modal,.transfer-modal,.transfer-person
+){color:#202a35!important;background:#f9fbfc!important;border-color:#d3dbe3!important}
+html:not([data-admin-theme="dark"]) :where(
+  .polaroid-admin-tabs,.polaroid-session-editor>summary,.polaroid-session-fields>.check,.polaroid-round-row,
+  .polaroid-maid-row,.polaroid-status-actions,.photo-maid-totals>div,.photo-macro-round,.special-workspace-head,
+  .special-queue-title,.reception-column-title,.staff-editor-head,.guest-order,.audit-row,.report-text,.stat,
+  .order-table-heading,.today-operation-state,.today-panel-head,.today-duty-mark,.today-recent,.gr-stat,.gr-profile,
+  .gr-table th,#ordersTab .order-day-group>summary,#ordersTab .order-card-detail
+){background:#e8eef3!important}
+html:not([data-admin-theme="dark"]) :where(.polaroid-admin-tabs button,.tab,.presence-btn,.icon-btn,#ordersTab .order-detail-toggle,#ordersTab .order-more-actions>summary){color:#526777!important;background:#f9fbfc!important;border-color:#c5d1db!important}
+html:not([data-admin-theme="dark"]) :where(.polaroid-admin-tabs button.active,.tab.active,.presence-btn.active){color:#fff!important;background:#55779f!important;border-color:#55779f!important}
+html:not([data-admin-theme="dark"]) :where(.polaroid-maid-row>span,.gr-badge,.visit-tag,.notification-badge){color:#456276!important;background:#dfe9f0!important;border-color:#c7d5df!important}
+html:not([data-admin-theme="dark"]) :where(.payroll-readonly,input:disabled,select:disabled,textarea:disabled){color:#72808c!important;background:#e4e9ee!important}
+html:not([data-admin-theme="dark"]) :where(.site-upload-field input[type=file],.gr-form input,.gr-form select,.gr-form textarea,#guestRegistryTab input,#guestRegistryTab select){color:#273441!important;background:#f9fbfc!important;border-color:#cbd5de!important}
+html:not([data-admin-theme="dark"]) :where(.menu-image-preview,.menu-manage-image,.photo-modal .staff-photo-file,.photo-modal .staff-photo-preview-card,.photo-modal .photo-modal-actions,.transfer-guest,.gr-alert,.gr-secondary,.reservation-cancelled-badge){color:#526777!important;background:#e8eef3!important;border-color:#cbd5de!important}
+html:not([data-admin-theme="dark"]) :where(.page-heading,.polaroid-page-heading,.order-detail-controls,.order-more-actions){border-color:#d3dbe3!important}
+html:not([data-admin-theme="dark"]) #ordersTab{color:#202a35!important}
+html:not([data-admin-theme="dark"]) #ordersTab :where(.order-console-head h2,.order-list-heading,.order-table-heading strong,.order-card-main .order-name,.order-card-detail h4,.order-card-assignee strong){color:#202a35!important}
+html:not([data-admin-theme="dark"]) #ordersTab :where(.order-console-head p,.order-search-hint,.order-history-status,.order-list-heading span,.order-day-meta,.order-table-heading small,.order-card-main,.order-card-main>small,.order-card-timing,.order-card-assignee small,.order-card-amount small,.order-detail-items .order-items,.order-item-assignment){color:#667684!important}
+html:not([data-admin-theme="dark"]) #ordersTab :where(.order-day-title,.order-day-arrow,.order-table-kicker,.order-table-checkout b,.order-card-amount strong){color:#55779f!important}
+html:not([data-admin-theme="dark"]) #ordersTab :where(.special-service-row,.status-pending,.status-preparing,.status-served,.status-completed,.status-cancelled){color:#46647e!important;background:#e4ebf1!important;border-color:#c8d4de!important}
+html:not([data-admin-theme="dark"]) #ordersTab .order-filter-bar{background:#e8eef3!important;border-color:#d3dbe3!important}
+
+/* v73｜深色模式全區只使用藍黑層級，清除舊白底、粉色與褐色卡片。 */
+html[data-admin-theme="dark"] #adminArea>div:not(.main-tabs){color:#edf3f8}
+html[data-admin-theme="dark"] :where(
+  .operation-tool-group,.polaroid-session-editor>summary,.polaroid-session-fields>.check,.polaroid-editor-grid>div,
+  .polaroid-round-row,.polaroid-maid-row,.polaroid-admin-tabs,.polaroid-product-thumb,.polaroid-media-preview,
+  .polaroid-example-row,.photo-maid-totals>div,.photo-macro-round,.polaroid-task,.polaroid-status-actions,
+  .polaroid-admin-metrics>div,.visit-checkout-values>span,.visit-share-code,.order-console,.identity-panel,
+  .special-workspace-head,.special-queue-title,.reception-column-title,.staff-editor-head,.presence-row,.presence-btn,
+  .guest-order,.audit-row,.report-text,.stat,.sound-control-panel,.business-session-panel,.menu-row,.menu-manage-row,
+  .access-user,.site-hero-editor,.site-polaroid-form,.site-polaroid-card,.payroll-metric,.payroll-staff-check,
+  .payroll-warning,.payroll-slip,.visit-history-card,.order-table-heading,.today-operation-state,.today-metrics,
+  .today-metric,.today-panel-head,.today-duty-mark,.today-recent,.gr-panel,.gr-stat,.gr-profile,.gr-table th,.gr-modal,
+  #ordersTab .order-day-group,#ordersTab .order-day-group>summary,#ordersTab .order-day-list,
+  #ordersTab .order-card-v58,#ordersTab .order-card-detail,#ordersTab .order-service,#ordersTab .handoff-note,
+  #ordersTab .order-more-actions>summary,.menu-edit-modal,.photo-modal,.transfer-modal,.transfer-person
+){color:#edf3f8!important;background:#111722!important;border-color:#2a3544!important}
+html[data-admin-theme="dark"] :where(
+  .polaroid-admin-tabs,.polaroid-session-editor>summary,.polaroid-session-fields>.check,.polaroid-round-row,
+  .polaroid-maid-row,.polaroid-status-actions,.photo-maid-totals>div,.photo-macro-round,.special-workspace-head,
+  .special-queue-title,.reception-column-title,.staff-editor-head,.guest-order,.audit-row,.report-text,.stat,
+  .order-table-heading,.today-operation-state,.today-panel-head,.today-duty-mark,.today-recent,.gr-stat,.gr-profile,
+  .gr-table th,#ordersTab .order-day-group>summary,#ordersTab .order-card-detail
+){background:#18212c!important}
+html[data-admin-theme="dark"] :where(.polaroid-admin-tabs button,.tab,.presence-btn,.btn.ghost,.icon-btn,#ordersTab .order-detail-toggle,#ordersTab .order-more-actions>summary){color:#afbdd0!important;background:#111722!important;border-color:#344255!important}
+html[data-admin-theme="dark"] :where(.polaroid-admin-tabs button.active,.tab.active,.presence-btn.active){color:#fff!important;background:#3d73ff!important;border-color:#3d73ff!important}
+html[data-admin-theme="dark"] :where(.polaroid-maid-row>span,.gr-badge,.visit-tag,.notification-badge){color:#b9cdf4!important;background:#1c2a3d!important;border-color:#344b68!important}
+html[data-admin-theme="dark"] :where(.payroll-readonly,input:disabled,select:disabled,textarea:disabled){color:#78889c!important;background:#151c26!important;border-color:#2a3544!important;opacity:1}
+html[data-admin-theme="dark"] :where(.site-upload-field input[type=file],.gr-form input,.gr-form select,.gr-form textarea,#guestRegistryTab input,#guestRegistryTab select){color:#edf3f8!important;background:#0c111a!important;border-color:#2a3544!important}
+html[data-admin-theme="dark"] :where(.polaroid-help,.staff-help,.schedule-list-help,.menu-sort-note,.manager-section-heading p,.gr-muted,.team-state,.visit-history-panel small){color:#9baabd!important}
+html[data-admin-theme="dark"] :where(.polaroid-editor-grid h4,.polaroid-maid-row>strong,.panel-title,.admin-section-label,.schedule-list-label,.visit-history-panel>summary,.assignment-history-panel>summary){color:#edf3f8!important}
+html[data-admin-theme="dark"] input[type="date"]{color-scheme:dark}
+html[data-admin-theme="dark"] input[type="checkbox"]{accent-color:#3d73ff}
+html[data-admin-theme="dark"] .reference-connection .dot{background:#70ad8a!important;box-shadow:0 0 0 4px rgba(112,173,138,.12)!important}
+html[data-admin-theme="dark"] :where(.menu-image-preview,.menu-manage-image,.photo-modal .staff-photo-file,.photo-modal .staff-photo-preview-card,.photo-modal .photo-modal-actions,.transfer-guest,.gr-alert,.gr-secondary,.reservation-cancelled-badge){color:#afbdd0!important;background:#18212c!important;border-color:#2a3544!important}
+html[data-admin-theme="dark"] :where(.page-heading,.polaroid-page-heading,.order-detail-controls,.order-more-actions){border-color:#2a3544!important}
+html[data-admin-theme="dark"] #ordersTab{color:#edf3f8!important}
+html[data-admin-theme="dark"] #ordersTab :where(.order-console-head h2,.order-list-heading,.order-table-heading strong,.order-card-main .order-name,.order-card-detail h4,.order-card-assignee strong){color:#edf3f8!important}
+html[data-admin-theme="dark"] #ordersTab :where(.order-console-head p,.order-search-hint,.order-history-status,.order-list-heading span,.order-day-meta,.order-table-heading small,.order-card-main,.order-card-main>small,.order-card-timing,.order-card-assignee small,.order-card-amount small,.order-detail-items .order-items,.order-item-assignment){color:#9baabd!important}
+html[data-admin-theme="dark"] #ordersTab :where(.order-day-title,.order-day-arrow,.order-table-kicker,.order-table-checkout b,.order-card-amount strong){color:#79a0ff!important}
+html[data-admin-theme="dark"] #ordersTab :where(.order-filter-bar,.order-day-group,.order-day-list,.order-card-v58,.order-service,.handoff-note,.special-service-row){background:#111722!important;border-color:#2a3544!important}
+html[data-admin-theme="dark"] #ordersTab :where(.order-day-group>summary,.order-table-heading,.order-card-detail){background:#18212c!important;border-color:#2a3544!important}
+html[data-admin-theme="dark"] #ordersTab :where(.status-pending,.status-preparing,.status-served,.status-completed,.status-cancelled){color:#b9cdf4!important;background:#1c2a3d!important;border-color:#344b68!important}
+html[data-admin-theme="dark"] #ordersTab :where(.order-service select,.handoff-note textarea,.special-service-row select){color:#edf3f8!important;background:#0c111a!important;border-color:#2a3544!important}
+
+@media(max-width:980px){.manager-team-section{grid-template-columns:1fr}}
 
 @media(max-width:1180px){
   .reception-grid{grid-template-columns:minmax(0,1.6fr) minmax(300px,.9fr)}
