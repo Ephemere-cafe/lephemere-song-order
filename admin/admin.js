@@ -13,7 +13,7 @@
   var isConfigured = firebaseConfig.apiKey.indexOf('貼上') === -1;
   if(!isConfigured){ document.getElementById('configWarn').style.display = 'block'; }
 
-  var db, storage, functionsClient, retryDiscordNotificationFn, createShareCodeFn, setVisitPaymentStatusFn;
+  var db, storage, functionsClient, retryDiscordNotificationFn, createShareCodeFn, setVisitPaymentStatusFn, claimVisitFn;
   var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, staffSchedulesRef, menuRef, nextOrderNumberRef, operationStatusRef, dailyReportsRef, adminUsersRef, adminOwnerUidRef, siteMusicRef;
   var visitsRef, visitQueueCounterRef, staffPresenceRef, assignmentHistoryRef;
   var recentOrdersQuery, ordersQuery, todayVisitsQuery, allVisitsHistoryQuery, currentVisitsBusinessDate = '', visitsRetryTimer = null;
@@ -536,6 +536,7 @@
     retryDiscordNotificationFn = functionsClient.httpsCallable('retryDiscordNotification');
     createShareCodeFn = functionsClient.httpsCallable('polaroidCreateShareCode');
     setVisitPaymentStatusFn = functionsClient.httpsCallable('polaroidSetVisitPaymentStatus');
+    claimVisitFn = functionsClient.httpsCallable('polaroidClaimVisit');
     ordersRef = db.ref('lephemere/orders');
     nextOrderNumberRef = db.ref('lephemere/nextOrderNumber');
     openDatesRef = db.ref('lephemere/openDates');
@@ -1612,15 +1613,12 @@
   function claimVisit(v,button){
     var staff=staffRoster[currentStaffId];
     if(!staff){ alert('請先選擇目前操作女僕。'); return Promise.resolve(); }
+    if(typeof claimVisitFn!=='function'){ alert('接待功能尚未連線，請重新整理後再試。'); return Promise.resolve(); }
     var originalLabel=button?button.textContent:'';
     if(button){button.disabled=true;button.textContent='接待中…';}
-    return visitsRef.child(v.id).transaction(function(current){
-      if(!current || current.status!=='waiting' || current.assignedStaffId) return;
-      current.status='assigned'; current.assignedStaffId=currentStaffId; current.assignedStaffName=staff.name||'未命名女僕'; current.assignedAt=Date.now(); current.updatedAt=Date.now();
-      return current;
-    }).then(function(result){
-      if(!result.committed){ alert('這組主人剛剛已被其他女僕接下。'); return; }
-      var claimedVisit=result.snapshot&&typeof result.snapshot.val==='function'?result.snapshot.val():null;
+    return claimVisitFn({visitId:v.id,staffId:currentStaffId}).then(function(result){
+      var data=result&&result.data||{};
+      var claimedVisit=data.visit||null;
       visits[v.id]=Object.assign({},visits[v.id]||v,claimedVisit||{status:'assigned',assignedStaffId:currentStaffId,assignedStaffName:staff.name||'未命名女僕',assignedAt:Date.now(),updatedAt:Date.now()});
       expandedReceptionVisitId=v.id;
       renderReception();
@@ -1629,12 +1627,10 @@
         if(card) card.scrollIntoView({behavior:'smooth',block:'start'});
       },0);
       showCopyToast('已接下 '+(visits[v.id].queueNumber||'這組主人'),true);
-      return Promise.all([staffPresenceRef.child(currentStaffId).set({status:'serving',updatedAt:Date.now()}),recordVisitAssignment(v.id,'',currentStaffId,'claim')]).catch(function(error){
-        console.error('Claim follow-up sync failed',error);
-      });
     }).catch(function(error){
       console.error('Claim visit failed',error);
-      alert('接待操作未完成，請確認連線後再試一次。');
+      var code=String(error&&error.code||'');
+      alert(code.indexOf('failed-precondition')>-1?'這組主人剛剛已被其他女僕接下。':(error&&error.message||'接待操作未完成，請確認連線後再試一次。'));
     }).then(function(){if(button&&document.body.contains(button)){button.disabled=false;button.textContent=originalLabel;}});
   }
 
