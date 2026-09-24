@@ -22,7 +22,7 @@
 <link rel="stylesheet" href="polaroid-admin.css?v=20260914-v34">
 <link rel="stylesheet" href="admin-v33.css?v=20260914-v33">
 <link rel="stylesheet" href="admin-v35.css?v=20260914-v35">
-  <link rel="stylesheet" href="polaroid-v36.css?v=57">
+  <link rel="stylesheet" href="polaroid-v36.css?v=20260925-v88">
   <link rel="stylesheet" href="admin-v58.css?v=58b">
   <link rel="stylesheet" href="admin-workbench-v67.css?v=20260919-v67">
   <link rel="stylesheet" href="admin-theme-toggle.css?v=20260919-v67">
@@ -341,7 +341,7 @@
 
       <section class="polaroid-pane" data-polaroid-panel="orders" hidden>
         <div class="polaroid-admin-metrics"><div><span>服務件數</span><strong id="polaroidMetricOrders">0</strong></div><div><span>已完成</span><strong id="polaroidMetricDone">0</strong></div><div><span>等待處理</span><strong id="polaroidMetricPending">0</strong></div><div><span>未完成（含拍攝中）</span><strong id="polaroidMetricDeferred">0</strong></div></div>
-        <section class="panel photo-round-summary"><p>目前：<strong id="polaroidCurrentRound"></strong></p><p>下一輪：<strong id="polaroidNextRound"></strong></p><p>拍攝中女僕：<strong id="polaroidBusyCount"></strong></p><div id="polaroidMaidTotals" class="photo-maid-totals"></div></section><section class="panel"><div class="polaroid-work-head"><div><h3>全場工作概況</h3><p>待拍依原始下單時間排序；跳過不會改變順位。已完成列於下方。最後一輪未完成工作留待店長安排。</p></div></div><div id="polaroidAllTasks" class="polaroid-task-list"></div></section><details class="panel polaroid-cancelled-archive" id="polaroidCancelledArchive" hidden><summary>已取消訂單（<span id="polaroidCancelledCount">0</span> 項）</summary><p>取消紀錄只供核對，不占用商品庫存、女僕名額或本場收入。</p><div id="polaroidCancelledTasks" class="polaroid-task-list"></div></details>
+        <section class="panel photo-round-summary"><p>目前：<strong id="polaroidCurrentRound"></strong></p><p>下一輪：<strong id="polaroidNextRound"></strong></p><p>拍攝中女僕：<strong id="polaroidBusyCount"></strong></p><div id="polaroidMaidTotals" class="photo-maid-totals"></div></section><section class="panel"><div class="polaroid-work-head polaroid-export-head"><div><h3>全場工作概況</h3><p>待拍依原始下單時間排序；跳過不會改變順位。已完成列於下方。最後一輪未完成工作留待店長安排。</p></div><div class="polaroid-export-actions"><button type="button" class="btn primary" id="polaroidCopyOrders">複製目前訂單</button><span id="polaroidCopyOrdersStatus" role="status" aria-live="polite"></span></div></div><div class="polaroid-export-note">只會複製目前已載入的場次、輪次、人員與訂單資料，不會修改任何內容。</div><div id="polaroidAllTasks" class="polaroid-task-list"></div></section><details class="panel polaroid-cancelled-archive" id="polaroidCancelledArchive" hidden><summary>已取消訂單（<span id="polaroidCancelledCount">0</span> 項）</summary><p>取消紀錄只供核對，不占用商品庫存、女僕名額或本場收入。</p><div id="polaroidCancelledTasks" class="polaroid-task-list"></div></details>
       </section>
     </div>
 
@@ -983,7 +983,7 @@
 <script src="guestbook-admin.js?v=20260910-v25"></script>
 <script src="studio-admin.js?v=20260909-v22"></script>
 <script src="admin-workspace-preview.js?v=20260905c"></script>
-<script src="schedule.js?v=56"></script><script src="polaroid-admin.js?v=20260924-v79"></script>
+<script src="schedule.js?v=56"></script><script src="polaroid-admin.js?v=20260925-v88"></script>
 <script src="admin-theme-toggle.js?v=20260919-v67"></script>
 <script src="admin-redesign-v69.js?v=20260924-v69"></script>
 <script src="admin-reference-v70.js?v=20260924-v72"></script>
