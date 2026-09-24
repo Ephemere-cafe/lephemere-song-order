@@ -1,0 +1,189 @@
+/* v69 後台全面重整：保留原有資料 id、事件與 Firebase 路徑，只重組資訊層級與操作動線。 */
+:root{
+  --v69-sidebar:#211a20;
+  --v69-sidebar-line:#49383f;
+  --v69-sidebar-text:#cabec2;
+  --v69-wine:#7d4559;
+  --v69-wine-strong:#693548;
+  --v69-sage:#728875;
+  --v69-paper:#fffaf4;
+  --v69-canvas:#f3eee6;
+  --v69-line:#dacfc4;
+  --v69-muted:#7d6e67;
+  --v69-shadow:0 12px 30px rgba(73,54,47,.07);
+}
+
+html,body{min-height:100%;background:var(--v69-canvas)}
+body{margin:0}
+.wrap{width:100%;max-width:none;min-height:100vh;margin:0;padding:0;border:0;border-radius:0;background:var(--v69-canvas);box-shadow:none;overflow:visible}
+
+/* 頁首：左側品牌與側欄連成一體，右側只留連線與主題。 */
+.header{display:grid;grid-template-columns:252px minmax(0,1fr);align-items:stretch;min-height:82px;margin:0;padding:0;border:0;border-bottom:1px solid var(--v69-line);background:var(--v69-paper)}
+.header::before,.header::after{display:none!important}
+.header .brand{display:flex;flex-direction:column;justify-content:center;padding:0 30px;background:var(--v69-sidebar);border-right:1px solid var(--v69-sidebar-line)}
+.header .brand h1{margin:0;color:#fff8f0;font-family:"Noto Serif TC",serif;font-size:17px;letter-spacing:.08em}
+.header .brand p{margin:5px 0 0;color:#b8a8ae;font-size:9px;letter-spacing:.2em;text-transform:uppercase}
+.header .clock{display:flex;align-items:center;justify-content:flex-end;padding:0 38px;color:var(--v69-muted)}
+.header-tools{gap:12px}
+
+#adminArea:not([style*="display:none"]):not([style*="display: none"]){display:grid!important;grid-template-columns:252px minmax(0,1fr);align-content:start;min-height:calc(100vh - 82px)}
+#adminArea>.main-tabs{grid-column:1;grid-row:1 / span 200}
+#adminArea>:not(.main-tabs):not(.guest-workspace-preview):not(.guest-preview-backdrop){grid-column:2;min-width:0}
+
+/* 側欄導覽。 */
+.main-tabs{position:sticky;top:0;z-index:20;align-self:start;display:flex;flex-direction:column;gap:6px;width:252px;height:calc(100vh - 82px);margin:0;padding:25px 22px 20px;border:0;border-right:1px solid var(--v69-sidebar-line);border-radius:0;background:var(--v69-sidebar);box-shadow:none;overflow:auto}
+.main-tab-group-label{display:block;margin:4px 10px 8px;padding:0;color:#89767e;font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase}
+.main-tab{display:grid;grid-template-columns:25px minmax(0,1fr) auto;align-items:center;gap:9px;width:100%;min-height:44px;margin:0;padding:10px 13px;border:0;border-radius:9px;color:var(--v69-sidebar-text);background:transparent;text-align:left;font-size:13px;font-weight:650;letter-spacing:.02em;box-shadow:none}
+.main-tab:hover{color:#fff;background:#2c2329}
+.main-tab.active{color:#fff;background:var(--v69-wine);box-shadow:inset 3px 0 #e8b282}
+.main-tab-icon{display:grid;place-items:center;color:#e4b9c7;font-size:14px}
+.main-tab.active .main-tab-icon{color:#fff}
+.main-tab-count{min-width:22px;margin:0;padding:3px 7px;border:0;border-radius:99px;color:#2e2025;background:#e8b282;font-size:10px;text-align:center}
+.main-tab-folder{margin-top:13px;border-top:1px solid var(--v69-sidebar-line);padding-top:13px}
+.main-tab-folder[hidden]{display:none!important}
+.main-tab-folder>summary{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;color:#a9999f;cursor:pointer;font-size:10px;font-weight:700;letter-spacing:.12em;list-style:none}
+.main-tab-folder>summary::-webkit-details-marker{display:none}
+.main-tab-folder>summary:after{content:"＋";color:#806c74;font-size:13px}
+.main-tab-folder[open]>summary:after{content:"−"}
+.main-tab-folder>summary small{display:none}
+.main-tab-folder-items{display:grid;gap:4px;margin-top:3px}
+.main-tab-folder .main-tab{min-height:39px;padding-block:8px;font-size:12px}
+.main-tab-account{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-top:auto;padding-top:16px;border-top:1px solid var(--v69-sidebar-line)}
+.main-tabs .access-badge{margin:0;padding:6px 8px;border:1px solid #57444c;border-radius:7px;color:#ad9da3;background:transparent;font-size:9px;text-align:center}
+.main-tabs .access-badge.manager{color:#d8e3d6;border-color:#536757}
+.main-tabs #adminLogoutBtn{min-height:34px;margin:0!important;padding:7px 10px;border-color:#57444c;color:#c8b9bf;background:transparent}
+
+/* 全站操作身分固定在內容頂端，仍沿用原本手動選擇。 */
+.global-identity{display:flex;align-items:center;justify-content:space-between;gap:22px;margin:0;padding:15px 38px;border:0;border-bottom:1px solid var(--v69-line);border-radius:0;background:#fff8f1;box-shadow:none}
+.global-identity-copy strong{color:#433631;font-family:"Noto Serif TC",serif;font-size:14px}
+.global-identity-copy span{display:block;margin-top:3px;color:#8a7b74;font-size:10px}
+.global-identity-control{display:flex;align-items:center;gap:10px}
+.global-identity-control select{min-width:170px;height:40px;border-color:#d3c5b9;border-radius:8px;background:white}
+.operator-live{border-radius:99px;background:#eaf1e9;color:#54705a}
+
+/* 所有工作頁的共同容器與字級。 */
+#todayTab,#receptionTab,#macrosTab,#ordersTab,#polaroidTab,#guestbookAdminTab,#operationsTab,#menuTab,#staffTab,#reservationsTab,#payrollTab,#siteSettingsTab,#siteContentTab,#accessTab,#guestRegistryTab{padding:28px 38px 46px}
+.page-heading,.today-heading{align-items:flex-end;margin:0 0 20px;padding:0 0 17px;border-bottom:1px solid var(--v69-line)}
+.page-heading-copy h2,.today-heading h2{color:#322723;font-family:"Noto Serif TC",serif;font-size:31px;font-weight:600;letter-spacing:.02em}
+.page-heading-copy p,.today-heading p{color:var(--v69-muted);font-size:12px}
+.page-eyebrow{color:#a76b43;font-size:9px;letter-spacing:.2em}
+.panel,.reception-column,.team-visits-panel,.team-status-panel,.today-panel,.order-card,.polaroid-my-work,.polaroid-pane>.panel{border:1px solid var(--v69-line);border-radius:12px;background:var(--v69-paper);box-shadow:var(--v69-shadow)}
+.btn{border-radius:7px}
+.btn.primary{border-color:var(--v69-wine);background:var(--v69-wine)}
+.btn.primary:hover{border-color:var(--v69-wine-strong);background:var(--v69-wine-strong)}
+
+/* 現場頁：狀態列、數字與兩欄主工作區。 */
+.reception-console{margin-bottom:13px;padding:0;background:#f7f3ef;box-shadow:none}
+.reception-console-head{min-height:76px;padding:15px 18px}
+.reception-console-actions{gap:10px}
+.presence-row{padding:4px;border:1px solid #ded3ca;border-radius:9px;background:white}
+.presence-btn{min-height:34px;border-radius:6px}
+.presence-btn.active{color:#fff;background:var(--v69-sage)}
+.reception-overview{grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 13px}
+.reception-metric{min-height:90px;padding:14px 16px;border:1px solid var(--v69-line);border-radius:10px;background:var(--v69-paper);box-shadow:none}
+.reception-metric-label{color:#877871;font-size:10px}
+.reception-metric-value{margin-top:4px;color:#372a26;font-family:"Noto Serif TC",serif;font-size:25px;font-weight:500}
+.reception-metric-note{color:#9b8d86;font-size:9px}
+.reception-alerts{margin-bottom:13px;padding:0 18px;border-left:4px solid #b85f70;border-radius:8px;background:#fff3f3;box-shadow:none}
+.reception-alert-head{padding-block:12px}
+.reception-grid{display:grid;grid-template-columns:minmax(300px,.72fr) minmax(480px,1.28fr);gap:15px;align-items:start}
+.reception-column{min-width:0;padding:0 15px 15px}
+.reception-column-title{min-height:54px;padding:0 2px;border-bottom:1px solid #e5dad1;color:#392d29;font-family:"Noto Serif TC",serif;font-size:17px}
+.reception-filter-tools{display:grid;grid-template-columns:minmax(140px,1fr) auto;gap:7px;align-items:center}
+.reception-filter-tools input[type=search]{height:34px;min-width:0;border-radius:7px}
+.reception-filter-tools label{font-size:9px;white-space:nowrap}
+.my-visits-column{grid-column:2;grid-row:1 / span 2}
+.team-visits-panel{grid-column:1}
+.team-status-panel{grid-column:1 / -1}
+.visit-card{margin-top:12px;padding:0;border:1px solid #d9cdc3;border-radius:10px;background:#fff;box-shadow:none;overflow:hidden}
+.visit-card.mine{border-left:4px solid var(--v69-sage);background:#fbfdf9}
+.visit-card.warning{border-left-color:#d29a57}
+.visit-card.urgent{border-left-color:#bf5d68}
+.visit-card-top{padding:15px 16px 8px}
+.visit-number{color:#a65469;font-family:"Noto Serif TC",serif;font-size:25px}
+.visit-name{font-size:14px;font-weight:700}
+.visit-wait{padding:5px 8px;border-radius:7px;background:#f0e7de;font-size:10px}
+.visit-owner-line,.visit-meta,.visit-tags,.visit-share-code,.visit-actions{margin-inline:16px}
+.visit-share-code{border-radius:8px;background:#f5efe8}
+.visit-actions{display:flex;flex-wrap:wrap;gap:7px;padding:12px 0;border-top:1px solid #e5dbd2}
+.visit-actions .btn{min-height:36px}
+.guest-overview{margin:0;padding:14px 16px 16px;border:0;border-top:1px solid #e1d6cc;border-radius:0;background:#f7f3ee}
+.visit-round-complete{border-radius:8px}
+.visit-checkout{border-radius:9px;background:#fff}
+.visit-checkout-values{grid-template-columns:1fr 1fr}
+
+html[data-admin-theme="dark"] .visit-checkout-values>*{
+  color:#f2e9df;
+  background:#20282a;
+  border-color:var(--v69-line);
+}
+
+html[data-admin-theme="dark"] .visit-checkout-values .visit-checkout-total{
+  background:#294555;
+}
+.guest-overview-head{margin-top:14px;color:#554641}
+.guest-order{border-radius:8px;background:#fff}
+.guest-order-deliver{min-height:44px;border-radius:7px}
+.team-visits-panel>summary,.team-status-panel>summary{min-height:54px;padding:0 15px;cursor:pointer}
+.visit-history-panel{margin-top:15px}
+
+/* 拍立得保持獨立：深色時段感與清楚的工作分頁。 */
+.polaroid-page-heading{display:flex}
+.polaroid-live{border-radius:99px}
+.polaroid-admin-tabs{display:flex;gap:7px;margin:0 0 14px;padding:6px;border:1px solid var(--v69-line);border-radius:10px;background:#eae3da}
+.polaroid-admin-tabs button{min-height:38px;border-radius:7px}
+.polaroid-admin-tabs button.active{color:white;background:var(--v69-sidebar)}
+.polaroid-pane{display:grid;gap:14px}
+.polaroid-my-work{overflow:hidden}
+.polaroid-work-head{padding:17px 19px;border-bottom:1px solid var(--v69-line)}
+.polaroid-task-list{padding:10px 14px 16px}
+.polaroid-task{border-radius:9px;background:white}
+.polaroid-task-actions .btn{min-height:37px}
+.polaroid-status-actions{padding:4px;border:1px solid var(--v69-line);border-radius:9px;background:#f2ebe4}
+.polaroid-status-actions button{border-radius:6px}
+
+/* 管理頁：同一視覺語言，低頻內容仍維持原本功能與表單。 */
+.today-metrics{gap:10px}
+.today-metric{border-radius:10px;background:var(--v69-paper);box-shadow:none}
+.today-layout,.operations-layout,.menu-admin-layout,.staff-admin-layout,.reservation-layout,.payroll-layout{gap:14px}
+.order-console{padding:0;overflow:hidden}
+.order-console-head,.order-filter-bar{padding-inline:18px}
+.order-filter-bar{background:#f7f1ea}
+.tabs{gap:5px}
+.tab{border-radius:7px}
+.tab.active{color:white;background:var(--v69-wine)}
+.order-card{overflow:hidden}
+.settings-card,.staff-editor-card,.payroll-panel{border-radius:11px}
+details.panel>summary{border-radius:11px}
+
+/* 夜間模式沿用相同資訊層級。 */
+html[data-admin-theme="dark"]{--v69-paper:#1b2224;--v69-canvas:#0e1214;--v69-line:#3b4646;--v69-muted:#b4aaa1;--v69-shadow:0 12px 30px rgba(0,0,0,.24)}
+html[data-admin-theme="dark"] .header{background:#151b1d;border-color:var(--v69-line)}
+html[data-admin-theme="dark"] .header .brand{background:#171218}
+html[data-admin-theme="dark"] .global-identity{background:#1a2123;border-color:var(--v69-line)}
+html[data-admin-theme="dark"] .global-identity-copy strong,html[data-admin-theme="dark"] .page-heading-copy h2,html[data-admin-theme="dark"] .today-heading h2,html[data-admin-theme="dark"] .reception-metric-value,html[data-admin-theme="dark"] .reception-column-title{color:#f2e9df}
+html[data-admin-theme="dark"] .global-identity-control select,html[data-admin-theme="dark"] .presence-row,html[data-admin-theme="dark"] .visit-card,html[data-admin-theme="dark"] .guest-order,html[data-admin-theme="dark"] .visit-checkout,html[data-admin-theme="dark"] .polaroid-task{color:#f2e9df;background:#20282a;border-color:var(--v69-line)}
+html[data-admin-theme="dark"] .reception-console,html[data-admin-theme="dark"] .order-filter-bar,html[data-admin-theme="dark"] .guest-overview{background:#171e20}
+html[data-admin-theme="dark"] .reception-alerts{background:#2b2023}
+html[data-admin-theme="dark"] .visit-share-code,html[data-admin-theme="dark"] .visit-wait,html[data-admin-theme="dark"] .polaroid-status-actions{background:#283032}
+html[data-admin-theme="dark"] .polaroid-admin-tabs{background:#171e20}
+html[data-admin-theme="dark"] .polaroid-admin-tabs button.active{background:#805064}
+
+@media(max-width:1100px){
+  .header{grid-template-columns:210px 1fr}.header .brand{padding-inline:22px}
+  #adminArea:not([style*="display:none"]):not([style*="display: none"]){grid-template-columns:210px minmax(0,1fr)}
+  .main-tabs{width:210px;padding-inline:15px}
+  .global-identity{padding-inline:24px}
+  #todayTab,#receptionTab,#macrosTab,#ordersTab,#polaroidTab,#guestbookAdminTab,#operationsTab,#menuTab,#staffTab,#reservationsTab,#payrollTab,#siteSettingsTab,#siteContentTab,#accessTab,#guestRegistryTab{padding-inline:24px}
+  .reception-grid{grid-template-columns:1fr}.my-visits-column{grid-column:1;grid-row:auto}.team-status-panel{grid-column:1}
+}
+
+@media(max-width:760px){
+  .header{display:flex;min-height:68px}.header .brand{flex:1;background:var(--v69-sidebar)}.header .clock{padding-inline:14px;background:var(--v69-paper)}
+  #adminArea:not([style*="display:none"]):not([style*="display: none"]){display:block!important}
+  .main-tabs{position:relative;display:flex;flex-direction:row;gap:7px;width:100%;height:auto;padding:10px 12px;border-right:0;overflow-x:auto}
+  .main-tab-group-label,.main-tab-folder,.main-tab-account{display:none!important}.main-tab{display:flex;flex:0 0 auto;width:auto;min-height:40px;padding:9px 12px}.main-tab-icon{display:none}
+  .global-identity{align-items:stretch;flex-direction:column;padding:13px 16px}.global-identity-control{flex-wrap:wrap}.global-identity-control select{flex:1}
+  #todayTab,#receptionTab,#macrosTab,#ordersTab,#polaroidTab,#guestbookAdminTab,#operationsTab,#menuTab,#staffTab,#reservationsTab,#payrollTab,#siteSettingsTab,#siteContentTab,#accessTab,#guestRegistryTab{padding:20px 14px 34px}
+  .reception-overview{grid-template-columns:1fr 1fr}.reception-console-head{align-items:stretch;flex-direction:column}.reception-console-actions{align-items:stretch;flex-direction:column}.photo-focus-body{grid-template-columns:1fr}
+}

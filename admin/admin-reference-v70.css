@@ -1,0 +1,190 @@
+/* v70：依核准 PNG 落地。所有資料 id 與 Firebase 操作維持原樣。 */
+:root{
+  --v70-ink:#2f2321;
+  --v70-cream:#f4efe7;
+  --v70-paper:#fffaf4;
+  --v70-line:#ddcfc1;
+  --v70-wine:#82445b;
+  --v70-wine-dark:#6d354b;
+  --v70-sage:#748b77;
+  --v70-side:#211a20;
+  --v70-peach:#efb47f;
+}
+
+html,body,.wrap{background:var(--v70-cream)}
+.header{grid-template-columns:252px minmax(0,1fr);min-height:83px;background:var(--v70-paper)}
+.header .brand{position:relative;padding:0 24px 0 84px;background:var(--v70-side)}
+.header .brand:before{content:"雲";position:absolute;left:30px;top:50%;display:grid;place-items:center;width:40px;height:40px;transform:translateY(-50%);border-radius:50%;color:#fff4ed;background:#a45570;font-family:"Noto Serif TC",serif;font-size:16px;font-weight:700}
+.header .brand h1{max-width:145px;font-size:15px;line-height:1.45}
+.header .brand p{font-size:8px}
+.header>.clock{display:none!important}
+
+/* 核准稿的頂部工具列。 */
+.header>.global-identity{grid-column:2;display:flex;min-height:83px;margin:0;padding:0 38px;border:0;border-bottom:1px solid var(--v70-line);background:var(--v70-paper)}
+.header>.global-identity[hidden]{display:none!important}
+.global-identity-copy strong{font-family:inherit;font-size:10px;font-weight:500;letter-spacing:.11em;color:#876e63}
+.global-identity-copy span{display:none}
+.global-identity-control{gap:10px}
+.global-identity-control>.reference-connection{display:flex;align-items:center;gap:6px;margin-right:2px;padding:8px 12px;border-radius:99px;color:#58725f;background:#eaf2ea;font-size:10px;white-space:nowrap}
+.global-identity-control>.reference-connection .dot{width:6px;height:6px}
+.reference-operator-select{display:flex;align-items:center;height:44px;padding:0 12px;border:1px solid var(--v70-line);border-radius:8px;background:#fffaf5;color:#4a3731;font-size:11px;font-weight:700;white-space:nowrap}
+.reference-operator-select select{min-width:62px!important;width:auto;height:auto!important;padding:0 17px 0 4px!important;border:0!important;background-color:transparent!important;font-weight:700}
+.operator-live{display:none}
+#guestPreviewToggle{height:44px;padding-inline:18px;font-weight:700}
+
+#adminArea:not([style*="display:none"]):not([style*="display: none"]){grid-template-columns:252px minmax(0,1fr);min-height:calc(100vh - 83px)}
+.main-tabs{top:0;width:252px;height:calc(100vh - 83px);padding:27px 22px 18px;background:var(--v70-side)}
+.main-tab{min-height:50px;border-radius:10px;font-size:13px}
+.main-tab.active{background:var(--v70-wine);box-shadow:inset 3px 0 var(--v70-peach)}
+.main-tab-account{margin-top:15px}
+.sidebar-operator{display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:center;margin-top:auto;padding:17px 4px;border-top:1px solid #4a3941;color:#fff5ed}
+.sidebar-operator-mark{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#b85f7b;font-family:"Noto Serif TC",serif;font-weight:700}
+.sidebar-operator strong{display:block;font-size:12px}
+.sidebar-operator small{display:block;margin-top:3px;color:#a7959c;font-size:8px}
+.sidebar-theme-slot{margin-top:10px}
+.sidebar-theme-slot .theme-toggle{width:100%;justify-content:center;border:1px solid #57434d;color:#e7d9de;background:transparent}
+
+#receptionTab{position:relative;padding:40px 38px 46px}
+.reception-page-heading{display:flex;align-items:flex-end;justify-content:space-between;margin:0 0 17px;padding:0;border:0}
+.reception-page-heading .page-heading-copy h2{font-size:30px;line-height:1.25}
+.reception-page-heading .page-heading-copy p{margin-top:7px}
+.reception-auto-state{min-height:46px;padding:0 18px;border:0;border-radius:9px;color:white;background:var(--v70-sage);font-size:12px;font-weight:750;cursor:pointer}
+
+/* 自動狀態按鈕展開既有手動狀態與接待下一組，功能沒有被拿掉。 */
+.reception-console{display:none;position:absolute;z-index:12;top:116px;right:38px;width:330px;border:1px solid var(--v70-line);border-radius:10px;background:var(--v70-paper);box-shadow:0 16px 34px rgba(58,40,34,.16)}
+.reception-console.is-open{display:block}
+.reception-console-head{min-height:0;padding:12px}
+.reception-console-actions{width:100%;justify-content:space-between}
+.reception-console .presence-row{display:flex}
+
+.reception-alerts{display:none;margin:0 0 16px;padding:0;border:0;border-left:4px solid #b95e75;border-radius:0;background:#fff1f3;box-shadow:none}
+.reception-alerts.visible{display:block}
+.reception-alert-head{display:none}
+#receptionAlertList{display:grid}
+.reception-alert-item{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:76px;padding:12px 18px;border:0;border-bottom:1px solid #efd8dd;background:transparent}
+.reception-alert-item:last-child{border-bottom:0}
+.reception-alert-item>span{display:block;min-width:0}
+.reception-alert-item strong{display:block;color:#372826;font-size:12px}
+.reception-alert-item small{display:block;margin-top:5px;color:#8f5e67;font-size:10px}
+.reception-alert-item .btn{min-width:118px}
+
+.reception-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 17px}
+.reception-metric{display:flex;flex-direction:column;justify-content:center;min-height:92px;padding:14px 18px;border:1px solid var(--v70-line);border-radius:11px;background:var(--v70-paper)}
+.reception-metric-label{font-size:9px;color:#8b776d}
+.reception-metric-value{margin-top:7px;color:var(--v70-ink);font-family:"Noto Serif TC",serif;font-size:24px;font-weight:500}
+.reception-metric-value small{font-family:inherit;font-size:18px;font-weight:500}
+.reception-metric.priority .reception-metric-value{color:#b34e62}
+
+.reception-grid{display:grid;grid-template-columns:minmax(620px,2.15fr) minmax(320px,.95fr);gap:18px;align-items:start}
+.reception-column{border:1px solid var(--v70-line);border-radius:11px;background:var(--v70-paper);box-shadow:none}
+.my-visits-column{grid-column:1;grid-row:1;padding:0;overflow:hidden}
+.my-visits-column>.reception-column-title{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0)}
+.reception-waiting-column{grid-column:2;grid-row:1;padding:0 18px 18px;min-height:590px}
+.reception-waiting-column .reception-column-title{display:flex;min-height:70px;padding:0;border-bottom:1px solid var(--v70-line);font-size:19px}
+.reception-waiting-column .reception-filter-tools{display:flex;margin:10px 0}
+.reception-waiting-column .reception-filter-tools input{flex:1}
+.reception-waiting-column .reception-filter-tools label{display:none}
+.team-visits-panel,.team-status-panel{grid-column:1 / -1;grid-row:auto}
+
+.visit-card{margin:0;border:0;border-radius:0;background:var(--v70-paper);box-shadow:none}
+.visit-card+.visit-card{border-top:12px solid var(--v70-cream)}
+.visit-card.mine{border:0;background:var(--v70-paper)}
+.visit-card-top{display:flex;align-items:center;justify-content:space-between;min-height:88px;padding:18px 22px;border-bottom:1px solid var(--v70-line)}
+.visit-card-identity{display:flex;align-items:center;gap:14px}
+.visit-number{font-size:24px}
+.visit-name{font-size:14px}
+.visit-owner-line{display:flex;gap:7px;align-items:center;margin:5px 0 0;color:#88736a;font-size:10px}
+.visit-owner-badge{padding:2px 6px;border-radius:99px;color:#fff;background:var(--v70-sage);font-size:8px}
+.visit-wait{background:#f1e8dc;color:#a06645}
+
+.visit-progress{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:20px 22px 16px}
+.visit-progress:before{content:"";position:absolute;top:28px;left:calc(12.5% + 22px);right:calc(12.5% + 22px);height:1px;background:#d8cdc3}
+.visit-progress span{position:relative;display:grid;gap:7px;justify-items:start;color:#a5968f;font-size:9px}
+.visit-progress span i{z-index:1;width:14px;height:14px;border:2px solid #cfc3b8;border-radius:50%;background:var(--v70-paper);box-shadow:0 0 0 3px var(--v70-paper)}
+.visit-progress span.done i{border-color:var(--v70-sage);background:var(--v70-sage)}
+.visit-progress span.active i{border-color:#bb6780;background:#bb6780;box-shadow:0 0 0 3px #f2dce3}
+.visit-progress span.done,.visit-progress span.active{color:#493934}
+
+.guest-overview{margin:0;padding:0 22px 20px;border:0;background:transparent}
+.visit-work-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.95fr);gap:14px}
+.visit-now-card,.visit-checkout{min-width:0;padding:20px;border:1px solid var(--v70-line);border-radius:10px;background:#fff}
+.visit-now-card>span,.visit-checkout-title>span{color:#a34d62;font-size:9px;font-weight:800;letter-spacing:.08em}
+.visit-now-card h3,.visit-checkout h3{margin:12px 0 7px;color:#332522;font-family:"Noto Serif TC",serif;font-size:20px;font-weight:600}
+.visit-now-card>p,.visit-checkout>p{margin:0 0 13px;color:#7d6b63;font-size:10px;line-height:1.7}
+.visit-now-card .guest-order{margin:0;border:0;background:#f5efe8}
+.visit-now-card .guest-order+.guest-order{margin-top:8px}
+.visit-now-card .guest-order-deliver{width:100%;margin-top:12px}
+.visit-checkout{background:#f5f8f1;border-color:#cfd9c9}
+.visit-checkout-title{position:relative;display:block;padding:0;border:0}
+.visit-checkout-title strong{display:block;margin-top:5px;color:#788d68;font-family:"Noto Serif TC",serif;font-size:23px;font-weight:500}
+.visit-checkout-title small{position:absolute;right:0;top:0;color:#b04961;font-size:9px}
+.visit-checkout .payment-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid #d9e1d3}
+.visit-checkout-note{display:block;margin-top:10px;color:#8d837c;font-size:8px}
+.visit-details{margin-top:14px;border-top:1px solid var(--v70-line)}
+.visit-details>summary{padding:13px 2px;color:#6f5a52;font-size:10px;cursor:pointer}
+.visit-details .visit-share-code,.visit-details .visit-tags{margin-inline:0}
+.visit-actions{margin:0;padding:14px 22px;border-top:1px solid var(--v70-line);background:#fffaf5}
+.visit-actions .btn.danger{margin-left:auto}
+
+/* 候位卡保持簡潔，接待按鈕直接完成認領。 */
+.reception-waiting-column .visit-card{padding:0;border-bottom:1px solid var(--v70-line)}
+.reception-waiting-column .visit-card:last-child{border-bottom:0}
+.reception-waiting-column .visit-card-top{min-height:0;padding:18px 0 8px;border:0}
+.reception-waiting-column .visit-card-identity{align-items:flex-start;gap:8px}
+.reception-waiting-column .visit-number{font-size:13px;font-weight:700}
+.reception-waiting-column .visit-name{font-size:12px}
+.reception-waiting-column .visit-owner-line{display:none}
+.reception-waiting-column .visit-meta,.reception-waiting-column .visit-tags{margin:0;color:#88766d;font-size:10px}
+.reception-waiting-column .visit-actions{display:grid;margin:0;padding:12px 0 15px;border:0;background:transparent}
+.reception-waiting-column .visit-actions .btn{width:100%}
+.reception-waiting-column .visit-actions .btn.primary{grid-row:1}
+
+html[data-admin-theme="dark"]{
+  --v70-ink:#f4e9df;
+  --v70-cream:#111011;
+  --v70-paper:#211c1a;
+  --v70-line:#4c403a;
+}
+html[data-admin-theme="dark"] .header>.global-identity,
+html[data-admin-theme="dark"] .reference-operator-select,
+html[data-admin-theme="dark"] .reception-metric,
+html[data-admin-theme="dark"] .reception-column,
+html[data-admin-theme="dark"] .visit-card,
+html[data-admin-theme="dark"] .visit-now-card{background:#211c1a;color:#f4e9df}
+html[data-admin-theme="dark"] .reception-alerts{background:#2b1e22}
+html[data-admin-theme="dark"] .reception-alert-item strong,
+html[data-admin-theme="dark"] .visit-now-card h3,
+html[data-admin-theme="dark"] .visit-checkout h3{color:#f4e9df}
+html[data-admin-theme="dark"] .visit-now-card .guest-order{background:#2b2522}
+html[data-admin-theme="dark"] .visit-checkout{background:#202820;border-color:#465346}
+html[data-admin-theme="dark"] .visit-actions{background:#1c1817}
+html[data-admin-theme="dark"] .visit-progress span i{background:#211c1a;box-shadow:0 0 0 3px #211c1a}
+html[data-admin-theme="dark"] .main-tab.active{color:#fff!important;background:var(--v70-wine)!important}
+html[data-admin-theme="dark"] .reception-auto-state{color:#fff!important;background:var(--v70-sage)!important}
+html[data-admin-theme="dark"] .btn.primary{color:#fff!important;background:var(--v70-wine)!important;border-color:var(--v70-wine)!important}
+html[data-admin-theme="dark"] .visit-progress span.done,
+html[data-admin-theme="dark"] .visit-progress span.active{color:#eadfd6}
+
+@media(max-width:1180px){
+  .reception-grid{grid-template-columns:minmax(0,1.6fr) minmax(300px,.9fr)}
+  .visit-work-grid{grid-template-columns:1fr}
+}
+
+@media(max-width:1360px) and (min-width:1101px){
+  .visit-work-grid{grid-template-columns:1fr}
+}
+
+@media(max-width:900px){
+  .header>.global-identity{padding-inline:18px}.global-identity-copy{display:none}
+  #receptionTab{padding-inline:20px}
+  .reception-grid{grid-template-columns:1fr}.my-visits-column,.reception-waiting-column{grid-column:1;grid-row:auto}.reception-waiting-column{min-height:0}
+}
+
+@media(max-width:760px){
+  .header>.global-identity{display:none}
+  .sidebar-theme-slot,.sidebar-operator{display:none!important}
+  .reception-page-heading{align-items:flex-start;gap:16px;flex-direction:column}
+  .reception-overview{grid-template-columns:1fr 1fr}
+  .reception-console{top:150px;right:14px;left:14px;width:auto}
+  .visit-progress{overflow-x:auto}
+}

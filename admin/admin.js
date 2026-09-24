@@ -1123,14 +1123,13 @@
     var dining=ordersForVisit(visitId).filter(function(order){return order.status!=='cancelled';});
     var diningTotal=dining.reduce(function(sum,order){return sum+Number(order.total||0);},0);
     var photo=window.LephemerePolaroidCheckout?window.LephemerePolaroidCheckout(visitId):{orderCount:0,itemCount:0,total:0,items:[]};
-    return {diningOrders:dining.length,diningTotal:diningTotal,photoOrders:Number(photo.orderCount||0),photoItems:Number(photo.itemCount||0),photoTotal:Number(photo.total||0),photoDetails:photo.items||[],total:diningTotal+Number(photo.total||0)};
+    return {diningOrders:dining.length,diningTotal:diningTotal,photoOrders:Number(photo.orderCount||0),photoItems:Number(photo.itemCount||0),photoTotal:Number(photo.total||0),photoDetails:photo.items||[],total:diningTotal};
   }
 
   function checkoutHtml(visitId){
-    var bill=checkoutForVisit(visitId),visit=visits[visitId]||{};if(!bill.diningOrders&&!bill.photoOrders)return'';
-    var details=bill.photoDetails.map(function(item){return '<span>'+escapeHtml(item.memberLabel)+'｜'+escapeHtml(item.productName)+'・'+fmtGil(item.price)+'</span>';}).join('');
+    var bill=checkoutForVisit(visitId),visit=visits[visitId]||{};if(!bill.diningOrders)return'';
     var status=visit.paymentAttention===true?'<strong class="payment-attention">⚠ 結清後有新增訂單</strong>':(visit.paymentStatus==='settled'?'<strong class="payment-settled">✓ 已結清</strong>':'<span>尚未結清</span>'),label=visit.paymentAttention===true?'再次結清':(visit.paymentStatus==='settled'?'重新確認結清':'標記已結清');
-    return '<section class="visit-checkout"><div class="visit-checkout-title"><strong>本桌收款總覽</strong><span>送餐時一起收取</span></div><div class="visit-checkout-values"><span>餐點 <b>'+fmtGil(bill.diningTotal)+'</b></span><span>拍攝／紀念服務 <b>'+fmtGil(bill.photoTotal)+'</b></span><span class="visit-checkout-total">應收合計 <b>'+fmtGil(bill.total)+'</b></span></div>'+(details?'<div class="visit-checkout-details">'+details+'</div>':'')+'<div class="payment-row">'+status+'<button type="button" class="btn ghost small" data-settle-visit="'+escapeAttr(visitId)+'">'+label+'</button></div></section>';
+    return '<section class="visit-checkout"><div class="visit-checkout-title"><span>TABLE・本桌狀態</span><strong>'+fmtGil(bill.diningTotal)+'</strong><small>仍可加點</small></div><h3>'+bill.diningOrders+' 張餐點訂單</h3><p>餐點應收 '+fmtGil(bill.diningTotal)+'<br>結清狀態 '+(visit.paymentStatus==='settled'?'已結清':'尚未結清')+'</p><div class="payment-row">'+status+'<button type="button" class="btn ghost small" data-settle-visit="'+escapeAttr(visitId)+'">'+label+'</button></div><small class="visit-checkout-note">拍立得由獨立工作區處理，不列入本桌餐點收款。</small></section>';
   }
 
   function specialAssignmentPlan(visitId){
@@ -1198,12 +1197,14 @@
     var linked=ordersForVisit(v.id);
     if(!linked.length) return '<div class="guest-order-empty">目前尚未送出訂單</div>';
     return linked.map(function(o){
-      var items=(o.items||[]).map(function(item){
+      var diningItems=(o.items||[]).filter(function(item){return !standaloneSpecialType(item);});
+      if(!diningItems.length) return '';
+      var items=diningItems.map(function(item){
         var assigned=itemAssignmentSummary(item);
         return escapeHtml(item.name||'品項')+' × '+Number(item.qty||1)+(assigned?'〔'+escapeHtml(assigned)+'〕':'');
       }).join('、');
       var overdue=o.status==='pending' && waitMinutes(o.createdAt)>=10;
-      var specialText=collectSpecialTasks(o.items||[]).map(function(task){
+      var specialText=collectSpecialTasks(o.items||[]).filter(function(task){return task.type!=='polaroid'&&task.type!=='lens';}).map(function(task){
         var state=specialTaskState(o,task);
         return task.label+'：'+(state==='completed'?'完成':((state==='preparing'||state==='in_progress')?'進行中':'待處理'));
       }).join('・');
@@ -1211,7 +1212,7 @@
       var deliver=isMine&&hasDining&&o.status!=='completed'&&o.status!=='cancelled'
         ? '<button type="button" class="btn primary small guest-order-deliver" data-deliver-visit-order="'+escapeAttr(o.id)+'">餐點已送達</button>' : '';
       return '<div class="guest-order"><div class="guest-order-top"><span>#'+escapeHtml(o.orderNumber||'—')+'・'+escapeHtml(STATUS_LABEL[o.status]||o.status||'處理中')+'</span><span class="'+(overdue?'guest-order-alert':'')+'">'+(overdue?'待處理 '+waitMinutes(o.createdAt)+' 分':'')+(o.total?' '+fmtGil(o.total):'')+'</span></div><div class="guest-order-items">'+(items||'未列出品項')+(specialText?'<br>'+escapeHtml(specialText):'')+'</div>'+deliver+'</div>';
-    }).join('');
+    }).filter(Boolean).join('')||'<div class="guest-order-empty">目前尚未送出餐點訂單</div>';
   }
 
   function visitRoundIsComplete(v,linkedOrders){
@@ -1219,6 +1220,24 @@
     if(!completedAt) return false;
     var latest=(linkedOrders||[]).filter(function(order){return order.status!=='cancelled';}).reduce(function(value,order){return Math.max(value,Number(order.createdAt||0));},0);
     return completedAt>=latest;
+  }
+
+  function visitProgressHtml(v,linkedOrders){
+    var dining=(linkedOrders||[]).filter(function(order){return order.status!=='cancelled'&&(order.items||[]).some(function(item){return !standaloneSpecialType(item);});});
+    var hasOrder=dining.length>0;
+    var allDelivered=hasOrder&&dining.every(function(order){return order.status==='completed';});
+    var settled=v.paymentStatus==='settled'&&v.paymentAttention!==true;
+    var activeStep=settled?3:(hasOrder?(allDelivered?3:2):1);
+    var labels=['已接待','已點餐','餐點待送','離店結算'];
+    return '<div class="visit-progress">'+labels.map(function(label,index){var state=index<activeStep?'done':(index===activeStep?'active':'');return '<span class="'+state+'"><i></i><b>'+label+'</b></span>';}).join('')+'</div>';
+  }
+
+  function visitNextTaskCopy(v,linkedOrders){
+    var dining=(linkedOrders||[]).filter(function(order){return order.status!=='cancelled'&&(order.items||[]).some(function(item){return !standaloneSpecialType(item);});});
+    var pending=dining.filter(function(order){return order.status!=='completed';});
+    if(pending.length)return {label:'NOW・餐點工作',title:'把最新餐點送到 '+escapeHtml(v.queueNumber||'本桌'),description:'核對品項後直接完成送餐，不必切換到訂單頁。'};
+    if(dining.length)return {label:'NOW・本桌狀態',title:'本輪餐點已送達',description:'主人仍可使用本桌密碼加點；離店前再確認餐點款項。'};
+    return {label:'NOW・等待點餐',title:'等待主人送出餐點',description:'本桌已開始接待，主人可使用本桌密碼查看菜單與加點。'};
   }
 
   function receptionAlertsData(waiting,active){
@@ -1255,22 +1274,24 @@
     if(isMine){
       if(v.status==='assigned') actions+='<button class="btn primary small" data-start-visit="'+v.id+'">開始接待</button>';
       actions+='<button class="btn ghost small" data-copy-call="'+v.id+'">複製接待文字</button>';
-      var hasPendingSpecial=linkedOrders.some(function(order){return collectSpecialTasks(order.items||[]).some(function(task){return specialTaskState(order,task)!=='completed';});});
+      var hasPendingSpecial=linkedOrders.some(function(order){return collectSpecialTasks(order.items||[]).some(function(task){return task.type!=='polaroid'&&task.type!=='lens'&&specialTaskState(order,task)!=='completed';});});
       if(!roundComplete) actions+='<button class="btn ghost small" data-complete-visit="'+v.id+'">'+(hasPendingSpecial?'完成本輪桌邊服務':'完成本輪服務')+'</button>';
-      actions+='<button class="btn transfer small" data-open-transfer="'+v.id+'">更換主要接待</button>';
+      actions+='<button class="btn transfer small" data-open-transfer="'+v.id+'">轉交接待</button>';
     }else if(v.status==='waiting'){
-      actions+='<button class="btn primary small" data-copy-call="'+v.id+'">複製叫號</button>';
+      actions+='<button class="btn primary small" data-claim-visit="'+v.id+'">接待這組</button>';
+      actions+='<button class="btn ghost small" data-copy-call="'+v.id+'">複製叫號</button>';
       actions+='<button class="btn ghost small" data-no-show-visit="'+v.id+'">叫號未到</button>';
     }else{
       actions+='<button class="btn ghost small" data-copy-call="'+v.id+'">複製接待文字</button>';
-      actions+='<button class="btn transfer small" data-open-transfer="'+v.id+'">更換主要接待</button>';
+      actions+='<button class="btn transfer small" data-open-transfer="'+v.id+'">轉交接待</button>';
     }
-    var shareCode=visitShareCodes[v.id]||'讀取中',shareTools='<div class="visit-share-code"><span>本桌密碼 <b data-share-code-value="'+escapeAttr(v.id)+'">'+escapeHtml(shareCode)+'</b></span><button type="button" class="btn ghost small" data-copy-share-code="'+escapeAttr(v.id)+'" '+(visitShareCodes[v.id]?'':'disabled')+'>複製密碼</button></div>';
+    var shareCode=visitShareCodes[v.id]||'讀取中',shareTools=v.status==='waiting'?'':'<div class="visit-share-code"><span>本桌密碼 <b data-share-code-value="'+escapeAttr(v.id)+'">'+escapeHtml(shareCode)+'</b></span><button type="button" class="btn ghost small" data-copy-share-code="'+escapeAttr(v.id)+'" '+(visitShareCodes[v.id]?'':'disabled')+'>複製密碼</button></div>';
     var noteAction=isMine?'<div class="guest-note-actions"><button class="btn ghost small" data-edit-visit-note="'+v.id+'">編輯備註</button></div>':'';
-    if(isManager()&&v.status!=='waiting') actions+='<button class="btn danger small" data-close-visit="'+v.id+'">主人離店・結束本桌</button>';
+    if((isManager()||isMine)&&v.status!=='waiting') actions+='<button class="btn danger small" data-close-visit="'+v.id+'">主人離店・關閉本桌</button>';
     var roundState=roundComplete?'<div class="visit-round-complete"><strong>✓ 本輪服務已完成</strong><span>本桌仍保留，可直接加點；有新訂單時會重新顯示處理按鈕。</span></div>':'';
-    var overview=v.status!=='waiting'?'<div class="guest-overview">'+roundState+checkoutHtml(v.id)+'<div class="guest-overview-head"><span>餐點訂單與服務</span><span>'+linkedOrders.length+' 筆餐點訂單</span></div><div class="guest-order-list">'+guestOrdersHtml(v,isMine)+'</div><details class="guest-note"><summary>店內交接備註｜'+escapeHtml(v.internalNote||'尚未填寫')+'</summary>'+noteAction+'</details></div>':'';
-    return '<article data-gr-visit="'+escapeHtml(v.id)+'" class="visit-card '+(index===0&&v.status==='waiting'?'next ':'')+(isMine?'mine ':'')+urgency+(v.paymentAttention===true?' payment-warning ':'')+'"><div class="visit-card-top"><div><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':(v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分'))+'</span></div><div class="visit-owner-line">'+(v.status==='waiting'?'<span>尚未指派</span>':'<span class="visit-owner-label">主要接待</span><strong>'+escapeHtml(v.assignedStaffName||'未命名女僕')+'</strong>')+(isMine?'<span class="visit-owner-badge">我的接待</span>':'')+'</div><div class="visit-meta">'+(v.status==='waiting'?'依序候位中':(v.status==='serving'?'接待進行中':'等待開始接待'))+'</div><div class="visit-tags">'+tags+'</div>'+shareTools+(actions?'<div class="visit-actions">'+actions+'</div>':'')+overview+'</article>';
+    var nextTask=visitNextTaskCopy(v,linkedOrders);
+    var overview=v.status!=='waiting'?'<div class="guest-overview">'+roundState+'<div class="visit-work-grid"><section class="visit-now-card"><span>'+nextTask.label+'</span><h3>'+nextTask.title+'</h3><p>'+nextTask.description+'</p><div class="guest-order-list">'+guestOrdersHtml(v,isMine)+'</div></section>'+checkoutHtml(v.id)+'</div><details class="visit-details"><summary>查看本桌資料與交接備註</summary>'+shareTools+'<div class="visit-tags">'+tags+'</div><details class="guest-note" open><summary>店內交接備註｜'+escapeHtml(v.internalNote||'尚未填寫')+'</summary>'+noteAction+'</details></details></div>':'';
+    return '<article data-gr-visit="'+escapeHtml(v.id)+'" class="visit-card '+(index===0&&v.status==='waiting'?'next ':'')+(isMine?'mine ':'')+urgency+(v.paymentAttention===true?' payment-warning ':'')+'"><div class="visit-card-top"><div class="visit-card-identity"><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div><div class="visit-owner-line">'+(v.status==='waiting'?'<span>尚未指定女僕</span>':'<span>主要接待：<strong>'+escapeHtml(v.assignedStaffName||'未命名女僕')+'</strong></span>')+(isMine?'<span class="visit-owner-badge">我的接待</span>':'')+'</div></div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':(v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分'))+'</span></div>'+(v.status!=='waiting'?visitProgressHtml(v,linkedOrders):'<div class="visit-meta">依序候位中</div><div class="visit-tags">'+tags+'</div>')+overview+(actions?'<div class="visit-actions">'+actions+'</div>':'')+'</article>';
   }
 
   function setNavCount(id,count){
@@ -1397,20 +1418,28 @@
     var schedule=scheduleForDate(activeDutyDate());
     var duty=activeDutyIds();
     var ids=(schedule?duty:Object.keys(staffRoster)).filter(function(id){return staffRoster[id];});
-    var available=ids.filter(function(id){return (staffPresence[id]||{}).status==='available';}).length;
-    var alerts=receptionAlertsData(waiting,active);
+    var alerts=receptionAlertsData(waiting,active).filter(function(alert){return String(alert.title||'').indexOf('訂單 #')!==0;});
     document.getElementById('visitWaitingCount').textContent=(receptionSearchTerm||receptionAttentionOnly)?visibleWaiting.length+' / '+waiting.length:waiting.length;
     var mine=currentStaffId?active.filter(function(v){return v.assignedStaffId===currentStaffId;}):[];
     var teammates=active.filter(function(v){return !currentStaffId||v.assignedStaffId!==currentStaffId;});
+    var pendingMeals=Object.keys(orders).map(function(id){return Object.assign({id:id},orders[id]||{});}).filter(function(order){
+      return orderBelongsToBusiness(order)&&order.status==='pending'&&(order.items||[]).some(function(item){return !standaloneSpecialType(item);});
+    });
+    var myPendingMeals=pendingMeals.filter(function(order){var visit=visits[order.visitId]||{};return !currentStaffId||visit.assignedStaffId===currentStaffId;});
+    var completedToday=Object.keys(orders).map(function(id){return orders[id]||{};}).filter(function(order){return orderBelongsToBusiness(order)&&order.status==='completed'&&(order.items||[]).some(function(item){return !standaloneSpecialType(item);});}).length;
+    var priorityCount=myPendingMeals.length+alerts.length;
     document.getElementById('myVisitCount').textContent=mine.length;
     document.getElementById('teamVisitCount').textContent=teammates.length;
-    document.getElementById('receptionWaitingMetric').textContent=waiting.length;
-    document.getElementById('receptionActiveMetric').textContent=active.length;
-    document.getElementById('receptionAvailableMetric').textContent=available;
-    document.getElementById('receptionAlertMetric').textContent=alerts.length;
-    document.getElementById('receptionAlertCount').textContent=alerts.length+' 項';
-    document.getElementById('receptionAlerts').classList.toggle('visible',alerts.length>0);
-    document.getElementById('receptionAlertList').innerHTML=alerts.map(function(a){return '<div class="reception-alert-item"><strong>'+escapeHtml(a.title)+'</strong><span>'+escapeHtml(a.detail)+'</span></div>';}).join('');
+    document.getElementById('receptionWaitingMetric').textContent=priorityCount;
+    document.getElementById('receptionActiveMetric').textContent=mine.length;
+    document.getElementById('receptionAvailableMetric').textContent=pendingMeals.length;
+    document.getElementById('receptionAlertMetric').textContent=completedToday;
+    document.getElementById('receptionAlertCount').textContent=priorityCount+' 項';
+    document.getElementById('receptionAlerts').classList.toggle('visible',priorityCount>0);
+    var priorityHtml=myPendingMeals.map(function(order){var visit=visits[order.visitId]||{};var items=(order.items||[]).filter(function(item){return !standaloneSpecialType(item);}).map(function(item){return (item.name||'品項')+' × '+Number(item.qty||1);}).join('・');return '<div class="reception-alert-item"><span><strong>新餐點已送出・'+escapeHtml(visit.queueNumber||order.orderNumber||'本桌')+' '+escapeHtml(visit.characterName||order.name||'主人')+'</strong><small>'+escapeHtml(items||'請確認餐點內容')+'</small></span><button type="button" class="btn primary small" data-deliver-visit-order="'+escapeAttr(order.id)+'">餐點已送達</button></div>';}).join('');
+    priorityHtml+=alerts.map(function(a){return '<div class="reception-alert-item"><span><strong>'+escapeHtml(a.title)+'</strong><small>'+escapeHtml(a.detail)+'</small></span></div>';}).join('');
+    document.querySelector('#receptionAlerts .reception-alert-head>span').textContent=priorityCount?'請先完成以下工作':'目前沒有需要優先處理的工作';
+    document.getElementById('receptionAlertList').innerHTML=priorityHtml;
     document.getElementById('visitWaitingList').innerHTML=visibleWaiting.length?visibleWaiting.map(function(v,i){return visitCard(v,i,false);}).join(''):(waiting.length?'<div class="queue-empty">沒有符合搜尋或篩選條件的候位主人。</div>':'<div class="queue-empty">目前沒有人候位。<br>自由參觀的客人不會出現在這裡。</div>');
     document.getElementById('myVisitList').innerHTML=mine.length?mine.map(function(v,i){return visitCard(v,i,true);}).join(''):'<div class="queue-empty">你目前沒有接待中的主人。<br>有空時可接待下一組。</div>';
     document.getElementById('teamVisitList').innerHTML=teammates.length?teammates.map(function(v,i){return visitCard(v,i,false);}).join(''):'<div class="queue-empty">其他女僕目前沒有接待中的主人。</div>';
@@ -1425,6 +1454,9 @@
       return '<div class="team-staff"><span>'+escapeHtml(staffRoster[id].name||'未命名女僕')+'</span><span class="team-state">'+(state==='stale'?'狀態可能已過期':(label[state]||'暫離'))+(count?'・'+count+' 組':'')+'</span></div>';
     }).join(''):'<div class="queue-empty">尚未設定 '+escapeHtml(dutyDateLabel(activeDutyDate()))+' 值班女僕</div>';
     document.querySelectorAll('[data-presence]').forEach(function(btn){ btn.classList.toggle('active',!!currentStaffId && ((staffPresence[currentStaffId]||{}).status===btn.getAttribute('data-presence'))); });
+    var currentPresence=currentStaffId?(staffPresence[currentStaffId]||{}).status:'';
+    var autoState=document.getElementById('receptionAutoState');
+    if(autoState) autoState.textContent=(currentPresence==='away'?'暫離中':(mine.length?'接待中':'可接待'))+'・自動狀態';
     document.getElementById('claimNextVisit').disabled=!currentStaffId;
     renderAssignmentHistory();
     if(window.GuestRegistry) window.GuestRegistry.refresh();
@@ -1633,7 +1665,19 @@
   document.getElementById('visitHistoryPanel').addEventListener('toggle',function(){if(this.open)loadVisitHistory();});
   ['visitHistoryDate','visitHistoryStatus','visitHistorySearch'].forEach(function(id){document.getElementById(id).addEventListener(id==='visitHistorySearch'?'input':'change',renderVisitHistory);});
 
+  function completeDiningOrder(orderId,button){
+    var deliveryOrder=orders[orderId];
+    if(!deliveryOrder||!visits[deliveryOrder.visitId]||visits[deliveryOrder.visitId].assignedStaffId!==currentStaffId)return;
+    var deliveryStaff=staffRoster[currentStaffId]||{};
+    if(button)button.disabled=true;
+    ordersRef.child(orderId).update({status:'completed',assignedStaffId:currentStaffId,assignedStaffName:deliveryStaff.name||'未命名女僕',assignedAt:deliveryOrder.assignedAt||Date.now(),statusUpdatedAt:Date.now(),completedAt:Date.now(),updatedAt:Date.now()}).then(function(){showCopyToast('已記錄餐點送達',true)}).catch(function(){if(button)button.disabled=false;alert('更新失敗，請確認連線後再試。')});
+  }
+
   document.getElementById('receptionTab').addEventListener('click',function(e){
+    var deliver=e.target.closest('[data-deliver-visit-order]');
+    if(deliver){completeDiningOrder(deliver.getAttribute('data-deliver-visit-order'),deliver);return;}
+    var claim=e.target.closest('[data-claim-visit]');
+    if(claim){var claimTarget=visits[claim.getAttribute('data-claim-visit')];if(claimTarget)claimVisit(claimTarget);return;}
     var close=e.target.closest('[data-close-visit]');
     if(close){ closeVisitAfterDeparture(close.getAttribute('data-close-visit')); return; }
     var transfer=e.target.closest('[data-open-transfer]');
@@ -1723,11 +1767,8 @@
   document.getElementById('myVisitList').addEventListener('click',function(e){
     var deliver=e.target.closest('[data-deliver-visit-order]');
     if(deliver){
-      var orderId=deliver.getAttribute('data-deliver-visit-order'),deliveryOrder=orders[orderId];
-      if(!deliveryOrder||!visits[deliveryOrder.visitId]||visits[deliveryOrder.visitId].assignedStaffId!==currentStaffId)return;
-      var deliveryStaff=staffRoster[currentStaffId]||{};
-      deliver.disabled=true;
-      ordersRef.child(orderId).update({status:'completed',assignedStaffId:currentStaffId,assignedStaffName:deliveryStaff.name||'未命名女僕',assignedAt:deliveryOrder.assignedAt||Date.now(),statusUpdatedAt:Date.now(),completedAt:Date.now(),updatedAt:Date.now()}).then(function(){showCopyToast('已記錄餐點送達',true)}).catch(function(){deliver.disabled=false;alert('更新失敗，請確認連線後再試。')});
+      e.stopPropagation();
+      completeDiningOrder(deliver.getAttribute('data-deliver-visit-order'),deliver);
       return;
     }
     var edit=e.target.closest('[data-edit-visit-note]');
@@ -1764,18 +1805,17 @@
   });
 
   function closeVisitAfterDeparture(id){
-    if(!isManager()) return;
     var visit=visits[id];if(!visit||['assigned','serving','special_service'].indexOf(visit.status)===-1)return;
+    if(!isManager()&&visit.assignedStaffId!==currentStaffId)return;
     if(visit.paymentAttention===true){alert('⚠ 本桌結清後有新增訂單，請先再次收款並按「再次結清」。');return;}
     var linkedOrders=ordersForVisit(id),unfinishedOrders=linkedOrders.filter(function(order){return order.status!=='completed'&&order.status!=='cancelled';});
     if(unfinishedOrders.length){alert('這組主人還有 '+unfinishedOrders.length+' 筆餐點訂單尚未完成。');return;}
     var unfinishedServices=[];
-    linkedOrders.forEach(function(order){collectSpecialTasks(order.items||[]).forEach(function(task){if(specialTaskState(order,task)!=='completed')unfinishedServices.push(task)});});
-    var photoBill=checkoutForVisit(id),unfinishedPhoto=(photoBill.photoDetails||[]).filter(function(item){return ['completed','delivered','cancelled'].indexOf(item.status)===-1;});
-    if(unfinishedServices.length||unfinishedPhoto.length){alert('本桌仍有拍攝或紀念服務尚未完成，請完成後再關閉本桌。');return;}
-    if(!confirm('確認主人已離店，並結束 '+(visit.queueNumber||'這一桌')+' 嗎？\n結束後客人將不能再加點。'))return;
+    linkedOrders.forEach(function(order){collectSpecialTasks(order.items||[]).forEach(function(task){if(task.type!=='polaroid'&&task.type!=='lens'&&specialTaskState(order,task)!=='completed')unfinishedServices.push(task)});});
+    if(unfinishedServices.length){alert('本桌仍有桌邊服務尚未完成，請完成後再關閉本桌。');return;}
+    if(!confirm('確認主人已離店，並關閉 '+(visit.queueNumber||'這一桌')+' 嗎？\n\n關閉後客人將不能再加點；拍立得工作仍會留在獨立工作區，不受影響。'))return;
     var now=Date.now(),staffId=visit.assignedStaffId||'';
-    visitsRef.child(id).update({status:'completed',completedAt:now,closedAt:now,closedByUid:currentAuthUser?currentAuthUser.uid:'',updatedAt:now}).then(function(){
+    visitsRef.child(id).update({status:'completed',completedAt:now,closedAt:now,closedByUid:currentAuthUser?currentAuthUser.uid:'',closedByStaffId:currentStaffId||'',closedByStaffName:(staffRoster[currentStaffId]||{}).name||'',updatedAt:now}).then(function(){
       var other=visitRows(['assigned','serving']).some(function(row){return row.id!==id&&row.assignedStaffId===staffId;});
       if(staffId&&!other)staffPresenceRef.child(staffId).set({status:'available',updatedAt:Date.now()});
     });
