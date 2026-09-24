@@ -30,6 +30,7 @@
   var orderSearchTerm = '';
   var receptionSearchTerm = '';
   var receptionAttentionOnly = false;
+  var expandedReceptionVisitId = '';
   var knownOrderIds = {};
   var ordersSnapshotReady = false;
   var allOrderHistoryLoaded = false;
@@ -1080,6 +1081,7 @@
   }
 
   function setCurrentStaff(id){
+    if(currentStaffId!==(id||'')) expandedReceptionVisitId='';
     currentStaffId = id || '';
     try{
       if(currentStaffId) localStorage.setItem('lephemereCurrentStaffId', currentStaffId);
@@ -1287,12 +1289,21 @@
       actions+='<button class="btn transfer small" data-open-transfer="'+v.id+'">轉交接待</button>';
     }
     var shareCode=visitShareCodes[v.id]||'讀取中',shareTools=v.status==='waiting'?'':'<div class="visit-share-code"><span>本桌密碼 <b data-share-code-value="'+escapeAttr(v.id)+'">'+escapeHtml(shareCode)+'</b></span><button type="button" class="btn ghost small" data-copy-share-code="'+escapeAttr(v.id)+'" '+(visitShareCodes[v.id]?'':'disabled')+'>複製密碼</button></div>';
-    var noteAction=isMine?'<div class="guest-note-actions"><button class="btn ghost small" data-edit-visit-note="'+v.id+'">編輯備註</button></div>':'';
     if((isManager()||isMine)&&v.status!=='waiting') actions+='<button class="btn danger small" data-close-visit="'+v.id+'">主人離店・關閉本桌</button>';
     var roundState=roundComplete?'<div class="visit-round-complete"><strong>✓ 本輪服務已完成</strong><span>本桌仍保留，可直接加點；有新訂單時會重新顯示處理按鈕。</span></div>':'';
     var nextTask=visitNextTaskCopy(v,linkedOrders);
-    var overview=v.status!=='waiting'?'<div class="guest-overview">'+roundState+'<div class="visit-work-grid"><section class="visit-now-card"><span>'+nextTask.label+'</span><h3>'+nextTask.title+'</h3><p>'+nextTask.description+'</p><div class="guest-order-list">'+guestOrdersHtml(v,isMine)+'</div></section>'+checkoutHtml(v.id)+'</div><details class="visit-details"><summary>查看本桌資料與交接備註</summary>'+shareTools+'<div class="visit-tags">'+tags+'</div><details class="guest-note" open><summary>店內交接備註｜'+escapeHtml(v.internalNote||'尚未填寫')+'</summary>'+noteAction+'</details></details></div>':'';
+    var overview=v.status!=='waiting'?'<div class="guest-overview">'+roundState+'<div class="visit-work-grid"><section class="visit-now-card"><span>'+nextTask.label+'</span><h3>'+nextTask.title+'</h3><p>'+nextTask.description+'</p><div class="guest-order-list">'+guestOrdersHtml(v,isMine)+'</div></section>'+checkoutHtml(v.id)+'</div><div class="visit-direct-tools">'+shareTools+'<div class="visit-tags">'+tags+'</div></div></div>':'';
     return '<article data-gr-visit="'+escapeHtml(v.id)+'" class="visit-card '+(index===0&&v.status==='waiting'?'next ':'')+(isMine?'mine ':'')+urgency+(v.paymentAttention===true?' payment-warning ':'')+'"><div class="visit-card-top"><div class="visit-card-identity"><div class="visit-number">'+escapeHtml(v.queueNumber||'—')+'</div><div><div class="visit-name">'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</div><div class="visit-owner-line">'+(v.status==='waiting'?'<span>尚未指定女僕</span>':'<span>主要接待：<strong>'+escapeHtml(v.assignedStaffName||'未命名女僕')+'</strong></span>')+(isMine?'<span class="visit-owner-badge">我的接待</span>':'')+'</div></div></div><span class="visit-wait">'+(v.status==='waiting'?'等候 '+waitMinutes(v.createdAt)+' 分':(v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分'))+'</span></div>'+(v.status!=='waiting'?visitProgressHtml(v,linkedOrders):'<div class="visit-meta">依序候位中</div><div class="visit-tags">'+tags+'</div>')+overview+(actions?'<div class="visit-actions">'+actions+'</div>':'')+'</article>';
+  }
+
+  function compactReceptionVisitCard(v){
+    var linkedOrders=ordersForVisit(v.id);
+    var pendingDining=linkedOrders.filter(function(order){return order.status!=='completed'&&order.status!=='cancelled'&&(order.items||[]).some(function(item){return !standaloneSpecialType(item);});});
+    var needsAttention=pendingDining.length>0||v.paymentAttention===true||v.status==='assigned';
+    var stateTitle=pendingDining.length?'有餐點待送':(v.paymentAttention===true?'結清後有新增訂單':(v.status==='assigned'?'尚未開始接待':(visitRoundIsComplete(v,linkedOrders)?'本輪服務已完成':'接待進行中')));
+    var stateDetail=pendingDining.length?(pendingDining.length+' 張餐點訂單待處理'):(v.status==='assigned'?'等待開始接待':'點一下即可查看本桌工作');
+    var waitText=v.status==='assigned'?'待招呼 '+waitMinutes(v.assignedAt||v.updatedAt)+' 分':'接待 '+waitMinutes(v.serviceStartedAt||v.updatedAt)+' 分';
+    return '<article class="reception-compact-visit '+(needsAttention?'needs-attention':'')+'" data-compact-visit="'+escapeAttr(v.id)+'"><span class="reception-compact-number">'+escapeHtml(v.queueNumber||'—')+'</span><div class="reception-compact-copy"><strong>'+escapeHtml(v.characterName||'未填角色名')+(v.world?' @ '+escapeHtml(v.world):'')+'</strong><small>'+escapeHtml(stateTitle)+'・'+escapeHtml(stateDetail)+'</small></div><span class="reception-compact-state">'+escapeHtml(waitText)+'</span><button type="button" class="btn ghost" data-expand-reception-visit="'+escapeAttr(v.id)+'">展開處理</button></article>';
   }
 
   function setNavCount(id,count){
@@ -1442,7 +1453,31 @@
     document.querySelector('#receptionAlerts .reception-alert-head>span').textContent=priorityCount?'請先完成以下工作':'目前沒有需要優先處理的工作';
     document.getElementById('receptionAlertList').innerHTML=priorityHtml;
     document.getElementById('visitWaitingList').innerHTML=visibleWaiting.length?visibleWaiting.map(function(v,i){return visitCard(v,i,false);}).join(''):(waiting.length?'<div class="queue-empty">沒有符合搜尋或篩選條件的候位主人。</div>':'<div class="queue-empty">目前沒有人候位。<br>自由參觀的客人不會出現在這裡。</div>');
-    document.getElementById('myVisitList').innerHTML=mine.length?mine.map(function(v,i){return visitCard(v,i,true);}).join(''):'<div class="queue-empty">你目前沒有接待中的主人。<br>有空時可接待下一組。</div>';
+    if(mine.length){
+      var expandedStillExists=mine.some(function(v){return v.id===expandedReceptionVisitId;});
+      if(!expandedStillExists){
+        var initialMine=mine.slice().sort(function(a,b){
+          function priority(v){
+            var pending=ordersForVisit(v.id).some(function(order){return order.status!=='completed'&&order.status!=='cancelled'&&(order.items||[]).some(function(item){return !standaloneSpecialType(item);});});
+            return pending||v.paymentAttention===true?0:(v.status==='assigned'?1:2);
+          }
+          return priority(a)-priority(b)||Number(a.assignedAt||0)-Number(b.assignedAt||0);
+        });
+        expandedReceptionVisitId=initialMine[0].id;
+      }
+      var expandedMine=mine.find(function(v){return v.id===expandedReceptionVisitId;})||mine[0];
+      var compactMine=mine.filter(function(v){return v.id!==expandedMine.id;}).sort(function(a,b){
+        function priority(v){
+          var pending=ordersForVisit(v.id).some(function(order){return order.status!=='completed'&&order.status!=='cancelled'&&(order.items||[]).some(function(item){return !standaloneSpecialType(item);});});
+          return pending||v.paymentAttention===true?0:(v.status==='assigned'?1:2);
+        }
+        return priority(a)-priority(b)||Number(a.assignedAt||0)-Number(b.assignedAt||0);
+      });
+      document.getElementById('myVisitList').innerHTML=visitCard(expandedMine,0,true)+(compactMine.length?'<div class="reception-compact-heading"><strong>其他接待桌次</strong><span>'+compactMine.length+' 桌・點一下即可展開</span></div><div class="reception-compact-list">'+compactMine.map(compactReceptionVisitCard).join('')+'</div>':'');
+    }else{
+      expandedReceptionVisitId='';
+      document.getElementById('myVisitList').innerHTML='<div class="queue-empty">你目前沒有接待中的主人。<br>有空時可接待下一組。</div>';
+    }
     document.getElementById('teamVisitList').innerHTML=teammates.length?teammates.map(function(v,i){return visitCard(v,i,false);}).join(''):'<div class="queue-empty">其他女僕目前沒有接待中的主人。</div>';
     ensureVisitShareCodes(visibleWaiting.concat(active));
     var label={available:'可接待',serving:'接待中',photo:'拍照中',away:'暫離'};
@@ -1572,17 +1607,23 @@
     }).join('');
   }
 
-  function claimVisit(v){
+  function claimVisit(v,button){
     var staff=staffRoster[currentStaffId];
     if(!staff){ alert('請先選擇目前操作女僕。'); return Promise.resolve(); }
+    var originalLabel=button?button.textContent:'';
+    if(button){button.disabled=true;button.textContent='接待中…';}
     return visitsRef.child(v.id).transaction(function(current){
       if(!current || current.status!=='waiting' || current.assignedStaffId) return;
       current.status='assigned'; current.assignedStaffId=currentStaffId; current.assignedStaffName=staff.name||'未命名女僕'; current.assignedAt=Date.now(); current.updatedAt=Date.now();
       return current;
     }).then(function(result){
       if(!result.committed){ alert('這組主人剛剛已被其他女僕接下。'); return; }
+      expandedReceptionVisitId=v.id;
       return Promise.all([staffPresenceRef.child(currentStaffId).set({status:'serving',updatedAt:Date.now()}),recordVisitAssignment(v.id,'',currentStaffId,'claim')]);
-    });
+    }).catch(function(error){
+      console.error('Claim visit failed',error);
+      alert('接待操作未完成，請確認連線後再試一次。');
+    }).then(function(){if(button&&document.body.contains(button)){button.disabled=false;button.textContent=originalLabel;}});
   }
 
   function visitCallText(v){
@@ -1675,10 +1716,22 @@
   }
 
   document.getElementById('receptionTab').addEventListener('click',function(e){
+    var expandVisit=e.target.closest('[data-expand-reception-visit]');
+    if(expandVisit){
+      var expandId=expandVisit.getAttribute('data-expand-reception-visit');
+      var expandTarget=visits[expandId];
+      if(expandTarget&&expandTarget.assignedStaffId===currentStaffId){
+        expandedReceptionVisitId=expandId;
+        renderReception();
+        var expandedCard=document.querySelector('#myVisitList [data-gr-visit="'+CSS.escape(expandId)+'"]');
+        if(expandedCard)expandedCard.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+      return;
+    }
     var deliver=e.target.closest('[data-deliver-visit-order]');
     if(deliver){completeDiningOrder(deliver.getAttribute('data-deliver-visit-order'),deliver);return;}
     var claim=e.target.closest('[data-claim-visit]');
-    if(claim){var claimTarget=visits[claim.getAttribute('data-claim-visit')];if(claimTarget)claimVisit(claimTarget);return;}
+    if(claim){var claimTarget=visits[claim.getAttribute('data-claim-visit')];if(claimTarget)claimVisit(claimTarget,claim);return;}
     var close=e.target.closest('[data-close-visit]');
     if(close){ closeVisitAfterDeparture(close.getAttribute('data-close-visit')); return; }
     var transfer=e.target.closest('[data-open-transfer]');
@@ -1724,7 +1777,7 @@
     if(!currentStaffId){ alert('請先選擇目前操作女僕。'); return; }
     var next=visitRows(['waiting']).find(function(v){ return !v.preferredStaffId || v.preferredStaffId===currentStaffId; });
     if(!next){ alert('目前沒有可由你接待的候位主人；指定其他女僕的主人會保留在原隊列。'); return; }
-    claimVisit(next);
+    claimVisit(next,this);
   });
   document.getElementById('resetVisitQueue').addEventListener('click',function(){
     if(!isManager()) return;
@@ -1749,12 +1802,21 @@
       alert('候位重置失敗，請確認 Firebase 規則已更新。');
     });
   });
-  document.getElementById('presenceButtons').addEventListener('click',function(e){
+  var presenceButtons=document.getElementById('presenceButtons');
+  if(presenceButtons)presenceButtons.addEventListener('click',function(e){
     var btn=e.target.closest('[data-presence]'); if(!btn) return;
     if(!currentStaffId){ alert('請先選擇目前操作女僕。'); return; }
     staffPresenceRef.child(currentStaffId).set({status:btn.getAttribute('data-presence'),updatedAt:Date.now(),lastSeenAt:Date.now(),sessionId:adminSessionId});
   });
   document.getElementById('visitWaitingList').addEventListener('click',function(e){
+    var claim=e.target.closest('[data-claim-visit]');
+    if(claim){
+      e.stopPropagation();
+      var waitingVisit=visits[claim.getAttribute('data-claim-visit')];
+      if(!waitingVisit||waitingVisit.status!=='waiting'){alert('這組主人已不在候位隊列，畫面將自動更新。');return;}
+      claimVisit(waitingVisit,claim);
+      return;
+    }
     var btn=e.target.closest('[data-no-show-visit]'); if(!btn) return;
     var id=btn.getAttribute('data-no-show-visit'), visit=visits[id];
     if(!visit || visit.status!=='waiting') return;

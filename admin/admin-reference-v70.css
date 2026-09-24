@@ -1,4 +1,4 @@
-/* v74：套用核准的霧灰藍／藍黑全區配色，並完成現場／營運資料分流；既有資料連動維持原樣。 */
+/* v75：完成霧灰藍／藍黑全區配色、現場文字放大與營運資料分流；既有資料連動維持原樣。 */
 :root{
   --v70-ink:#202a35;
   --v70-cream:#eef1f4;
@@ -386,6 +386,130 @@ html[data-admin-theme="dark"] #ordersTab :where(.order-filter-bar,.order-day-gro
 html[data-admin-theme="dark"] #ordersTab :where(.order-day-group>summary,.order-table-heading,.order-card-detail){background:#18212c!important;border-color:#2a3544!important}
 html[data-admin-theme="dark"] #ordersTab :where(.status-pending,.status-preparing,.status-served,.status-completed,.status-cancelled){color:#b9cdf4!important;background:#1c2a3d!important;border-color:#344b68!important}
 html[data-admin-theme="dark"] #ordersTab :where(.order-service select,.handoff-note textarea,.special-service-row select){color:#edf3f8!important;background:#0c111a!important;border-color:#2a3544!important}
+
+/* v75｜現場頁文字可讀性與深色狀態色收斂。 */
+.main-tab{font-size:15px}
+.management-home-tab b{font-size:15px}.management-home-tab small,.sidebar-operator small{font-size:10px}
+.sidebar-operator strong{font-size:14px}
+.global-identity-copy strong{font-size:12px}.reference-operator-select{font-size:13px}
+.reception-page-heading .page-heading-copy h2{font-size:34px}
+.reception-page-heading .page-heading-copy p{font-size:14px;line-height:1.65}
+.reception-auto-state{font-size:14px}
+.reception-metric-label{font-size:11px}.reception-metric-value{font-size:27px}.reception-metric-value small{font-size:19px}
+.reception-waiting-column .reception-column-title{font-size:21px}
+.reception-filter-tools input{font-size:13px}
+.visit-number{font-size:27px}.visit-name{font-size:16px}
+.visit-owner-line{font-size:12px}.visit-owner-badge{font-size:10px}
+.visit-wait{font-size:11px}
+.visit-progress span{font-size:11px}
+.visit-now-card>span,.visit-checkout-title>span{font-size:11px}
+.visit-now-card h3,.visit-checkout h3{font-size:23px}
+.visit-now-card>p,.visit-checkout>p{font-size:13px}
+.visit-now-card .guest-order{font-size:12px;line-height:1.65}
+.visit-checkout-title strong{font-size:27px}.visit-checkout-title small{font-size:11px}
+.visit-checkout .payment-row{font-size:13px}.visit-checkout-note{font-size:10.5px;line-height:1.6}
+.visit-details>summary{font-size:12px}.visit-actions .btn{font-size:13px}
+.reception-waiting-column .visit-number{font-size:15px}.reception-waiting-column .visit-name{font-size:14px}
+.reception-waiting-column .visit-meta,.reception-waiting-column .visit-tags{font-size:12px}
+.queue-empty{font-size:12px;line-height:1.7}
+
+html:not([data-admin-theme="dark"]) :where(.visit-number,.reception-metric.priority .reception-metric-value,.visit-checkout-title small){color:#55779f!important}
+html:not([data-admin-theme="dark"]) .visit-progress span.active i{border-color:#55779f!important;background:#55779f!important;box-shadow:0 0 0 3px #dce7f0!important}
+html:not([data-admin-theme="dark"]) .visit-actions .btn.danger{color:#55779f!important;background:#f9fbfc!important;border-color:#9ab0c2!important}
+
+html[data-admin-theme="dark"] :where(.visit-number,.reception-metric.priority .reception-metric-value,.visit-checkout-title small,.visit-now-card>span,.visit-checkout-title>span){color:#79a0ff!important}
+html[data-admin-theme="dark"] :where(.visit-owner-line,.visit-now-card>p,.visit-checkout>p,.visit-checkout-note,.visit-details>summary,.reception-waiting-column .visit-meta,.reception-waiting-column .visit-tags){color:#9baabd!important}
+html[data-admin-theme="dark"] .visit-wait{color:#b9cdf4!important;background:#1c2a3d!important;border-color:#344b68!important}
+html[data-admin-theme="dark"] .visit-progress span.active i{border-color:#3d73ff!important;background:#3d73ff!important;box-shadow:0 0 0 3px #1c2a3d!important}
+html[data-admin-theme="dark"] .visit-progress span.active{color:#b9cdf4!important}
+html[data-admin-theme="dark"] .visit-checkout{background:#111b1d!important;border-color:#29433b!important}
+html[data-admin-theme="dark"] .visit-checkout-title strong{color:#79a0ff!important}
+html[data-admin-theme="dark"] .visit-actions .btn.danger{color:#9eb8ff!important;background:#111722!important;border-color:#3d5e9b!important}
+html[data-admin-theme="dark"] :where(.visit-card.warning,.visit-card.payment-warning){border-color:#3d73ff!important;box-shadow:inset 3px 0 0 #3d73ff!important}
+html[data-admin-theme="dark"] .main-tab-icon{color:#8da9d8!important}
+
+/* v76｜放大現場文字、固定接待入口，桌次密碼直接顯示。 */
+.main-tab{font-size:16px}
+.management-home-tab b{font-size:16px}.management-home-tab small,.sidebar-operator small{font-size:11px}
+.sidebar-operator strong{font-size:15px}
+.global-identity-copy strong{font-size:13px}.reference-operator-select{font-size:14px}
+.reception-page-heading .page-heading-copy h2{font-size:36px}
+.reception-page-heading .page-heading-copy p{font-size:15px}
+.reception-heading-actions{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.reception-claim-next{min-width:150px;min-height:48px;padding-inline:22px;font-size:15px;font-weight:800}
+.reception-metric-label{font-size:12px}.reception-metric-value{font-size:29px}.reception-metric-value small{font-size:20px}
+.reception-waiting-column .reception-column-title{font-size:22px}
+.reception-filter-tools input{min-height:42px;font-size:14px}
+.visit-number{font-size:30px}.visit-name{font-size:18px}
+.visit-owner-line{font-size:13px}.visit-owner-badge{font-size:11px}
+.visit-wait{padding:7px 10px;font-size:12px}
+.visit-progress span{font-size:12px}
+.visit-now-card>span,.visit-checkout-title>span{font-size:12px}
+.visit-now-card h3,.visit-checkout h3{font-size:25px}
+.visit-now-card>p,.visit-checkout>p{font-size:14px}
+.visit-now-card .guest-order{font-size:13px}
+.visit-checkout-title strong{font-size:29px}.visit-checkout-title small{font-size:12px}
+.visit-checkout .payment-row{font-size:14px}.visit-checkout-note{font-size:11.5px}
+.visit-actions .btn{min-height:42px;font-size:14px}
+.queue-empty{font-size:13px}
+
+/* 第一筆會帶 next 狀態；明確重設幾何屬性，避免舊樣式把內容推到卡片外。 */
+.reception-waiting-column .visit-card,
+.reception-waiting-column .visit-card.next{position:relative;left:auto;width:auto;max-width:100%;margin:0;padding:0;transform:none;box-sizing:border-box}
+.reception-waiting-column .visit-card.next{box-shadow:inset 4px 0 0 #55779f}
+.reception-waiting-column .visit-card-top{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:12px;padding:18px 12px 10px 16px}
+.reception-waiting-column .visit-card-identity{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:10px;min-width:0}
+.reception-waiting-column .visit-card-identity>div:last-child{min-width:0}
+.reception-waiting-column .visit-number{font-size:17px;line-height:1.45}
+.reception-waiting-column .visit-name{margin-top:0;font-size:15px;line-height:1.45;overflow-wrap:anywhere}
+.reception-waiting-column .visit-wait{align-self:start}
+.reception-waiting-column .visit-meta{margin:0;padding:0 16px;font-size:13px}
+.reception-waiting-column .visit-tags{margin:0;padding:6px 16px 2px;font-size:13px}
+.reception-waiting-column .visit-actions{grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px 18px}
+.reception-waiting-column .visit-actions .btn.primary{grid-column:1 / -1;grid-row:auto;min-height:46px}
+
+.visit-direct-tools{margin-top:15px;padding-top:15px;border-top:1px solid var(--v70-line)}
+.visit-direct-tools .visit-share-code{margin:0;min-height:58px;padding:10px 12px;font-size:14px}
+.visit-direct-tools .visit-share-code b{font-size:19px;letter-spacing:.16em}
+.visit-direct-tools .visit-tags{margin:10px 0 0}
+html[data-admin-theme="dark"] .visit-direct-tools{border-color:#2a3544}
+
+/* v77｜多桌接待只展開一桌，其餘收合並限制清單高度。 */
+.reception-compact-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 22px;border-top:12px solid var(--v70-cream);border-bottom:1px solid var(--v70-line);background:var(--v70-paper)}
+.reception-compact-heading strong{font-family:"Noto Serif TC",serif;font-size:20px;font-weight:650}
+.reception-compact-heading span{color:#66798c;font-size:13px}
+.reception-compact-list{max-height:320px;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.reception-compact-visit{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:16px;padding:16px 22px;border-bottom:1px solid var(--v70-line);background:var(--v70-paper)}
+.reception-compact-visit:last-child{border-bottom:0}
+.reception-compact-number{color:#55779f;font-family:"Noto Serif TC",serif;font-size:22px;line-height:1.2}
+.reception-compact-copy{min-width:0}
+.reception-compact-copy strong{display:block;font-size:16px;overflow-wrap:anywhere}
+.reception-compact-copy small{display:block;margin-top:5px;color:#66798c;font-size:12px;line-height:1.5}
+.reception-compact-state{padding:7px 10px;border:1px solid #cfdae4;border-radius:8px;color:#55708a;background:#e7eef5;font-size:12px;white-space:nowrap}
+.reception-compact-visit.needs-attention{box-shadow:inset 4px 0 0 #55779f}
+.reception-compact-visit.needs-attention .reception-compact-state{color:#31587f;background:#dbe8f4;border-color:#9fb8cf;font-weight:750}
+.reception-compact-visit .btn{min-height:40px;font-size:13px;white-space:nowrap}
+html[data-admin-theme="dark"] .reception-compact-heading{background:#111722;border-color:#2a3544}
+html[data-admin-theme="dark"] .reception-compact-heading span,html[data-admin-theme="dark"] .reception-compact-copy small{color:#9baabd}
+html[data-admin-theme="dark"] .reception-compact-list{background:#0c111a}
+html[data-admin-theme="dark"] .reception-compact-visit{background:#11131a;border-color:#292c36}
+html[data-admin-theme="dark"] .reception-compact-number{color:#79a0ff}
+html[data-admin-theme="dark"] .reception-compact-state{color:#b9cdf4;background:#1c2a3d;border-color:#344b68}
+html[data-admin-theme="dark"] .reception-compact-visit.needs-attention{box-shadow:inset 4px 0 0 #3d73ff}
+html[data-admin-theme="dark"] .reception-compact-visit.needs-attention .reception-compact-state{color:#d7e3ff;background:#213453;border-color:#496ca8}
+
+@media(max-width:760px){
+  .reception-heading-actions{width:100%}.reception-claim-next{width:100%}
+  .reception-waiting-column .visit-card-top{grid-template-columns:1fr}
+  .reception-waiting-column .visit-wait{justify-self:start}
+  .reception-waiting-column .visit-actions{grid-template-columns:1fr}
+  .reception-waiting-column .visit-actions .btn.primary{grid-column:1}
+  .reception-compact-heading{align-items:flex-start;flex-direction:column;gap:5px;padding:16px}
+  .reception-compact-list{max-height:420px}
+  .reception-compact-visit{grid-template-columns:auto minmax(0,1fr) auto;gap:10px;padding:15px 16px}
+  .reception-compact-state{grid-column:2;justify-self:start}
+  .reception-compact-visit .btn{grid-column:3;grid-row:1 / span 2}
+}
 
 @media(max-width:980px){.manager-team-section{grid-template-columns:1fr}}
 

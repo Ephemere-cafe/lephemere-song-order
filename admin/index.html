@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="admin-workbench-v67.css?v=20260919-v67">
   <link rel="stylesheet" href="admin-theme-toggle.css?v=20260919-v67">
   <link rel="stylesheet" href="admin-redesign-v69.css?v=20260924-v69">
-  <link rel="stylesheet" href="admin-reference-v70.css?v=20260924-v74">
+  <link rel="stylesheet" href="admin-reference-v70.css?v=20260924-v77">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -187,12 +187,7 @@
     <div id="receptionTab" style="display:none;">
       <div class="page-heading reception-page-heading">
         <div class="page-heading-copy"><span class="page-eyebrow">Live desk</span><h2>現場</h2><p>需要接待、送餐與確認的內容，依現場順序集中顯示。</p><span id="receptionStaffDisplay" hidden>尚未選擇</span></div>
-        <button class="reception-auto-state" id="receptionAutoState" type="button">可接待・自動狀態</button>
-      </div>
-      <div class="reception-console">
-        <div class="reception-console-head">
-          <div class="reception-console-actions"><div class="presence-row" id="presenceButtons"><button class="presence-btn" data-presence="available">可接待</button><button class="presence-btn" data-presence="away">暫離</button></div><button class="btn primary" id="claimNextVisit" type="button">接待下一組</button></div>
-        </div>
+        <div class="reception-heading-actions"><button class="btn primary reception-claim-next" id="claimNextVisit" type="button">接待下一組</button></div>
       </div>
       <div class="panel reception-alerts" id="receptionAlerts"><div class="reception-alert-head"><span>目前沒有需要優先處理的工作</span><span id="receptionAlertCount">0 項</span></div><div id="receptionAlertList"></div></div>
       <div class="reception-overview" aria-label="本場接待概況">
