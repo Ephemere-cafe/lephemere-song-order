@@ -1614,19 +1614,21 @@
     var staff=staffRoster[currentStaffId];
     if(!staff){ alert('請先選擇目前操作女僕。'); return Promise.resolve(); }
     if(typeof claimVisitFn!=='function'){ alert('接待功能尚未連線，請重新整理後再試。'); return Promise.resolve(); }
+    var visitId=String(v&&v.id||button&&button.getAttribute&&button.getAttribute('data-claim-visit')||'');
+    if(!visitId){ alert('缺少候位資料，請重新整理後再試。'); return Promise.resolve(); }
     var originalLabel=button?button.textContent:'';
     if(button){button.disabled=true;button.textContent='接待中…';}
-    return claimVisitFn({visitId:v.id,staffId:currentStaffId}).then(function(result){
+    return claimVisitFn({visitId:visitId,staffId:currentStaffId}).then(function(result){
       var data=result&&result.data||{};
       var claimedVisit=data.visit||null;
-      visits[v.id]=Object.assign({},visits[v.id]||v,claimedVisit||{status:'assigned',assignedStaffId:currentStaffId,assignedStaffName:staff.name||'未命名女僕',assignedAt:Date.now(),updatedAt:Date.now()});
-      expandedReceptionVisitId=v.id;
+      visits[visitId]=Object.assign({},visits[visitId]||v,{id:visitId},claimedVisit||{status:'assigned',assignedStaffId:currentStaffId,assignedStaffName:staff.name||'未命名女僕',assignedAt:Date.now(),updatedAt:Date.now()});
+      expandedReceptionVisitId=visitId;
       renderReception();
       setTimeout(function(){
-        var card=document.querySelector('#myVisitList [data-gr-visit="'+CSS.escape(v.id)+'"]');
+        var card=document.querySelector('#myVisitList [data-gr-visit="'+CSS.escape(visitId)+'"]');
         if(card) card.scrollIntoView({behavior:'smooth',block:'start'});
       },0);
-      showCopyToast('已接下 '+(visits[v.id].queueNumber||'這組主人'),true);
+      showCopyToast('已接下 '+(visits[visitId].queueNumber||'這組主人'),true);
     }).catch(function(error){
       console.error('Claim visit failed',error);
       var code=String(error&&error.code||'');
