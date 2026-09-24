@@ -424,6 +424,7 @@
     }
     if(!manager) showReceptionTab();
     else if(document.querySelector('.main-tab.active[data-main="today"]')) showTodayTab();
+    else if(document.querySelector('.main-tab.active[data-main="reception"]')) showReceptionTab();
     syncAccessListListener();
     if(window.GuestRegistry) window.GuestRegistry.refresh();
     if(attached) renderOrders();
@@ -1762,7 +1763,25 @@
   });
   document.addEventListener('click',function(e){
     var copy=e.target.closest('[data-copy-share-code]');if(copy){var code=visitShareCodes[copy.getAttribute('data-copy-share-code')]||'';if(!code)return;navigator.clipboard.writeText(code).then(function(){var old=copy.textContent;copy.textContent='已複製';setTimeout(function(){copy.textContent=old},1200)}).catch(function(){prompt('請複製本桌密碼：',code)});return}
-    var settle=e.target.closest('[data-settle-visit]');if(settle){var visitId=settle.getAttribute('data-settle-visit'),bill=checkoutForVisit(visitId);if(!confirm('確認已收取本桌合計 '+fmtGil(bill.total)+' 嗎？'))return;settle.disabled=true;setVisitPaymentStatusFn({visitId:visitId}).catch(function(err){alert(err.message||'結清狀態更新失敗');settle.disabled=false});return}
+    var settle=e.target.closest('[data-settle-visit]');if(settle){
+      var visitId=settle.getAttribute('data-settle-visit'),bill=checkoutForVisit(visitId);
+      if(!confirm('確認已收取本桌合計 '+fmtGil(bill.total)+' 嗎？'))return;
+      if(typeof setVisitPaymentStatusFn!=='function'){alert('結清功能尚未連線，請重新整理後再試。');return;}
+      var previousLabel=settle.textContent;
+      settle.disabled=true;
+      settle.textContent='處理中…';
+      setVisitPaymentStatusFn({visitId:visitId}).then(function(result){
+        var data=result&&result.data||{},current=visits[visitId]||{};
+        visits[visitId]=Object.assign({},current,{paymentStatus:'settled',paymentAttention:false,settledAt:Number(data.settledAt||Date.now()),updatedAt:Number(data.settledAt||Date.now())});
+        renderReception();
+        showCopyToast('本桌已完成結清',true);
+      }).catch(function(err){
+        alert(err.message||'結清狀態更新失敗');
+        settle.disabled=false;
+        settle.textContent=previousLabel;
+      });
+      return
+    }
   });
   document.getElementById('myVisitList').addEventListener('click',function(e){
     var deliver=e.target.closest('[data-deliver-visit-order]');

@@ -33,7 +33,7 @@
     var copy=identity&&identity.querySelector('.global-identity-copy strong');
     if(copy){
       var now=new Date();
-      copy.textContent=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join(' / ')+'　・　現場工作';
+      copy.textContent=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join(' / ')+'　・　現場';
     }
 
     if(select&&control&&!select.closest('.reference-operator-select')){
@@ -46,7 +46,7 @@
 
     var sidebarOperator=document.createElement('div');
     sidebarOperator.className='sidebar-operator';
-    sidebarOperator.innerHTML='<span class="sidebar-operator-mark">女</span><span><strong id="sidebarOperatorName">尚未選擇</strong><small>本場操作身分</small></span>';
+    sidebarOperator.innerHTML='<span><strong id="sidebarOperatorName">尚未選擇</strong><small>目前操作身分</small></span>';
     if(tabs&&account)tabs.insertBefore(sidebarOperator,account);
 
     function updateOperator(){
@@ -54,6 +54,29 @@
       if(target&&select)target.textContent=select.options[select.selectedIndex]&&select.value?select.options[select.selectedIndex].text:'尚未選擇';
     }
     if(select){select.addEventListener('change',updateOperator);new MutationObserver(updateOperator).observe(select,{childList:true,subtree:true});updateOperator();}
+
+    var managementHome=tabs&&tabs.querySelector('.management-home-tab');
+    var managerRoutes=tabs&&tabs.querySelector('.manager-route-tabs');
+    function updateManagementState(){
+      if(!managementHome||!managerRoutes)return;
+      managementHome.classList.toggle('section-active',!!managerRoutes.querySelector('.main-tab.active'));
+    }
+    if(managerRoutes)new MutationObserver(updateManagementState).observe(managerRoutes,{subtree:true,attributes:true,attributeFilter:['class']});
+    updateManagementState();
+
+    var managementSearch=document.getElementById('operationsHubSearch');
+    if(managementSearch){
+      managementSearch.addEventListener('input',function(){
+        var keyword=this.value.trim().toLowerCase();
+        document.querySelectorAll('#operationsHubGrid .operations-hub-card').forEach(function(card){card.hidden=!!keyword&&card.textContent.toLowerCase().indexOf(keyword)===-1;});
+      });
+    }
+    document.addEventListener('click',function(event){
+      var liveTarget=event.target.closest('[data-live-target]');
+      if(!liveTarget)return;
+      var route=document.querySelector('.main-tab[data-main="'+liveTarget.getAttribute('data-live-target')+'"]');
+      if(route)route.click();
+    });
 
     if(autoState&&consolePanel){
       autoState.setAttribute('type','button');

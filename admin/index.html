@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="admin-workbench-v67.css?v=20260919-v67">
   <link rel="stylesheet" href="admin-theme-toggle.css?v=20260919-v67">
   <link rel="stylesheet" href="admin-redesign-v69.css?v=20260924-v69">
-  <link rel="stylesheet" href="admin-reference-v70.css?v=20260924-v70">
+  <link rel="stylesheet" href="admin-reference-v70.css?v=20260924-v72">
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -65,33 +65,23 @@
 
     <div class="main-tabs" id="mainTabs">
       <span class="main-tab-group-label">現場工作</span>
-      <button type="button" class="main-tab active manager-only" data-main="today" data-manager-only><span class="main-tab-icon">◫</span><span>現場總覽</span></button>
-      <button type="button" class="main-tab" data-main="reception"><span class="main-tab-icon">⌂</span><span>我的現場</span><span class="main-tab-count" id="navReceptionCount" hidden>0</span></button>
+      <button type="button" class="main-tab active" data-main="reception"><span class="main-tab-icon">⌂</span><span>我的現場</span><span class="main-tab-count" id="navReceptionCount" hidden>0</span></button>
       <button type="button" class="main-tab" data-main="polaroid"><span class="main-tab-icon">◎</span><span>拍立得工作</span><span class="main-tab-count" id="navPolaroidCount" hidden>0</span></button>
-      <button type="button" class="main-tab staff-only" data-main="orders" data-staff-completed><span class="main-tab-icon">✓</span><span>今日完成</span></button>
       <button type="button" class="main-tab" data-main="macros"><span class="main-tab-icon">⌘</span><span>快速文字</span></button>
       <button type="button" class="main-tab" data-main="guestbook"><span class="main-tab-icon">✉</span><span>完整留言</span><span class="main-tab-count" id="navGuestbookCount" hidden>0</span></button>
 
-      <details class="main-tab-folder manager-only" data-manager-only open>
-        <summary><span>營運管理</span><small>日常設定</small></summary>
-        <div class="main-tab-folder-items">
-          <button type="button" class="main-tab manager-only" data-main="operations" data-manager-only><span class="main-tab-icon">◇</span><span>本場營業</span></button>
-          <button type="button" class="main-tab manager-only" data-main="menu" data-manager-only><span class="main-tab-icon">☕</span><span>菜單與商品</span></button>
-          <button type="button" class="main-tab manager-only" data-main="staff" data-manager-only><span class="main-tab-icon">♙</span><span>人員與排班</span></button>
-          <button type="button" class="main-tab manager-only" data-main="reservations" data-manager-only><span class="main-tab-icon">□</span><span>預約管理</span><span class="main-tab-count" id="navReservationCount" hidden>0</span></button>
-          <button type="button" class="main-tab manager-only" data-main="payroll" data-manager-only><span class="main-tab-icon">$</span><span>薪資與結算</span></button>
-          <button type="button" class="main-tab manager-only" data-main="access" data-manager-only><span class="main-tab-icon">⚙</span><span>帳號與權限</span></button>
-        </div>
-      </details>
-
-      <details class="main-tab-folder manager-only" data-manager-only>
-        <summary><span>內容與紀錄</span><small>低頻工具</small></summary>
-        <div class="main-tab-folder-items">
-          <button type="button" class="main-tab manager-only" data-main="orders" data-manager-only><span class="main-tab-icon">▤</span><span>訂單紀錄</span><span class="main-tab-count" id="navOrderCount" hidden>0</span></button>
-          <button type="button" class="main-tab manager-only" data-main="site-content" data-manager-only><span class="main-tab-icon">✦</span><span>官網內容</span></button>
-          <button type="button" class="main-tab manager-only" data-main="site" data-manager-only><span class="main-tab-icon">♫</span><span>官網音樂</span></button>
-        </div>
-      </details>
+      <button type="button" class="main-tab management-home-tab manager-only" data-main="today" data-manager-only><span class="main-tab-icon">◇</span><span><b>營運管理</b><small>管理員專用</small></span><span class="management-arrow">→</span></button>
+      <div class="manager-route-tabs" hidden aria-hidden="true">
+        <button type="button" class="main-tab manager-only" data-main="operations" data-manager-only>本場營業</button>
+        <button type="button" class="main-tab manager-only" data-main="menu" data-manager-only>菜單與商品</button>
+        <button type="button" class="main-tab manager-only" data-main="staff" data-manager-only>人員與排班</button>
+        <button type="button" class="main-tab manager-only" data-main="reservations" data-manager-only>預約管理<span class="main-tab-count" id="navReservationCount" hidden>0</span></button>
+        <button type="button" class="main-tab manager-only" data-main="payroll" data-manager-only>薪資與結算</button>
+        <button type="button" class="main-tab manager-only" data-main="orders" data-manager-only>訂單紀錄<span class="main-tab-count" id="navOrderCount" hidden>0</span></button>
+        <button type="button" class="main-tab manager-only" data-main="site-content" data-manager-only>官網內容</button>
+        <button type="button" class="main-tab manager-only" data-main="site" data-manager-only>官網音樂</button>
+        <button type="button" class="main-tab manager-only" data-main="access" data-manager-only>帳號與權限</button>
+      </div>
       <div class="main-tab-account"><span class="access-badge" id="currentAccessBadge">權限確認中</span><button class="btn ghost small" id="adminLogoutBtn">登出</button></div>
     </div>
     <div class="global-identity">
@@ -131,49 +121,32 @@
     </aside>
     <button class="guest-preview-backdrop" id="guestPreviewBackdrop" type="button" aria-label="關閉主人畫面" hidden></button>
 
-    <!-- ============ 今日總覽 ============ -->
+    <!-- ============ 營運管理入口 ============ -->
     <div id="todayTab" class="manager-only" data-manager-only style="display:none;">
-      <div class="today-heading">
-        <div class="page-heading-copy"><span class="page-eyebrow">Today</span><h2>今日總覽</h2><p id="todayOverviewDate">正在整理本場資訊…</p></div>
+      <div class="today-heading operations-hub-heading">
+        <div class="page-heading-copy"><span class="page-eyebrow">Operations</span><h2>營運管理</h2><p>依工作目的進入需要的功能，現場接待畫面只保留女僕當下會使用的操作。</p></div>
         <span class="today-operation-state" id="todayOperationState"><i></i> 狀態確認中</span>
       </div>
-
-      <div class="today-metrics" aria-label="今日營業概況">
-        <button type="button" class="today-metric" data-dashboard-target="reception"><span>正在候位</span><strong id="todayWaitingCount">0</strong><small>組</small></button>
-        <button type="button" class="today-metric" data-dashboard-target="orders"><span>進行中訂單</span><strong id="todayActiveOrderCount">0</strong><small>筆</small></button>
-        <button type="button" class="today-metric" data-dashboard-target="reservations"><span>本場預約</span><strong id="todayReservationCount">0</strong><small>組</small></button>
-        <button type="button" class="today-metric" data-dashboard-target="reception"><span>可接待成員</span><strong id="todayAvailableCount">0</strong><small>位</small></button>
+      <div class="operations-hub-toolbar">
+        <label class="operations-hub-search"><span class="sr-only">搜尋管理功能</span><input id="operationsHubSearch" type="search" placeholder="搜尋功能，例如：菜單、排班、預約、薪資…"></label>
+        <button type="button" class="btn ghost" data-dashboard-target="reception">返回我的現場</button>
       </div>
-
-      <div class="today-grid">
-        <section class="panel today-attention-panel">
-          <div class="today-panel-head"><h3>需要留意</h3><span id="todayAttentionCount">0 項</span></div>
-          <div class="today-attention-list" id="todayAttentionList"><div class="today-empty">目前沒有需要優先處理的項目。</div></div>
-        </section>
-
-        <section class="panel today-duty-panel">
-          <div class="today-panel-head"><h3>今日值班</h3><span id="todayDutyCount">0 位成員</span></div>
-          <div class="today-duty-list" id="todayDutyList"><div class="today-empty">值班資料載入中…</div></div>
-        </section>
-
-        <section class="panel today-shortcuts-panel">
-          <div class="today-panel-head"><h3>快速前往</h3><span>保留原有功能入口</span></div>
-          <div class="today-shortcuts">
-            <button type="button" class="btn ghost" data-dashboard-target="reception">接待下一組</button>
-            <button type="button" class="btn ghost" data-dashboard-target="orders">查看進行中訂單</button>
-            <button type="button" class="btn ghost" data-dashboard-target="reservations">查看預約</button>
-            <button type="button" class="btn ghost" data-dashboard-target="operations">場次管理</button>
-          </div>
-        </section>
-
-        <section class="panel today-check-panel">
-          <div class="today-panel-head"><h3>營業檢查</h3><span id="todayCheckCount">0 / 4</span></div>
-          <div class="today-check-list" id="todayCheckList"></div>
-          <p>依既有 Firebase 資料即時判斷，不會另外儲存或改動營業設定。</p>
-        </section>
+      <div class="operations-hub-grid" id="operationsHubGrid">
+        <button type="button" class="operations-hub-card is-primary" data-dashboard-target="operations"><span class="operations-hub-icon">◉</span><strong>本場營業</strong><small>營業日期、開關、提示音與本場日報集中處理。</small><span class="operations-hub-tags"><i>營業狀態</i><i>提示音</i><i>本場日報</i></span></button>
+        <button type="button" class="operations-hub-card" data-dashboard-target="menu"><span class="operations-hub-icon">☕</span><strong>菜單與商品</strong><small>餐點、圖片、價格、庫存與拍攝商品集中管理。</small><span class="operations-hub-tags"><i>餐點菜單</i><i>拍攝商品</i><i>限量庫存</i></span></button>
+        <button type="button" class="operations-hub-card" data-dashboard-target="staff"><span class="operations-hub-icon">♙</span><strong>人員與排班</strong><small>成員名冊、今日值班、照片與後台帳號權限。</small><span class="operations-hub-tags"><i>今日班表</i><i>成員資料</i><i>照片位置</i></span></button>
+        <button type="button" class="operations-hub-card" data-dashboard-target="reservations"><span class="operations-hub-icon">□</span><strong>預約與接待規則</strong><small>開放日期、預約名單與主人看見的注意事項。</small><span class="operations-hub-tags"><i>開放日期</i><i>預約總覽</i><i>店規</i></span></button>
+        <button type="button" class="operations-hub-card" data-dashboard-target="polaroid"><span class="operations-hub-icon">◎</span><strong>拍攝服務場次</strong><small>當日輪次、接單女僕、名額與全場拍攝進度。</small><span class="operations-hub-tags"><i>場次與輪次</i><i>女僕名額</i><i>全場進度</i></span></button>
+        <button type="button" class="operations-hub-card" data-dashboard-target="payroll"><span class="operations-hub-icon">＄</span><strong>薪資與結算</strong><small>本場收入、分配方式、個人明細與薪資條。</small><span class="operations-hub-tags"><i>本場結算</i><i>個人明細</i><i>薪資條</i></span></button>
+        <button type="button" class="operations-hub-card" data-dashboard-target="site-content"><span class="operations-hub-icon">✦</span><strong>官網內容</strong><small>首頁照片、店歌、拍立得作品集與攝影棚留言。</small><span class="operations-hub-tags"><i>首頁主視覺</i><i>背景音樂</i><i>攝影棚</i></span></button>
+        <button type="button" class="operations-hub-card" data-dashboard-target="orders"><span class="operations-hub-icon">▤</span><strong>紀錄與報表</strong><small>訂單、號碼牌、接待操作與取消紀錄統一查詢。</small><span class="operations-hub-tags"><i>訂單紀錄</i><i>號碼牌紀錄</i><i>操作紀錄</i></span></button>
+        <button type="button" class="operations-hub-card" data-dashboard-target="access"><span class="operations-hub-icon">⚙</span><strong>系統管理</strong><small>帳號權限、連線狀態與需要再次確認的管理功能。</small><span class="operations-hub-tags"><i>權限</i><i>連線狀態</i><i>進階操作</i></span></button>
       </div>
-
-      <button type="button" class="today-recent" id="todayRecentAction" data-dashboard-target="reception"><span>最近操作</span><strong>尚無接待操作紀錄</strong><small>查看接待紀錄 →</small></button>
+      <div class="operations-hub-live-data" hidden>
+        <p id="todayOverviewDate">正在整理本場資訊…</p><span id="todayWaitingCount">0</span><span id="todayActiveOrderCount">0</span><span id="todayReservationCount">0</span><span id="todayAvailableCount">0</span>
+        <span id="todayAttentionCount">0 項</span><div id="todayAttentionList"></div><span id="todayDutyCount">0 位成員</span><div id="todayDutyList"></div><span id="todayCheckCount">0 / 4</span><div id="todayCheckList"></div>
+        <button type="button" id="todayRecentAction" data-dashboard-target="reception"><strong>尚無接待操作紀錄</strong></button>
+      </div>
     </div>
 
     <!-- ============ 我的巨集 ============ -->
@@ -213,7 +186,7 @@
     <!-- ============ 接待候位 ============ -->
     <div id="receptionTab" style="display:none;">
       <div class="page-heading reception-page-heading">
-        <div class="page-heading-copy"><span class="page-eyebrow">Live desk</span><h2><span id="receptionStaffDisplay">尚未選擇</span>，現在先做這件事</h2><p>系統依照新單與等候時間，自動排出桌次工作的下一步。</p></div>
+        <div class="page-heading-copy"><span class="page-eyebrow">Live desk</span><h2>現場</h2><p>需要接待、送餐與確認的內容，依現場順序集中顯示。</p><span id="receptionStaffDisplay" hidden>尚未選擇</span></div>
         <button class="reception-auto-state" id="receptionAutoState" type="button">可接待・自動狀態</button>
       </div>
       <div class="reception-console">
@@ -226,7 +199,7 @@
         <div class="reception-metric priority"><span class="reception-metric-label">現在要處理</span><strong class="reception-metric-value"><span id="receptionWaitingMetric">0</span><small> 件</small></strong></div>
         <div class="reception-metric"><span class="reception-metric-label">我正在接待</span><strong class="reception-metric-value"><span id="receptionActiveMetric">0</span><small> 桌</small></strong></div>
         <div class="reception-metric"><span class="reception-metric-label">待送餐點</span><strong class="reception-metric-value"><span id="receptionAvailableMetric">0</span><small> 張</small></strong></div>
-        <div class="reception-metric"><span class="reception-metric-label">今日已完成</span><strong class="reception-metric-value"><span id="receptionAlertMetric">0</span><small> 件</small></strong></div>
+        <button type="button" class="reception-metric reception-metric-link" data-live-target="orders" aria-label="查看今日已完成訂單"><span class="reception-metric-label">今日已完成</span><strong class="reception-metric-value"><span id="receptionAlertMetric">0</span><small> 件</small></strong></button>
       </div>
       <div class="reception-grid">
         <section class="reception-column my-visits-column"><div class="reception-column-title"><span>目前桌次</span><span class="reception-count" id="myVisitCount">0</span></div><div id="myVisitList"></div></section>
@@ -1004,7 +977,7 @@
 <script src="guest-actions.js?v=20260908-v21"></script>
 <script src="guest-local.js?v=20260908-v21"></script>
 <script src="guest-registry.js?v=20260913-v31"></script>
-<script src="admin.js?v=20260924-v70"></script>
+<script src="admin.js?v=20260924-v72"></script>
 <script src="site-content-admin.js?v=20260826a"></script>
 <script src="guestbook-admin.js?v=20260910-v25"></script>
 <script src="studio-admin.js?v=20260909-v22"></script>
@@ -1012,7 +985,7 @@
 <script src="schedule.js?v=56"></script><script src="polaroid-admin.js?v=20260919-v67"></script>
 <script src="admin-theme-toggle.js?v=20260919-v67"></script>
 <script src="admin-redesign-v69.js?v=20260924-v69"></script>
-<script src="admin-reference-v70.js?v=20260924-v70"></script>
+<script src="admin-reference-v70.js?v=20260924-v72"></script>
 
 </body>
 </html>
