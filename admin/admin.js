@@ -1126,13 +1126,17 @@
     var dining=ordersForVisit(visitId).filter(function(order){return order.status!=='cancelled';});
     var diningTotal=dining.reduce(function(sum,order){return sum+Number(order.total||0);},0);
     var photo=window.LephemerePolaroidCheckout?window.LephemerePolaroidCheckout(visitId):{orderCount:0,itemCount:0,total:0,items:[]};
-    return {diningOrders:dining.length,diningTotal:diningTotal,photoOrders:Number(photo.orderCount||0),photoItems:Number(photo.itemCount||0),photoTotal:Number(photo.total||0),photoDetails:photo.items||[],total:diningTotal};
+    var photoTotal=Number(photo.total||0);
+    return {diningOrders:dining.length,diningTotal:diningTotal,photoOrders:Number(photo.orderCount||0),photoItems:Number(photo.itemCount||0),photoTotal:photoTotal,photoDetails:photo.items||[],total:diningTotal+photoTotal};
   }
 
+  function photoCheckoutStatus(status){return{pending:'等待拍攝',shooting:'拍攝中',completed:'已完成',delivered:'已完成並交付',deferred:'暫時跳過',no_show:'客人暫時未到'}[status]||'等待處理';}
+
   function checkoutHtml(visitId){
-    var bill=checkoutForVisit(visitId),visit=visits[visitId]||{};if(!bill.diningOrders)return'';
+    var bill=checkoutForVisit(visitId),visit=visits[visitId]||{};if(!bill.diningOrders&&!bill.photoItems)return'';
     var status=visit.paymentAttention===true?'<strong class="payment-attention">⚠ 結清後有新增訂單</strong>':(visit.paymentStatus==='settled'?'<strong class="payment-settled">✓ 已結清</strong>':'<span>尚未結清</span>'),label=visit.paymentAttention===true?'再次結清':(visit.paymentStatus==='settled'?'重新確認結清':'標記已結清');
-    return '<section class="visit-checkout"><div class="visit-checkout-title"><span>TABLE・本桌狀態</span><strong>'+fmtGil(bill.diningTotal)+'</strong><small>仍可加點</small></div><h3>'+bill.diningOrders+' 張餐點訂單</h3><p>餐點應收 '+fmtGil(bill.diningTotal)+'<br>結清狀態 '+(visit.paymentStatus==='settled'?'已結清':'尚未結清')+'</p><div class="payment-row">'+status+'<button type="button" class="btn ghost small" data-settle-visit="'+escapeAttr(visitId)+'">'+label+'</button></div><small class="visit-checkout-note">拍立得由獨立工作區處理，不列入本桌餐點收款。</small></section>';
+    var photoDetails=bill.photoDetails.length?'<div class="visit-checkout-details">'+bill.photoDetails.map(function(item){return'<div class="visit-checkout-photo"><span><b>'+escapeHtml(item.productName||'拍攝／紀念服務')+'</b><small>'+escapeHtml(item.memberLabel||'本桌主人')+'・'+escapeHtml(photoCheckoutStatus(item.status))+'</small></span><strong>'+fmtGil(Number(item.price||0))+'</strong></div>'}).join('')+'</div>':'';
+    return '<section class="visit-checkout"><div class="visit-checkout-title"><span>TABLE・本桌應收</span><strong>'+fmtGil(bill.total)+'</strong><small>仍可加點</small></div><h3>餐點＋拍攝／紀念服務</h3><div class="visit-checkout-values"><span>餐點小計<b>'+fmtGil(bill.diningTotal)+'</b></span><span>拍攝服務小計<b>'+fmtGil(bill.photoTotal)+'</b></span></div>'+photoDetails+'<div class="payment-row">'+status+'<button type="button" class="btn ghost small" data-settle-visit="'+escapeAttr(visitId)+'">'+label+'</button></div><small class="visit-checkout-note">結清金額已包含餐點與拍攝／紀念服務；新增任何訂單後會再次提醒結清。</small></section>';
   }
 
   function specialAssignmentPlan(visitId){
@@ -1197,9 +1201,9 @@
   }
 
   function guestOrdersHtml(v,isMine){
-    var linked=ordersForVisit(v.id);
-    if(!linked.length) return '<div class="guest-order-empty">目前尚未送出訂單</div>';
-    return linked.map(function(o){
+    var linked=ordersForVisit(v.id),diningOrders=linked.filter(function(order){return order.status!=='cancelled'&&(order.items||[]).some(function(item){return !standaloneSpecialType(item);});});
+    if(!diningOrders.length) return '<div class="guest-order-empty">目前尚未送出餐點訂單</div>';
+    var rows=diningOrders.map(function(o){
       var diningItems=(o.items||[]).filter(function(item){return !standaloneSpecialType(item);});
       if(!diningItems.length) return '';
       var items=diningItems.map(function(item){
@@ -1215,7 +1219,11 @@
       var deliver=isMine&&hasDining&&o.status!=='completed'&&o.status!=='cancelled'
         ? '<button type="button" class="btn primary small guest-order-deliver" data-deliver-visit-order="'+escapeAttr(o.id)+'">餐點已送達</button>' : '';
       return '<div class="guest-order"><div class="guest-order-top"><span>#'+escapeHtml(o.orderNumber||'—')+'・'+escapeHtml(STATUS_LABEL[o.status]||o.status||'處理中')+'</span><span class="'+(overdue?'guest-order-alert':'')+'">'+(overdue?'待處理 '+waitMinutes(o.createdAt)+' 分':'')+(o.total?' '+fmtGil(o.total):'')+'</span></div><div class="guest-order-items">'+(items||'未列出品項')+(specialText?'<br>'+escapeHtml(specialText):'')+'</div>'+deliver+'</div>';
-    }).filter(Boolean).join('')||'<div class="guest-order-empty">目前尚未送出餐點訂單</div>';
+    }).filter(Boolean).join('');
+    var allDelivered=diningOrders.every(function(order){return order.status==='completed';});
+    if(!allDelivered)return rows;
+    var total=diningOrders.reduce(function(sum,order){return sum+Number(order.total||0);},0);
+    return '<details class="guest-order-archive"><summary><span><strong>已送達餐點</strong><small>'+diningOrders.length+' 張訂單・點擊展開品項</small></span><b>'+fmtGil(total)+'<i>⌄</i></b></summary><div class="guest-order-archive-body">'+rows+'</div></details>';
   }
 
   function visitRoundIsComplete(v,linkedOrders){
