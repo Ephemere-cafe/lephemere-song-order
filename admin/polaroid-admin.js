@@ -35,15 +35,16 @@
   function dueNotificationState(t){if(!t.lastDueNotifiedAt)return{label:'尚未發送到時提醒',outdated:false};var id=activeRound(t),outdated=id!==(t.lastDueNotifiedRoundId||''),time=new Date(t.lastDueNotifiedAt).toLocaleString('zh-TW',{timeZone:'Asia/Taipei',hour:'2-digit',minute:'2-digit'});return{label:outdated?'先前提醒屬於其他時段｜請重新確認':('已於 '+time+' 發送到時提醒｜'+(t.lastDueNotifiedByMaidName||staffName(t.lastDueNotifiedByMaidId))),outdated:outdated}}
   function exportTimestamp(value){return value?new Date(value).toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}):'未記錄'}
   function taskStaffNames(t){var names=scheduler.providers(t).map(staffName).filter(Boolean);return names.length?names.join('、'):'未指派'}
+  function exportTasks(){return tasks().filter(function(t){return t.status!=='cancelled'})}
   function buildOrderExport(){
     if(!session)return'';
-    var all=tasks(),active=all.filter(function(t){return t.status!=='cancelled'}),cancelled=all.filter(function(t){return t.status==='cancelled'}),lines=[];
+    var all=exportTasks(),lines=[];
     lines.push('曇時｜拍立得目前訂單');
     lines.push('匯出時間：'+exportTimestamp(timeNow()));
     lines.push('場次：'+(session.title||session.name||sessionId||'未命名場次'));
     lines.push('營業日期：'+(session.businessDate||operation.businessDate||'未設定'));
     lines.push('接單狀態：拍攝'+(session.isOpen!==false&&session.salesOpen!==false&&session.onsiteSalesOpen!==false?'接單中':'已停接')+'／其他服務'+(session.isOpen!==false&&session.salesOpen!==false?'接單中':'已停接'));
-    lines.push('服務統計：共 '+all.length+' 項；進行中 '+active.filter(function(t){return!done(t)}).length+'；已完成 '+active.filter(done).length+'；已取消 '+cancelled.length);
+    lines.push('服務統計：共 '+all.length+' 項；進行中 '+all.filter(function(t){return!done(t)}).length+'；已完成 '+all.filter(done).length);
     lines.push('');
     lines.push('【拍攝輪次】');
     if(!rounds().length)lines.push('- 尚未設定輪次');
@@ -52,7 +53,7 @@
     lines.push('【本場人員】');
     var staffRows=Object.entries(session.maids||{}).filter(function(pair){return pair[1]&&pair[1].enabled!==false});
     if(!staffRows.length)lines.push('- 尚未設定本場人員');
-    staffRows.forEach(function(pair){var m=pair[1]||{},count=active.filter(function(t){return scheduler.providers(t).indexOf(pair[0])!==-1}).length;lines.push('- '+(m.name||staffName(pair[0]))+'｜狀態 '+(m.status||'未設定')+'｜目前訂單 '+count+' 項')});
+    staffRows.forEach(function(pair){var m=pair[1]||{},count=all.filter(function(t){return scheduler.providers(t).indexOf(pair[0])!==-1}).length;lines.push('- '+(m.name||staffName(pair[0]))+'｜狀態 '+(m.status||'未設定')+'｜目前訂單 '+count+' 項')});
     lines.push('');
     lines.push('【目前訂單｜依原始下單時間】');
     if(!all.length)lines.push('- 目前沒有訂單');
@@ -64,7 +65,6 @@
       lines.push('   安排：'+(t.taskType==='delivery'?'完成後交付':(roundId?roundLabel(roundId):'本場未完成／待安排'))+'｜負責：'+taskStaffNames(t));
       if(t.taskType==='shoot')lines.push('   通知：'+notice.label+'｜到時提醒：'+dueNotice.label);
       if(t.managerNote)lines.push('   店長備註：'+String(t.managerNote).replace(/[\r\n]+/g,' '));
-      if(t.status==='cancelled')lines.push('   取消原因：'+(t.cancelReason||t.managerNote||'未記錄'));
     });
     return lines.join('\n');
   }
@@ -72,7 +72,7 @@
     var status=el('polaroidCopyOrdersStatus'),button=el('polaroidCopyOrders'),text=buildOrderExport();
     if(!text){status.textContent='尚未建立本場設定，沒有可複製的訂單。';return}
     button.disabled=true;
-    try{await navigator.clipboard.writeText(text);status.textContent='已複製 '+tasks().length+' 項目前訂單，可直接貼上。'}catch(_){var box=document.createElement('textarea');box.value=text;box.setAttribute('readonly','');box.style.position='fixed';box.style.opacity='0';document.body.appendChild(box);box.select();try{if(!document.execCommand('copy'))throw new Error('copy failed');status.textContent='已複製 '+tasks().length+' 項目前訂單，可直接貼上。'}catch(__){status.textContent='瀏覽器未允許自動複製，請重新整理後再試。'}finally{box.remove()}}finally{button.disabled=false}
+    try{await navigator.clipboard.writeText(text);status.textContent='已複製 '+exportTasks().length+' 項目前訂單，可直接貼上。'}catch(_){var box=document.createElement('textarea');box.value=text;box.setAttribute('readonly','');box.style.position='fixed';box.style.opacity='0';document.body.appendChild(box);box.select();try{if(!document.execCommand('copy'))throw new Error('copy failed');status.textContent='已複製 '+exportTasks().length+' 項目前訂單，可直接貼上。'}catch(__){status.textContent='瀏覽器未允許自動複製，請重新整理後再試。'}finally{box.remove()}}finally{button.disabled=false}
   }
   function taskHtml(t){
     var id=activeRound(t),attrs=' data-order="'+esc(t.orderId)+'" data-task="'+esc(t.taskId)+'" data-maid="'+esc(t.maidId)+'"',actions='';
