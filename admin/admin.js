@@ -1209,7 +1209,7 @@
       if(!diningItems.length) return '';
       var items=diningItems.map(function(item){
         var assigned=itemAssignmentSummary(item);
-        return escapeHtml(item.name||'品項')+' × '+Number(item.qty||1)+(assigned?'〔'+escapeHtml(assigned)+'〕':'');
+        return escapeHtml(item.name||'品項')+' × '+Number(item.qty||1)+(item.addon?'（＋'+escapeHtml(item.addon.label)+' × '+Number(item.qty||1)+'）':'')+(assigned?'〔'+escapeHtml(assigned)+'〕':'');
       }).join('、');
       var overdue=o.status==='pending' && waitMinutes(o.createdAt)>=10;
       var specialText=collectSpecialTasks(o.items||[]).filter(function(task){return task.type!=='polaroid'&&task.type!=='lens';}).map(function(task){
@@ -1843,10 +1843,19 @@
       settle.disabled=true;
       settle.textContent='處理中…';
       setVisitPaymentStatusFn({visitId:visitId}).then(function(result){
-        var data=result&&result.data||{},current=visits[visitId]||{};
-        visits[visitId]=Object.assign({},current,{paymentStatus:'settled',paymentAttention:false,settledAt:Number(data.settledAt||Date.now()),updatedAt:Number(data.settledAt||Date.now())});
+        var data=result&&result.data||{};
+        if(data.ok!==true) throw new Error('結清狀態尚未保存，請重新確認。');
+        return visitsRef.child(visitId).once('value');
+      }).then(function(snapshot){
+        var saved=snapshot.val();
+        if(!saved) throw new Error('找不到本桌資料，請重新整理後確認。');
+        var current=visits[visitId]||{};
+        if(Number(saved.updatedAt||0)>=Number(current.updatedAt||0)) visits[visitId]=saved;
+        var latest=visits[visitId]||saved;
         renderReception();
-        showCopyToast('本桌已完成結清',true);
+        if(latest.paymentAttention===true) showCopyToast('結清後有新增訂單，請再次確認本桌金額',false);
+        else if(latest.paymentStatus==='settled') showCopyToast('本桌已完成結清',true);
+        else throw new Error('結清狀態尚未保存，請重新確認。');
       }).catch(function(err){
         alert(err.message||'結清狀態更新失敗');
         settle.disabled=false;
@@ -2480,22 +2489,6 @@
     renderSpecialServiceWorkspace();
   });
 
-  function specialTagsHtml(order){
-    var tags = collectSpecialTags(order.items||[]).filter(function(tag){ return tag.key==='magic'; });
-    if(!tags.length) return '';
-    var states = order.specialServices || {};
-    return '<div class="special-service-list">'+tags.map(function(tag){
-      var current = states[tag.key] && states[tag.key].status || 'pending';
-      return '<div class="special-service-row '+(current==='completed'?'is-completed':'')+'">'
-        +'<span class="special-tag '+tag.key+'">'+tag.label+'</span>'
-        +'<select data-special-progress="'+order.id+'" data-special-key="'+tag.key+'" aria-label="'+tag.label+'進度">'
-        +'<option value="pending" '+(current==='pending'?'selected':'')+'>待處理</option>'
-        +'<option value="in_progress" '+(current==='in_progress'?'selected':'')+'>進行中</option>'
-        +'<option value="completed" '+(current==='completed'?'selected':'')+'>已完成</option>'
-        +'</select></div>';
-    }).join('')+'</div>';
-  }
-
   function applyStockDelta(reservations, direction){
     var keys = Object.keys(reservations || {});
     if(!keys.length) return Promise.resolve();
@@ -2656,7 +2649,7 @@
       var elapsedHtml = (o.status==='pending' || o.status==='preparing' || o.status==='served') && elapsedStart
         ? '<span class="order-elapsed" data-elapsed-start="'+elapsedStart+'" data-elapsed-status="'+o.status+'"></span>'
         : '';
-      var tagsHtml = specialTagsHtml(o);
+      var tagsHtml = ''; // 魔法只保留訂單明細，不另設進度確認。
       var safeStatus = STATUS_LABEL[o.status] ? o.status : 'pending';
 
       var assignedId = o.assignedStaffId || '';
@@ -2709,7 +2702,7 @@
         +'</details>';
 
       var working=o.status==='pending'||o.status==='preparing'||o.status==='served',expanded=Object.prototype.hasOwnProperty.call(orderDetailState,o.id)?orderDetailState[o.id]:working;
-      var itemSummary=regularItems.map(function(it){return escapeHtml(it.name)+' × '+escapeHtml(String(Number(it.qty)||0))}).join('・')||'特殊服務訂單';
+      var itemSummary=regularItems.map(function(it){return escapeHtml(it.name)+' × '+escapeHtml(String(Number(it.qty)||0))+(it.addon?'（＋'+escapeHtml(it.addon.label)+' × '+escapeHtml(String(Number(it.qty)||0))+'）':'')}).join('・')||'特殊服務訂單';
       var moreActionsHtml=secondaryActionsHtml?'<details class="order-more-actions"><summary>更多操作</summary><div class="order-actions">'+secondaryActionsHtml+'</div></details>':'';
       html += '<article class="order-card order-card-v58 '+(expanded?'is-expanded':'is-collapsed')+'" data-order-card="'+o.id+'">'
         +'<div class="order-card-summary">'
@@ -2730,17 +2723,6 @@
 
     el.querySelectorAll('[data-toggle-order-details]').forEach(function(btn){
       btn.addEventListener('click',function(){var id=btn.getAttribute('data-toggle-order-details'),card=btn.closest('[data-order-card]'),detail=card&&card.querySelector('.order-card-detail'),expanded=btn.getAttribute('aria-expanded')==='true';if(!card||!detail)return;orderDetailState[id]=!expanded;btn.setAttribute('aria-expanded',String(!expanded));btn.textContent=expanded?'展開':'收合';detail.hidden=expanded;card.classList.toggle('is-expanded',!expanded);card.classList.toggle('is-collapsed',expanded)});
-    });
-
-    el.querySelectorAll('[data-special-progress]').forEach(function(select){
-      select.addEventListener('change', function(){
-        var id = select.getAttribute('data-special-progress');
-        var key = select.getAttribute('data-special-key');
-        ordersRef.child(id).child('specialServices').child(key).update({
-          status: select.value,
-          updatedAt: Date.now()
-        });
-      });
     });
 
     el.querySelectorAll('[data-assignee]').forEach(function(select){
