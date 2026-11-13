@@ -3545,7 +3545,9 @@
         + '<input class="wide" type="url" data-staff-field="threads" value="'+escapeAttr(s.threads || '')+'" placeholder="Threads 網址（選填）">'
         + '</div><div class="staff-editor-actions">'
         + '<button class="btn primary small" data-save-staff="'+k+'">儲存修改</button>'
-        + '<button class="btn ghost small" data-photo-staff="'+k+'">設定頭貼</button>'
+        + '<button class="btn ghost small" data-photo-staff="'+k+'">設定成員照</button>'
+        + '<button type="button" class="btn ghost small" data-chibi-staff="'+k+'">'+(s.chibiPhoto?'更換 Q 版頭貼':'上傳 Q 版頭貼')+'</button>'
+        + (s.chibiPhoto && /^https:\/\//i.test(s.chibiPhoto) ? '<img src="'+escapeAttr(s.chibiPhoto)+'" alt="目前 Q 版頭貼" width="42" height="42" style="object-fit:contain">' : '')
         + '<button class="btn ghost small" data-remove-staff="'+k+'" style="border-color:var(--rose-dim);color:var(--rose);">刪除店員</button>'
         + '</div></div></details>';
     });
@@ -3566,6 +3568,9 @@
     el.querySelectorAll('[data-photo-staff]').forEach(function(btn){
       btn.addEventListener('click', function(){ openPhotoEditor(btn.getAttribute('data-photo-staff')); });
     });
+    el.querySelectorAll('[data-chibi-staff]').forEach(function(btn){
+      btn.addEventListener('click', function(){ chooseStaffChibi(btn.getAttribute('data-chibi-staff')); });
+    });
     el.querySelectorAll('[data-remove-staff]').forEach(function(btn){
       btn.addEventListener('click', function(){
         var id = btn.getAttribute('data-remove-staff');
@@ -3573,6 +3578,57 @@
         if(confirm('確定要從名冊刪除「'+name+'」嗎？既有訂單紀錄不會被刪除。')) staffRosterRef.child(id).remove();
       });
     });
+  }
+
+  var staffChibiUploadBusy = false;
+
+  function chooseStaffChibi(staffId){
+    if(!isManager() || !staffRoster[staffId] || staffChibiUploadBusy) return;
+    var picker = document.createElement('input');
+    picker.type = 'file';
+    picker.accept = 'image/png,image/jpeg,image/webp';
+    picker.addEventListener('change', async function(){
+      var file = picker.files[0];
+      if(!file || !isManager() || !staffRoster[staffId] || staffChibiUploadBusy) return;
+      if(!/^image\/(png|jpeg|webp)$/.test(file.type) || file.size > 8 * 1024 * 1024){
+        alert('請選擇 8 MB 以下的 PNG、JPG 或 WebP 圖片。');
+        return;
+      }
+      if(!confirm('將「'+staffRoster[staffId].name+'」的 Q 版頭貼更新到官網出勤和點餐拍攝服務？')) return;
+      staffChibiUploadBusy = true;
+      var preview = URL.createObjectURL(file);
+      try {
+        var image = new Image();
+        image.src = preview;
+        await image.decode();
+        var ratio = Math.min(1, 384 / Math.max(image.naturalWidth, image.naturalHeight));
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * ratio));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * ratio));
+        canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+        var blob = await new Promise(function(resolve){ canvas.toBlob(resolve, 'image/webp', 0.9); });
+        if(!blob || blob.type !== 'image/webp') throw new Error('無法轉換圖片，請改用其他圖片或瀏覽器。');
+        var memberRef = staffRosterRef.child(staffId);
+        if(!(await memberRef.once('value')).exists()) throw new Error('找不到這位店員，請重新整理名冊。');
+        var uploadId = staffRosterRef.push().key;
+        var fileRef = storage.ref('staff-photos/chibi-'+staffId+'-'+uploadId+'.webp');
+        await fileRef.put(blob, {contentType:'image/webp',cacheControl:'public,max-age=86400'});
+        var photoUrl = await fileRef.getDownloadURL();
+        var result = await memberRef.transaction(function(member){
+          if(!member) return;
+          member.chibiPhoto = photoUrl;
+          return member;
+        }, undefined, false);
+        if(!result.committed) throw new Error('找不到這位店員，請重新整理名冊。');
+        alert('Q 版頭貼已儲存。');
+      }catch(error){
+        alert('Q 版頭貼儲存失敗：'+(error.message || '請檢查網路及圖片上傳權限。'));
+      }finally{
+        URL.revokeObjectURL(preview);
+        staffChibiUploadBusy = false;
+      }
+    }, {once:true});
+    picker.click();
   }
 
   var scheduleSaveTimer = null;
