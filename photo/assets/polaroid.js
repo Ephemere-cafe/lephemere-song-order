@@ -18,7 +18,33 @@
   if(prefillShareCode)el('linkShareCode').value=prefillShareCode;
   function show(view){document.querySelectorAll('.view').forEach(function(x){x.hidden=x.id!==view+'View'});document.querySelectorAll('[data-view]').forEach(function(x){x.classList.toggle('active',x.dataset.view===view)});if(view==='orders'){renderOrders();renderReceipt();fetchReceipt(false)}}
   function maidName(id){return session&&session.maids&&session.maids[id]&&session.maids[id].name||''}
-  function maidImageById(id){var m=session&&session.maids&&session.maids[id]||{},name=m.name||'',local=fallback[name];return local?('assets/chibi-cast/'+local):(m.imageUrl||'assets/chibi-cast/mokona.png')}
+  var staffChibiPhotos = Object.create(null);
+  function maidImageById(id){
+    var maid = session && session.maids && session.maids[id] || {};
+    var uploaded = staffChibiPhotos[id];
+    if(uploaded) return uploaded;
+    var local = Object.prototype.hasOwnProperty.call(fallback, maid.name) && fallback[maid.name];
+    return local ? 'assets/chibi-cast/'+local : (maid.imageUrl || 'assets/logo.webp');
+  }
+
+  db.ref('lephemere/staffRoster').on('value', function(snapshot){
+    var roster = snapshot.val() || {};
+    var photos = Object.create(null);
+    Object.keys(roster).forEach(function(id){
+      var photo = String((roster[id] || {}).chibiPhoto || '').trim();
+      if(/^https:\/\//i.test(photo)) photos[id] = photo.replace(/"/g, "%22");
+    });
+    var changed = Object.keys(photos).length !== Object.keys(staffChibiPhotos).length ||
+      Object.keys(photos).some(function(id){ return photos[id] !== staffChibiPhotos[id]; });
+    if(!changed) return;
+    staffChibiPhotos = photos;
+    if(!session) return;
+    renderSession();
+    var example = exampleProductId && productById(exampleProductId);
+    var avatar = example && el('exampleProvider').querySelector('img');
+    var provider = example && list(example.providerIds)[0];
+    if(avatar && provider) avatar.src = maidImageById(provider);
+  });
   function normalizeProducts(){var source=session&&session.products||{},items=Object.keys(source).map(function(id){return Object.assign({id:id},source[id]||{})});if(items.length)return items;return Object.keys(session&&session.maids||{}).map(function(id,index){var m=session.maids[id]||{};return{id:'onsite_'+id.replace(/[.#$\[\]\/]/g,'_'),name:(m.name||'女僕')+'・拍攝服務',category:'拍攝服務',description:'完成登記後，可在「我的拍立得」查看預計拍攝時段。',price:m.price,stock:m.quota,sold:m.sold,perPersonLimit:session.perMaidPerGuestLimit||1,processingMode:'round',providerIds:[id],imageUrl:m.imageUrl,enabled:m.enabled!==false,sortOrder:index*10}})}
   function customerDescription(value){return value==='完成登記後可查看本場拍攝輪次。'?'完成登記後，可在「我的拍立得」查看預計拍攝時段。':value}
   function productById(id){return normalizeProducts().find(function(p){return p.id===id})}
