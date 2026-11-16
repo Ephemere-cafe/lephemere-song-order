@@ -559,7 +559,6 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   var activeVisitSessionId = sessionStorage.getItem('lephemereActiveVisitSessionId') || '';
   var visitRecoveryPending = !!activeVisitId && activeVisitSessionId!==activeVisitId;
   var browseMode = false;
-  var menuSyncTimer = null;
   var menuSyncBusy = false;
   var visitReceipt = null;
   var visitReceiptBusy = false;
@@ -714,18 +713,16 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     });
 
     menuRef.on('value', applyMenuSnapshot, function(){
-      setMenuSyncStatus('菜單暫時無法更新，正在重新整理…', true);
+      setMenuSyncStatus('菜單暫時無法即時更新，請按「立即更新菜單」。', true);
+      refreshMenuSnapshot();
     });
 
-    refreshMenuSnapshot();
-    menuSyncTimer = setInterval(refreshMenuSnapshot, 5000);
-    setInterval(function(){if(activeVisit)fetchVisitTotal(false)},15000);
-    window.addEventListener('focus', refreshMenuSnapshot);
-    window.addEventListener('focus',function(){if(activeVisit)fetchVisitTotal(false)});
-    window.addEventListener('online', refreshMenuSnapshot);
-    document.addEventListener('visibilitychange', function(){
-      if(!document.hidden) refreshMenuSnapshot();
-    });
+    function refreshVisibleVisitTotal(){
+      if(!document.hidden && activeVisit && activeGuestView==='total') fetchVisitTotal(false);
+    }
+    setInterval(refreshVisibleVisitTotal,15000);
+    window.addEventListener('focus',refreshVisibleVisitTotal);
+    document.addEventListener('visibilitychange',refreshVisibleVisitTotal);
   }
 
   function visitDateKey(){
@@ -956,7 +953,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     }
     renderDinerRoster();
     renderCart();
-    fetchVisitTotal(false);
+    if(activeGuestView==='total' && !document.hidden) fetchVisitTotal(false);
     renderOperationStatus();
     renderMenu();
   }
@@ -1631,7 +1628,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 })();
 </script>
 <script src="photo/assets/schedule.js?v=43"></script>
-<script src="assets/guest-photo-native.js?v=20261113-v91"></script>
+<script src="assets/guest-photo-native.js?v=20261116-v93"></script>
 </body>
 </html>
 
