@@ -16,7 +16,7 @@
   var db, storage, functionsClient, retryDiscordNotificationFn, createShareCodeFn, setVisitPaymentStatusFn, claimVisitFn;
   var ordersRef, openDatesRef, reservationsRef, rulesRef, staffRosterRef, todayStaffRef, staffSchedulesRef, menuRef, nextOrderNumberRef, operationStatusRef, dailyReportsRef, adminUsersRef, adminOwnerUidRef, siteMusicRef;
   var visitsRef, visitQueueCounterRef, staffPresenceRef, assignmentHistoryRef;
-  var recentOrdersQuery, ordersQuery, todayVisitsQuery, allVisitsHistoryQuery, currentVisitsBusinessDate = '', visitsRetryTimer = null;
+  var currentOrderScope='', ordersQuery, todayVisitsQuery, allVisitsHistoryQuery, currentVisitsBusinessDate = '', visitsRetryTimer = null;
 
   var orders = {};
   var visits = {};
@@ -555,7 +555,6 @@
     visitQueueCounterRef = db.ref('lephemere/visitQueueCounter');
     staffPresenceRef = db.ref('lephemere/staffPresence');
     assignmentHistoryRef = db.ref('lephemere/assignmentHistory');
-    recentOrdersQuery = ordersRef.orderByChild('createdAt').startAt(Date.now()-30*86400000);
     todayVisitsQuery = null;
 
     db.ref('.info/connected').on('value', function(snap){
@@ -595,6 +594,7 @@
   }
 
   var attached = false;
+  var operationStatusLoaded = false;
   function watchBusinessVisits(date,force){
     if(!visitsRef || !isScheduleDate(date) || (!force&&currentVisitsBusinessDate===date)) return;
     if(visitsRetryTimer){clearTimeout(visitsRetryTimer);visitsRetryTimer=null}
@@ -640,6 +640,18 @@
     renderPayroll();
   }
 
+  function watchCurrentOrders(){
+    var date = currentBusinessDate();
+    var session = operationStatus.sessionId || '';
+    var openedAt = Number(operationStatus.openedAt) || Number((session.match(/-(\d{13})$/)||[])[1]);
+    var start = openedAt > 0 ? openedAt : Date.parse(date+'T00:00:00+08:00');
+    var scope = date+'|'+session+'|'+start;
+    if(scope===currentOrderScope) return;
+    currentOrderScope=scope;
+    orders={};
+    watchOrders(ordersRef.orderByChild('createdAt').startAt(start), 'recent');
+  }
+
   function watchOrders(query, mode){
     if(ordersQuery) ordersQuery.off();
     ordersQuery = query;
@@ -650,30 +662,81 @@
         allOrderHistoryLoaded = true;
         setOrderHistoryStatus('已載入全部歷史訂單', 'ready');
       }else{
-        setOrderHistoryStatus('目前載入近 30 天；點「歷史訂單」可查看更早紀錄', 'ready');
+        setOrderHistoryStatus('歷史訂單僅顯示上一場', 'ready');
       }
     }, function(err){
       console.error('Order sync failed', err);
       if(mode==='all') allOrderHistoryLoaded = false;
+      currentOrderScope='';
       setOrderHistoryStatus('訂單載入失敗，請確認登入權限與連線', 'error');
     });
   }
 
+  var previousHistoryOrders = {};
+  var previousHistoryRequest = null;
+
+  function loadPreviousSession(){
+    if(!currentAuthUser) return Promise.resolve(null);
+    var session = operationStatus.sessionId || '';
+    var date = currentBusinessDate();
+    var key = session+'|'+date;
+    if(previousHistoryRequest && previousHistoryRequest.key===key) return previousHistoryRequest.promise;
+    previousHistoryOrders = {};
+    var start = Number(operationStatus.openedAt) ||
+      Number((session.match(/-(\d{13})$/)||[])[1]) || Date.parse(date+'T00:00:00+08:00');
+    var request = {key:key};
+    previousHistoryRequest = request;
+    request.promise = visitsRef.orderByChild('createdAt').endAt(start-1).limitToLast(1).once('value').then(function(snap){
+      if(previousHistoryRequest!==request) return null;
+      var candidate = null;
+      snap.forEach(function(child){candidate=child.val();});
+      if(!candidate || !candidate.sessionId || candidate.sessionId===session || !isScheduleDate(candidate.businessDate)) return null;
+      return {id:candidate.sessionId,date:candidate.businessDate,end:start-1};
+    });
+    return request.promise;
+  }
+
   function loadAllOrderHistory(){
-    if(!currentAuthUser) return;
-    setOrderHistoryStatus('正在載入全部歷史訂單…', 'loading');
-    watchOrders(ordersRef.orderByChild('createdAt'), 'all');
+    if(!currentAuthUser) return Promise.resolve();
+    setOrderHistoryStatus('正在載入上一場訂單…', 'loading');
+    var locatePrevious = loadPreviousSession();
+    var request = previousHistoryRequest;
+    return locatePrevious.then(function(previous){
+      if(!previous) return {};
+      var start=Date.parse(previous.date+'T00:00:00+08:00');
+      return ordersRef.orderByChild('createdAt').startAt(start).endAt(previous.end).once('value').then(function(snap){
+        var rows={};
+        snap.forEach(function(child){var order=child.val();if(order && order.sessionId===previous.id) rows[child.key]=order;});
+        return rows;
+      });
+    }).then(function(rows){
+      if(previousHistoryRequest!==request) return;
+      previousHistoryOrders=rows;
+      allOrderHistoryLoaded=true;
+      setOrderHistoryStatus('歷史訂單僅顯示上一場', 'ready');
+      renderOrders();
+      if(visitHistoryLoaded) renderVisitHistory();
+    }).catch(function(error){
+      if(previousHistoryRequest!==request) return;
+      previousHistoryRequest=null;
+      console.error('Previous session order sync failed',error);
+      setOrderHistoryStatus('上一場訂單載入失敗，請重新開啟歷史頁。', 'error');
+    });
   }
 
   function attachData(){
     if(attached) return;
     attached = true;
 
-    watchOrders(recentOrdersQuery, 'recent');
 
     watchBusinessVisits(currentBusinessDate());
-    window.addEventListener('focus',function(){if(attached)watchBusinessVisits(currentBusinessDate(),true)});
-    window.addEventListener('online',function(){if(attached)watchBusinessVisits(currentBusinessDate(),true)});
+    function resumeScopedListeners(){
+      if(!attached) return;
+      watchBusinessVisits(currentBusinessDate());
+      if(operationStatusLoaded) watchCurrentOrders();
+    }
+    window.addEventListener('focus',resumeScopedListeners);
+    window.addEventListener('online',resumeScopedListeners);
 
     staffPresenceRef.on('value', function(snap){
       staffPresence = snap.val() || {};
@@ -701,6 +764,8 @@
     });
 
     operationStatusRef.on('value', function(snap){
+      operationStatusLoaded = true;
+      var previousScope=(operationStatus.sessionId||'')+'|'+currentBusinessDate();
       operationStatus = snap.val() || { isOpen:false, businessDate:todayKey() };
       if(!isScheduleDate(operationStatus.businessDate)){
         operationStatus.businessDate = todayKey();
@@ -708,7 +773,18 @@
           operationStatusRef.update({businessDate:operationStatus.businessDate, sessionId:operationStatus.sessionId||('session-'+operationStatus.businessDate+'-'+Date.now()), updatedAt:Date.now()});
         }
       }
+      if(previousScope !== (operationStatus.sessionId||'')+'|'+currentBusinessDate()){
+        previousHistoryRequest=null;
+        previousHistoryOrders={};
+        allOrderHistoryLoaded=false;
+        allVisitHistory={};
+        visitHistoryLoaded=false;
+        if(currentOrderFilter==='history') loadAllOrderHistory();
+        if(document.getElementById('visitHistoryPanel')?.open) loadVisitHistory();
+      }
+      watchCurrentOrders();
       watchBusinessVisits(currentBusinessDate());
+      watchSelectedSchedules();
       renderSystemStatus();
       renderCurrentStaffSelect();
       renderReception();
@@ -748,16 +824,7 @@
       renderStaffCheckList();
     });
 
-    staffSchedulesRef.on('value', function(snap){
-      legacyStaffSchedules = snap.val() || {};
-      rebuildStaffSchedules();
-      renderStaffCheckList();
-      renderCurrentStaffSelect();
-      renderReceptionStaffSelect();
-      renderReception();
-      renderOrders();
-      renderPayroll();
-    });
+    watchSelectedSchedules();
 
     menuRef.on('value', function(snap){
       menuItems = snap.val() || {};
@@ -1689,7 +1756,8 @@
     var host=document.getElementById('visitHistoryList');if(!host)return;
     if(!visitHistoryLoaded){host.innerHTML='<div class="queue-empty">正在載入號碼牌紀錄…</div>';return;}
     var date=document.getElementById('visitHistoryDate').value,status=document.getElementById('visitHistoryStatus').value,term=document.getElementById('visitHistorySearch').value.trim().toLowerCase();
-    var allOrders=Object.keys(orders).map(function(id){return Object.assign({id:id},orders[id]||{});});
+    var historyOrders = Object.assign({}, orders, previousHistoryOrders);
+    var allOrders=Object.keys(historyOrders).map(function(id){return Object.assign({id:id},historyOrders[id]||{});});
     var rows=Object.keys(allVisitHistory).map(function(id){return Object.assign({id:id},allVisitHistory[id]||{});}).filter(function(v){
       if(date&&v.businessDate!==date)return false;if(status&&v.status!==status)return false;
       var related=allOrders.filter(function(o){return o.visitId===v.id;});
@@ -1708,10 +1776,23 @@
   }
 
   function loadVisitHistory(){
-    if(visitHistoryLoaded||!visitsRef)return;
-    if(allVisitsHistoryQuery)allVisitsHistoryQuery.off();allVisitsHistoryQuery=visitsRef.orderByChild('createdAt');
-    allVisitsHistoryQuery.on('value',function(snap){allVisitHistory=snap.val()||{};visitHistoryLoaded=true;renderVisitHistory();},function(err){console.error('Visit history sync failed',err);document.getElementById('visitHistoryList').innerHTML='<div class="queue-empty">號碼牌紀錄載入失敗，請確認登入權限與連線。</div>';});
-    if(!allOrderHistoryLoaded)loadAllOrderHistory();
+    if(visitHistoryLoaded || !visitsRef) return;
+    var locatePrevious=loadPreviousSession();
+    var request=previousHistoryRequest;
+    locatePrevious.then(function(previous){
+      if(!previous) return {};
+      return visitsRef.orderByChild('businessDate').equalTo(previous.date).once('value').then(function(snap){
+        var rows={};
+        snap.forEach(function(child){var visit=child.val();if(visit && visit.sessionId===previous.id) rows[child.key]=visit;});
+        return rows;
+      });
+    }).then(function(rows){
+      if(previousHistoryRequest!==request) return;
+      allVisitHistory=rows;
+      visitHistoryLoaded=true;
+      renderVisitHistory();
+      if(!allOrderHistoryLoaded) loadAllOrderHistory();
+    }).catch(function(err){console.error('Visit history sync failed',err);document.getElementById('visitHistoryList').textContent='上一場號碼牌紀錄載入失敗，請重新開啟。';});
   }
 
   document.getElementById('visitHistoryPanel').addEventListener('toggle',function(){if(this.open)loadVisitHistory();});
@@ -2560,17 +2641,19 @@
     }
     var arr = Object.keys(orders).map(function(id){ var o=orders[id]; o.id=id; return o; });
     var orderCounts={active:0,mine:0,unassigned:0,completed:0,cancelled:0,all:arr.length,history:0};
-    arr.forEach(function(o){var current=orderBelongsToBusiness(o),working=o.status==='pending'||o.status==='preparing'||o.status==='served';if(current&&working)orderCounts.active++;if(current&&working&&currentStaffId&&o.assignedStaffId===currentStaffId)orderCounts.mine++;if(current&&working&&!o.assignedStaffId)orderCounts.unassigned++;if(o.status==='completed')orderCounts.completed++;if(o.status==='cancelled')orderCounts.cancelled++;if(!current)orderCounts.history++});
+    arr.forEach(function(o){var current=orderBelongsToBusiness(o),working=o.status==='pending'||o.status==='preparing'||o.status==='served';if(current&&working)orderCounts.active++;if(current&&working&&currentStaffId&&o.assignedStaffId===currentStaffId)orderCounts.mine++;if(current&&working&&!o.assignedStaffId)orderCounts.unassigned++;if(o.status==='completed')orderCounts.completed++;if(o.status==='cancelled')orderCounts.cancelled++;if(!current && previousHistoryOrders[o.id])orderCounts.history++});
+    orderCounts.history = Object.keys(previousHistoryOrders).length;
     var orderFilterLabels={active:'進行中',mine:'我的訂單',unassigned:'待指派',completed:'已完成',cancelled:'已取消',all:'全部',history:'歷史訂單'};
     document.querySelectorAll('#orderSubTabs [data-filter]').forEach(function(btn){var key=btn.getAttribute('data-filter');btn.textContent=(orderFilterLabels[key]||key)+' '+Number(orderCounts[key]||0)});
 
+    if(currentOrderFilter==='history') arr = Object.keys(previousHistoryOrders).map(function(id){return Object.assign({id:id},previousHistoryOrders[id]);});
     arr = arr.filter(function(o){
       if(currentOrderFilter==='active') return orderBelongsToBusiness(o) && (o.status==='pending' || o.status==='preparing' || o.status==='served');
       if(currentOrderFilter==='mine') return orderBelongsToBusiness(o) && !!currentStaffId && o.assignedStaffId===currentStaffId && (o.status==='pending' || o.status==='preparing' || o.status==='served');
       if(currentOrderFilter==='unassigned') return orderBelongsToBusiness(o) && (o.status==='pending' || o.status==='preparing' || o.status==='served') && !o.assignedStaffId;
       if(currentOrderFilter==='completed') return o.status==='completed';
       if(currentOrderFilter==='cancelled') return o.status==='cancelled';
-      if(currentOrderFilter==='history') return !orderBelongsToBusiness(o);
+      if(currentOrderFilter==='history') return true;
       return true;
     });
     if(orderSearchTerm){
@@ -3510,6 +3593,39 @@
   });
 
   // ---------- staff roster / on-duty ----------
+  var scheduleListeners = new Map();
+  function watchSelectedSchedules(){
+    var editor = document.getElementById('onDutyDate');
+    var dates = new Set([currentBusinessDate(), editor && (editor.value || rememberedScheduleDate())].filter(isScheduleDate));
+    scheduleListeners.forEach(function(entry,date){
+      if(dates.has(date)) return;
+      entry.ref.off('value',entry.listener);
+      scheduleListeners.delete(date);
+      delete legacyStaffSchedules[date];
+    });
+    rebuildStaffSchedules();
+    dates.forEach(function(date){
+      if(scheduleListeners.has(date)) return;
+      var ref=staffSchedulesRef.child(date);
+      var entry={ref:ref,ready:false};
+      entry.listener=function(snap){
+        if(scheduleListeners.get(date)!==entry) return;
+        entry.ready=true;
+        if(snap.exists()) legacyStaffSchedules[date]=snap.val();
+        else delete legacyStaffSchedules[date];
+        rebuildStaffSchedules();
+        renderStaffCheckList();
+        renderCurrentStaffSelect();
+        renderReceptionStaffSelect();
+        renderReception();
+        renderOrders();
+        renderPayroll();
+      };
+      scheduleListeners.set(date,entry);
+      ref.on('value',entry.listener);
+    });
+  }
+
   function rebuildStaffSchedules(){
     staffSchedules = Object.assign({}, legacyStaffSchedules);
   }
@@ -3677,6 +3793,10 @@
     if(!isConfigured) return Promise.resolve();
     rememberScheduleDate(data.date);
     setScheduleSaveStatus('正在同步至所有頁面…', 'saving');
+    if(!scheduleListeners.get(data.date)?.ready){
+      setScheduleSaveStatus('排班尚在讀取，請稍後再儲存', 'error');
+      return Promise.resolve(false);
+    }
     return staffSchedulesRef.child(data.date).set(data).then(function(){
       staffSchedules[data.date] = data;
       setScheduleSaveStatus('已同步至所有頁面', 'saved');
@@ -3784,6 +3904,7 @@
       this.value = selectedDate;
     }
     rememberScheduleDate(selectedDate);
+    watchSelectedSchedules();
     setScheduleSaveStatus('勾選後會自動儲存', '');
     renderStaffCheckList();
   });
