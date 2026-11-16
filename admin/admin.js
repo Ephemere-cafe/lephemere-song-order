@@ -724,6 +724,58 @@
     });
   }
 
+  (function bindOldOrderCleanup(){
+    var previewButton=document.getElementById('previewOldOrderCleanup');
+    var applyButton=document.getElementById('applyOldOrderCleanup');
+    var status=document.getElementById('oldOrderCleanupStatus');
+    var dates=document.getElementById('oldOrderCleanupDates');
+    var plan=null;
+    function setBusy(busy){
+      previewButton.disabled=busy;
+      applyButton.disabled=busy || !plan || !plan.count;
+    }
+    function clearPlan(){ plan=null; dates.replaceChildren(); }
+    previewButton.addEventListener('click',async function(){
+      if(!isManager() || !functionsClient) return;
+      clearPlan();
+      setBusy(true);
+      status.textContent='正在核對舊餐點訂單…';
+      try {
+        var result=await functionsClient.httpsCallable('adminOldOrderCleanup')({action:'preview'});
+        plan=result.data;
+        status.textContent='本場 '+plan.currentDate+'。可永久刪除 '+plan.count+' 筆舊餐點訂單。';
+        plan.dates.forEach(function(day){
+          var item=document.createElement('li');
+          item.textContent=day.date+' · '+day.count+' 筆';
+          dates.appendChild(item);
+        });
+      } catch(error){
+        status.textContent=error.message || '無法取得清除範圍。';
+      } finally { setBusy(false); }
+    });
+    applyButton.addEventListener('click',async function(){
+      if(!isManager() || !functionsClient || !plan || !plan.count) return;
+      var phrase='永久刪除舊餐點訂單';
+      var confirmation=prompt('即將永久刪除 '+plan.count+' 筆餐點訂單。請輸入「'+phrase+'」。');
+      if(confirmation!==phrase) return;
+      var fingerprint=plan.fingerprint;
+      clearPlan();
+      setBusy(true);
+      status.textContent='正在永久刪除舊餐點訂單…';
+      try {
+        var result=await functionsClient.httpsCallable('adminOldOrderCleanup')({action:'apply',fingerprint:fingerprint,confirmation:confirmation});
+        status.textContent='已永久刪除 '+result.data.removedCount+' 筆舊餐點訂單。';
+        previousHistoryRequest=null;
+        previousHistoryOrders={};
+        allOrderHistoryLoaded=false;
+        if(currentOrderFilter==='history') loadAllOrderHistory();
+        if(visitHistoryLoaded) renderVisitHistory();
+      } catch(error){
+        status.textContent=(error.message || '未能確認清除結果。')+' 請重新預覽。';
+      } finally { setBusy(false); }
+    });
+  })();
+
   function attachData(){
     if(attached) return;
     attached = true;
@@ -2632,6 +2684,7 @@
   }
 
   function renderOrders(){
+    document.getElementById('oldOrderCleanupSection').hidden=currentOrderFilter!=='history' || !isManager();
     renderSpecialServiceWorkspace();
     var el = document.getElementById('orderList');
     if(currentOrderFilter==='mine' && !currentStaffId){
