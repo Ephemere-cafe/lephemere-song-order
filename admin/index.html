@@ -258,10 +258,11 @@
 
       <div id="oldOrderCleanupSection" hidden>
         <section class="panel manager-only" data-manager-only aria-labelledby="oldOrderCleanupTitle">
-          <h3 id="oldOrderCleanupTitle">清除舊餐點訂單</h3>
-          <p>打烊後可清除本場以前的餐點訂單，包含上一場。</p>
+          <h3 id="oldOrderCleanupTitle">清除舊營業資料</h3>
+          <p>打烊後可清除本場以前的餐點訂單、拍立得訂單和號碼牌，包含上一場。請先下載備份。</p>
           <div class="row">
             <button type="button" class="btn ghost" id="previewOldOrderCleanup">預覽清除範圍</button>
+            <button type="button" class="btn ghost" id="backupOldOrderCleanup" disabled>下載備份 JSON</button>
             <button type="button" class="btn ghost danger" id="applyOldOrderCleanup" disabled>永久刪除</button>
           </div>
           <p id="oldOrderCleanupStatus" role="status">請先預覽要清除的日期與筆數。</p>
@@ -990,7 +991,7 @@
 <script src="guest-actions.js?v=20260908-v21"></script>
 <script src="guest-local.js?v=20260908-v21"></script>
 <script src="guest-registry.js?v=20260913-v31"></script>
-<script src="admin.js?v=20261116-v94"></script>
+<script src="admin.js?v=20261116-v95"></script>
 <script src="site-content-admin.js?v=20260826a"></script>
 <script src="guestbook-admin.js?v=20260910-v25"></script>
 <script src="studio-admin.js?v=20260909-v22"></script>

@@ -726,50 +726,82 @@
 
   (function bindOldOrderCleanup(){
     var previewButton=document.getElementById('previewOldOrderCleanup');
+    var backupButton=document.getElementById('backupOldOrderCleanup');
     var applyButton=document.getElementById('applyOldOrderCleanup');
     var status=document.getElementById('oldOrderCleanupStatus');
     var dates=document.getElementById('oldOrderCleanupDates');
     var plan=null;
+    var fingerprint='';
     function setBusy(busy){
       previewButton.disabled=busy;
-      applyButton.disabled=busy || !plan || !plan.count;
+      backupButton.disabled=busy || !plan || !plan.count;
+      applyButton.disabled=busy || !fingerprint;
     }
-    function clearPlan(){ plan=null; dates.replaceChildren(); }
+    function clearPlan(){ plan=null; fingerprint=''; dates.replaceChildren(); }
+    function formatCounts(row){
+      return '餐點 '+row.dining+' 筆、拍立得 '+row.photo+' 筆、號碼牌 '+row.visits+' 張';
+    }
+    function saveBackup(backup){
+      var file=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+      var url=URL.createObjectURL(file);
+      var link=document.createElement('a');
+      link.href=url;
+      link.download='lephemere-history-backup-'+backup.exportedAt.replace(/[:.]/g,'-')+'.json';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(function(){URL.revokeObjectURL(url)},30000);
+    }
     previewButton.addEventListener('click',async function(){
       if(!isManager() || !functionsClient) return;
       clearPlan();
       setBusy(true);
-      status.textContent='正在核對舊餐點訂單…';
+      status.textContent='正在核對舊營業資料…';
       try {
-        var result=await functionsClient.httpsCallable('adminOldOrderCleanup')({action:'preview'});
+        var result=await functionsClient.httpsCallable('adminOldOrderCleanup')({action:'history-preview'});
         plan=result.data;
-        status.textContent='本場 '+plan.currentDate+'。可永久刪除 '+plan.count+' 筆舊餐點訂單。';
+        status.textContent='本場 '+plan.currentDate+'。'+(plan.count ? formatCounts(plan.totals)+'，另有 '+plan.totals.related+' 筆連動紀錄。' : '沒有可清除的舊資料。');
         plan.dates.forEach(function(day){
           var item=document.createElement('li');
-          item.textContent=day.date+' · '+day.count+' 筆';
+          item.textContent=day.date+' · '+formatCounts(day);
           dates.appendChild(item);
         });
       } catch(error){
         status.textContent=error.message || '無法取得清除範圍。';
       } finally { setBusy(false); }
     });
-    applyButton.addEventListener('click',async function(){
+    backupButton.addEventListener('click',async function(){
       if(!isManager() || !functionsClient || !plan || !plan.count) return;
-      var phrase='永久刪除舊餐點訂單';
-      var confirmation=prompt('即將永久刪除 '+plan.count+' 筆餐點訂單。請輸入「'+phrase+'」。');
+      fingerprint='';
+      setBusy(true);
+      status.textContent='正在產生備份…';
+      try {
+        var result=await functionsClient.httpsCallable('adminOldOrderCleanup')({action:'history-backup',previewId:plan.previewId});
+        saveBackup(result.data.backup);
+        fingerprint=result.data.fingerprint;
+        status.textContent='已送出備份下載。請確認下載完成後再永久刪除。';
+      } catch(error){
+        status.textContent=error.message || '備份下載失敗，請重新預覽。';
+      } finally { setBusy(false); }
+    });
+    applyButton.addEventListener('click',async function(){
+      if(!isManager() || !functionsClient || !plan || !fingerprint) return;
+      var phrase='永久刪除舊營業資料';
+      var confirmation=prompt('請先確認備份已下載。將刪除 '+formatCounts(plan.totals)+' 及相關紀錄。請輸入「'+phrase+'」。');
       if(confirmation!==phrase) return;
-      var fingerprint=plan.fingerprint;
+      var confirmedFingerprint=fingerprint;
       clearPlan();
       setBusy(true);
-      status.textContent='正在永久刪除舊餐點訂單…';
+      status.textContent='正在永久刪除舊營業資料…';
       try {
-        var result=await functionsClient.httpsCallable('adminOldOrderCleanup')({action:'apply',fingerprint:fingerprint,confirmation:confirmation});
-        status.textContent='已永久刪除 '+result.data.removedCount+' 筆舊餐點訂單。';
+        var result=await functionsClient.httpsCallable('adminOldOrderCleanup')({action:'history-apply',fingerprint:confirmedFingerprint,confirmation:confirmation});
+        status.textContent='已永久刪除 '+formatCounts(result.data.removedTotals)+'，以及 '+result.data.removedTotals.related+' 筆連動紀錄。';
         previousHistoryRequest=null;
         previousHistoryOrders={};
         allOrderHistoryLoaded=false;
+        allVisitHistory={};
         if(currentOrderFilter==='history') loadAllOrderHistory();
-        if(visitHistoryLoaded) renderVisitHistory();
+        if(visitHistoryLoaded) loadVisitHistory();
       } catch(error){
         status.textContent=(error.message || '未能確認清除結果。')+' 請重新預覽。';
       } finally { setBusy(false); }
