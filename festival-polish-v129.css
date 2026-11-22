@@ -1,0 +1,38 @@
+/* One frame family across both schools; edited image composition stays inside it. */
+.festival-collage .member:nth-child(n){margin-top:0}
+.festival-collage .member:nth-child(n) .portrait{transform:none;overflow:hidden;border-radius:100px 100px 16px 16px;aspect-ratio:3/4}
+.festival-collage .member:nth-child(n) .portrait img{border-radius:0}
+.festival-collage #profile-photo{overflow:hidden;border-radius:100px 100px 16px 16px;position:relative;top:auto}
+.festival-collage #profile-photo img{border-radius:0}
+.gallery-controls{display:flex;width:100%;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.festival-photo-choices .gallery-controls button{width:auto;height:auto;min-height:44px;font-size:15px;padding:8px 13px;color:inherit;border:1px solid currentColor;border-radius:24px}
+.gallery-count{font-size:15px}
+.festival-collage .festival-aside{margin-top:24px;margin-bottom:24px}
+.festival-collage .campus-group{position:relative;bottom:auto;left:auto;width:100%;height:auto;transform:none;grid-column:1/-1;margin:24px 0}
+.festival-collage .campus-group img{width:min(100%,720px);height:auto;max-height:360px;object-fit:contain;margin:auto;border-radius:28px}
+.festival-collage .campus-group figcaption{position:static;background:none;color:var(--fp-muted);text-align:center;font-size:15px;margin:12px}
+.festival-collage .chairman-card .chairman-photo:has(.photo-reserved){display:none}
+.festival-collage .chairman-card .chairman-name{margin-top:16px}
+.festival-entry-dialog .entry-photo-column{font-size:16px;line-height:1.85}
+.festival-entry-dialog .entry-photo-column figure img{max-height:300px;object-fit:contain;border-radius:100px 100px 16px 16px}
+.festival-entry-dialog .entry-photo-column figure img[hidden]{display:none!important}
+.festival-entry-dialog .entry-photo-column figcaption strong{display:block;font-size:28px;line-height:1.5;margin-bottom:12px}
+.festival-entry-dialog .entry-photo-column figcaption span{display:block;font-size:15px;line-height:1.8}
+.festival-entry-dialog .entry-photo-column figure{transform:none;background:transparent;padding:0}
+.entry-chairman-more{font-size:16px;min-height:44px;color:inherit;border:1px solid currentColor;background:transparent;border-radius:30px;padding:10px 18px}
+.festival-entry-dialog .entry-copy h2{font-size:clamp(25px,3vw,34px);line-height:1.5}
+.festival-entry-dialog .entry-copy :is(p,li){font-size:18px!important;line-height:1.95}
+.festival-entry-dialog .entry-copy li{padding-top:16px;padding-bottom:16px}
+.festival-entry-dialog .entry-bottom small,.festival-entry-dialog .entry-photo-column figcaption{font-size:15px!important;line-height:1.8}
+.festival-entry-dialog .entry-photo-column blockquote{font-size:19px;line-height:1.9}
+.photo-editor{border-top:1px solid var(--line);margin:18px 0;padding:18px 0;display:grid;gap:14px}
+.photo-editor h4{font-size:18px;margin:0}.photo-editor p{font-size:14px;line-height:1.8;margin:0}
+.editor-photo-frame{aspect-ratio:3/4;width:min(100%,260px);overflow:hidden;border-radius:100px 100px 16px 16px;background:var(--paper)}
+.editor-photo-frame img{width:100%;height:100%;display:block}
+.editor-thumbs{display:flex;gap:8px;flex-wrap:wrap}.editor-thumbs button{width:70px;font-size:13px;padding:4px;border:1px solid var(--line);border-radius:10px}
+.editor-thumbs button[aria-pressed=true]{outline:2px solid #3970ff}.editor-thumbs img{width:100%;height:70px;object-fit:cover}
+.editor-photo-controls{display:flex;gap:10px;flex-wrap:wrap}.editor-photo-controls label{display:grid;grid-template-columns:80px minmax(90px,1fr) 45px;align-items:center;width:100%;font-size:14px;gap:8px}
+#festival-appearance .editor-photo-controls input[type=range]{width:100%;padding:0;min-height:32px}
+.photo-editor button{min-height:40px}.photo-editor select{min-height:44px}
+@media(max-width:680px){.festival-entry-dialog .entry-copy :is(p,li){font-size:17px!important}.festival-collage .festival-aside{display:block!important}.chairman-card{margin-top:24px}.festival-entry-dialog .entry-photo-column figure{max-width:180px;margin:auto}.festival-entry-dialog .entry-photo-column figure img{max-height:180px}}
+@media(max-width:760px){#rules-dialog.festival-entry-dialog{width:calc(100vw - 24px);max-width:calc(100vw - 24px);max-height:90dvh}.festival-entry-dialog .entry-layout{grid-template-columns:minmax(0,1fr);gap:22px;padding:20px}.festival-entry-dialog .entry-photo-column{padding:16px;min-width:0}.festival-entry-dialog .entry-photo-column figure{transform:none}.festival-entry-dialog .entry-copy{min-width:0;overflow-wrap:anywhere}.festival-entry-dialog .entry-copy li{grid-template-columns:26px minmax(0,1fr);gap:10px}.festival-entry-dialog .entry-bottom{flex-wrap:wrap}.festival-entry-dialog .entry-top{padding:12px;font-size:14px}.festival-entry-dialog .entry-top button{min-height:44px}}

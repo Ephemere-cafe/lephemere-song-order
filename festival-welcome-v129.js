@@ -1,0 +1,10 @@
+(()=>{'use strict';function init(){window.FestivalPresentation.load().then(data=>{
+const p=window.FestivalPageSchema.normalize(data.page),main=document.querySelector('.festival-layout'),hero=document.querySelector('.collage-hero'),aside=document.querySelector('.festival-aside'),group=document.querySelector('.campus-group');
+if(hero&&aside)hero.after(aside);if(group){group.classList.add('festival-group-memory');document.getElementById('lineup')?.before(group);}
+const rules=document.getElementById('rules-dialog');if(rules){const column=rules.querySelector('.entry-photo-column');if(column){const img=column.querySelector('img'),caption=column.querySelector('figcaption');if(img){img.hidden=!p.chairmanPhoto;if(p.chairmanPhoto)img.src=p.chairmanPhoto;else img.removeAttribute('src');img.alt=p.chairmanName+'・總執行委員長';}if(caption){const name=document.createElement('strong'),role=document.createElement('span');name.textContent=p.chairmanName;role.textContent=p.chairmanRole;caption.replaceChildren(name,role);}const names=column.querySelector('.entry-school-names');if(names)names.textContent=p.chairmanLabel+'・'+p.chairmanBadge;const quote=column.querySelector('blockquote');if(quote)quote.textContent=p.chairmanClosingQuote;
+const more=document.createElement('button');more.type='button';more.className='entry-chairman-more';more.textContent='認識這位學姊';more.onclick=event=>{event.stopPropagation();rules.close();document.getElementById('chairman-profile')?.showModal();};column.append(more);}
+const title=rules.querySelector('h2');if(title)title.id='rules-title';}
+// Public copy remains editable; only old stock wording is polished.
+const welcome=document.querySelector('.cover-message');if(welcome&&/選一所想支持的學院，再挑選該學院的活動餐點/.test(welcome.textContent))welcome.textContent='今晚，與兩所學院的學生一起度過熱鬧的學園祭。挑選喜愛的餐點，也為心中的學院送上應援。';
+document.querySelectorAll('.preview-label').forEach(n=>n.remove());
+}).catch(()=>{});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();})();

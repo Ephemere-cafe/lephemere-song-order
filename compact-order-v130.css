@@ -1,0 +1,49 @@
+/* Fit the actual ordering task; do not reserve a full-screen poster above the menu. */
+html[data-festival-theme] body.festival-guest-page #wrap{min-height:0!important;max-width:1380px!important;width:calc(100% - 40px)!important;margin:18px auto!important;padding:24px!important;border:0!important;box-shadow:none!important;background:transparent!important}
+.festival-guest-page #visitGate{min-height:0!important;padding:22px!important;border-radius:24px!important;border:1px solid var(--fp-line)!important;background:var(--fp-surface)!important}
+.festival-guest-page .visit-choice-grid{gap:16px!important}
+.festival-guest-page #visitGate .visit-choice{min-height:170px!important;padding:22px!important;border:1px solid var(--fp-line)!important;border-radius:20px!important;background:var(--fp-bg)!important;text-align:left;justify-content:flex-start!important;gap:14px!important}
+.festival-guest-page .visit-choice strong{font-size:21px!important;line-height:1.5!important}
+.festival-guest-page .visit-choice span,.festival-guest-page .visit-help{font-size:16px!important;line-height:1.8!important}
+.festival-guest-page .visit-help{margin-top:18px!important}
+.festival-guest-page #orderFlow{padding:0!important}
+.festival-guest-page #orderFlow .order-heading{margin:0 0 12px!important;padding:0!important;min-height:0!important}
+.festival-guest-page #orderFlow .order-heading h2{font-size:28px!important;margin:0!important}
+.festival-guest-page #orderFlow .browse-only-notice{padding:12px 16px!important;margin:0 0 14px!important;border-radius:16px!important}
+.festival-guest-page #festival-order .festival-cover{min-height:0!important;grid-template-columns:minmax(0,1fr) 150px!important;align-items:center;gap:20px!important;padding:12px 0 16px!important;max-height:170px}
+.festival-guest-page #festival-order .festival-cover-copy{gap:7px!important}
+.festival-guest-page #festival-order .festival-cover-copy h2{font-size:30px!important;margin:0!important}
+.festival-guest-page #festival-order .festival-cover-copy p{font-size:16px!important;margin:0!important}
+.festival-guest-page #festival-order .festival-cover-portrait{min-height:130px!important;height:130px!important;transform:none!important;border-radius:24px!important}
+.festival-guest-page #festival-order .festival-cover-portrait strong{position:absolute;bottom:0!important;left:0;right:0;border-radius:0!important;font-size:12px!important;max-width:100%}
+.festival-guest-page #festival-order .festival-cover-portrait>div{top:0;bottom:auto!important;right:0!important}
+.festival-guest-page #festival-order .festival-order-header{margin:0!important;padding:10px 0!important;min-height:0!important}
+.festival-guest-page #festival-order .festival-guest-grid{gap:20px!important;margin-top:14px!important;grid-template-columns:minmax(0,1fr) 280px!important}
+.festival-guest-page #festival-order .festival-guest-menu{min-width:0}
+.festival-guest-page #festival-order .festival-school-sidebar{padding:0!important}
+.festival-guest-page #festival-order .festival-school-sidebar{grid-column:1/-1;display:flex;align-items:center;flex-wrap:wrap;gap:10px 20px;border:0!important}
+.festival-guest-page #festival-order .festival-school-sidebar :is(h2,p){font-size:16px!important;margin:0!important}
+.festival-guest-page #festival-order .festival-guest-menu{grid-column:1;grid-row:2}
+.festival-guest-page #festival-order .festival-receipt{grid-column:2;grid-row:2}
+.festival-guest-page #festival-order #festival-choices{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.festival-guest-page #festival-order #festival-choices[hidden]{display:none}
+.festival-guest-page #festival-order #festival-choices button{font-size:17px!important;padding:10px 16px!important;border:1px solid var(--fp-line)!important;border-radius:26px!important}
+.festival-guest-page #festival-order .festival-receipt{align-self:start;position:sticky;top:100px;padding:20px!important;border:1px solid var(--fp-line)!important;border-radius:20px!important;background:var(--fp-surface)!important}
+.festival-guest-page #festival-items label{padding:16px 4px!important;gap:16px!important;line-height:1.7;font-size:17px}
+.festival-guest-page #festival-service-link{font-size:15px!important;margin:8px 0!important;padding:9px 16px!important}
+.festival-guest-page #festival-order .festival-cover{height:110px!important;max-height:110px!important;padding:0!important;grid-template-columns:minmax(0,1fr) 125px!important}
+.festival-guest-page #festival-order .festival-cover-portrait{height:100px!important;min-height:100px!important}
+.festival-guest-page #festival-order .festival-order-header{display:flex!important;align-items:center;justify-content:flex-start!important;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--fp-line)}
+.festival-guest-page #festival-order .festival-order-header #festival-identity{margin:0!important;flex:1}
+.festival-guest-page #festival-order .festival-order-header .btn{margin:0!important;min-height:40px;padding:8px 14px!important}
+.festival-guest-page #festival-order .festival-school-sidebar{gap:8px 16px;margin:0!important}
+.festival-guest-page #festival-order .festival-school-sidebar .festival-rule{font-size:14px!important;line-height:1.7;margin:0}
+.management-shortcuts{border-bottom:1px solid var(--line);padding:0 0 20px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:10px}
+.management-shortcuts p,.menu-linkage-note{width:100%;font-size:15px;line-height:1.85;margin:0 0 12px}
+#fest-menu-form{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px!important}
+#fest-menu-form[hidden]{display:none!important}#fest-menu-form label{font-size:15px;line-height:1.8;min-width:0}
+#fest-menu-list{list-style:none;padding:0;display:grid;gap:12px}#fest-menu-list li{border:1px solid var(--line);border-radius:14px;padding:16px;font-size:15px;line-height:1.85;display:flex;gap:16px;align-items:center;justify-content:space-between}
+.menu-empty{font-size:16px;padding:18px;background:var(--paper);border:1px dashed var(--line);border-radius:14px}
+.legacy-menu-binding{grid-column:1/-1;padding:16px;border:1px solid var(--line);border-radius:14px}.legacy-menu-binding>summary{cursor:pointer;font-size:15px;min-height:36px}.legacy-menu-binding label{margin-top:12px}
+@media(max-width:760px){html[data-festival-theme] body.festival-guest-page #wrap{width:100%!important;padding:16px!important;margin:0!important}.festival-guest-page #visitGate{padding:16px!important}.festival-guest-page .visit-choice-grid{grid-template-columns:1fr!important}.festival-guest-page #visitGate .visit-choice{min-height:0!important;padding:18px!important}.festival-guest-page #festival-order .festival-cover{grid-template-columns:minmax(0,1fr) 95px!important;gap:12px!important}.festival-guest-page #festival-order .festival-cover-portrait{height:110px!important;min-height:110px!important}.festival-guest-page #festival-order .festival-cover-copy h2{font-size:26px!important}.festival-guest-page #festival-order .festival-guest-grid{grid-template-columns:1fr!important;padding-bottom:0!important}.festival-guest-page #festival-order .festival-receipt{position:static;display:block}.festival-guest-page #festival-order .festival-receipt[hidden]{display:none}.festival-guest-page #festival-order .festival-receipt ul{display:block;max-height:220px;overflow:auto}#fest-menu-form{grid-template-columns:1fr}}
+@media(max-width:760px){.festival-guest-page #festival-order .festival-guest-menu,.festival-guest-page #festival-order .festival-receipt{grid-column:1;grid-row:auto}}

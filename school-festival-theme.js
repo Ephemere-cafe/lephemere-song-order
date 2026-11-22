@@ -2,7 +2,7 @@
 (()=>{
  'use strict';
  const key='ephemereFestivalTheme';
- const palettes={light:{bg:'#f3f7ff',surface:'#ffffff',panel:'#e1ebff',ink:'#142b55',muted:'#475775',line:'#aebfdf',a:'#1245be',b:'#cd3129',aw:'#dfe9ff',bw:'#ffe1dc',button:'#ffffff'},dark:{bg:'#252247',surface:'#332c59',panel:'#403364',ink:'#fff7fb',muted:'#ddcdea',line:'#817098',a:'#f6a66f',b:'#c3b5ff',aw:'#513d42',bw:'#483b67',button:'#252247'}};
+ const palettes={"light":{"bg":"#f5f7fc","surface":"#ffffff","panel":"#e4ebf5","ink":"#213653","muted":"#4b607d","line":"#c7d3e4","a":"#284b80","b":"#9a422e","aw":"#e3eaf5","bw":"#f5e7df","button":"#ffffff"},"dark":{"bg":"#131e31","surface":"#1d2d46","panel":"#253956","ink":"#f0f4fc","muted":"#bac9df","line":"#536884","a":"#b9d4ff","b":"#ffd1ac","aw":"#263c5b","bw":"#493b34","button":"#172238"}};
  let selected='light';try{selected=localStorage.getItem(key)==='dark'?'dark':'light';}catch{}
  function apply(value,persist=false){
   selected=value==='dark'?'dark':'light';const p=palettes[selected];

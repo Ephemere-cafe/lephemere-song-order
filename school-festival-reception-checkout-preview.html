@@ -29,7 +29,7 @@
 <style>#festival-appearance{margin:12px 0}#festival-appearance summary{cursor:pointer;font-weight:700}#festival-appearance form{display:grid;gap:10px;margin-top:10px}#festival-appearance input,#festival-appearance textarea{max-width:100%;font:inherit;color:var(--ink);background:var(--paper)}#festival-appearance-teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}#festival-appearance fieldset{min-width:0;border:1px solid var(--line);padding:10px}#festival-appearance fieldset details{margin-top:8px;padding:6px;border-top:1px solid var(--line)}</style>
 <style>#festival-lucky-roll{margin:12px 0}#festival-lucky-roll summary{cursor:pointer;font-weight:700}#festival-lucky-roll form{margin-bottom:8px}#festival-lucky-roll ul{padding-left:1.3rem}#festival-lucky-roll li{margin:5px 0}#festival-lucky-roll code{font-size:1.25rem}#draw-status,#draw-hit,#draw-cancel-result{margin:8px 0}#draw-work h2{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}</style>
 <style>#festival-menu-editor{margin:12px 0}#festival-menu-editor summary{cursor:pointer;font-weight:700}#fest-menu-form{padding-top:12px;display:flex;gap:12px}#fest-menu-list{padding-left:1.3rem}#fest-menu-list li{margin:4px 0}</style>
-<link rel="stylesheet" href="festival-page-editor.css"><link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="festival-workbench-v121.css?v=121"><script src="festival-workbench-v121.js?v=121"></script><link rel="stylesheet" href="festival-character-ui-v124.css?v=124"></head>
+<link rel="stylesheet" href="festival-page-editor.css"><link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="festival-workbench-v121.css?v=121"><script src="festival-workbench-v121.js?v=121"></script><link rel="stylesheet" href="festival-character-ui-v124.css?v=124"><link rel="stylesheet" href="festival-polish-v129.css?v=129"><script src="festival-photos-v129.js?v=129"></script><script src="festival-photo-editor-v129.js?v=129"></script><link rel="stylesheet" href="compact-order-v130.css?v=130"></head>
 <body class="connected-page"><script>window.SchoolFestivalTheme?.refresh();</script>
 <header class="festival-masthead"><div class="masthead-inner"><strong>曇時學園祭・接待工作台</strong><div class="masthead-tools"><a href="admin/">返回原後台</a><a href="school-festival-roster-arena-preview.html">查看活動首頁</a><button id="festival-theme" type="button" aria-pressed="false">夜間模式</button></div></div></header>
 <main>
@@ -103,7 +103,7 @@
             <input name="prizeId" type="hidden">
             <label>獎品名稱<input name="prizeName" required maxlength="80"></label>
             <label>獎池<select name="pool"><option value="A">曇華女子學院</option><option value="B">曇光女子學院</option><option value="all">全場共同</option></select></label>
-            <label>數量<input name="quantity" required type="number" min="1" max="100" value="1"></label>
+            <label>數量<input name="quantity" required type="number" min="1" max="100" value="1"></label><label>獎品介紹<textarea name="description" maxlength="600"></textarea></label><label>獎品照片網址<input name="photo" type="url" maxlength="700"></label><label>上傳獎品照片<input name="prizeUpload" type="file" accept="image/jpeg,image/png,image/webp,image/avif"></label><label><input name="published" type="checkbox">公開在首頁與點餐頁（測試場不公開）</label>
             <button type="submit" class="primary">儲存獎項</button><button type="button" id="draw-prize-new">新增另一個獎項</button>
           </form>
           <ul id="draw-prize-list"></ul>
@@ -519,11 +519,16 @@ window.addEventListener('DOMContentLoaded', async () => {
         addAppearanceField(member,'角色設定',prefix+'character',row.character,500,'textarea');
         addAppearanceField(member,'自我介紹',prefix+'intro',row.intro,800,'textarea');
         const photo=addAppearanceField(member,'照片網址',prefix+'photo',row.photo,700);
-        addPortraitUpload(member,photo,row.name);
+        // Original single-image uploader replaced by the managed multi-photo editor.
         addAppearanceField(member,'Threads 網址',prefix+'threads',row.threads,500);
         const fit=addAppearanceField(member,'照片顯示方式（cover 裁切／contain 完整）',prefix+'photoFit',row.photoFit || 'cover',10);
         fit.pattern='cover|contain';
-        const focus=addAppearanceField(member,'照片上下焦點（0 頂部～100 底部）',prefix+'photoY',String(row.photoY ?? 28),0,'number');focus.min=0;focus.max=100;
+        const focus=addAppearanceField(member,'照片上下焦點（0 頂部～100 底部）',prefix+'photoY',String(row.photoY ?? 28),0,'number');focus.min=0;focus.max=100;photo.parentElement.hidden=true;fit.parentElement.hidden=true;focus.parentElement.hidden=true;
+        window.FestivalPhotoEditor.mount(member,row,prefix,async file=>{
+          if(role!=='manager'||!functions)throw Error('請以管理員登入。');
+          const revision=authRevision;portraitUploads++;
+          try{const image=await makePortraitData(file);if(revision!==authRevision||role!=='manager')throw Error('登入狀態已變更，請重新載入。');const {data}=await functions.httpsCallable('festivalMemberPhotoV102')({image});if(revision!==authRevision)throw Error('登入狀態已變更。');return data.photo;}finally{portraitUploads--;}
+        },appearanceForm);
         fields.append(member);
       }
       appearanceTeams.append(fields);
@@ -544,11 +549,11 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
   appearanceForm.addEventListener('submit',async event=>{
     event.preventDefault();
-    if(role!=='manager' || !functions || portraitUploads) return;
+    if(role!=='manager' || !functions || portraitUploads || appearanceForm.dataset.galleryUploading) return;
     const fields=new FormData(appearanceForm);
     const presentation={title:fields.get('title'),welcome:fields.get('welcome'),teams:{}};
     for(const key of ['A','B']) {
-      const members=Array.from({length:5},(_,i)=>Object.fromEntries(['name','character','intro','photo','threads','photoFit','photoY'].map(field=>[field,fields.get(key+i+field)]))).filter(row=>row.name.trim());
+      const members=Array.from({length:5},(_,i)=>{const prefix=key+i;const row=Object.fromEntries(['name','character','intro','photo','threads','photoFit','photoY'].map(field=>[field,fields.get(prefix+field)]));row.photos=FestivalPhotos.normalize(JSON.parse(fields.get(prefix+'photos')||'[]'));row.galleryAuto=fields.has(prefix+'galleryAuto');return row;}).filter(row=>row.name.trim());
       presentation.teams[key]={name:fields.get(key+'Name'),color:fields.get(key+'Color'),members};
     }
     const submit=appearanceForm.querySelector('[type=submit]'), revision=authRevision;
@@ -757,7 +762,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             prizeForm.elements.prizeId.value=prize.id;
             prizeForm.elements.prizeName.value=prize.name;
             prizeForm.elements.pool.value=prize.pool;
-            prizeForm.elements.quantity.value=prize.quantity;
+            prizeForm.elements.quantity.value=prize.quantity;prizeForm.elements.description.value=prize.description||"";prizeForm.elements.photo.value=prize.photo||"";prizeForm.elements.published.checked=prize.published===true;
             prizeForm.elements.prizeName.focus();
           }));
         list.append(item);
@@ -817,11 +822,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     prizeForm.addEventListener('submit',event=>{
       event.preventDefault();
       const fields=prizeForm.elements;
-      return run('prize',{id:fields.prizeId.value,name:fields.prizeName.value,pool:fields.pool.value,quantity:Number(fields.quantity.value)},summary=>{
+      return run('prize',{id:fields.prizeId.value,name:fields.prizeName.value,pool:fields.pool.value,quantity:Number(fields.quantity.value),description:fields.description.value,photo:fields.photo.value,published:fields.published.checked},summary=>{
         prizeForm.reset();fields.prizeId.value='';resetRoll();render(summary);
         status.textContent='獎項已儲存。';
       });
     });
+    prizeForm.elements.prizeUpload.addEventListener('change',async()=>{const file=prizeForm.elements.prizeUpload.files?.[0];if(!file||busy||role!=='manager'||!functions)return;const revision=authRevision;busy=true;const submit=prizeForm.querySelector('[type=submit]');submit.disabled=true;try{const image=await makePortraitData(file);if(revision!==authRevision)return;const {data}=await functions.httpsCallable('festivalMemberPhotoV102')({image});if(revision===authRevision){prizeForm.elements.photo.value=data.photo;status.textContent='照片已上傳。儲存獎項並勾選公開後，客人才能看到。';}}catch(e){if(revision===authRevision)status.textContent=e.message||'照片上傳失敗';}finally{if(revision===authRevision){busy=false;submit.disabled=false;}}});
     byId('draw-prize-new').addEventListener('click',()=>{
       if(busy)return;
       prizeForm.reset();prizeForm.elements.prizeId.value='';prizeForm.elements.prizeName.focus();
@@ -1233,5 +1239,5 @@ window.addEventListener('DOMContentLoaded', async () => {
   byId('logout').addEventListener('click', () => auth.signOut().catch(() => setStatus('登出失敗，請重試。')));
 });
 </script>
-<script src="festival-page-schema.js"></script><script src="festival-page-editor.js"></script><script src="festival-character-ui-v124.js?v=124"></script></body>
+<script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema.js?v=132"></script><script src="festival-page-editor.js"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="workbench-menu-v130.js?v=130"></script></body>
 </html>
