@@ -1,0 +1,113 @@
+/* Academy palette shared with the festival landing page; festival preview only. */
+body.festival-design{--academy-active:var(--academy-b);--academy-active-paper:var(--academy-b-paper)}
+body.festival-design[data-active-school=A]{--academy-active:var(--academy-a);--academy-active-paper:var(--academy-a-paper)}
+.festival-design .design-header{border-bottom:1px solid var(--academy-line);background:var(--academy-paper);position:relative}
+.festival-design .design-header:after{content:"";position:absolute;bottom:-4px;left:4vw;right:4vw;height:3px;background:linear-gradient(90deg,var(--academy-a) 0 49%,transparent 49% 51%,var(--academy-b) 51% 100%)}
+.festival-design .design-header nav button{color:var(--academy-ink)}
+.festival-design .design-header nav button.active{color:var(--academy-active);border-color:var(--academy-active)}
+.festival-design .table-identity{background:var(--academy-active-paper);color:var(--academy-active);border:1px solid var(--academy-line)}
+.festival-design .hero-copy h1{color:var(--academy-b)}
+.festival-design .hero-copy p,.festival-design .hero-copy>small{color:var(--academy-muted)}
+.festival-design .design-hero,.festival-design .experience-heading{border-color:var(--academy-line)}
+.festival-design .experience-heading h1,.festival-design .service-employee-heading h2,.festival-design .service-selection-title h2{color:var(--academy-a)}
+.festival-design .experience-heading p,.festival-design .experience-heading>div>span,.festival-design .experience-identity small{color:var(--academy-muted)}
+.festival-design .order-experience{color:var(--academy-ink)}
+.festival-design .experience-identity{color:var(--academy-active)}
+.festival-design .service-employee-picker{border-color:var(--academy-line)}
+.festival-design .service-employee-grid button{background:var(--academy-sheet);border-color:var(--academy-line);color:var(--academy-ink)}
+.festival-design .service-employee-grid button[data-school=A]{border-color:color-mix(in srgb,var(--academy-a) 45%,var(--academy-line));background:color-mix(in srgb,var(--academy-a-paper) 42%,var(--academy-sheet))}
+.festival-design .service-employee-grid button[data-school=B]{border-color:color-mix(in srgb,var(--academy-b) 45%,var(--academy-line));background:color-mix(in srgb,var(--academy-b-paper) 42%,var(--academy-sheet))}
+.festival-design .service-employee-grid button[data-school=A] strong{color:var(--academy-a)}
+.festival-design .service-employee-grid button[data-school=B] strong{color:var(--academy-b)}
+.festival-design .service-employee-grid button[aria-pressed=true]{border-color:var(--academy-active);background:var(--academy-active-paper);box-shadow:inset 0 -3px var(--academy-active);color:var(--academy-active)}
+.festival-design .service-employee-grid button[data-school=A][aria-pressed=true]{border-color:var(--academy-a);background:var(--academy-a-paper);box-shadow:inset 0 -3px var(--academy-a)}
+.festival-design .service-employee-grid button[data-school=B][aria-pressed=true]{border-color:var(--academy-b);background:var(--academy-b-paper);box-shadow:inset 0 -3px var(--academy-b)}
+.festival-design .service-employee-grid small,.festival-design .service-employee-heading p,.festival-design .service-selection-title>span,.festival-design .service-filter p{color:var(--academy-muted)}
+.festival-design .service-employee-all>span:first-child{background:var(--academy-paper);color:var(--academy-a)}
+.festival-design .service-avatar-pending{background:var(--academy-paper);color:var(--academy-muted)}
+.festival-design .service-kind-tabs,.festival-design .consumption-filters{border-color:var(--academy-line)}
+.festival-design .order-experience .service-kind-tabs button,.festival-design .order-experience .consumption-filters button{color:var(--academy-muted)}
+.festival-design .order-experience .service-kind-tabs button[aria-pressed=true],.festival-design .order-experience .consumption-filters button[aria-pressed=true]{background:var(--academy-active-paper);color:var(--academy-active);border-color:var(--academy-active)}
+.festival-design .service-product{border-color:var(--academy-line)}
+.festival-design .service-product h2,.festival-design .consumption-item h2{color:var(--academy-ink)}
+.festival-design .service-product strong,.festival-design .service-product>button{color:var(--academy-active)}
+.festival-design .service-product>button{border-color:var(--academy-active);background:var(--academy-sheet)}
+.festival-design .service-product small,.festival-design .service-product p,.festival-design .service-notes p,.festival-design .service-notes small{color:var(--academy-muted)}
+.festival-design .service-notes figure{background:var(--academy-a-paper)}
+.festival-design .service-notes h2,.festival-design .minimum-note strong{color:var(--academy-a)}
+.festival-design .minimum-note{border-color:var(--academy-line)}
+.festival-design .service-basket,.festival-design .consumption-receipt{background:var(--academy-active-paper);border-color:var(--academy-line);border-top:3px solid var(--academy-active);box-shadow:3px 3px 0 var(--academy-paper)}
+.festival-design .service-basket h2,.festival-design .service-sum strong,.festival-design .consumption-receipt>h2,.festival-design .consumption-receipt .receipt-pending{color:var(--academy-active)}
+.festival-design .service-basket-items>div,.festival-design .service-sum,.festival-design .consumption-receipt .receipt-grand{border-color:color-mix(in srgb,var(--academy-active) 32%,var(--academy-line))}
+.festival-design .service-basket>p,.festival-design .service-basket-items small,.festival-design .service-basket-items>p,.festival-design .consumption-receipt>p{color:#626a69}
+.festival-design .order-experience .experience-primary{background:var(--academy-active);border-color:var(--academy-active);color:white}
+.festival-design .order-experience .experience-text-link{color:var(--academy-active);border-color:var(--academy-active)}
+.festival-design .consumption-record{background:var(--academy-sheet);border-color:var(--academy-line)}
+.festival-design .consumption-record header{color:var(--academy-a);border-color:var(--academy-line)}
+.festival-design .consumption-item strong,.festival-design .consumption-record summary{color:var(--academy-b)}
+.festival-design .payment-label{color:var(--academy-b);background:var(--academy-b-paper)}
+.festival-design .payment-label.is-paid{color:var(--academy-a);background:var(--academy-a-paper)}
+.festival-design .my-ticket-section{border-color:var(--academy-line)}
+.festival-design .my-ticket-section h2,.festival-design .ticket-number-list strong{color:var(--academy-a)}
+.festival-design .ticket-number-list strong{background:var(--academy-sheet);border-color:var(--academy-a)}
+.festival-design .consumption-actions button{border-color:var(--academy-a);color:var(--academy-a);background:var(--academy-sheet)}
+.festival-design #festival-order .festival-team[data-team=A]{color:var(--academy-a);background:var(--academy-a-paper);border-color:var(--academy-a)}
+.festival-design #festival-order .festival-team[data-team=B]{color:var(--academy-b);background:var(--academy-b-paper);border-color:var(--academy-b)}
+.festival-design .school-sidebar h2,.festival-design #chosen-school-title{color:var(--academy-active)}
+.festival-design .festival-guest-menu{background:var(--academy-sheet)!important;border-color:var(--academy-line)!important}
+.festival-design .festival-receipt{background:var(--academy-active-paper)!important;border-color:var(--academy-line)!important;border-top:3px solid var(--academy-active)!important}
+.festival-design .festival-receipt h3,.festival-design #festival-total strong,.festival-design #festival-status b,.festival-design .dish-price{color:var(--academy-active)}
+.festival-design #festival-send{background:var(--academy-active)!important;border-color:var(--academy-active)!important;color:white!important}
+.festival-design .design-quantity button{background:var(--academy-sheet)!important;border-color:var(--academy-line)!important;color:var(--academy-ink)!important}
+.festival-design .order-experience button:focus-visible,.festival-design .order-experience select:focus-visible{outline-color:var(--academy-a)}
+
+/* Applied only when a palette query is explicitly selected. */
+html[data-festival-theme] body{background:var(--fp-bg)!important;color:var(--fp-ink)!important}
+html[data-festival-theme] body .design-header,html[data-festival-theme] body.roster-design>header{background:var(--fp-bg);border-color:var(--fp-line)}
+html[data-festival-theme] body .design-brand,html[data-festival-theme] body.roster-design>header strong{color:var(--fp-ink)}
+html[data-festival-theme] body .hero-copy p,html[data-festival-theme] body .hero-copy>small,html[data-festival-theme] body .hero-portrait>div span,html[data-festival-theme] body .group-caption{color:var(--fp-muted)}
+html[data-festival-theme] body .group-caption{color:white;background:#17232cde}
+html[data-festival-theme] body.roster-design .type-overline,html[data-festival-theme] body.roster-design .cover-message,html[data-festival-theme] body.roster-design .roster-title p,html[data-festival-theme] body.roster-design .chairman-name small{color:var(--fp-muted)!important}
+html[data-festival-theme] body.roster-design .type-cover{background:transparent!important;border-color:var(--fp-line)}
+html[data-festival-theme] body.roster-design .type-dark h1,html[data-festival-theme] body.roster-design .roster-title h2{color:var(--fp-b)!important}
+html[data-festival-theme] body.roster-design .roster-title,html[data-festival-theme] body.roster-design .team-name{border-color:var(--fp-line)}
+html[data-festival-theme] body.roster-design .team-name span,html[data-festival-theme] body.roster-design .team-name h3{color:var(--fp-a)!important}
+html[data-festival-theme] body.roster-design .team.b .team-name span,html[data-festival-theme] body.roster-design .team.b .team-name h3{color:var(--fp-b)!important}
+html[data-festival-theme] body.roster-design .member{border-color:var(--fp-line);background:var(--fp-surface)}
+html[data-festival-theme] body.roster-design .member strong{background:var(--fp-surface);color:var(--fp-ink)!important}
+html[data-festival-theme] body.roster-design .member .portrait{background:var(--fp-aw)!important}
+html[data-festival-theme] body.roster-design .team.b .member .portrait{background:var(--fp-bw)!important}
+html[data-festival-theme] body.roster-design .vs{color:var(--fp-muted)}
+html[data-festival-theme] body.roster-design .vs:before,html[data-festival-theme] body.roster-design .vs:after{background:var(--fp-line)}
+html[data-festival-theme] body.roster-design .aside-block,html[data-festival-theme] body.roster-design .chairman-card{background:var(--fp-panel)!important;border-color:var(--fp-line)!important;box-shadow:3px 3px 0 var(--fp-bg)}
+html[data-festival-theme] body.roster-design .chairman-photo{background:var(--fp-surface);border-color:var(--fp-line)}
+html[data-festival-theme] body.roster-design .chairman-photo .photo-reserved{color:var(--fp-muted)}
+html[data-festival-theme] body.roster-design .chairman-label,html[data-festival-theme] body.roster-design .chairman-role,html[data-festival-theme] body.roster-design .chairman-card blockquote{color:var(--fp-ink);border-color:var(--fp-line)}
+html[data-festival-theme] body.roster-design .chairman-label b{background:var(--fp-a);color:var(--fp-button)}
+html[data-festival-theme] body.roster-design .chairman-name h2,html[data-festival-theme] body.roster-design .chairman-title{color:var(--fp-a)}
+html[data-festival-theme] body.roster-design .chairman-invitation h2,html[data-festival-theme] body.roster-design .chairman-invitation blockquote{color:var(--fp-b);border-color:var(--fp-line)}
+html[data-festival-theme] body.roster-design .aside-block ol,html[data-festival-theme] body.roster-design .invitation-rule{color:var(--fp-ink)}
+html[data-festival-theme] body.roster-design .action.primary,html[data-festival-theme] body.roster-design .aside-order{background:var(--fp-b)!important;border-color:var(--fp-b)!important;color:var(--fp-button)!important}
+html[data-festival-theme] body.roster-design .action:not(.primary),html[data-festival-theme] body.roster-design .aside-link,html[data-festival-theme] body.roster-design .chairman-more{color:var(--fp-a)!important;border-color:var(--fp-line);background:transparent}
+html[data-festival-theme] body.roster-design dialog{background:var(--fp-surface)!important;color:var(--fp-ink);border-color:var(--fp-line)!important}
+html[data-festival-theme] body #rules-dialog .entry-top,html[data-festival-theme] body #rules-dialog .entry-photo-column{background:var(--fp-panel);color:var(--fp-muted);border-color:var(--fp-line)}
+html[data-festival-theme] body #rules-dialog .entry-photo-column figure{background:var(--fp-surface)}
+html[data-festival-theme] body #rules-dialog .entry-school-names,html[data-festival-theme] body #rules-dialog .entry-copy li,html[data-festival-theme] body #rules-dialog .entry-copy h2,html[data-festival-theme] body #chairman-profile h2{color:var(--fp-ink)!important;border-color:var(--fp-line)}
+html[data-festival-theme] body #rules-dialog .entry-welcome,html[data-festival-theme] body #rules-dialog .entry-bottom small,html[data-festival-theme] body #rules-dialog figcaption,html[data-festival-theme] body #chairman-profile p{color:var(--fp-muted)}
+html[data-festival-theme] body #rules-dialog .entry-kicker,html[data-festival-theme] body #rules-dialog blockquote,html[data-festival-theme] body #rules-dialog .entry-copy li:before{color:var(--fp-a);border-color:var(--fp-line)}
+html[data-festival-theme] body #rules-dialog button{background:var(--fp-b);border-color:var(--fp-b);color:var(--fp-button)}
+html[data-festival-theme] body.festival-design .experience-primary,html[data-festival-theme] body.festival-design #festival-send{color:var(--fp-button)!important}
+html[data-festival-theme] body.festival-design .service-basket>p,html[data-festival-theme] body.festival-design .service-basket-items small,html[data-festival-theme] body.festival-design .service-basket-items>p,html[data-festival-theme] body.festival-design .consumption-receipt>p,html[data-festival-theme] body.festival-design .consumption-record footer,html[data-festival-theme] body.festival-design .consumption-item small,html[data-festival-theme] body.festival-design .my-ticket-section p,html[data-festival-theme] body.festival-design .my-ticket-section>span{color:var(--fp-muted)}
+html[data-festival-theme] body.festival-design .service-basket-items button{color:var(--fp-ink);border-color:var(--fp-line);background:var(--fp-surface)}
+html[data-festival-theme] body.festival-design .service-sum,html[data-festival-theme] body.festival-design .consumption-receipt dl{color:var(--fp-ink)}
+html[data-festival-theme] body.festival-design .school-sidebar>small,html[data-festival-theme] body.festival-design .school-sidebar>p,html[data-festival-theme] body.festival-design .school-annotation,html[data-festival-theme] body.festival-design .theme-sample-note{color:var(--fp-muted)!important;border-color:var(--fp-line)}
+html[data-festival-theme] body.festival-design .dish-copy h3{color:var(--fp-ink)!important}
+html[data-festival-theme] body.festival-design .dish-copy p,html[data-festival-theme] body.festival-design .menu-title-sub,html[data-festival-theme] body.festival-design .festival-receipt>p{color:var(--fp-muted)}
+html[data-festival-theme] body.festival-design .dish-image{background:var(--fp-panel);border-color:var(--fp-line)}
+html[data-festival-theme] body.festival-design .service-notes figcaption,html[data-festival-theme] body.festival-design .service-avatar-pending,html[data-festival-theme] body.festival-design .service-person>span{color:var(--fp-muted);background:var(--fp-panel)}
+html[data-festival-theme] body.festival-design .consumption-receipt>span,html[data-festival-theme] body.festival-design .service-basket>span,html[data-festival-theme] body.festival-design .consumption-record header small,html[data-festival-theme] body.festival-design .festival-receipt small,html[data-festival-theme] body.festival-design .festival-receipt>span{color:var(--fp-muted)}
+html[data-festival-theme] body.festival-design .service-person{background:var(--fp-panel)}
+
+
+.festival-theme-toggle{padding:9px 13px!important;min-height:42px;border:1px solid var(--fp-line)!important;background:var(--fp-surface)!important;color:var(--fp-a)!important;font:600 14px/1.5 "Microsoft JhengHei",sans-serif!important;cursor:pointer;border-radius:0!important;white-space:nowrap}.festival-theme-toggle:focus-visible{outline:3px solid var(--fp-a);outline-offset:3px}
+html[data-festival-theme] body.connected-page{background:var(--fp-bg)!important;color:var(--fp-ink)!important}html[data-festival-theme] body.connected-page section,html[data-festival-theme] body.connected-page .page-editor-body{background:var(--fp-surface)!important;color:var(--fp-ink)!important;border-color:var(--fp-line)!important}html[data-festival-theme] body.connected-page .festival-masthead,html[data-festival-theme] body.connected-page .festival-heading{background:var(--fp-panel)!important;color:var(--fp-ink)!important;border-color:var(--fp-line)!important}html[data-festival-theme] body.connected-page :is(input,textarea,select,button){background:var(--fp-surface)!important;color:var(--fp-ink)!important;border-color:var(--fp-line)!important}html[data-festival-theme] body.connected-page button.primary{background:var(--fp-b)!important;color:var(--fp-button)!important}html[data-festival-theme] body.connected-page :is(h1,h2,h3,summary){color:var(--fp-a)!important}html[data-festival-theme] body.connected-page a{color:var(--fp-a)}html[data-festival-theme] body.connected-page fieldset{border-color:var(--fp-line)!important}

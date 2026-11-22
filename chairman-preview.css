@@ -1,0 +1,46 @@
+.roster-design .festival-layout{grid-template-columns:minmax(0,1fr) 310px;gap:22px 28px}
+.roster-design .festival-aside{display:flex;flex-direction:column;gap:19px;align-self:start}
+.roster-design .team.b .member .portrait{height:180px}
+.roster-design .team.b .member .portrait img{object-fit:cover!important;object-position:50% 28%!important}
+.roster-design #school-b .member:nth-child(3) .portrait img{object-fit:contain!important}
+.roster-design .chairman-invitation{padding:18px 20px 20px;box-shadow:3px 3px 0 #e5dbca}
+.roster-design .chairman-invitation h2{font-size:22px!important;margin:0 0 12px}
+.roster-design .chairman-invitation blockquote{font-size:13px;line-height:1.9;margin:0 0 13px;color:var(--rose);padding-bottom:13px;border-bottom:1px solid #d4c3ad}
+.roster-design .chairman-invitation ol{font-size:13px!important;line-height:1.9;margin:0 0 15px}
+.roster-design .chairman-invitation li{font-size:13px!important}
+.roster-design .chairman-invitation .aside-order{margin:0 0 12px;padding:10px 5px;font-size:14px!important}
+.roster-design .chairman-invitation .aside-link{font-size:12px!important}
+.chairman-card{border:1px solid #cbc3b4;background:#f1ece1;padding:17px 19px 16px;border-top:3px solid #7d806b}
+.chairman-label{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#766e5e;margin-bottom:12px}
+.chairman-label b{font-size:10px;font-weight:500;color:#f8f5ec;background:#7d806b;padding:2px 7px}
+.chairman-photo{display:grid;place-items:center;position:relative;overflow:hidden;background:#e3dfd1;border:1px solid #c8c3af;height:117px;width:100%;padding:0;color:#90896f}
+.photo-reserved{z-index:1;font-size:13px!important;text-align:center}.photo-reserved small{display:block;font-size:10px!important;color:#99927e;margin-top:5px}
+.chairman-number{position:absolute;right:8px;bottom:-20px;font:100px Georgia,serif!important;color:#d2cdbd;line-height:1;letter-spacing:-.08em}
+.chairman-name{display:flex;align-items:baseline;gap:12px;margin-top:13px}.roster-design .chairman-name h2{font-size:25px!important;margin:0;color:#615b47}.chairman-name small{font-size:10px!important;color:#8c806d}
+.chairman-title{font-size:14px!important;font-weight:650!important;color:#6c6551;margin:4px 0 0!important}
+.chairman-role{font-size:11px!important;color:#8c806d;margin:3px 0 0!important}
+.chairman-card blockquote{font-size:13px;line-height:1.9;color:#6b604e;padding:12px 0;margin:12px 0 10px;border-block:1px solid #d4ccb9}
+.chairman-more{display:flex;align-items:center;justify-content:space-between;width:100%;padding:0;background:none;border:0;color:#6b624e;font-size:13px!important;text-decoration:underline;text-underline-offset:4px}
+#chairman-profile{width:min(1100px,calc(100vw - 80px));max-width:1100px;max-height:90vh;padding:0;border:1px solid #c2b99e;background:#f7f4ed;color:var(--ink);box-shadow:0 24px 100px #211e2340}
+#chairman-profile::backdrop{background:#26272a9c}
+.chairman-dialog-top{display:flex;justify-content:space-between;align-items:center;padding:15px 25px;border-bottom:1px solid #d3cbb9;background:#eee9dc;font-size:13px;color:#756e5c}
+.chairman-dialog-top button{background:none;border:1px solid #c6bda7;padding:7px 12px;color:#615b47;font-size:13px!important}
+.chairman-profile-layout{display:grid;grid-template-columns:285px minmax(0,1fr);gap:40px;padding:32px 38px}
+.chairman-profile-side{min-width:0}.profile-photo-reserved{height:315px;display:grid;place-items:center;position:relative;overflow:hidden;border:1px solid #cbc4b0;background:#e6e2d4;color:#948a70}
+.profile-photo-reserved span{z-index:1;font-size:15px!important}.profile-photo-reserved b{position:absolute;bottom:-30px;right:-4px;font:180px Georgia,serif!important;color:#d5cfbd;letter-spacing:-.09em;line-height:1}
+.neutral-badge{display:block;text-align:center;padding:10px 5px;background:#7c7c66;color:white;font-size:11px!important;margin-top:12px}
+.chairman-profile-side blockquote{font-size:19px;line-height:1.85;font-weight:600;color:#74634d;margin:26px 0 0;padding-left:15px;border-left:3px solid #b4a88a}
+.profile-role{font-size:12px;color:#8a7c62;letter-spacing:.04em;margin:0 0 7px}.roster-design #chairman-profile-name{font-size:40px!important;margin:0!important;color:#615943;line-height:1.2}.roster-design #chairman-profile-name small{font-size:14px!important;color:#968971;margin-left:16px;font-weight:400!important}
+.profile-talent{font-size:19px!important;font-weight:650!important;color:#6d634f;margin:12px 0 20px!important}.profile-talent span{font-size:12px!important;color:#a39175;font-weight:400;margin-left:12px}
+.chairman-profile-copy dl{display:grid;grid-template-columns:40px 1fr;gap:11px 18px;border-block:1px solid #d6cbb8;padding:16px 0;margin:0 0 20px;font-size:13px;line-height:1.9}
+.chairman-profile-copy dt{color:#9a8d73}.chairman-profile-copy dd{margin:0;color:#665e50}
+.roster-design .chairman-profile-copy h3{font-size:17px!important;color:#6d604c;margin:0 0 10px}
+.chairman-profile-copy>p{font-size:14px!important;line-height:1.9!important;margin:0 0 12px;color:#625b51}
+.profile-ending{border-top:1px solid #d6cbb8;padding-top:17px;font-size:14px;line-height:1.8;font-weight:600;color:#867052;margin:18px 0 0}
+@media(prefers-reduced-motion:reduce){#chairman-profile{animation:none!important}}
+.roster-design #school-b .member:nth-child(1) .portrait img{object-position:50% 10%!important}
+.roster-design #school-b .member:nth-child(2) .portrait img{object-position:50% 8%!important}
+.roster-design #school-b .member:nth-child(4) .portrait img{object-position:50% 20%!important}
+.roster-design #school-b .member:nth-child(5) .portrait img{object-position:50% 0%!important}
+.chairman-profile-copy>p{font-size:15px!important}
+.chairman-profile-copy dl{font-size:14px}

@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>曇時學園祭｜雙校陣容</title>
+<style>
+:root{--paper:#e9e3d5;--ink:#273a42;--muted:#4d5d63;--a:#365b6b;--b:#794b5b;--ap:#c1d2d6;--bp:#e2cbd1;--line:#859196;font:16px/1.55 "Microsoft JhengHei",sans-serif;color:var(--ink);background:#c9cdca}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:repeating-linear-gradient(130deg,transparent 0 42px,#f3ede03b 42px 43px,transparent 43px 53px),linear-gradient(116deg,#9fb6c2,#c7c9c0 49%,#c2a0a9)}
+h1,h2,h3,p{margin:0}
+h1,h2{font-family:"Noto Serif TC","PMingLiU",serif}
+button,a{color:inherit;font:inherit}
+button:focus-visible,a:focus-visible{outline:2px solid #2d586b;outline-offset:3px}
+.shell{max-width:1170px;margin:auto;padding-inline:24px}
+header{background:var(--paper);border-bottom:1px solid #6c818a}
+header .shell{min-height:57px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+header strong{letter-spacing:.13em}
+header nav{display:flex;align-items:center;gap:9px}
+.action{border:1px solid #728893;border-radius:3px;padding:7px 12px;background:#e6e7db;text-decoration:none;cursor:pointer;font-weight:700}
+.action.primary{color:#fff;background:#345667;border-color:#345667}
+main{padding-block:14px 44px}
+.cover{display:grid;grid-template-columns:1.45fr 1fr;overflow:hidden;background:var(--paper);min-height:227px;border:1px solid #778b94;box-shadow:5px 6px #3d5b6633;position:relative}
+.cover::after{content:"";height:7px;background:linear-gradient(90deg,var(--a) 0 48%,#e9e3d5 48% 52%,var(--b) 52%);position:absolute;bottom:0;inset-inline:0}
+.cover-copy{padding:28px 25px 28px 36px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
+.cover-copy h1{font-size:clamp(2.7rem,7vw,5.4rem);line-height:.99;letter-spacing:.04em;margin-bottom:12px;font-weight:900}
+.cover-copy p{color:var(--muted);font-size:1rem}
+.cover-links{display:flex;gap:8px;margin-top:15px;flex-wrap:wrap}
+.cover-photo{position:relative;min-width:0;background:var(--bp)}
+.cover-photo img{position:absolute;inset:0;height:100%;width:100%;object-fit:cover;object-position:center 30%}
+.cover-photo span{position:absolute;bottom:14px;right:10px;padding:4px 8px;color:#fff;background:#283d47;font-size:.78rem}
+.roster{margin-top:21px}
+.roster-title{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:8px}
+.roster-title h2{font-size:1.45rem}
+.roster-title p{font-size:.8rem;color:#374c53}
+.team{--primary:var(--a);--wash:var(--ap);border:1px solid #607b87;background:var(--wash);display:grid;grid-template-columns:105px minmax(0,1fr);padding:9px;gap:11px}
+.team.b{--primary:var(--b);--wash:var(--bp);border-color:#926d77}
+.team-name{display:grid;align-content:center;text-align:center;color:#f6eedc;background:var(--primary);padding:5px;line-height:1.26}
+.team-name span{font:italic 700 2rem Georgia,serif}
+.team-name h3{font-size:.82rem;margin-top:4px}
+.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.member{min-width:0;padding:0;border:1px solid var(--primary);background:#e9e6d9;color:#263b42;cursor:pointer}
+.member:hover{outline:2px solid var(--primary);outline-offset:1px}
+.member .portrait{position:relative;aspect-ratio:3/4;background:linear-gradient(147deg,#f2e9dc44,transparent 70%),var(--wash);display:grid;place-items:center;overflow:hidden}
+.member .portrait img,.profile-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center}
+.member .initial{display:grid;place-items:center;width:41px;height:41px;border:1px solid var(--primary);color:var(--primary);transform:rotate(-6deg);font:700 1.35rem "PMingLiU",serif}
+.member strong{min-height:32px;display:grid;place-content:center;padding:3px 4px;font-size:.82rem;line-height:1.15}
+.vs{display:flex;align-items:center;gap:10px;justify-content:center;color:#374e57;margin:5px 0;font:italic 700 1.02rem Georgia,serif}
+.vs::before,.vs::after{content:"";height:1px;background:#778991;width:80px}
+dialog{color:var(--ink);background:var(--paper);border:1px solid #71868c;max-width:640px;width:calc(100% - 28px);max-height:85vh;padding:0}
+dialog::backdrop{background:#263b46a8}
+dialog form{display:flex;justify-content:flex-end;padding:7px;border-bottom:1px solid #899ba1}
+dialog h2{font-size:1.4rem}
+.profile,.rules{padding:18px}
+.profile{display:grid;grid-template-columns:minmax(100px,1fr) 1.45fr;gap:12px}
+.profile-photo{position:relative;aspect-ratio:3/4;max-height:57vh;background:#b5c7c9;display:grid;place-items:center;align-self:start;overflow:hidden}
+.profile p,.rules p,.rules ul{margin-top:8px}
+.rules ul{padding-left:1.4rem}
+footer{margin-top:17px;text-align:right}
+@media(max-width:690px){.shell{padding-inline:11px}.cover{min-height:168px;grid-template-columns:minmax(0,1.45fr) minmax(105px,1fr)}.cover-copy{padding:14px 10px 13px 13px}.cover-copy h1{font-size:clamp(1.75rem,7vw,3rem)}.cover-copy p{font-size:.8rem}.action{padding:5px 8px;font-size:.8rem}.team{grid-template-columns:1fr;gap:5px;padding:5px}.team-name{display:flex;align-items:center;justify-content:center;gap:6px}.team-name span{font-size:1.1rem}.team-name h3{margin:0}.cards{gap:4px}.member strong{font-size:.69rem}}
+</style>
+<style>
+.cover-copy h1 span+span::before{content:"\200b"}
+.festival-aside{display:grid;align-content:start;gap:11px;margin-top:14px}
+.aside-block{padding:15px;background:#ece6d8;border:1px solid #829096;border-top:3px solid var(--a)}
+.aside-block h2{font-size:1.14rem}.aside-block ol{padding-left:1.25rem;margin:8px 0 12px;font-size:.86rem}.aside-block li+li{margin-top:4px}
+.aside-order{display:block;text-align:center;margin:8px 0}.aside-link{border:0;padding:2px 0;background:transparent;text-decoration:underline;cursor:pointer;text-underline-offset:4px;font-size:.83rem}
+.selected-member{border-top-color:var(--b)}.selected-member p{margin-top:6px;color:var(--muted);font-size:.83rem}.selected-member strong{display:block;margin:2px 0 6px;font-size:1.12rem}
+.member[aria-current="true"]{outline:2px solid var(--primary);outline-offset:-2px}
+  @media(min-width:980px){
+    header .shell,.festival-layout{max-width:none;padding-inline:clamp(12px,2vw,30px)}
+    .festival-layout{display:grid;grid-template-columns:clamp(168px,16.3vw,270px) minmax(0,1fr) clamp(174px,16vw,246px);gap:clamp(9px,1.15vw,18px);min-height:calc(100vh - 58px);min-height:calc(100dvh - 58px);padding-block:12px}
+    .festival-layout>.cover{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(150px,1fr);align-self:stretch;box-shadow:3px 3px #3d5b662b}
+    .cover-copy{padding:14px 11px}.cover-copy h1{font-size:clamp(1.8rem,3.8vw,3.9rem);line-height:1;margin-bottom:8px}.cover-copy h1 span{display:block}.cover-copy h1 span+span::before{content:none}
+    .cover-copy p{font-size:.76rem;line-height:1.45}.cover-links{display:none}
+    .cover-photo img{object-fit:contain;object-position:center}.cover-photo span{right:6px;bottom:10px;font-size:.65rem}
+    .roster{margin:0;min-width:0;display:grid;align-content:center}
+    .roster-title{margin-bottom:5px}.roster-title h2{font-size:1.36rem}.roster-title p{font-size:.75rem}
+    .team{grid-template-columns:minmax(0,1fr);gap:5px;padding:6px}.team-name{display:flex;align-items:center;justify-content:center;gap:7px;padding:3px}.team-name span{font-size:1.05rem}.team-name h3{margin:0;font-size:.77rem}
+    .cards{gap:clamp(3px,.6vw,8px)}.member .portrait{aspect-ratio:auto;height:clamp(62px,calc((100dvh - 254px) / 2),245px)}.member strong{font-size:clamp(.69rem,1vw,.9rem);min-height:27px}.vs{margin:2px 0}
+    .festival-aside{margin:0;align-self:center}.aside-block{padding:11px}.aside-block h2{font-size:1rem}.aside-block ol{font-size:.77rem}
+  }
+  @media(min-width:980px) and (max-height:590px){
+    .festival-layout{padding-block:6px}.cover-copy{padding-block:8px}.cover-copy h1{font-size:1.8rem}.festival-layout>.cover{grid-template-rows:auto minmax(100px,1fr)}.aside-block{padding:8px}
+  }
+</style><style>
+.festival-layout>.type-cover{display:flex;flex-direction:column;justify-content:space-between;gap:14px;min-height:0;padding:14px;container-type:inline-size}
+.type-cover:after{height:4px}
+.type-dark{background:#171819;color:#f1ebdf;border-color:#171819}
+.type-dark .type-main{display:flex;flex-direction:column;align-items:flex-start}
+.type-dark .type-overline{font-size:.82rem;letter-spacing:.13em;margin-bottom:8px;color:#e1d9cc}
+.type-dark h1{font:900 clamp(2.25rem,31cqi,6.4rem)/.93 "Noto Serif TC","Songti TC","PMingLiU",serif;letter-spacing:-.07em;display:grid;width:100%;padding-right:.055em}
+.type-dark h1 span:nth-child(1){font-size:.60em;letter-spacing:.04em;margin-bottom:.12em}
+.type-dark h1 span:nth-child(3){justify-self:end}
+.type-dark .type-bottom{border-top:1px solid #c1b8a1;padding-top:8px;font-size:clamp(.69rem,6.1cqi,.93rem);line-height:1.25;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 5px}
+.type-dark .type-bottom i{grid-row:1/3;grid-column:2;align-self:center;font:italic 700 .9rem Georgia,serif}
+.type-press{background:#e7dfce;color:#273b41;border-color:#798787}
+.press-top{display:flex;justify-content:space-between;gap:3px;font-size:.7rem;border-block:2px solid #354952;padding:5px 0;font-weight:700}
+.type-press h1{font:900 clamp(2.1rem,27cqi,5.6rem)/.97 "Noto Serif TC","Songti TC","PMingLiU",serif;letter-spacing:-.075em}.type-press h1 span{display:block;margin-top:.12em}
+.press-schools{display:grid;grid-template-columns:1fr 1fr auto;gap:5px;flex:1;border-block:3px double #425760;padding-block:7px}
+.press-schools strong{writing-mode:vertical-rl;justify-self:center;font:900 clamp(1.1rem,10cqi,2.15rem)/1.15 "Noto Serif TC","PMingLiU",serif;letter-spacing:.12em}
+.press-schools strong:last-child{color:#734354}.press-schools span{font:italic 700 .75rem Georgia,serif;grid-column:3;grid-row:1}
+.press-links{display:grid;gap:4px;font-size:.77rem}.press-links a{text-underline-offset:3px;color:inherit}
+  @media(min-width:980px){.festival-layout>.type-cover{padding:clamp(9px,1.3vw,19px);min-width:0}.type-dark .type-main{margin-block:auto}}
+  @media(max-width:979px){.festival-layout>.type-cover{gap:7px;padding:10px 13px}.type-dark h1,.type-press h1{display:flex;gap:.06em;align-items:baseline;font-size:clamp(2.1rem,8vw,3.6rem)}.type-dark h1 span:nth-child(1){font-size:inherit;letter-spacing:inherit;margin:0}.type-dark .type-bottom{display:flex;flex-wrap:wrap}.press-schools{display:flex;gap:8px;align-items:center}.press-schools strong{writing-mode:horizontal-tb;font-size:.86rem;letter-spacing:normal}.press-links{display:flex;gap:11px}.type-press h1 span{margin:0}}
+</style><style>
+.action,.aside-link,.member{transition:background-color 150ms ease-out,color 150ms ease-out,box-shadow 150ms ease-out,transform 150ms ease-out}
+.action:hover{background:#d5e0dd;box-shadow:0 2px 0 #68868e55}.action.primary:hover{color:#fff;background:#274653}
+.action:active,.member:active{transform:translateY(1px)}.aside-link:hover{color:#537e88}
+@keyframes festival-dialog-in{from{opacity:0;transform:translateY(8px) scale(.986)}to{opacity:1;transform:none}}
+@keyframes festival-dialog-out{to{opacity:0;transform:translateY(4px) scale(.99)}}
+@keyframes festival-scrim-in{from{opacity:0}to{opacity:1}}
+@keyframes festival-scrim-out{to{opacity:0}}
+dialog[open]{animation:festival-dialog-in 175ms cubic-bezier(.2,.68,.28,1) both}
+dialog[open]::backdrop{animation:festival-scrim-in 145ms ease-out both}
+dialog.is-closing{animation:festival-dialog-out 135ms ease-in both}
+dialog.is-closing::backdrop{animation:festival-scrim-out 135ms ease-in both}
+@media(prefers-reduced-motion:reduce){dialog[open],dialog[open]::backdrop{animation:none}.action,.member,.aside-link{transition:none}}
+.type-press{background:#c9d5d9;color:#233943;border-color:#5c737c}
+.press-top{border-block:0;border-bottom:2px solid #46616c;align-items:baseline}.press-top span{color:#5e394f}
+.type-press h1 span{display:block;color:#35596c}.type-press h1{border-bottom:1px solid #70868e;padding-bottom:8px}
+.press-schools{border:0;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;align-content:start;padding:0;flex:initial}
+.press-schools strong,.press-schools strong:last-child{writing-mode:horizontal-tb;justify-self:stretch;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:6px;font:700 clamp(.76rem,5cqi,1.1rem)/1.32 "Noto Serif TC","PMingLiU",serif;letter-spacing:0;color:#254455;background:#e0eaed;border-left:4px solid #406c80;padding:6px}
+.press-schools strong:last-child{color:#572e40;background:#e8d4df;border-color:#83516b}
+.press-schools strong span{grid-column:auto;grid-row:auto;font-size:.8rem}
+.press-links{border-top:1px solid #6b828a;padding-top:7px;grid-template-columns:1fr 1fr}
+@media(min-width:980px){
+  .type-dark .type-main{margin:0;flex:1;min-height:0;width:100%}
+  .type-dark h1{flex:1;align-content:space-evenly;font-size:clamp(2.3rem,min(45cqi,13vh),8rem);display:grid;line-height:.94}
+  .type-dark h1 span:nth-child(1){font-size:1em;margin-bottom:0;letter-spacing:-.06em}
+  .type-dark h1 span:nth-child(2){font-size:1.42em}
+  .type-press{justify-content:start!important;gap:clamp(16px,4vh,34px)!important}.type-press h1{font-size:clamp(2.05rem,31cqi,6rem);line-height:.92}.press-links{margin-top:auto}
+}
+@media(min-width:980px) and (max-height:520px){.type-dark h1{font-size:clamp(2rem,min(43cqi,12vh),6rem)}.type-press{gap:11px!important}}
+@media(max-width:979px){.type-press h1 span{margin-inline-start:.15em}.press-schools{grid-template-columns:1fr 1fr}}
+</style>
+<style>
+.type-dark .type-bottom span:first-child{border-left:3px solid #7ca1ad;padding-left:6px}
+.type-dark .type-bottom span:last-child{border-left:3px solid #af7f90;padding-left:6px}
+@media(min-width:980px){
+  .type-dark .type-main{justify-content:flex-start}
+  .type-dark h1{grid-template-rows:1fr 1fr;align-items:center;align-content:normal;gap:0;min-height:0;font-size:inherit;line-height:1}
+  .type-dark h1 span:nth-child(1){font-size:clamp(2.7rem,min(46cqi,16vh),8.8rem);letter-spacing:-.075em;justify-self:start;align-self:center}
+  .type-dark h1 span:nth-child(2){font-size:clamp(2rem,min(32cqi,13vh),6rem);letter-spacing:-.06em;justify-self:end;align-self:center}
+  .type-dark .type-bottom{padding-top:clamp(9px,2.1vh,17px);padding-bottom:4px;gap:6px}
+}
+@media(max-width:979px){.type-dark h1 span:nth-child(2){font-size:inherit;white-space:nowrap}}
+</style>
+<style>.type-dark h1.long-title span{font-size:clamp(.9rem,14cqi,2.3rem);overflow-wrap:anywhere}.type-dark .type-bottom span:first-child{border-color:var(--festival-accent-a,#7ca1ad)}.type-dark .type-bottom span:last-child{border-color:var(--festival-accent-b,#af7f90)}</style><link rel="stylesheet" href="current-design.css"><link rel="stylesheet" href="photo-refinement.css"><link rel="stylesheet" href="chairman-preview.css"><link rel="stylesheet" href="festival-page-content.css"><link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="school-festival-theme.css?v=119"><script src="school-festival-theme.js?v=119"></script></head>
+<body class="actual-design roster-design"><script>window.SchoolFestivalTheme?.refresh();</script>
+<header><div class="shell"><strong>曇時 CAFÉ</strong><nav aria-label="學園祭導覽"><button id="top-rules" type="button" class="action">活動規則</button><a class="action primary" href="school-festival-order.html">學園祭點餐</a></nav></div></header>
+<main class="shell festival-layout">
+  <section class="cover type-cover type-dark" aria-labelledby="festival-heading">
+    <div class="type-main"><span class="type-overline" aria-hidden="true">曇時 Café</span><h1 id="festival-heading"><span>曇時</span><span>學園祭</span></h1></div>
+    <div class="type-bottom"><span data-school-name="A">曇華女子學院</span><i aria-hidden="true">VS</i><span data-school-name="B">曇光女子學院</span></div>
+  </section>
+  <section class="roster" id="lineup" aria-labelledby="roster-title">
+    <div class="roster-title"><h2 id="roster-title">雙校陣容</h2><p>點選學生查看個人介紹</p></div>
+    <div class="team"><div class="team-name"><span aria-hidden="true">A</span><h3 data-school-name="A">曇華女子學院</h3></div><div class="cards" id="school-a"></div></div>
+    <div class="vs" aria-hidden="true">VS</div>
+    <div class="team b"><div class="team-name"><span aria-hidden="true">B</span><h3 data-school-name="B">曇光女子學院</h3></div><div class="cards" id="school-b"></div></div>
+  </section>
+  <aside class="festival-aside" aria-label="活動資訊與學生介紹">
+    <section id="festival-results" class="aside-block" hidden><h2>最終應援票數</h2><p id="festival-result-date"></p><p id="festival-result-a"></p><p id="festival-result-b"></p></section>
+    <section class="aside-block"><h2>應援與點餐</h2>
+      <ol><li>領號或加入共桌</li><li>選校並點該校餐點</li><li>結清後取得應援票與抽獎券</li></ol>
+      <a class="action primary aside-order" href="school-festival-order.html">前往學園祭點餐</a>
+      <button type="button" id="side-rules" class="aside-link">查看完整活動規則</button></section>
+    <section class="aside-block selected-member"><h2>學生介紹</h2>
+      <p id="selection-help">點選陣容中的學生，查看她的照片與介紹。</p>
+      <p id="selection-school" hidden></p><strong id="selection-name" hidden></strong>
+      <button type="button" id="selection-open" class="aside-link" hidden>再看個人介紹</button></section>
+  </aside>
+</main>
+<dialog id="member-profile" aria-labelledby="profile-name"><form method="dialog"><button class="action">關閉</button></form><div class="profile">
+  <div class="profile-photo" id="profile-photo"></div><div><div id="profile-school"></div><h2 id="profile-name"></h2><p id="profile-character"></p><p id="profile-intro"></p><a id="profile-threads" hidden target="_blank" rel="noopener noreferrer">前往 Threads ↗</a></div>
+</div></dialog>
+<dialog id="rules-dialog" aria-labelledby="rules-title"><form method="dialog"><button class="action">關閉</button></form><div class="rules">
+  <h2 id="rules-title">學園祭活動規則</h2>
+  <p>領號或加入共桌後，每位客人可以選一所想支持的學院。</p>
+  <ul><li>該校活動餐點結清滿 30,000 Gil，為該校計一票並發一張券。</li><li>活動餐點每累計滿 200,000 Gil，再多一張券。</li><li>首次結清後鎖定學院。停止發券後仍可以點餐。</li></ul>
+  <footer><button type="button" class="action primary" id="rules-understood">我了解了</button></footer>
+</div></dialog>
+<script src="festival-presentation-v100.js"></script>
+<script>
+let groups=[
+ {key:'a',name:'曇華女子學院',members:[{"name":"彌亞璃卡","photo":"school-photos/miarica.png"},{"name":"璐可","photo":"school-photos/ruko.png"},{"name":"麻辣草莓湯","photo":"school-photos/strawberry.png"},{"name":"魯德曼","photo":"school-photos/rudman.png"},{"name":"蒼","photo":"school-photos/cang.png"}]},
+ {key:'b',name:'曇光女子學院',members:[{name:'爌肉馬鈴薯',photo:'school-photos/potato.png'},{name:'魔可娜',photo:'school-photos/mokona.png'},{name:'諾依',photo:'school-festival-assets/noi.png'},{name:'琥珀',photo:'school-photos/amber.png'},{name:'Naipa',photo:'school-photos/naipa.jpg'}]}
+];
+const byId=id=>document.getElementById(id);
+const memberDialog=byId('member-profile');
+const rules=byId('rules-dialog');
+const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+function dismiss(dialog){
+  if(!dialog.open || dialog.classList.contains('is-closing'))return;
+  if(reducedMotion.matches){dialog.close();return;}
+  dialog.classList.add('is-closing');
+  const finish=(event)=>{
+    if(event && (event.target!==dialog || event.animationName!=='festival-dialog-out'))return;
+    clearTimeout(timer);
+    dialog.removeEventListener('animationend',finish);
+    dialog.close();dialog.classList.remove('is-closing');
+  };
+  const timer=setTimeout(finish,210);
+  dialog.addEventListener('animationend',finish);
+}
+for(const dialog of [rules,memberDialog]){
+  dialog.addEventListener('cancel',event=>{event.preventDefault();dismiss(dialog);});
+  dialog.addEventListener('submit',event=>{event.preventDefault();dismiss(dialog);});
+}
+rules.addEventListener('click',()=>dismiss(rules));
+memberDialog.addEventListener('click',event=>{if(event.target===memberDialog)dismiss(memberDialog);});
+function portrait(host,member){
+  const item=document.createElement(member.photo?'img':'span');
+  if(member.photo){item.src=member.photo;item.alt=member.name+'的學園祭照片';}
+  else{item.className='initial';item.textContent=member.name.slice(0,1);item.setAttribute('aria-hidden','true');}
+  host.replaceChildren(item);
+}
+function renderMembers(){
+for(const group of groups){
+  byId("school-"+group.key).replaceChildren();
+  for(const member of group.members){
+    const card=document.createElement('button'), image=document.createElement('div'), title=document.createElement('strong');
+    card.type='button';card.className='member';card.setAttribute('aria-haspopup','dialog');
+    image.className='portrait';title.textContent=member.name;portrait(image,member);card.append(image,title);
+    card.onclick=()=>{
+      for(const current of document.querySelectorAll('.member[aria-current]'))current.removeAttribute('aria-current');
+      card.setAttribute('aria-current','true');
+      byId('selection-help').hidden=true;
+      byId('selection-school').textContent=group.name;byId('selection-school').hidden=false;
+      byId('selection-name').textContent=member.name;byId('selection-name').hidden=false;
+      byId('selection-open').hidden=false;byId('selection-open').onclick=()=>card.click();
+      byId('profile-school').textContent=group.name;
+      byId('profile-name').textContent=member.name;
+      byId('profile-character').textContent=member.character || '';
+      byId('profile-intro').textContent=member.intro || '自我介紹待補。';
+      const threads=byId('profile-threads');threads.hidden=!member.threads;
+      if(member.threads)threads.href=member.threads;
+      else threads.removeAttribute('href');
+      portrait(byId('profile-photo'),member);
+      memberDialog.addEventListener('close',()=>card.focus(),{once:true});
+      memberDialog.showModal();
+    };
+    byId('school-'+group.key).append(card);
+  }
+}
+}
+renderMembers();
+window.FestivalPresentation.load().then(data=>{
+  window.FestivalPresentation.apply(data);
+  document.title=data.title+"｜雙校陣容";
+  const title=byId("festival-heading");
+  if(data.title!=="曇時學園祭"){
+    const chars=Array.from(data.title), n=Math.ceil(chars.length/2);
+    title.replaceChildren(...[chars.slice(0,n),chars.slice(n)].filter(part=>part.length).map(part=>{const span=document.createElement("span");span.textContent=part.join("");return span;}));
+    if(chars.length>6)title.classList.add("long-title");
+  }
+  function updateRoster(){
+    groups=groups.map(group=>{const team=data.teams[group.key.toUpperCase()];return {...group,name:team.name,members:Array.isArray(team.members)?team.members:team.empty?[]:group.members};});
+    byId("selection-open").hidden=true;byId("selection-help").hidden=false;byId("selection-name").hidden=true;byId("selection-school").hidden=true;
+    renderMembers();
+  }
+  if(memberDialog.open)memberDialog.addEventListener("close",updateRoster,{once:true});else updateRoster();
+  const result=data.result;
+  if(result && Number.isInteger(result.votes?.A) && Number.isInteger(result.votes?.B)){
+    byId("festival-result-date").textContent=result.businessDate || "";
+    byId("festival-result-a").textContent=result.teams.A+" · "+result.votes.A+" 票";
+    byId("festival-result-b").textContent=result.teams.B+" · "+result.votes.B+" 票";
+    byId("festival-results").hidden=false;
+  }
+});
+for(const id of ['top-rules','side-rules'])byId(id).onclick=()=>rules.showModal();
+if(false){
+  try{if(!sessionStorage.getItem('festival-intro-seen')){rules.showModal();sessionStorage.setItem('festival-intro-seen','1');}}catch{}
+}
+</script>
+<script src="roster-design.js"></script><script src="chairman-preview.js"></script><script src="festival-page-schema.js"></script><script src="festival-page-content.js"></script></body>
+</html>

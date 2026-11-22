@@ -1,0 +1,1237 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>曇時｜主題日接待工作台</title>
+<style>
+  *{box-sizing:border-box}body{margin:0;color:#202a35;background:#eef1f4;font:16px/1.6 "Microsoft JhengHei",sans-serif}
+  header{background:#1c2530;color:#fff;padding:14px max(20px,calc((100% - 1100px)/2))}
+  header a{color:inherit;margin-left:12px}main{max-width:1100px;margin:auto;padding:18px 20px}
+  section{padding:16px;background:#f9fbfc;border:1px solid #d3dbe3;border-radius:7px;margin-bottom:13px}
+  h1,h2,p{margin:0 0 8px}h2{font-size:1.2rem}
+  form,.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:end}
+  label{display:grid;gap:4px}button,input{font:inherit;padding:6px 10px;border:1px solid #91a4b2;border-radius:5px;background:#fff;color:#202a35}
+  button{cursor:pointer}button.primary{background:#46688e;color:#fff}
+  .columns{display:grid;grid-template-columns:minmax(225px,1fr) minmax(0,2fr);gap:13px}
+  #visit-list button{width:100%;text-align:left;margin:4px 0}#visit-list button[aria-pressed=true]{background:#dbe8f2}
+  #orders p{border-top:1px solid #d3dbe3;padding-top:7px;overflow-wrap:anywhere}
+  #history-cleanup{margin:12px 0}#history-cleanup summary{cursor:pointer;font-weight:700}
+  #history-cleanup section{margin-top:8px}#history-status{margin-top:8px}
+  button:disabled{opacity:.55;cursor:default}
+  [hidden]{display:none!important}@media(max-width:680px){.columns{grid-template-columns:1fr}}
+</style>
+<script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js"></script>
+<link rel="stylesheet" href="festival-ui.css?v=98">
+<style>#festival-appearance{margin:12px 0}#festival-appearance summary{cursor:pointer;font-weight:700}#festival-appearance form{display:grid;gap:10px;margin-top:10px}#festival-appearance input,#festival-appearance textarea{max-width:100%;font:inherit;color:var(--ink);background:var(--paper)}#festival-appearance-teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}#festival-appearance fieldset{min-width:0;border:1px solid var(--line);padding:10px}#festival-appearance fieldset details{margin-top:8px;padding:6px;border-top:1px solid var(--line)}</style>
+<style>#festival-lucky-roll{margin:12px 0}#festival-lucky-roll summary{cursor:pointer;font-weight:700}#festival-lucky-roll form{margin-bottom:8px}#festival-lucky-roll ul{padding-left:1.3rem}#festival-lucky-roll li{margin:5px 0}#festival-lucky-roll code{font-size:1.25rem}#draw-status,#draw-hit,#draw-cancel-result{margin:8px 0}#draw-work h2{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}</style>
+<style>#festival-menu-editor{margin:12px 0}#festival-menu-editor summary{cursor:pointer;font-weight:700}#fest-menu-form{padding-top:12px;display:flex;gap:12px}#fest-menu-list{padding-left:1.3rem}#fest-menu-list li{margin:4px 0}</style>
+<link rel="stylesheet" href="festival-page-editor.css"><link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="school-festival-theme.css?v=119"><script src="school-festival-theme.js?v=119"></script></head>
+<body class="connected-page"><script>window.SchoolFestivalTheme?.refresh();</script>
+<header class="festival-masthead"><div class="masthead-inner"><strong>曇時學園祭・接待工作台</strong><div class="masthead-tools"><a href="admin/">返回原後台</a><a href="school-festival-roster-arena-preview.html">查看活動首頁</a><button id="festival-theme" type="button" aria-pressed="false">夜間模式</button></div></div></header>
+<main>
+  <div class="festival-heading"><h1 id="page-title">連線驗證</h1>
+  <p id="page-description">以原後台帳號核對本場候位和訂單。此頁只讀取資料。</p></div>
+  <p id="status" role="status">正在準備連線…</p>
+  <section id="login" hidden>
+    <form id="login-form" method="post">
+      <label>原後台帳號<input name="email" type="email" autocomplete="username" required></label>
+      <label>密碼<input name="password" type="password" autocomplete="current-password" required></label>
+      <button class="primary">登入</button>
+    </form>
+  </section>
+  <div id="desk" hidden>
+    <div class="toolbar"><button id="refresh">重新讀取</button><button id="logout">登出</button></div>
+    <details id="festival-appearance" hidden><summary>活動頁面與學院設定</summary>
+      <section><button id="festival-appearance-load" type="button">讀取目前設定</button>
+        <form id="festival-appearance-form" hidden>
+          <label>活動名稱<input name="title" maxlength="60" required></label>
+          <label>活動介紹<textarea name="welcome" maxlength="600" rows="3" required></textarea></label>
+          <div id="festival-appearance-teams"></div>
+          <button class="primary" type="submit">儲存並更新學園祭頁</button>
+        </form><p id="festival-appearance-status" role="status"></p>
+      </section>
+    </details>
+    <details id="festival-live-admin" hidden><summary>學園祭點餐與票券設定</summary>
+      <section>
+        <button id="festival-load-options" type="button">讀取本場設定與券號</button>
+        <form id="festival-live-options" hidden><p>沿用原菜單的四道餐點時請全部選好。使用活動自訂餐點時可四欄留空。</p>
+          <label><span><span data-school-name="A">曇華女子學院</span> 基本餐</span><select name="aBasic"></select></label>
+          <label><span><span data-school-name="A">曇華女子學院</span> 特製餐</span><select name="aSpecial"></select></label>
+          <label><span><span data-school-name="B">曇光女子學院</span> 基本餐</span><select name="bBasic"></select></label>
+          <label><span><span data-school-name="B">曇光女子學院</span> 特製餐</span><select name="bSpecial"></select></label>
+          <label>預定截止（台灣時間，可留空手動停止）<input name="cutoff" type="datetime-local"></label>
+          <label><span><input name="testOnly" type="checkbox" checked> 僅開放 FESTIVAL-TEST</span></label>
+          <button class="primary" id="festival-open" type="submit">開放學園祭點餐</button>
+          <button id="festival-disable" type="button" disabled>關閉點餐入口</button>
+        </form>
+        <p id="festival-live-status" role="status"></p><ul id="festival-live-tickets" aria-label="已發券號"></ul>
+      </section>
+    </details>
+    <details id="festival-menu-editor" hidden><summary>學園祭餐點與特殊服務管理</summary>
+      <section>
+        <p>拍立得與個人攝影使用本場既有拍攝時段。新增服務前請先設定本場拍攝女僕。</p>
+        <div class="toolbar"><button type="button" id="fest-menu-load">讀取本場品項</button>
+        <button id="fest-menu-import" type="button" disabled>複製原本的桌邊服務</button></div>
+        <ul id="fest-menu-list"></ul><p id="fest-menu-status" role="status"></p>
+        <form id="fest-menu-form" hidden>
+          <input name="itemId" type="hidden"><label>品項名稱<input name="productName" required maxlength="80"></label>
+          <label>分類<input name="categoryName" required maxlength="30" placeholder="主食、飲品或特殊服務"></label>
+          <label>種類<select name="kind"><option value="food">餐點</option><option value="magic">桌邊服務</option><option value="polaroid">拍立得</option><option value="lens">個人攝影</option><option value="delivery">紀念商品／交付</option></select></label>
+          <label>學院<select name="team"><option value="A" data-school-name="A">曇華女子學院</option><option value="B" data-school-name="B">曇光女子學院</option></select></label>
+          <label>服務女僕<select name="maid"></select></label>
+          <label>價格（Gil）<input name="price" type="number" min="0" max="10000000" required></label>
+          <label>說明<input name="description" maxlength="180"></label><label>照片網址<input name="photo" type="url" maxlength="700"></label>
+          <label>上傳商品照片<input name="upload" type="file" accept="image/jpeg,image/png,image/webp,image/avif"></label>
+          <label><span><input name="limited" type="checkbox">限量</span><input name="stock" type="number" min="0" max="10000" value="0" aria-label="庫存或服務總名額"></label>
+          <label><span><input name="sell" type="checkbox" checked>上架</span></label>
+          <button type="submit" class="primary">儲存品項</button><button type="button" id="fest-menu-new">新增另一個品項</button>
+        </form>
+      </section>
+    </details>
+    <details id="festival-lucky-roll" hidden><summary>學園祭開獎與取消訂單</summary>
+      <section>
+        <button type="button" id="draw-refresh">讀取本場票券與獎項</button>
+        <p id="draw-status" role="status"></p>
+        <div id="draw-work" hidden>
+          <p id="draw-counts"></p>
+          <h2>獎項設定</h2>
+          <form id="draw-prize-form">
+            <input name="prizeId" type="hidden">
+            <label>獎品名稱<input name="prizeName" required maxlength="80"></label>
+            <label>獎池<select name="pool"><option value="A">曇華女子學院</option><option value="B">曇光女子學院</option><option value="all">全場共同</option></select></label>
+            <label>數量<input name="quantity" required type="number" min="1" max="100" value="1"></label>
+            <button type="submit" class="primary">儲存獎項</button><button type="button" id="draw-prize-new">新增另一個獎項</button>
+          </form>
+          <ul id="draw-prize-list"></ul>
+          <h2>開獎</h2>
+          <div class="toolbar"><button type="button" id="draw-freeze">停止投票與發券</button><button id="draw-publish" type="button">公布最終票數</button><label>獎品<select id="draw-prizes"></select></label><button type="button" id="draw-prepare">準備擲骰</button></div>
+          <div class="toolbar"><code id="draw-command"></code><button type="button" id="draw-copy-command">複製擲骰指令</button></div>
+          <form id="draw-roll-form">
+            <label>遊戲骰點<input id="draw-number" inputmode="numeric" autocomplete="off" maxlength="3"></label>
+            <button type="submit" class="primary" id="draw-confirm">確認中獎</button>
+          </form>
+          <p id="draw-hit" aria-live="polite"></p>
+          <h2>中獎與領獎紀錄</h2><button type="button" id="draw-copy-winners">複製 Discord 中獎名單</button><ul id="draw-winners"></ul>
+          <h2>取消學園祭餐點</h2>
+          <form id="draw-cancel-form"><label>訂單編號<input id="draw-cancel-number" type="number" min="1" required></label><button type="submit">查詢訂單</button></form>
+          <p id="draw-cancel-result" aria-live="polite"></p><button type="button" id="draw-cancel-confirm">確認取消這筆訂單</button>
+        </div>
+      </section>
+    </details>
+    <details id="history-cleanup" hidden>
+      <summary>清除舊營業資料</summary>
+      <section aria-label="清除舊營業資料">
+        <p>與原後台共用資料。打烊後可清除本場以前的餐點、拍立得和號碼牌，包含上一場。</p>
+        <div class="toolbar">
+          <button id="history-preview" type="button">預覽清除範圍</button>
+          <button id="history-backup" type="button" disabled>下載備份 JSON</button>
+          <button id="history-apply" type="button" disabled>永久刪除</button>
+        </div>
+        <p id="history-status" role="status"></p>
+        <ul id="history-dates"></ul>
+      </section>
+    </details>
+    <div class="columns">
+      <section class="print-panel"><h2 id="visit-heading">本場桌次</h2><div id="visit-list"></div></section>
+      <section class="print-panel"><h2 id="order-heading">本桌訂單</h2><div id="orders">選一張號碼牌查看訂單。</div>
+        <div id="festival-staff-actions" hidden><hr><h2>桌次與餐點操作</h2>
+          <div class="toolbar"><label>目前操作女僕<select id="festival-staff-picker"></select></label>
+          <label id="festival-transfer-region" hidden>轉交給<select id="festival-transfer-picker"></select></label></div>
+          <div id="festival-staff-buttons" class="toolbar"></div>
+        </div>
+        <div id="festival-live-table" hidden><hr><h2>學園祭整桌結清</h2>
+          <div class="toolbar"><button id="festival-live-quote" type="button">核對本桌待收</button>
+          <button class="primary" id="festival-live-pay" type="button" disabled>確認結清並發券</button></div>
+          <p id="festival-live-quote-status" role="status"></p>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+<script src="festival-presentation-v100.js"></script>
+<script>
+function createReceptionReader(db, managerEmails = []) {
+  const root = db.ref('lephemere');
+  const get = async ref => (await ref.once('value')).val();
+  const pendingReads = new Map();
+  const dutyByDate = new Map();
+
+  function sharePending(key, load) {
+    if (pendingReads.has(key)) return pendingReads.get(key);
+    const request = load().finally(() => {
+      if (pendingReads.get(key) === request) pendingReads.delete(key);
+    });
+    pendingReads.set(key, request);
+    return request;
+  }
+
+  return {
+    resetReads() {
+      pendingReads.clear();
+      dutyByDate.clear();
+    },
+
+    async access(user) {
+      if (!user?.uid) return null;
+      const email = String(user.email || '').trim().toLowerCase();
+      if (managerEmails.includes(email)) return 'manager';
+      const access = root.child('todayStaff/_access');
+      const [owner, record] = await Promise.all([
+        get(access.child('ownerUid')).catch(() => null),
+        get(access.child('users').child(user.uid)).catch(() => null)
+      ]);
+      if (owner === user.uid || record?.role === 'manager') return 'manager';
+      return record?.role === 'orders' ? 'orders' : null;
+    },
+
+    async currentVisits() {
+      const operation = await get(root.child('operationStatus'));
+      const date = operation?.businessDate;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '') || !operation?.sessionId) {
+        return { date: '', visits: [] };
+      }
+      const rows = await get(root.child('visits').orderByChild('businessDate').equalTo(date));
+      const visits = Object.entries(rows || {})
+        .filter(([, visit]) => visit?.sessionId === operation.sessionId && ['waiting', 'assigned', 'serving', 'special_service'].includes(visit.status))
+        .map(([id, visit]) => ({ ...visit, id }))
+        .sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0) || a.id.localeCompare(b.id));
+      return { date, visits };
+    },
+
+    async orders(visit) {
+      if (!visit?.id || !visit?.sessionId) return [];
+      const rows = await sharePending('orders/'+visit.id, () =>
+        get(root.child('orders').orderByChild('visitId').equalTo(visit.id)));
+      return Object.entries(rows || {})
+        .filter(([, order]) => order?.visitId === visit.id && order.sessionId === visit.sessionId && order.status !== 'cancelled')
+        .map(([id, order]) => ({ ...order, id }));
+    },
+
+    async testVisit(visitId) {
+      const [operation, visit] = await Promise.all([
+        get(root.child('operationStatus')),
+        get(root.child('visits').child(visitId))
+      ]);
+      if (!operation?.sessionId || !operation.businessDate || visit?.sessionId !== operation.sessionId ||
+          visit.businessDate !== operation.businessDate || visit.characterName !== 'FESTIVAL-TEST') {
+        throw new Error('只能操作本場以 FESTIVAL-TEST 命名的測試桌。');
+      }
+      return { ...visit, id: visitId };
+    },
+
+    async dutyStaff(date) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) return [];
+      if (dutyByDate.has(date)) return dutyByDate.get(date);
+      const request = (async () => {
+        const schedule = await get(root.child('staffSchedules').child(date));
+        let ids = schedule?.staffIds;
+        if (!Array.isArray(ids)) {
+          const today = root.child('todayStaff');
+          ids = await get(today.child('date')) === date ? await get(today.child('staffIds')) : [];
+        }
+        if (!Array.isArray(ids)) return [];
+        const validIds = [...new Set(ids.filter(id => typeof id === 'string' && id.length && !/[.#$\[\]/]/.test(id)))];
+        const roster = root.child('staffRoster');
+        const members = await Promise.all(validIds.map(async id => {
+          const name = await get(roster.child(id).child('name'));
+          return name ? { id, name } : null;
+        }));
+        return members.filter(Boolean);
+      })().catch(error => {
+        if (dutyByDate.get(date) === request) dutyByDate.delete(date);
+        throw error;
+      });
+      dutyByDate.set(date, request);
+      return request;
+    }
+  };
+}
+
+// The current payment callable returns a timestamp, not the paid order IDs.
+// Compare both reads for test evidence only. This cannot authorize real tickets.
+function observeTestCheckout({ before, after, paidAt, visits, prior }) {
+  const { original, saved } = visits;
+  if (!Number.isSafeInteger(paidAt) || paidAt <= 0 ||
+      original.id !== saved.id || original.sessionId !== saved.sessionId ||
+      saved.paymentStatus !== 'settled' || saved.settledAt !== paidAt ||
+      saved.paymentAttention === true) {
+    throw new Error('結清狀態或時間不一致，這次先不試算。');
+  }
+  if ((original.settledAt || 0) !== (prior?.paidAt || 0)) {
+    throw new Error('缺少本次驗證的上次結清紀錄，請另開新測試桌。');
+  }
+  const signature = order => JSON.stringify({
+    id: order.id, createdAt: order.createdAt, total: order.total, items: order.items
+  });
+  const expected = before.map(signature).sort();
+  const observed = after.map(signature).sort();
+  if (!expected.length || expected.length !== observed.length ||
+      expected.some((entry, index) => entry !== observed[index]) ||
+      after.some(order => !Number.isSafeInteger(order.createdAt) || order.createdAt > paidAt)) {
+    throw new Error('結清前後的訂單有變動，請到原後台核對。');
+  }
+  const paid = new Map(prior?.recorded || []);
+  const currentIds = new Set(before.map(order => order.id));
+  if (before.length !== currentIds.size || [...paid.keys()].some(id => !currentIds.has(id))) {
+    throw new Error('訂單重複，或先前已核對的訂單已取消，請先核對。');
+  }
+  for (const order of before) {
+    if (paid.has(order.id) && paid.get(order.id) !== signature(order)) {
+      throw new Error('先前已核對的訂單有修改，請先核對。');
+    }
+  }
+  const newOrders = before.filter(order => !paid.has(order.id));
+  if (!newOrders.length) throw new Error('沒有新增訂單可試算。');
+  for (const order of newOrders) paid.set(order.id, signature(order));
+  return {
+    paidAt, recorded: [...paid],
+    checkout: { id: 'observe:' + saved.id + ':' + paidAt, visitId: saved.id, paidAt, orderIds: newOrders.map(order => order.id) }
+  };
+}
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAPIpmaLgXp3TVTV7y-yrH63xkMtAuYMSQ",
+    authDomain: "lephemere-queue-c38d5.firebaseapp.com",
+    databaseURL: "https://lephemere-queue-c38d5-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "lephemere-queue-c38d5",
+    storageBucket: "lephemere-queue-c38d5.firebasestorage.app",
+    messagingSenderId: "35595928973",
+    appId: "1:35595928973:web:36a8a4695fd293061d29c4"
+  };
+const managerEmails = ['tanjicafe@gmail.com'];
+const testActionsEnabled = true;
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const byId = id => document.getElementById(id);
+  const setStatus = value => { byId('status').textContent = value; };
+  const themeButton = byId('festival-theme');
+  themeButton.addEventListener('click', () => {
+    const dark = document.documentElement.dataset.adminTheme !== 'dark';
+    document.documentElement.dataset.adminTheme = dark ? 'dark' : 'light';
+    themeButton.setAttribute('aria-pressed', String(dark));
+    themeButton.textContent = dark ? '淺色模式' : '夜間模式';
+  });
+  if (!window.firebase) return setStatus('無法載入登入服務。請檢查連線後重試。');
+  const app = firebase.initializeApp(firebaseConfig, 'school-festival-read');
+  const auth = app.auth();
+  const reader = createReceptionReader(app.database(), managerEmails);
+  const functions = testActionsEnabled && typeof app.functions === 'function' ? app.functions('asia-southeast1') : null;
+  let role = null;
+  let authRevision = 0;
+  let requestRevision = 0;
+  let actionBusy = false;
+  const statusLabels = { waiting:'等待接待', assigned:'已接待', serving:'服務中', special_service:'服務中' };
+  const checkoutLabels = { settled:'已結清', reopened:'追加待結清' };
+
+  const historyPanel = byId('history-cleanup');
+  const historyPreview = byId('history-preview');
+  const historyBackup = byId('history-backup');
+  const historyApply = byId('history-apply');
+  const historyStatus = byId('history-status');
+  const historyDates = byId('history-dates');
+  let historyPlan = null;
+  let historyFingerprint = '';
+  let historyBusy = false;
+
+  function syncHistoryControls() {
+    const allowed = role === 'manager' && Boolean(functions);
+    historyPanel.hidden = !allowed;
+    historyPreview.disabled = !allowed || historyBusy;
+    historyBackup.disabled = historyPreview.disabled || !historyPlan?.count;
+    historyApply.disabled = historyBackup.disabled || !historyFingerprint;
+  }
+
+  function resetHistory() {
+    historyPlan = null;
+    historyFingerprint = '';
+    historyDates.replaceChildren();
+    historyStatus.textContent = '請先預覽日期與筆數。';
+  }
+
+  function historyCounts(row) {
+    return '餐點 '+row.dining+' 筆、拍立得 '+row.photo+' 筆、號碼牌 '+row.visits+' 張';
+  }
+
+  async function runHistory(action, fields, message, onSuccess) {
+    if (role !== 'manager' || !functions || historyBusy) return;
+    const revision = authRevision;
+    historyBusy = true;
+    syncHistoryControls();
+    historyStatus.textContent = message;
+    try {
+      const { data } = await functions.httpsCallable('adminOldOrderCleanup')({ action, ...fields });
+      if (revision === authRevision && role === 'manager') await onSuccess(data);
+    } catch (error) {
+      if (revision === authRevision) historyStatus.textContent = error.message || '操作失敗，請重新預覽。';
+    } finally {
+      if (revision === authRevision) {
+        historyBusy = false;
+        syncHistoryControls();
+      }
+    }
+  }
+
+  historyPreview.addEventListener('click', () => {
+    resetHistory();
+    return runHistory('history-preview', {}, '正在核對舊營業資料…', data => {
+      historyPlan = data;
+      historyStatus.textContent = '本場 '+data.currentDate+'。'+(data.count ? historyCounts(data.totals)+'，另有 '+data.totals.related+' 筆連動紀錄。' : '沒有可清除的舊資料。');
+      for (const day of data.dates) {
+        const item = document.createElement('li');
+        item.textContent = day.date+' · '+historyCounts(day);
+        historyDates.append(item);
+      }
+    });
+  });
+
+  historyBackup.addEventListener('click', () => {
+    if (!historyPlan?.count) return;
+    historyFingerprint = '';
+    return runHistory('history-backup', { previewId: historyPlan.previewId }, '正在產生備份…', ({ backup, fingerprint }) => {
+      const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'lephemere-history-backup-'+backup.exportedAt.replace(/[:.]/g, '-')+'.json';
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      historyFingerprint = fingerprint;
+      historyStatus.textContent = '已送出備份下載。請確認下載完成後再永久刪除。';
+    });
+  });
+
+  historyApply.addEventListener('click', () => {
+    if (role !== 'manager' || historyBusy || !historyFingerprint || !historyPlan) return;
+    const phrase = '永久刪除舊營業資料';
+    const confirmation = prompt('請先確認備份已下載。將刪除 '+historyCounts(historyPlan.totals)+' 及相關紀錄。請輸入「'+phrase+'」。');
+    if (confirmation !== phrase) return;
+    const fingerprint = historyFingerprint;
+    resetHistory();
+    return runHistory('history-apply', { fingerprint, confirmation }, '正在永久刪除舊營業資料…', async ({ removedTotals }) => {
+      historyStatus.textContent = '已永久刪除 '+historyCounts(removedTotals)+'，以及 '+removedTotals.related+' 筆連動紀錄。';
+      await refresh();
+    });
+  });
+
+  const appearancePanel = byId('festival-appearance');
+  const appearanceForm = byId('festival-appearance-form');
+  const appearanceTeams = byId('festival-appearance-teams');
+  const appearanceStatus = byId('festival-appearance-status');
+  let publicDesign = window.FestivalPresentation.defaults;
+  function applyPublicDesign(value) {
+    publicDesign=value;
+    window.FestivalPresentation.apply(value);
+  }
+  window.FestivalPresentation.load().then(applyPublicDesign);
+
+  function addAppearanceField(container,label,name,value,maxLength,kind) {
+    const field=document.createElement('label');
+    field.append(label);
+    const input=document.createElement(kind==='textarea'?'textarea':'input');
+    if(kind!=='textarea') input.type=kind || 'text';
+    input.name=name;
+    input.value=value || '';
+    if(maxLength) input.maxLength=maxLength;
+    field.append(input); container.append(field);
+    return input;
+  }
+  function makePortraitData(file){
+    return new Promise((resolve,reject)=>{
+      const url=URL.createObjectURL(file), img=new Image();
+      img.onload=()=>{
+        try {
+          const canvas=document.createElement('canvas');
+          const scale=Math.min(1,1200/Math.max(img.width,img.height));
+          canvas.width=Math.max(1,Math.round(img.width*scale));
+          canvas.height=Math.max(1,Math.round(img.height*scale));
+          canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+          const result=canvas.toDataURL('image/webp',.86);
+          if(!result.startsWith('data:image/webp;base64,'))throw Error('瀏覽器無法轉換照片。');
+          resolve(result.split(',')[1]);
+        }catch(error){reject(error);}
+        finally {URL.revokeObjectURL(url);}
+      };
+      img.onerror=()=>{URL.revokeObjectURL(url);reject(Error('無法開啟這張照片。'));};
+      img.src=url;
+    });
+  }
+  let portraitUploads=0;
+  const portraitSubmit=()=>appearanceForm.querySelector('[type=submit]');
+  function addPortraitUpload(container,photoField,name){
+    const label=document.createElement('label'), input=document.createElement('input'), preview=document.createElement('img');
+    label.append('上傳成員照片');
+    input.type='file';
+    input.accept='image/jpeg,image/png,image/webp,image/avif';
+    preview.alt=name ? name+'的照片預覽' : '成員照片預覽';
+    preview.loading='lazy';
+    preview.width=100;
+    preview.hidden=!photoField.value;
+    if(photoField.value)preview.src=photoField.value;
+    label.append(input);container.append(label,preview);
+    input.addEventListener('change',async ()=>{
+      const file=input.files?.[0];
+      if(!file || role!=='manager' || !functions)return;
+      const revision=authRevision;
+      portraitUploads++;
+      input.disabled=true;portraitSubmit().disabled=true;
+      appearanceStatus.textContent='正在上傳照片…';
+      try{
+        const image=await makePortraitData(file);
+        if(revision!==authRevision || role!=='manager')return;
+        const {data}=await functions.httpsCallable('festivalMemberPhotoV102')({image});
+        if(revision!==authRevision)return;
+        photoField.value=data.photo;
+        preview.src=data.photo;preview.hidden=false;
+        appearanceStatus.textContent='照片已上傳。儲存活動頁面設定後才會公開。';
+      }catch(error){
+        if(revision===authRevision)appearanceStatus.textContent=error.message || '照片上傳失敗。';
+      }finally{
+        if(revision===authRevision){
+          portraitUploads--;
+          input.disabled=false;
+          portraitSubmit().disabled=portraitUploads>0;
+        }
+      }
+    });
+  }
+
+  function renderAppearance(data) {
+    appearanceForm.elements.title.value=data.title;
+    appearanceForm.elements.welcome.value=data.welcome;
+    appearanceTeams.replaceChildren();
+    for(const key of ['A','B']) {
+      const team=data.teams[key];
+      const fields=document.createElement('fieldset'), caption=document.createElement('legend');
+      caption.textContent=key+' 欄'; fields.append(caption);
+      addAppearanceField(fields,'學院名稱',key+'Name',team.name,40).required=true;
+      addAppearanceField(fields,'代表色',key+'Color',team.color,0,'color');
+      for(let index=0;index<5;index++){
+        const row=team.members?.[index] || {};
+        const prefix=key+index;
+        const member=document.createElement('details'), summary=document.createElement('summary');
+        summary.textContent=row.name || '新增成員'; member.append(summary);
+        addAppearanceField(member,'成員名稱',prefix+'name',row.name,40);
+        addAppearanceField(member,'角色設定',prefix+'character',row.character,500,'textarea');
+        addAppearanceField(member,'自我介紹',prefix+'intro',row.intro,800,'textarea');
+        const photo=addAppearanceField(member,'照片網址',prefix+'photo',row.photo,700);
+        addPortraitUpload(member,photo,row.name);
+        addAppearanceField(member,'Threads 網址',prefix+'threads',row.threads,500);
+        const fit=addAppearanceField(member,'照片顯示方式（cover 裁切／contain 完整）',prefix+'photoFit',row.photoFit || 'cover',10);
+        fit.pattern='cover|contain';
+        const focus=addAppearanceField(member,'照片上下焦點（0 頂部～100 底部）',prefix+'photoY',String(row.photoY ?? 28),0,'number');focus.min=0;focus.max=100;
+        fields.append(member);
+      }
+      appearanceTeams.append(fields);
+    }
+    appearanceForm.hidden=false;
+  }
+  byId('festival-appearance-load').addEventListener('click',async event=>{
+    if(role!=='manager' || !functions) return;
+    const revision=authRevision, button=event.currentTarget; button.disabled=true;
+    appearanceStatus.textContent='正在讀取…';
+    try {
+      const {data}=await functions.httpsCallable('festivalPresentationV100')({});
+      if(revision!==authRevision) return;
+      if(portraitUploads)return;
+      applyPublicDesign(data); renderAppearance(data); appearanceStatus.textContent='';
+    } catch(error) { if(revision===authRevision) appearanceStatus.textContent=error.message || '無法讀取活動設定。'; }
+    finally {button.disabled=false;}
+  });
+  appearanceForm.addEventListener('submit',async event=>{
+    event.preventDefault();
+    if(role!=='manager' || !functions || portraitUploads) return;
+    const fields=new FormData(appearanceForm);
+    const presentation={title:fields.get('title'),welcome:fields.get('welcome'),teams:{}};
+    for(const key of ['A','B']) {
+      const members=Array.from({length:5},(_,i)=>Object.fromEntries(['name','character','intro','photo','threads','photoFit','photoY'].map(field=>[field,fields.get(key+i+field)]))).filter(row=>row.name.trim());
+      presentation.teams[key]={name:fields.get(key+'Name'),color:fields.get(key+'Color'),members};
+    }
+    const submit=appearanceForm.querySelector('[type=submit]'), revision=authRevision;
+    submit.disabled=true; appearanceStatus.textContent='正在儲存…';
+    try {
+      const {data}=await functions.httpsCallable('festivalPresentationV100')({action:'save',presentation});
+      if(revision!==authRevision) return;
+      applyPublicDesign(data); renderAppearance(data); appearanceStatus.textContent='已儲存。重新整理公開頁即可看到更新。';
+    } catch(error) {if(revision===authRevision) appearanceStatus.textContent=error.message || '無法儲存。';}
+    finally {submit.disabled=false;}
+  });
+
+  const livePanel = byId('festival-live-admin');
+  const liveOptions = byId('festival-live-options');
+  const liveStatus = byId('festival-live-status');
+  const liveTickets = byId('festival-live-tickets');
+  const liveTable = byId('festival-live-table');
+  const callLive = (name,data) => functions.httpsCallable(name)(data).then(reply => reply.data);
+  let livePayRequest = null;
+  let liveQuote = null;
+  let livePayBusy = false;
+
+  function resetLiveTable() {
+    liveTable.hidden = true;
+    liveQuote = null;
+    livePayRequest = null;
+    byId('festival-live-quote-status').textContent = '';
+    byId('festival-live-pay').disabled = true;
+  }
+
+  function showLiveTable(visit, revision) {
+    if (!functions || !['assigned','serving','special_service'].includes(visit.status)) return;
+    liveTable.hidden = false;
+    const quote = byId('festival-live-quote'), pay = byId('festival-live-pay');
+    const info = byId('festival-live-quote-status');
+    const active = () => auth.currentUser && revision === requestRevision;
+    const amount = rows => rows.reduce((sum,row) => sum + Number(row.total),0);
+    quote.onclick = async () => {
+      if (!active() || livePayBusy) return;
+      quote.disabled = true; pay.disabled = true;
+      info.textContent = '正在核對餐點與拍攝金額…';
+      try {
+        const result = await callLive('festivalQuoteV99',{visitId:visit.id});
+        if (!active()) return;
+        const fingerprint = JSON.stringify([result.orders,result.photo]);
+        if (fingerprint !== liveQuote?.fingerprint) livePayRequest = null;
+        liveQuote = {...result,fingerprint};
+        info.textContent = '待收餐點 '+amount(result.orders).toLocaleString('zh-TW')+' Gil、拍攝 '+amount(result.photo).toLocaleString('zh-TW')+' Gil。';
+        pay.disabled = !(result.orders.length || result.photo.length);
+      } catch (error) {
+        if (active()) info.textContent = error.message || '無法取得本桌學園祭金額。';
+      } finally { quote.disabled = false; }
+    };
+    pay.onclick = async () => {
+      if (!active() || livePayBusy || !liveQuote || pay.disabled) return;
+      const {orders,photo} = liveQuote;
+      const dining = orders.map(order => '餐點 '+order.total.toLocaleString('zh-TW')+' Gil · '+order.items.map(item => item.name+' × '+item.qty).join('、')).join('\n');
+      const total = amount(orders)+amount(photo);
+      if (!confirm('確認 '+visit.queueNumber+' 已收 '+total.toLocaleString('zh-TW')+' Gil？\n'+dining+'\n拍攝 '+amount(photo).toLocaleString('zh-TW')+' Gil。')) return;
+      livePayRequest ||= crypto.randomUUID();
+      livePayBusy = true; quote.disabled = true; pay.disabled = true;
+      try {
+        const receipt = await callLive('festivalSettleV99',{visitId:visit.id,requestId:livePayRequest,previewOrders:orders,previewPhoto:photo});
+        if (!active()) return;
+        await refresh();
+        setStatus('已結清。新增券號 '+(receipt.ticketNumbers || []).map(no=>String(no).padStart(3,'0')).join('、').replace(/^$/,'無')+'。');
+      } catch (error) {
+        if (active()) {
+          info.textContent = error.message || '結清未確認，請重試或重新讀取。';
+          pay.disabled = false;
+        }
+      } finally { livePayBusy = false; quote.disabled = false; }
+    };
+  }
+
+  byId('festival-load-options').addEventListener('click',async (event) => {
+    if (role !== 'manager' || !functions) return;
+    const revision = authRevision;
+    const button = event.currentTarget;
+    button.disabled = true;
+    try {
+      const model = await callLive('festivalManagerOptionsV99',{});
+      if (revision !== authRevision) return;
+      const prices = {aBasic:30000,aSpecial:200000,bBasic:30000,bSpecial:200000};
+      for (const [key,price] of Object.entries(prices)) {
+        const team = key[0].toUpperCase(), select = liveOptions.elements[key];
+        const option = document.createElement('option');
+        option.value = ''; option.textContent = '選擇餐點';
+        select.replaceChildren(option);
+        for (const row of model.menu.filter(item=>item.price===price)) {
+          const entry = document.createElement('option');
+          entry.value = row.id; entry.textContent = row.name+' · '+row.price.toLocaleString('zh-TW')+' Gil';
+          select.append(entry);
+          if (model.products?.[row.id]===team) select.value = row.id;
+        }
+      }
+      liveOptions.elements.cutoff.value = model.cutoffAt && model.cutoffAt<8e15 ? new Date(model.cutoffAt+8*3600000).toISOString().slice(0,16) : '';
+      liveOptions.elements.testOnly.checked = model.testOnly !== false;
+      liveOptions.hidden = false;
+      byId('festival-disable').disabled = !model.enabled;
+      liveStatus.textContent = model.enabled ? (model.testOnly?'目前為測試模式。':'學園祭已開放點餐。') : '本場學園祭尚未開放。';
+      liveTickets.replaceChildren();
+      for (const ticket of model.tickets) {
+        const li = document.createElement('li');
+        li.textContent = String(ticket.no).padStart(3,'0')+' · '+(publicDesign.teams[ticket.team]?.name || ticket.team)+' · '+ticket.name+'｜'+ticket.server;
+        liveTickets.append(li);
+      }
+    } catch (error) {
+      if (revision === authRevision) liveStatus.textContent = error.message || '無法讀取本場設定。';
+    } finally { button.disabled = false; }
+  });
+
+  liveOptions.addEventListener('submit',async (event) => {
+    event.preventDefault();
+    if (role !== 'manager' || !functions) return;
+    const form = new FormData(liveOptions);
+    const testOnly = form.has('testOnly');
+    if (!testOnly && !confirm('確認開放本場所有客人從學園祭入口點餐？')) return;
+    const cutoffAt = form.get('cutoff') ? Date.parse(form.get('cutoff')+'+08:00') : null;
+    const revision = authRevision;
+    const button = byId('festival-open');
+    button.disabled = true;
+    try {
+      await callLive('festivalConfigureV99',{enabled:true,testOnly,cutoffAt,aBasic:form.get('aBasic'),aSpecial:form.get('aSpecial'),bBasic:form.get('bBasic'),bSpecial:form.get('bSpecial')});
+      if (revision === authRevision) byId('festival-load-options').click();
+    } catch (error) {
+      if (revision === authRevision) liveStatus.textContent = error.message;
+    } finally { button.disabled = false; }
+  });
+  byId('festival-disable').addEventListener('click',async event => {
+    if (role !== 'manager' || !functions || !confirm('關閉本場的學園祭點餐入口？')) return;
+    const revision = authRevision, button = event.currentTarget;
+    button.disabled = true;
+    try {
+      await callLive('festivalConfigureV99',{enabled:false});
+      if (revision === authRevision) byId('festival-load-options').click();
+    } catch (error) {
+      if (revision === authRevision) { liveStatus.textContent = error.message; button.disabled = false; }
+    }
+  });
+
+  function initLuckyRoll() {
+    const panel=byId('festival-lucky-roll');
+    const status=byId('draw-status');
+    const prizeForm=byId('draw-prize-form');
+    const work=byId('draw-work');
+    const prizes=byId('draw-prizes');
+    const rollInput=byId('draw-number');
+    const saveWinner=byId('draw-confirm');
+    const hits=byId('draw-hit');
+    const orderResult=byId('draw-cancel-result');
+    let model, roll, drawId, cancellation, busy=false;
+    const pad=value=>String(value).padStart(3,'0');
+    const teamName=id=>id==='all'?'全場共同':publicDesign.teams[id]?.name || id;
+    const poolLabel=(id)=>teamName(id)+'獎池';
+    const canUse=()=>role==='manager' && Boolean(functions);
+    const actions=panel.querySelectorAll('button');
+    const formatTime=at=>new Date(at).toLocaleString('zh-TW',{timeZone:'Asia/Taipei',hour12:false});
+    function updateButtons(){
+      const prepared=Boolean(roll);
+      const hit=matchingTicket();
+      byId('draw-freeze').disabled=busy || !model || model.locked;
+      byId('draw-publish').disabled=busy || !model?.locked;
+      byId('draw-prepare').disabled=busy || !model?.locked || !prizes.value;
+      byId('draw-copy-command').disabled=busy || !prepared;
+      rollInput.disabled=busy || !prepared;
+      saveWinner.disabled=busy || !hit;
+      byId('draw-cancel-confirm').disabled=busy || !cancellation || ['cancelled','refunded'].includes(cancellation.status);
+    }
+    function matchingTicket(){
+      if (!roll || !/^\d{1,3}$/.test(rollInput.value.trim())) return null;
+      return roll.tickets.find(ticket=>ticket.no===Number(rollInput.value)) || null;
+    }
+    function resetRoll(){
+      roll=null;drawId=null;
+      rollInput.value='';
+      byId('draw-command').textContent='';
+      hits.textContent='';
+    }
+    function resetCancellation(){
+      cancellation=null;
+      orderResult.textContent='';
+    }
+    function byAction(label, handler){
+      const button=document.createElement('button');
+      button.type='button';
+      button.textContent=label;
+      button.addEventListener('click',handler);
+      return button;
+    }
+    function render(summary){
+      const selected=prizes.value;
+      model=summary;
+      work.hidden=false;
+      byId('draw-counts').textContent='發券截止 '+(model.cutoffAt>8e15?'手動停止':formatTime(model.cutoffAt))+'｜'+(model.locked?'已鎖定':'尚未鎖定')+
+        '｜已發 '+model.count+' 張，作廢 '+model.voided+' 張｜'+teamName('A')+' '+model.votes.A+' 票、'+teamName('B')+' '+model.votes.B+' 票';
+      prizes.replaceChildren(new Option('選擇要抽的獎品',''));
+      const list=byId('draw-prize-list');
+      list.replaceChildren();
+      for(const prize of model.prizes){
+        if(prize.drawn<prize.quantity) prizes.append(new Option(prize.name+' · '+poolLabel(prize.pool),prize.id));
+        const item=document.createElement('li');
+        item.append(prize.name+' · '+poolLabel(prize.pool)+' · 已抽 '+prize.drawn+'／'+prize.quantity+' 份 ',
+          byAction('編輯',()=>{
+            if(busy) return;
+            prizeForm.elements.prizeId.value=prize.id;
+            prizeForm.elements.prizeName.value=prize.name;
+            prizeForm.elements.pool.value=prize.pool;
+            prizeForm.elements.quantity.value=prize.quantity;
+            prizeForm.elements.prizeName.focus();
+          }));
+        list.append(item);
+      }
+      if([...prizes.options].some(option=>option.value===selected)) prizes.value=selected;
+      const options=prizeForm.elements.pool.options;
+      for(const row of options) row.textContent=poolLabel(row.value);
+      const winners=byId('draw-winners');
+      winners.replaceChildren();
+      for(const win of model.wins){
+        const item=document.createElement('li');
+        const select=document.createElement('select');
+        select.setAttribute('aria-label','券號 '+pad(win.ticket)+' 領獎狀態');
+        for(const text of ['待認領','待製作','已發放'])select.append(new Option(text,text));
+        select.value=win.status;
+        select.addEventListener('change',()=>{
+          if(busy || !canUse()){select.value=win.status;return;}
+          return run('winnerStatus',{ticket:win.ticket,status:select.value},render).finally(()=>{if(select.isConnected)select.value=win.status});
+        });
+        item.append(pad(win.ticket)+' · '+win.guestName+'｜'+win.server+' · '+win.prizeName+' ',select);
+        if(win.refundNeedsReview)item.append(' · 退款待核對 ',byAction('標記已核對',()=>{
+          if(confirm('確認已人工核對這筆退款與中獎紀錄？'))return run('winnerStatus',{ticket:win.ticket,review:true},render);
+        }));
+        if(win.refundReviewedAt)item.append(' · 退款已核對');
+        winners.append(item);
+      }
+      byId('draw-copy-winners').disabled=!model.wins.length;
+      updateButtons();
+    }
+    async function request(action,fields){
+      return callLive('festivalDrawAdminV101',{action,sessionId:model?.sessionId,...fields});
+    }
+    async function run(action,fields,success){
+      if(!canUse() || busy)return;
+      const revision=authRevision;
+      busy=true;updateButtons();
+      status.textContent='處理中…';
+      try{
+        const data=await request(action,fields);
+        if(revision!==authRevision || !canUse())return;
+        status.textContent='';
+        await success(data,revision);
+      }catch(error){
+        if(revision===authRevision)status.textContent=error.message || '無法完成，請重新讀取。';
+      }finally{
+        if(revision===authRevision){busy=false;updateButtons();}
+      }
+    }
+    async function copy(content){
+      try{await navigator.clipboard.writeText(content);status.textContent='已複製。';}
+      catch{status.textContent='瀏覽器未允許複製，請選取畫面文字。';}
+    }
+
+    byId('draw-refresh').addEventListener('click',()=>run('summary',{},summary=>{
+      resetRoll();resetCancellation();render(summary);
+    }));
+    prizeForm.addEventListener('submit',event=>{
+      event.preventDefault();
+      const fields=prizeForm.elements;
+      return run('prize',{id:fields.prizeId.value,name:fields.prizeName.value,pool:fields.pool.value,quantity:Number(fields.quantity.value)},summary=>{
+        prizeForm.reset();fields.prizeId.value='';resetRoll();render(summary);
+        status.textContent='獎項已儲存。';
+      });
+    });
+    byId('draw-prize-new').addEventListener('click',()=>{
+      if(busy)return;
+      prizeForm.reset();prizeForm.elements.prizeId.value='';prizeForm.elements.prizeName.focus();
+    });
+    byId('draw-freeze').addEventListener('click',()=>{
+      if(confirm('現在停止本場投票與發券？客人仍可繼續點餐。'))return run('freeze',{},render);
+    });
+    byId('draw-publish').addEventListener('click',()=>{
+      if(confirm('確定把目前的兩校票數公布到公開活動頁？'))return run('publish',{},summary=>{
+        render(summary);status.textContent='已公布最終票數。';
+      });
+    });
+    prizes.addEventListener('change',()=>{resetRoll();updateButtons();});
+    byId('draw-prepare').addEventListener('click',()=>{
+      if(busy)return;
+      const prizeId=prizes.value;
+      resetRoll();
+      return run('prepare',{prizeId},result=>{
+        if(prizes.value!==prizeId)return;
+        roll={...result,prizeId};
+        drawId=crypto.randomUUID();
+        byId('draw-command').textContent='/random '+result.max;
+        status.textContent='可抽 '+result.tickets.length+' 張。骰到無效券號時請重擲。';
+        updateButtons();
+        rollInput.disabled=false;rollInput.focus();
+      });
+    });
+    byId('draw-copy-command').addEventListener('click',()=>{if(roll)return copy('/random '+roll.max);});
+    rollInput.addEventListener('input',()=>{
+      const ticket=matchingTicket();
+      hits.textContent=ticket ? pad(ticket.no)+' · '+ticket.name+'｜'+ticket.server :
+        rollInput.value.trim() ? '這張券無法參加本次抽獎，請重新擲骰。' : '';
+      updateButtons();
+    });
+    byId('draw-roll-form').addEventListener('submit',event=>{
+      event.preventDefault();
+      const ticket=matchingTicket();
+      if(!ticket || busy)return;
+      return run('confirm',{prizeId:roll.prizeId,drawId,revision:roll.revision,roll:ticket.no},async (win,revision)=>{
+        resetRoll();
+        const summary=await request('summary',{});
+        if(revision!==authRevision || !canUse())return;
+        render(summary);
+        status.textContent='已登記 '+pad(win.ticket)+' · '+win.guestName+'｜'+win.server+' · '+win.prizeName;
+      });
+    });
+    byId('draw-copy-winners').addEventListener('click',()=>{
+      if(model?.wins.length)return copy(model.wins.map(win=>pad(win.ticket)+'｜'+win.guestName+'｜'+win.server+'｜'+win.prizeName).join('\n'));
+    });
+    byId('draw-cancel-form').addEventListener('submit',event=>{
+      event.preventDefault();
+      if(busy)return;
+      resetCancellation();
+      return run('findOrder',{orderNumber:Number(byId('draw-cancel-number').value)},order=>{
+        cancellation=order;
+        const names=order.items.map(item=>item.name+' × '+item.qty).join('、');
+        const detail='訂單 #'+order.orderNumber+' · '+order.guest+' · '+teamName(order.team)+' · '+names+' · '+order.total.toLocaleString('zh-TW')+' Gil';
+        orderResult.textContent=detail+(['cancelled','refunded'].includes(order.status)?' · 已取消':'');
+      });
+    });
+    byId('draw-cancel-confirm').addEventListener('click',()=>{
+      if(!cancellation || busy || !confirm('確定取消訂單 #'+cancellation.orderNumber+'？應援票與抽獎券會重新核算。'))return;
+      return run('cancel',{orderId:cancellation.orderId},async (result,revision)=>{
+        resetCancellation();resetRoll();
+        const summary=await request('summary',{});
+        if(revision!==authRevision || !canUse())return;
+        render(summary);
+        status.textContent='已取消 #'+result.orderNumber+'，票券與票數已更新。';
+      });
+    });
+    return {
+      sync(){
+        panel.hidden=!canUse();
+        if(!canUse()){
+          panel.open=false;work.hidden=true;
+          model=null;busy=false;
+          resetRoll();resetCancellation();status.textContent='';
+          for(const button of actions)if(button.id!=='draw-refresh')button.disabled=false;
+          updateButtons();
+        }
+      }
+    };
+  }
+  const luckyRoll=initLuckyRoll();
+  function initFestivalMenuEditor(){
+    const panel=byId('festival-menu-editor'), form=byId('fest-menu-form'), fields=form.elements;
+    const status=byId('fest-menu-status'), list=byId('fest-menu-list');
+    let model,busy=false;
+    const roleAllowed=()=>role==='manager' && Boolean(functions);
+    const displayType={food:'餐點',magic:'桌邊服務',polaroid:'拍立得',lens:'個人攝影',delivery:'交付服務'};
+    function chooseKind(){
+      const service=fields.kind.value!=='food';
+      fields.team.disabled=service;
+      fields.maid.disabled=!service || fields.kind.value==='magic';
+      fields.maid.required=!fields.maid.disabled;
+      fields.stock.disabled=!fields.limited.checked;
+    }
+    function fill(row={}){
+      form.reset();
+      fields.itemId.value=row.id || '';
+      fields.productName.value=row.name || '';
+      fields.categoryName.value=row.category || '';
+      fields.description.value=row.description || '';
+      fields.price.value=String(row.price ?? '');
+      fields.team.value=row.team==='B'?'B':'A';
+      fields.kind.value=row.serviceType || (row.team==='service'?'magic':'food');
+      fields.maid.value=row.maidId || '';
+      fields.photo.value=row.photo || '';
+      fields.limited.checked=Boolean(row.stockEnabled);
+      fields.stock.value=String(row.stockRemaining ?? 0);
+      fields.sell.checked=row.available!==false;
+      chooseKind();
+    }
+    function display(data){
+      model=data;
+      form.hidden=false;
+      byId('fest-menu-import').disabled=false;
+      fields.maid.replaceChildren(new Option('選擇本場拍攝女僕',''));
+      for(const maid of data.maids)fields.maid.append(new Option(maid.name,maid.id));
+      list.replaceChildren();
+      for(const row of data.rows){
+        const li=document.createElement('li'),button=document.createElement('button');
+        button.type='button';button.textContent='編輯';
+        button.addEventListener('click',()=>{if(!busy){fill(row);fields.productName.focus();}});
+        const kind=displayType[row.serviceType] || (row.team==='service'?'桌邊服務':'餐點');
+        const school=publicDesign.teams[row.team]?.name;
+        li.append(row.name+' · '+(school?school+' · ':'')+kind+' · '+row.price.toLocaleString('zh-TW')+' Gil'+
+          (row.stockEnabled?' · 限量 '+row.stockRemaining:'')+(row.available?'':' · 已下架')+' ',button);
+        list.append(li);
+      }
+      fill();
+    }
+    async function run(action,args,done){
+      if(!roleAllowed() || busy)return;
+      const revision=authRevision;
+      const submit=form.querySelector('[type=submit]');
+      busy=true;submit.disabled=true;status.textContent='處理中…';
+      try{
+        const result=await callLive('festivalMenuAdminV103',{action,sessionId:model?.sessionId,...args});
+        if(revision!==authRevision || !roleAllowed())return;
+        status.textContent='';
+        await done(result,revision);
+      }catch(error){if(revision===authRevision)status.textContent=error.message || '尚未完成，請重新讀取。';}
+      finally{if(revision===authRevision){busy=false;submit.disabled=false;}}
+    }
+    async function reload(message,revision){
+      const data=await callLive('festivalMenuAdminV103',{action:'list'});
+      if(revision===authRevision && roleAllowed()){display(data);status.textContent=message;}
+    }
+    fields.kind.addEventListener('change',chooseKind);
+    fields.limited.addEventListener('change',chooseKind);
+    byId('fest-menu-load').addEventListener('click',()=>run('list',{},display));
+    byId('fest-menu-new').addEventListener('click',()=>{if(!busy){fill();fields.productName.focus();}});
+    byId('fest-menu-import').addEventListener('click',()=>run('import',{},(result,revision)=>reload('已複製 '+result.count+' 項原本的桌邊服務。',revision)));
+    fields.upload.addEventListener('change',async ()=>{
+      const file=fields.upload.files?.[0];
+      if(!file || !roleAllowed() || busy)return;
+      const revision=authRevision,submit=form.querySelector('[type=submit]');
+      busy=true;submit.disabled=true;status.textContent='正在上傳照片…';
+      try{
+        const image=await makePortraitData(file);
+        if(revision!==authRevision)return;
+        const result=await callLive('festivalMemberPhotoV102',{image});
+        if(revision===authRevision){fields.photo.value=result.photo;status.textContent='照片已上傳，請儲存品項。';}
+      }catch(error){if(revision===authRevision)status.textContent=error.message || '無法上傳照片。';}
+      finally{if(revision===authRevision){busy=false;submit.disabled=false;}}
+    });
+    form.addEventListener('submit',event=>{
+      event.preventDefault();
+      const team=fields.kind.value==='food'?fields.team.value:'service';
+      return run('save',{id:fields.itemId.value,name:fields.productName.value,category:fields.categoryName.value,
+        description:fields.description.value,price:Number(fields.price.value),team,serviceType:fields.kind.value,
+        maidId:fields.maid.value,photo:fields.photo.value,available:fields.sell.checked,
+        stockEnabled:fields.limited.checked,stockRemaining:Number(fields.stock.value)},(result,revision)=>reload('品項已儲存。',revision));
+    });
+    return {
+      sync(){
+        panel.hidden=!roleAllowed();
+        if(!roleAllowed()){
+          panel.open=false;list.replaceChildren();form.hidden=true;model=null;busy=false;status.textContent='';
+          byId('fest-menu-import').disabled=true;
+        }
+      }
+    };
+  }
+  const festivalMenuEditor=initFestivalMenuEditor();
+
+
+  let selectedStaff='';
+  let deskActionBusy=false;
+  async function showStaffWorkspace(visit,revision,orders){
+    if(!functions)return;
+    const box=byId('festival-staff-actions');
+    const dropdown=byId('festival-staff-picker');
+    const target=byId('festival-transfer-picker');
+    let staff;
+    try{staff=await reader.dutyStaff(visit.businessDate);}
+    catch{if(revision===requestRevision)setStatus('暫時無法讀取本場值班名單。');return;}
+    if(revision!==requestRevision || !role)return;
+    dropdown.replaceChildren(new Option('選擇操作女僕',''));
+    target.replaceChildren(new Option('選擇轉交女僕',''));
+    for(const member of staff){
+      dropdown.append(new Option(member.name,member.id));
+      if(member.id!==visit.assignedStaffId)target.append(new Option(member.name,member.id));
+    }
+    dropdown.value=staff.some(member=>member.id===selectedStaff)?selectedStaff:'';
+    dropdown.onchange=()=>{selectedStaff=dropdown.value;renderActions();};
+    const current=()=>revision===requestRevision && Boolean(role);
+    async function run(action,fields={}){
+      if(!current() || deskActionBusy || !dropdown.value)return;
+      deskActionBusy=true;
+      setStatus('正在更新 '+visit.queueNumber+'…');
+      try{
+        await callLive('festivalStaffActionV102',{visitId:visit.id,staffId:dropdown.value,action,...fields});
+        if(!current())return;
+        await refresh(visit.id);
+        setStatus('已更新 '+visit.queueNumber+'。');
+      }catch(error){if(current())setStatus(error.message || '未能確認操作，請重新讀取。');}
+      finally{deskActionBusy=false;}
+    }
+    function attachButton(host,label,action,fields,confirmation){
+      const button=document.createElement('button');
+      button.type='button';button.textContent=label;
+      button.addEventListener('click',()=>{
+        if(!confirmation || confirm(confirmation))return run(action,typeof fields==='function'?fields():fields);
+      });
+      host.append(button);
+    }
+    function renderActions(){
+      const desiredTarget=target.value;
+      const actions=byId('festival-staff-buttons');
+      actions.replaceChildren();
+      byId('festival-transfer-region').hidden=true;
+      for(const host of box.querySelectorAll('[data-order-controls]'))host.remove();
+      if(!dropdown.value)return;
+      if(visit.status==='waiting'){
+        attachButton(actions,'接待這組','claim');
+        attachButton(actions,'標記未到','noShow',{},'確認這組客人未到？');
+        return;
+      }
+      if(role!=='manager' && visit.assignedStaffId!==dropdown.value)return;
+      if(visit.status==='assigned')attachButton(actions,'開始接待','start');
+      byId('festival-transfer-region').hidden=false;
+      target.value=desiredTarget;
+      attachButton(actions,'轉交接待','transfer',()=>({targetId:target.value}));
+      if(!visit.tableServiceCompletedAt)attachButton(actions,'完成本輪服務','completeService');
+      attachButton(actions,'主人離店・關閉本桌','close',{},'確認客人已離店？關桌後將不能再追加點餐。');
+      for(const order of orders.filter(order=>!['completed','cancelled','refunded'].includes(order.status))){
+        const row=document.createElement('div');
+        row.dataset.orderControls='';
+        row.className='toolbar';
+        row.append('訂單 #'+order.orderNumber+' · '+(order.status==='pending'?'待接單':'備餐中'));
+        if(order.status==='pending')attachButton(row,'接單備餐','prepare',{orderId:order.id});
+        attachButton(row,'餐點已送達','serve',{orderId:order.id});
+        box.append(row);
+      }
+    }
+    box.hidden=false;
+    renderActions();
+  }
+
+  function showLine(container, text) {
+    const line = document.createElement('p');
+    line.textContent = text;
+    container.append(line);
+  }
+
+  if (testActionsEnabled) {
+    byId('page-title').textContent = '學園祭接待與結清';
+    byId('page-description').textContent = '在這裡接待、處理餐點與結清。訂單和桌次會同步到原後台。';
+  }
+
+  function clearTableActions() {
+    resetLiveTable();
+    const staffBox=byId('festival-staff-actions');staffBox.hidden=true;
+    for(const row of staffBox.querySelectorAll('[data-order-controls]'))row.remove();
+  }
+
+  async function selectVisit(visit, button) {
+    const revision = ++requestRevision;
+    clearTableActions();
+    for (const entry of byId('visit-list').querySelectorAll('button')) entry.setAttribute('aria-pressed', String(entry === button));
+    byId('order-heading').textContent = (visit.queueNumber || '未編號桌次') + ' 本桌訂單';
+    const container = byId('orders');
+    container.textContent = '讀取中…';
+    try {
+      const orders = await reader.orders(visit);
+      if (revision !== requestRevision || !role) return;
+      container.replaceChildren();
+      if (!orders.length) showLine(container, '目前沒有餐點訂單。');
+      for (const order of orders) {
+        showLine(container, '訂單 #' + (order.orderNumber || '—') + ' · ' + Number(order.total || 0).toLocaleString('zh-TW') + ' Gil');
+        for (const item of Array.isArray(order.items) ? order.items : []) {
+          const recipients = Array.isArray(item.assignments) ? item.assignments.join('、') : '';
+          showLine(container, item.name + ' × ' + item.qty + (recipients ? ' · ' + recipients : ''));
+        }
+      }
+      showLiveTable(visit, revision);
+      await showStaffWorkspace(visit, revision, orders);
+    } catch {
+      if (revision === requestRevision) container.textContent = '無法讀取這桌訂單。請檢查原後台權限與訂單索引。';
+    }
+  }
+
+  async function refresh(preferredVisitId) {
+    if (!role) return;
+    const revision = ++requestRevision;
+    clearTableActions();
+    const list = byId('visit-list');
+    list.replaceChildren();
+    byId('order-heading').textContent = '本桌訂單';
+    byId('orders').textContent = '選一張號碼牌查看訂單。';
+    setStatus('正在讀取本場桌次…');
+    try {
+      const { date, visits } = await reader.currentVisits();
+      if (revision !== requestRevision || !role) return;
+      setStatus((role === 'manager' ? '管理員' : '員工') + ' · 主題日工作台');
+      let preferred;
+      byId('visit-heading').textContent = date ? date + ' 本場桌次' : '本場桌次';
+      if (!visits.length) showLine(list, '目前沒有符合條件的桌次。');
+      for (const visit of visits) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.setAttribute('aria-pressed', 'false');
+        button.textContent = [visit.queueNumber || '未編號', visit.characterName || '未命名角色', statusLabels[visit.status], checkoutLabels[visit.paymentStatus] || '尚未結清'].join(' · ');
+        button.addEventListener('click', () => selectVisit(visit, button));
+        list.append(button);
+        if(visit.id===preferredVisitId)preferred={visit,button};
+      }
+      if(preferred)await selectVisit(preferred.visit,preferred.button);
+    } catch {
+      if (revision === requestRevision) setStatus('無法讀取本場桌次。請確認連線和原後台權限。');
+    }
+  }
+
+  try {
+    await auth.setPersistence(firebase.auth.Auth.Persistence.NONE);
+  } catch {
+    return setStatus('無法建立暫時登入。請用瀏覽器開啟此頁後重試。');
+  }
+  auth.onAuthStateChanged(async user => {
+    const revision = ++authRevision;
+    requestRevision++;
+    reader.resetReads();
+    clearTableActions();
+    role = null;
+    luckyRoll.sync();
+    festivalMenuEditor.sync();
+    historyBusy = false;
+    portraitUploads=0;
+    portraitSubmit().disabled=false;
+    appearancePanel.hidden=true;
+    appearancePanel.open=false;
+    appearanceForm.hidden=true;
+    appearanceTeams.replaceChildren();
+    appearanceStatus.textContent='';
+    livePanel.hidden = true;
+    livePanel.open = false;
+    liveOptions.hidden = true;
+    liveTickets.replaceChildren();
+    liveStatus.textContent = '';
+    resetHistory();
+    historyPanel.open = false;
+    syncHistoryControls();
+    byId('desk').hidden = true;
+    byId('visit-list').replaceChildren();
+    byId('orders').replaceChildren();
+    byId('login').hidden = Boolean(user);
+    if (!user) return setStatus('請使用原後台帳號登入。');
+    try {
+      const access = await reader.access(user);
+      if (revision !== authRevision) return;
+      if (access) {
+        role = access;
+        luckyRoll.sync();
+        festivalMenuEditor.sync();
+        livePanel.hidden = role !== 'manager' || !functions;
+        appearancePanel.hidden = livePanel.hidden;
+        syncHistoryControls();
+        byId('desk').hidden = false;
+        await refresh();
+        return;
+      }
+    } catch {
+      if (revision !== authRevision) return;
+    }
+    await auth.signOut();
+    if (!auth.currentUser) setStatus('這個帳號沒有可核對的原後台權限。');
+  });
+  byId('login-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const submit = form.querySelector('button');
+    if (submit.disabled) return;
+    submit.disabled = true;
+    try {
+      await auth.signInWithEmailAndPassword(form.elements.email.value.trim(), form.elements.password.value);
+    } catch {
+      setStatus('登入失敗。請確認帳號、密碼與連線。');
+    } finally {
+      form.elements.password.value = '';
+      submit.disabled = false;
+    }
+  });
+  byId('refresh').addEventListener('click', () => {
+    reader.resetReads();
+    return refresh();
+  });
+  byId('logout').addEventListener('click', () => auth.signOut().catch(() => setStatus('登出失敗，請重試。')));
+});
+</script>
+<script src="festival-page-schema.js"></script><script src="festival-page-editor.js"></script></body>
+</html>

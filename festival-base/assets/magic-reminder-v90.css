@@ -1,0 +1,12 @@
+/* V90: informational reminder only; uses the existing guest palette. */
+.magic-reminder[hidden]{display:none!important}
+.magic-reminder{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(38,27,36,.56);box-sizing:border-box}
+.magic-reminder-dialog{position:relative;box-sizing:border-box;width:min(100%,480px);max-height:calc(100dvh - 40px);overflow:auto;padding:30px;background:var(--guest-paper,#fbf7f0);border:1px solid var(--guest-line,#d9cbbd);color:var(--guest-ink,#362927);box-shadow:0 18px 50px rgba(38,27,36,.2)}
+.magic-reminder-dialog h2{margin:28px 0 22px;font:500 26px/1.5 'Noto Serif TC',serif}
+.magic-reminder-copy{font:400 15px/1.9 'Noto Serif TC',serif;overflow-wrap:anywhere}
+.magic-reminder-copy p{margin:0 0 20px}
+.magic-reminder-note{margin:22px 0 20px;padding-top:16px;border-top:1px solid var(--guest-line,#d9cbbd);color:var(--guest-muted,#796d66);font-size:13px;line-height:1.8;text-align:center}
+.magic-reminder-close{position:absolute;right:16px;top:16px;min-height:44px;padding:8px 13px;border:1px solid var(--guest-line,#d9cbbd);border-radius:0;background:transparent;color:var(--guest-ink,#362927);font:inherit;font-size:14px;cursor:pointer}
+.magic-reminder-done{display:block;min-height:44px;width:min(100%,200px);margin:0 auto;padding:10px 22px;border:1px solid var(--guest-wine,#8e4f61);border-radius:0;background:var(--guest-wine,#8e4f61);color:#fff;font:inherit;font-size:16px;cursor:pointer}
+.magic-reminder button:focus-visible{outline:2px solid var(--guest-wine,#8e4f61);outline-offset:3px}
+@media(max-width:520px){.magic-reminder{padding:16px}.magic-reminder-dialog{padding:24px 22px;max-height:calc(100dvh - 32px)}.magic-reminder-dialog h2{font-size:24px}.magic-reminder-copy{font-size:14px}}

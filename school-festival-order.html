@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>曇時學園祭｜點餐與號碼牌</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;}
+body{margin:0;background:#241f30;font-family:'Noto Sans TC',sans-serif;}
+:root{
+  --ink:#241f30; --ink-deep:#191420; --card:#2d2738;
+  --parchment:#f3ece1; --parchment-dim:#c7bfae;
+  --gold:#caa06b; --gold-dim:#8a6f4d;
+  --rose:#c07b8a; --rose-dim:#7a4d57;
+  --sage:#8fa688; --sage-dim:#4d5c48;
+  --mist:#a79bc4; --line:rgba(243,236,225,0.12);
+}
+.wrap{
+  background:var(--ink); color:var(--parchment); padding:28px 22px 34px;
+  border-radius:14px; max-width:640px; margin:0 auto; position:relative;
+  overflow:hidden; min-height:100vh;
+}
+@media (min-width:860px){ .wrap{ max-width:760px; } }
+.petal{
+  position:absolute; width:10px; height:10px; border-radius:0 60% 0 60%;
+  background:var(--rose); opacity:0.18; animation:fall linear infinite;
+}
+@keyframes fall{from{transform:translateY(-20px) rotate(0deg);} to{transform:translateY(420px) rotate(200deg);}}
+
+.header{
+  position:relative; z-index:1; display:flex; justify-content:space-between; align-items:flex-end;
+  margin-bottom:22px; padding-bottom:16px; border-bottom:1px solid var(--line);
+}
+.brand h1{font-family:'Noto Serif TC',serif;font-weight:600;font-size:21px;margin:0 0 2px;letter-spacing:0.02em;}
+.brand p{margin:0;font-size:12px;color:var(--parchment-dim);letter-spacing:0.05em;}
+.clock{text-align:right;font-size:12px;color:var(--parchment-dim);}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;}
+.dot.online{background:var(--sage);}
+.dot.offline{background:var(--rose);}
+
+.panel{position:relative;z-index:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px;}
+.panel-title{font-size:12px;color:var(--mist);letter-spacing:0.06em;margin:0 0 10px;text-transform:uppercase;}
+.menu-sync-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-4px 0 9px;}
+.menu-sync-status{font-size:10.5px;color:var(--sage);letter-spacing:.02em;}
+.menu-sync-status.error{color:var(--rose);}
+.menu-refresh-btn{border:0;background:transparent;color:var(--mist);font:inherit;font-size:10.5px;padding:2px 0;cursor:pointer;}
+.menu-refresh-btn:hover{color:var(--gold);}
+.menu-refresh-btn:disabled{opacity:.45;cursor:wait;}
+.cat-title{font-family:'Noto Serif TC',serif;font-weight:600;font-size:14px;color:var(--gold);margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line);}
+.cat-title:first-child{margin-top:0;}
+.category-notice{
+  display:flex;align-items:flex-start;gap:9px;margin:4px 0 8px;padding:9px 11px;
+  border:1px solid rgba(202,160,107,0.22);border-left:3px solid var(--gold-dim);
+  border-radius:7px;background:rgba(202,160,107,0.07);
+  color:var(--parchment-dim);font-size:11.5px;line-height:1.7;
+}
+.category-notice-label{
+  color:var(--gold);font-family:'Noto Serif TC',serif;font-size:10px;
+  letter-spacing:0.08em;white-space:nowrap;padding-top:1px;
+}
+
+.item-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(243,236,225,0.06);}
+.item-row:last-child{border-bottom:none;}
+.item-name{flex:1;font-size:14px;}
+.item-note{display:block;font-size:11px;color:var(--parchment-dim);margin-top:2px;}
+.item-price{font-size:13px;color:var(--gold-dim);min-width:64px;text-align:right;}
+.stepper{display:flex;align-items:center;gap:6px;}
+.step-btn{width:26px;height:26px;border-radius:6px;background:var(--ink-deep);border:1px solid var(--line);color:var(--parchment);font-size:14px;cursor:pointer;line-height:1;}
+.step-btn:hover{border-color:var(--gold-dim);color:var(--gold);}
+.step-btn:disabled{opacity:.28;cursor:not-allowed;border-color:var(--line);color:var(--parchment-dim);}
+.step-qty{width:20px;text-align:center;font-size:14px;}
+.item-row.unavailable{opacity:.58;}
+.availability{display:inline-flex;margin-top:4px;padding:2px 7px;border:1px solid rgba(202,160,107,.32);border-radius:20px;color:var(--gold);font-size:10.5px;}
+.availability.soldout{color:var(--rose);border-color:rgba(192,123,138,.42);}
+
+.addon-row{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--mist);margin-top:4px;margin-left:0;}
+.addon-row input{accent-color:var(--gold-dim);}
+
+input[type=text]{
+  background:var(--ink-deep);border:1px solid var(--line);color:var(--parchment);
+  border-radius:7px;padding:9px 11px;font-size:14px;font-family:inherit;width:100%;
+}
+input::placeholder{color:var(--parchment-dim);}
+input:focus{outline:none;border-color:var(--gold-dim);}
+.visit-choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.visit-choice{padding:16px 14px;text-align:left;border:1px solid var(--line);border-radius:9px;background:var(--ink-deep);color:var(--parchment);cursor:pointer;font-family:inherit;}
+.visit-choice:hover{border-color:var(--gold-dim);}
+.visit-choice strong{display:block;color:var(--gold);font-family:'Noto Serif TC',serif;font-size:15px;margin-bottom:5px;}
+.visit-choice span{display:block;color:var(--parchment-dim);font-size:11.5px;line-height:1.65;}
+.visit-form{display:grid;gap:9px;}
+.visit-form select,.visit-form input{background:var(--ink-deep);border:1px solid var(--line);color:var(--parchment);border-radius:7px;padding:9px 11px;font-size:13px;font-family:inherit;width:100%;}
+.visit-form label{font-size:11.5px;color:var(--parchment-dim);}
+.visit-form-row{display:grid;grid-template-columns:1.3fr .7fr;gap:8px;}
+.character-name-notice{
+  display:flex;align-items:flex-start;gap:9px;margin:0;padding:10px 12px;
+  border:1px solid rgba(202,160,107,.38);border-left:3px solid var(--gold);
+  border-radius:8px;background:rgba(202,160,107,.09);font-size:11.5px;line-height:1.65;
+}
+.character-name-notice strong{flex:none;color:var(--gold);font-size:11.5px;white-space:normal;}
+.companion-fields{display:grid;gap:7px;padding:10px;border:1px solid var(--line);border-radius:8px;background:rgba(25,20,32,.35);}
+.companion-fields-title{font-size:11.5px;color:var(--gold);}
+.companion-fields-help{font-size:10.5px;color:var(--parchment-dim);line-height:1.6;}
+.companion-fields-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.companion-count{flex:none;color:var(--rose);font-size:10.5px;white-space:nowrap;}
+.companion-list{display:grid;gap:8px;}
+.companion-row{display:grid;grid-template-columns:32px minmax(0,1.35fr) minmax(150px,.8fr) 38px;gap:7px;align-items:end;padding-top:9px;border-top:1px solid var(--line);}
+.companion-index{align-self:center;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--rose);color:var(--paper);font-family:'Noto Serif TC',serif;font-size:11px;}
+.companion-row label{display:grid;gap:5px;min-width:0;}
+.companion-remove{width:38px;height:38px;padding:0;border:1px solid var(--line);border-radius:7px;background:transparent;color:var(--rose);font:18px/1 inherit;cursor:pointer;}
+.visit-form .companion-add{justify-self:stretch;width:100%;padding:10px 16px;border-color:var(--guest-sage,var(--sage));background:var(--guest-sage,var(--sage));color:#fff;font-weight:500;letter-spacing:.04em;}
+.visit-form .companion-add:hover{border-color:var(--guest-wine,var(--rose));background:var(--guest-wine,var(--rose));color:#fff;}
+.visit-status-card{text-align:center;padding:20px 16px;}
+.visit-ticket{font-family:'Noto Serif TC',serif;font-size:34px;color:var(--gold);margin:7px 0;letter-spacing:.06em;}
+.visit-status-label{display:inline-flex;padding:4px 10px;border-radius:20px;border:1px solid var(--gold-dim);color:var(--gold);font-size:11px;}
+.visit-status-label.assigned{border-color:var(--sage-dim);color:var(--sage);}
+.visit-meta{font-size:12px;color:var(--parchment-dim);line-height:1.8;margin-top:10px;}
+.visit-assignee{font-family:'Noto Serif TC',serif;color:var(--sage);font-size:18px;margin-top:8px;}
+.visit-help{font-size:11.5px;line-height:1.75;color:var(--parchment-dim);margin:10px 0 0;}
+.browse-badge{display:inline-flex;padding:4px 9px;border:1px solid rgba(167,155,196,.35);border-radius:20px;color:var(--mist);font-size:10.5px;}
+.visit-recovery-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
+@media(max-width:560px){.visit-choice-grid,.visit-form-row{grid-template-columns:1fr;}.character-name-notice{display:block;}.character-name-notice strong{display:block;margin-bottom:3px;}.companion-row{grid-template-columns:30px minmax(0,1fr) 38px;align-items:start;}.companion-row label{grid-column:2;}.companion-remove{grid-column:3;grid-row:1;}.companion-fields-head{display:block;}.companion-count{display:block;margin-top:4px;}}
+@media(max-width:520px){.visit-recovery-actions{grid-template-columns:1fr;}}
+.row{display:flex;gap:8px;flex-wrap:wrap;}
+
+.btn{background:transparent;border:1px solid var(--gold-dim);color:var(--gold);border-radius:7px;padding:9px 16px;font-size:13px;font-family:inherit;cursor:pointer;white-space:nowrap;}
+.btn:hover{background:rgba(202,160,107,0.1);}
+.btn.primary{background:var(--gold-dim);color:var(--ink-deep);border-color:var(--gold-dim);font-weight:500;width:100%;padding:12px;font-size:14px;}
+.btn.primary:hover{background:var(--gold);}
+.btn.primary:disabled{opacity:0.4;cursor:not-allowed;}
+.btn.ghost{border-color:var(--line);color:var(--parchment-dim);}
+
+.cart-line{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:var(--parchment-dim);}
+.cart-line span.name{color:var(--parchment);}
+.cart-line-block{padding:8px 0;border-bottom:1px solid rgba(243,236,225,.07);}
+.cart-line-block:last-of-type{border-bottom:0;}
+.cart-line-main{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--parchment);}
+.diner-assignments{display:grid;gap:5px;margin-top:7px;}
+.diner-assignment{display:grid;grid-template-columns:54px 1fr;align-items:center;gap:7px;font-size:11px;color:var(--parchment-dim);}
+.diner-assignment select{min-width:0;width:100%;background:var(--ink-deep);border:1px solid var(--line);color:var(--parchment);border-radius:6px;padding:6px 8px;font-family:inherit;font-size:11.5px;}
+.diner-roster{font-size:11.5px;line-height:1.7;color:var(--parchment-dim);margin:0 0 9px;padding:9px 10px;border:1px solid rgba(167,155,196,.22);border-radius:7px;background:rgba(167,155,196,.05);}
+.cart-total{display:flex;justify-content:space-between;font-size:15px;font-weight:600;color:var(--gold);border-top:1px solid var(--line);margin-top:8px;padding-top:10px;}
+.empty-cart{font-size:12.5px;color:var(--parchment-dim);}
+
+.configwarn{position:relative;z-index:1;background:#3a2b2b;border:1px solid var(--rose-dim);color:var(--parchment);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.6;}
+.status-banner{position:relative;z-index:1;background:rgba(202,160,107,.09);border:1px solid var(--gold-dim);color:var(--parchment);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;line-height:1.7;}
+.success-box{position:relative;z-index:1;background:rgba(143,166,136,0.12);border:1px solid var(--sage-dim);border-radius:10px;padding:18px;text-align:center;margin-bottom:14px;}
+.success-box .num{font-family:'Noto Serif TC',serif;font-size:30px;color:var(--sage);margin:6px 0;}
+.success-copy{max-width:540px;margin:0 auto;font-size:12.5px;line-height:1.8;color:var(--parchment-dim);}
+.success-note{max-width:540px;margin:8px auto 0;font-size:11.5px;line-height:1.7;color:var(--gold-dim);}
+.success-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.success-actions .btn{width:100%}
+.visit-total-panel{position:relative;z-index:1;text-align:left}.visit-total-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px}.visit-total-head h2{margin:3px 0 4px;font-family:'Noto Serif TC',serif;font-size:22px}.visit-total-head p{margin:0;color:#77665e;font-size:11.5px;line-height:1.65}.visit-total-refresh{flex:none}.visit-total-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px}.visit-total-card{display:grid;gap:5px;padding:13px;border:1px solid #decfbe;border-radius:9px;background:#fbf6ef}.visit-total-card span{color:#77665e;font-size:10.5px;font-weight:600}.visit-total-card strong{color:#9a642d;font-family:'Noto Serif TC',serif;font-size:18px}.visit-total-card.grand{border-color:#d4b58e;background:#f8eddf}.visit-total-alert{margin:0 0 14px;padding:10px 12px;border:1px solid #d6a7b1;border-radius:8px;background:#fff2f4;color:#8a3f50;font-size:12px;line-height:1.7}.visit-total-details{display:grid;grid-template-columns:1fr 1fr;gap:12px}.visit-total-section{padding:13px;border:1px solid #decfbe;border-radius:9px;background:#fffdf9}.visit-total-section h3{margin:0 0 9px;color:#4f3734;font-size:12px;letter-spacing:.06em}.visit-total-line{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #eee3d8;font-size:12px;color:#66544d}.visit-total-line:last-child{border-bottom:0}.visit-total-line span{min-width:0}.visit-total-line small{display:block;margin-top:3px;color:#936f4b;line-height:1.5}.visit-total-line b{flex:none;color:#3e2d2c;font-weight:600}.visit-total-empty{margin:0;color:#8a7a72;font-size:12px}.visit-total-status{margin:12px 0 0;color:#77665e;font-size:11px}
+.site-loader{position:fixed;inset:0;z-index:120;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;padding:24px;background:rgba(25,20,32,.985);color:var(--parchment);text-align:center;transition:opacity .4s ease,visibility .4s ease}.site-loader.is-hidden{opacity:0;visibility:hidden;pointer-events:none}.site-loader strong{font-family:'Noto Serif TC',serif;font-size:20px;font-weight:600;letter-spacing:.12em}.site-loader>span:last-child{font-size:12px;color:var(--parchment-dim);letter-spacing:.06em}.order-loader-mark{position:relative;width:96px;height:82px;margin-bottom:8px}.loader-dish{position:absolute;left:17px;bottom:15px;width:62px;height:11px;border:2px solid var(--gold);border-radius:50%;box-shadow:0 8px 22px rgba(202,160,107,.18)}.loader-dish:before{content:'';position:absolute;left:7px;bottom:5px;width:44px;height:27px;border:2px solid var(--gold);border-bottom:0;border-radius:44px 44px 0 0;transform-origin:center bottom;animation:loader-breathe 1.8s ease-in-out infinite}.loader-dish:after{content:'';position:absolute;left:27px;bottom:34px;width:7px;height:7px;border:2px solid var(--gold);border-radius:50%}.loader-steam{position:absolute;top:4px;width:8px;height:27px;border-left:2px solid var(--rose);border-radius:50%;opacity:.75;animation:loader-steam 1.5s ease-in-out infinite}.loader-steam.one{left:36px}.loader-steam.two{left:54px;animation-delay:.45s}@keyframes loader-breathe{0%,100%{transform:scaleX(.96)}50%{transform:scaleX(1.05)}}@keyframes loader-steam{0%{opacity:0;transform:translateY(7px) scale(.8)}45%{opacity:.85}100%{opacity:0;transform:translateY(-7px) translateX(3px) scale(1.1)}}
+.photo-prompt-overlay{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:20px;background:rgba(15,12,20,.76);}
+.photo-prompt-overlay[hidden],.photo-quick-entry[hidden]{display:none!important;}
+.photo-prompt-dialog{position:relative;width:min(460px,100%);padding:30px;background:var(--card);border:1px solid var(--gold-dim);border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.35);text-align:center;color:var(--parchment);}
+.photo-prompt-dialog h2{margin:8px 0 10px;font-family:'Noto Serif TC',serif;font-size:25px;font-weight:600;}
+.photo-prompt-dialog p{margin:0 auto 18px;max-width:360px;color:var(--parchment-dim);font-size:13px;line-height:1.8;}
+.photo-prompt-kicker{color:var(--gold);font-size:11px;letter-spacing:.16em;}
+.photo-prompt-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:20px;}
+.photo-prompt-actions .btn{display:flex;align-items:center;justify-content:center;text-decoration:none;}
+.photo-prompt-close{position:absolute;right:10px;top:8px;width:38px;height:38px;border:0;background:transparent;color:var(--parchment-dim);font-size:25px;cursor:pointer;}
+.photo-quick-entry{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:38}.photo-quick-card{display:grid;grid-template-columns:38px auto 20px;align-items:center;gap:10px;min-width:222px;padding:11px 13px 11px 11px;background:linear-gradient(135deg,#34202a,#241923);border:1px solid rgba(202,160,107,.64);border-radius:16px;box-shadow:0 14px 38px rgba(0,0,0,.36),inset 0 1px rgba(255,255,255,.05);color:var(--parchment);text-decoration:none;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}.photo-quick-card:hover{transform:translateY(-2px);border-color:var(--gold);box-shadow:0 17px 42px rgba(0,0,0,.42)}.photo-quick-icon{display:grid;place-items:center;width:38px;height:38px;border:1px solid rgba(202,160,107,.45);border-radius:50%;background:rgba(202,160,107,.1);color:var(--gold);font-size:17px}.photo-quick-copy{display:grid;gap:2px}.photo-quick-copy small{color:var(--gold);font-size:10px;letter-spacing:.12em}.photo-quick-copy strong{font-family:'Noto Serif TC',serif;font-size:14px;font-weight:600;letter-spacing:.04em}.photo-quick-arrow{color:var(--rose);font-size:18px;transition:transform .18s ease}.photo-quick-card:hover .photo-quick-arrow{transform:translateX(3px)}
+@media(max-width:520px){.photo-prompt-actions{grid-template-columns:1fr}.photo-quick-entry{right:12px;bottom:12px}.photo-quick-card{min-width:0;padding:9px 11px 9px 9px;grid-template-columns:34px auto 17px;border-radius:14px}.photo-quick-icon{width:34px;height:34px}.photo-quick-copy small{font-size:9px}.photo-quick-copy strong{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.loader-dish:before,.loader-steam{animation:none}.site-loader,.photo-quick-card,.photo-quick-arrow{transition:none}}
+.guide-overlay{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:20px;background:rgba(24,19,24,.72);}
+.guide-overlay[hidden]{display:none!important;}
+.guide-dialog{position:relative;width:min(680px,100%);max-height:calc(100vh - 40px);overflow:auto;padding:30px;background:#fffdf9;border:1px solid #dccdbd;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.28);color:#40332f;}
+.guide-dialog h2{margin:4px 42px 8px 0;font-family:'Noto Serif TC',serif;font-size:27px;color:#5d3340;}.guide-intro{margin:0 0 20px;color:#77665e;font-size:14px;line-height:1.8;}
+.guide-close{position:absolute;right:10px;top:8px;width:40px;height:40px;border:0;background:transparent;color:#77665e;font-size:27px;cursor:pointer;}
+.guide-list{display:grid;gap:12px;margin:0;padding:0;list-style:none;counter-reset:guide;}.guide-list li{position:relative;padding:16px 16px 16px 52px;border:1px solid #e6d9cd;background:#faf6ef;line-height:1.75;counter-increment:guide;}.guide-list li:before{content:counter(guide);position:absolute;left:16px;top:16px;width:25px;height:25px;display:grid;place-items:center;border-radius:50%;background:#6f3d4b;color:#fff;font-size:12px}.guide-list strong{display:block;margin-bottom:3px;color:#3e2d2c;font-size:15px}.guide-list span{display:block;color:#77665e;font-size:13px}.guide-list a{color:#7b4051}.guide-footer{display:flex;justify-content:flex-end;margin-top:18px}.guide-footer .btn{min-width:120px}.guide-tab{margin-left:auto;}
+@media(max-width:560px){.guide-dialog{padding:24px 16px}.guide-dialog h2{font-size:23px}.guide-list li{padding:14px 12px 14px 46px}.guide-list li:before{left:12px;top:14px}.guide-tab{margin-left:0}.visit-total-cards,.visit-total-details,.success-actions{grid-template-columns:1fr}.visit-total-head{display:block}.visit-total-refresh{margin-top:10px;width:100%}}
+.empty{font-size:12.5px;color:var(--parchment-dim);}
+</style>
+<link rel="stylesheet" href="festival-base/assets/unified-cafe-ui.css?v=20260825">
+<link rel="stylesheet" href="festival-base/assets/readability-scale.css?v=20260826">
+<link rel="stylesheet" href="festival-base/assets/guest-cafe-ui.css?v=20260916-v46">
+<link rel="stylesheet" href="festival-base/assets/guest-unified-portal.css?v=62">
+<link rel="stylesheet" href="festival-base/assets/guest-flow-v71.css?v=20260925-v84">
+<link rel="stylesheet" href="festival-base/assets/guest-photo-native.css?v=20260926-v89">
+<link rel="stylesheet" href="festival-base/assets/magic-reminder-v90.css?v=20261010-v90">
+<style>
+:root{--school-a:#385c72;--school-b:#774958;--school-ap:#d4e0e4;--school-bp:#e8d7dc}
+#orderFlow #categoryNav,#orderFlow .order-layout{display:none!important}
+#festival-order{padding:clamp(14px,3vw,26px);background:#f1eae0;color:#283846;border:1px solid #9ca9ad;border-top:5px solid var(--school-a)}
+#festival-order h2{margin:0;font-size:clamp(1.45rem,4vw,2.2rem)}
+#festival-order .festival-school-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-block:15px}
+#festival-order .festival-team{padding:14px;font-weight:700;border:1px solid #7d98a7;background:var(--school-ap);color:var(--school-a);cursor:pointer}
+#festival-order .festival-team[data-team=B]{background:var(--school-bp);color:var(--school-b);border-color:#a07788}
+#festival-order .festival-team[aria-pressed=true]{outline:2px solid currentColor;outline-offset:2px}
+#festival-items label{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #b9b8ae}
+#festival-items input{width:5rem;padding:6px;color:#293846;background:#fff}
+#festival-order output{display:block;padding:10px;background:#d4e0e4;margin:12px 0}
+#festival-order .festival-order-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+#festival-order{border-top-color:var(--festival-accent-a,var(--school-a))}
+#festival-order .festival-team{border-color:var(--festival-accent-a,#7d98a7)}
+#festival-order .festival-team[data-team=B]{border-color:var(--festival-accent-b,#a07788)}
+</style>
+<style>.festival-item-image{width:64px;height:64px;object-fit:cover;margin:0 8px 3px 0;vertical-align:middle}.festival-service-card{padding:12px 0;border-bottom:1px solid #b9b8ae}.festival-service-card button{margin-left:10px}</style>
+<style>
+#festival-order{padding:0;background:transparent;border:0}.festival-cover{display:grid;grid-template-columns:minmax(0,1fr) minmax(165px,39%);min-height:188px;background:#e7dbd9;border:1px solid #8c98a0}
+.festival-cover-copy{display:grid;align-content:center;gap:6px;padding:18px;background:repeating-linear-gradient(90deg,#9a93a020 0 1px,transparent 1px 22px)}
+.festival-cover-copy a{color:#385c72;text-underline-offset:3px}.festival-cover-copy h2{font-weight:900;overflow-wrap:anywhere}.festival-cover-portrait{position:relative;background:#435960;min-height:160px}
+.festival-cover-portrait img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 29%}.festival-cover-portrait strong,.festival-cover-portrait>div{position:absolute;background:#263640ed;color:#fff;bottom:8px;padding:4px;z-index:1}.festival-cover-portrait strong{left:6px;font-size:.76rem}.festival-cover-portrait>div{right:6px}.festival-cover-portrait button{color:#fff;background:none;border:0;padding:3px 7px;cursor:pointer}
+#festival-order .festival-order-header{background:#f1eae0;margin:10px 0 4px;padding:8px 12px}.festival-guest-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(200px,29%);gap:12px;margin-top:10px}
+.festival-guest-menu,.festival-receipt{border:1px solid #9ca9ad;padding:14px;background:#f1eae0;min-width:0}.festival-guest-menu h3,.festival-receipt h3{margin:0 0 8px}.festival-receipt{align-self:start;position:sticky;top:12px;background:#e6d9df;border-top:4px solid #774958}
+#festival-cart-rows{list-style:none;margin:8px 0;padding:0;border-block:1px dashed #a4a299}#festival-cart-rows li{padding:5px 0}#festival-cart-details{display:none}#festival-order .festival-receipt output{background:none;margin:6px 0;padding:0;font-weight:700}
+#festival-order button:focus-visible{outline:2px solid #385c72;outline-offset:3px}#festival-ticket-dialog{color:#283946;background:#f1eae0;border:1px solid #8c98a0;padding:16px;max-width:calc(100vw - 26px)}#festival-ticket-dialog::backdrop{background:#2839469c}#festival-ticket-dialog form{text-align:right}#festival-ticket-dialog span{display:inline-block;font:700 1.35rem Georgia,serif;margin:4px;padding:8px 12px;background:#d4e0e4;border:1px dashed #385c72}
+  @media(max-width:680px){.festival-cover{min-height:110px;grid-template-columns:minmax(0,1fr) minmax(126px,38%)}.festival-cover-copy{padding:9px}.festival-cover-portrait{min-height:110px}.festival-cover-portrait strong{top:5px;bottom:auto}.festival-guest-grid{grid-template-columns:1fr;padding-bottom:92px}.festival-receipt{position:fixed;inset:auto 0 0;z-index:6;padding:6px 10px calc(6px + env(safe-area-inset-bottom));display:grid;gap:4px;grid-template-columns:1fr auto;box-shadow:0 -4px 13px #202c3940}.festival-receipt h3{display:none}.festival-receipt #festival-cart-details{display:block;text-align:left;width:max-content;background:none;border:0;text-decoration:underline;grid-row:2}.festival-receipt ul{display:none}.festival-receipt.expanded ul{display:block;grid-column:1/-1;max-height:28vh;overflow:auto}.festival-receipt #festival-total{grid-row:1;grid-column:1}.festival-receipt #festival-status{grid-column:1/-1}.festival-receipt #festival-send{grid-column:2;grid-row:1/3;align-self:center}}
+</style><style>.festival-quantity{display:flex;align-items:center;gap:4px}.festival-quantity button{min-width:30px;background:#d4e0e4;border:1px solid #7c939d;cursor:pointer}.festival-quantity input{max-width:3.2em}.festival-cover:has(.festival-cover-portrait[hidden]){grid-template-columns:1fr}</style>
+<link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="school-festival-theme.css?v=119"><script src="school-festival-theme.js?v=119"></script><link rel="stylesheet" href="festival-guest-layout.css?v=119"></head>
+<body class="festival-guest-page festival-design"><script>window.SchoolFestivalTheme?.refresh();</script>
+<div id="siteLoader" class="site-loader" role="status" aria-live="polite">
+  <div class="order-loader-mark" aria-hidden="true"><span class="loader-dish"></span><span class="loader-steam one"></span><span class="loader-steam two"></span></div>
+  <strong>正在準備今晚的菜單</strong>
+  <span id="siteLoaderText">女僕正在整理今晚的菜單…</span>
+</div>
+<div class="wrap" id="wrap">
+
+  <div class="header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">曇</span>
+      <div><h1>曇 時</h1><p>Cafe l'Éphémère</p></div>
+    </div>
+    <div class="clock">
+      <div><span class="dot offline" id="connDot"></span><span id="connText">正在連上曇時…</span></div>
+    </div>
+  </div>
+
+  <nav class="guest-tabs" aria-label="服務頁面">
+    <button class="guest-tab is-active" id="queueTab" type="button">領取號碼牌</button>
+    <button class="guest-tab" id="orderTab" type="button">查看今晚菜單</button>
+    <button class="guest-tab guest-tab-photo" id="photoTab" type="button">學園祭特殊服務</button>
+    <button class="guest-tab" id="totalTab" type="button" disabled>本次消費</button>
+  </nav>
+
+  <div id="configWarn" class="configwarn" style="display:none;">
+    今晚的服務頁暫時無法開啟，請讓女僕為您協助。
+  </div>
+
+  <div id="operationBanner" class="status-banner" style="display:none;">
+    今晚的線上點餐已結束，菜單仍可瀏覽。若您已在店內，請直接告知女僕。
+  </div>
+
+  <div id="visitGate" class="panel">
+    <p class="panel-title">入店方式</p>
+    <div class="visit-choice-grid">
+      <button class="visit-choice" id="chooseService" type="button"><strong>接受接待／領取號碼牌</strong><span>想入座點餐或由女僕陪伴，請先領取今晚的候位號碼。</span></button>
+      <button class="visit-choice" id="chooseBrowse" type="button"><strong>自由參觀</strong><span>想看看店內、拍照、等待同行友人或自由交流，可直接入店，不需候位。</span></button>
+      <button class="visit-choice" id="chooseSharedTable" type="button"><strong>與同行者會合</strong><span>輸入代表人分享的六位數本桌通行密碼，即可加入同桌。</span></button>
+    </div>
+    <p class="visit-help">同行的主人與大小姐只需由一位代表領號；若稍後想享用餐點或由女僕服務，也能隨時加入候位。</p>
+  </div>
+
+  <div id="sharedTablePanel" class="panel" style="display:none;">
+    <p class="panel-title">加入本桌</p>
+    <div class="visit-form">
+      <label>本桌通行密碼<input id="sharedTableCode" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="請輸入六位數通行密碼"></label>
+      <div id="sharedMemberForm" style="display:none;">
+        <label>選擇您的角色<select id="sharedMemberSelect" aria-label="選擇同行角色"></select></label>
+        <button class="btn primary" id="confirmSharedMember" type="button">以此角色加入</button>
+      </div>
+      <p id="sharedTableStatus" class="visit-help" aria-live="polite"></p>
+      <button class="btn primary" id="joinSharedTable" type="button">確認並加入</button>
+      <button class="btn ghost" id="backSharedTable" type="button">返回</button>
+    </div>
+  </div>
+
+  <div id="visitRegister" class="panel" style="display:none;">
+    <p class="panel-title">今晚的入店候位</p>
+    <div class="visit-form">
+      <div class="visit-form-row">
+        <label>角色名稱<input type="text" id="visitCharacter" maxlength="40" placeholder="請輸入角色名稱" aria-describedby="characterNameNotice"></label>
+        <label>伺服器<select id="visitWorld" aria-label="選擇伺服器">
+          <option value="">請選擇伺服器</option>
+          <option value="利維坦">利維坦</option>
+          <option value="伊弗利特">伊弗利特</option>
+          <option value="鳳凰">鳳凰</option>
+          <option value="迦樓羅">迦樓羅</option>
+          <option value="奧汀">奧汀</option>
+          <option value="巴哈姆特">巴哈姆特</option>
+          <option value="泰坦">泰坦</option>
+        </select></label>
+      </div>
+      <div class="character-name-notice" id="characterNameNotice" role="note">
+        <strong>請留下角色名稱與所在伺服器，方便女僕與您會合並準備今晚的服務。</strong>
+      </div>
+      <div class="visit-form-row">
+        <label>本次同行人數<input type="text" id="visitPartySizeDisplay" value="1 人（含領號代表）" readonly></label>
+        <input type="hidden" id="visitPartySize" value="1">
+        <label>來店類型<select id="visitKind"><option value="walkin">一般來店</option><option value="reservation">已有預約</option></select></label>
+      </div>
+      <div id="visitCompanionFields" class="companion-fields">
+        <div class="companion-fields-head">
+          <div><div class="companion-fields-title">同行者資料</div><div class="companion-fields-help">每位同行者的角色名稱與伺服器皆為必填。</div></div>
+          <span class="companion-count" id="visitPartyCount">目前共 1 人</span>
+        </div>
+        <div class="companion-list" id="visitCompanionList"></div>
+        <button class="btn companion-add" id="addVisitCompanion" type="button">＋ 新增一位同行者</button>
+      </div>
+      <input type="text" id="visitReservation" maxlength="60" placeholder="預約名稱／預約碼（一般來店可留空）" style="display:none;">
+      <label>女僕偏好<select id="visitPreference"><option value="">由今晚方便的女僕為您服務（等待較短）</option></select></label>
+      <p id="visitError" style="font-size:12px;color:var(--rose);margin:0;display:none;"></p>
+      <button class="btn primary" id="joinVisitQueue" type="button">領取候位號碼</button>
+      <button class="btn ghost" id="backVisitChoice" type="button">返回</button>
+    </div>
+  </div>
+
+  <div id="browsePanel" class="panel" style="display:none;">
+    <span class="browse-badge">自由參觀</span>
+    <h2 style="font-family:'Noto Serif TC',serif;font-size:17px;margin:10px 0 5px;">歡迎自在參觀曇時</h2>
+    <p class="visit-help">您目前不需候位，可以自在參觀、拍照或等待同行友人。若想享用餐點或由女僕為您服務，再領取候位號碼即可。</p>
+    <button class="btn primary" id="browseToQueue" type="button" style="margin-top:12px;">我想領取候位號碼</button>
+  </div>
+
+  <div id="visitRecoveryPanel" class="panel visit-status-card" style="display:none;">
+    <div class="visit-status-label">找到今晚尚未完成的候位</div>
+    <div class="visit-ticket" id="recoveryTicketNumber">A000</div>
+    <div id="recoveryVisitName" style="font-family:'Noto Serif TC',serif;font-size:16px;"></div>
+    <p class="visit-help">這裡保留了今晚尚未完成的候位。請確認是否為您的號碼；重新開啟頁面不會改變原本順位。</p>
+    <div class="visit-recovery-actions">
+      <button class="btn primary" id="resumeVisit" type="button">繼續今晚的候位</button>
+      <button class="btn ghost" id="forgetRecoveredVisit" type="button">這不是我的號碼</button>
+    </div>
+  </div>
+
+  <div id="visitStatusPanel" class="panel visit-status-card" style="display:none;">
+    <div class="visit-status-label" id="visitStatusBadge">候位中</div>
+    <div class="visit-ticket" id="visitTicketNumber">A000</div>
+    <div id="visitStatusTitle" style="font-family:'Noto Serif TC',serif;font-size:16px;">女僕正在為您的入店做準備</div>
+    <div class="visit-assignee" id="visitAssignee"></div>
+    <div class="visit-meta" id="visitStatusMeta"></div>
+    <p class="visit-help" id="visitStatusHelp">請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。</p>
+    <div class="table-access-card" id="sharedTableLinkCard">
+      <div class="table-access-copy"><span class="table-access-kicker">本桌通行密碼</span><strong>請將這組六位數密碼分享給同行者</strong><p>同行的主人與大小姐可用它加入同桌。</p></div>
+      <div class="table-access-code"><b id="sharedTableShareCode">取得中…</b></div>
+      <div class="table-access-actions">
+        <button class="btn ghost" id="copySharedTableCode" type="button" disabled>複製通行密碼</button>
+      </div>
+      <output id="tableAccessStatus" aria-live="polite"></output>
+    </div>
+    <button class="btn ghost" id="cancelVisitQueue" type="button" style="margin-top:12px;">取消候位，繼續自由參觀</button>
+    <button class="btn ghost" id="forgetVisitSession" type="button" style="margin-top:12px;width:100%;">切換角色／加入其他桌</button>
+  </div>
+
+  <section id="visitTotalPanel" class="panel visit-total-panel" style="display:none;" aria-labelledby="visitTotalTitle">
+    <div class="visit-total-head"><div><p class="panel-title">MY ORDERS · TONIGHT</p><h2 id="visitTotalTitle">本次消費與服務安排</h2><p>今晚的餐點、紀念服務與本桌應付金額，都整理在這裡。</p></div><button class="btn ghost visit-total-refresh" id="refreshVisitTotal" type="button">重新整理</button></div>
+    <div id="visitTotalIdentity" class="visit-total-identity"></div><div id="visitPaymentState" class="visit-payment-state"></div><div id="visitMemberTotals" class="visit-member-totals"></div>
+    <div id="visitTotalAlert"></div>
+    <div id="visitTotalDetails" class="visit-total-details"><p class="visit-total-empty">正在讀取本桌消費…</p></div>
+    <div class="visit-total-cards"><div class="visit-total-card"><span>餐點小計</span><strong id="visitDiningTotal">0 Gil</strong></div><div class="visit-total-card"><span>拍攝／紀念服務小計</span><strong id="visitPhotoTotal">0 Gil</strong></div><div class="visit-total-card grand"><span>本次總計</span><strong id="visitGrandTotal">0 Gil</strong></div></div>
+    <div class="visit-reorder-note"><div><strong>今晚還想再享用一些嗎？</strong><span>請沿用目前的本桌身分繼續加點，不需要重新領取號碼牌。</span></div><button class="btn ghost" id="visitAddMore" type="button">繼續加點</button></div>
+    <section class="festival-consumption-tickets"><h3>我的抽獎號碼</h3><div id="festival-consumption-tickets" aria-live="polite">尚未發券。</div><p>餐飲結清後發券，特殊服務費用不計入餐飲發券。</p></section><p id="visitTotalStatus" class="visit-total-status" aria-live="polite"></p>
+  </section>
+
+  <section id="photoServicePanel" class="photo-service-panel" hidden aria-labelledby="photoServiceTitle">
+    <div class="photo-service-head"><div class="photo-service-copy"><small>MEMORIES &amp; CREATIVE SERVICES</small><h2 id="photoServiceTitle">學園祭特殊服務</h2></div><div class="photo-service-actions"><span id="photoVisitTicket" class="photo-visit-ticket">候位</span><label class="photo-role-picker">目前角色<select id="photoRoleSelect" aria-label="切換拍攝與紀念服務使用角色"></select></label><button class="photo-refresh-button" id="reloadPhotoService" type="button">重新整理</button></div></div>
+    <div id="photoPurchaseGate" class="photo-purchase-gate"><strong>可先瀏覽</strong><span>本桌有效餐點滿 30,000 Gil 後，即可選購本場服務。</span></div>
+    
+<section class="panel"><h3>學園祭限定服務</h3><div id="festival-service-items"></div><p id="festival-service-status" role="status"></p></section>
+<div id="photoNativeRoot" class="native-photo is-embedded" data-purchase-enabled="false">
+  <div id="np-siteLoader" class="site-loader" role="status" aria-live="polite"><div class="loader-mark" aria-hidden="true"><span class="loader-photo"></span><span class="loader-spark spark-one">✦</span><span class="loader-spark spark-two">✧</span></div><strong>女僕正在準備今晚的服務</strong><span id="np-siteLoaderText">整理服務項目中…</span></div>
+  <div class="native-photo-main">
+  <section id="np-shopView" class="view"><div id="np-sessionSummary" class="session-summary photo-session-summary" aria-live="polite">正在確認本場資訊…</div><div id="np-accessNotice" class="access-notice access-pending"><button id="np-dismissAccessGate" class="access-gate-close" type="button" aria-label="先瀏覽商品，關閉角色確認提示">×</button><div class="access-copy"><strong>正在確認本桌角色</strong><span>請稍候，確認完成後即可選購服務。</span></div><div id="np-ticketLinkForm" class="ticket-link-form" hidden><input id="np-linkShareCode" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="六位數本桌通行密碼" aria-label="六位數本桌通行密碼"><button id="np-verifyTable" type="button">確認通行密碼</button></div><div id="np-memberLinkForm" class="member-link-form" hidden><select id="np-linkMember" aria-label="選擇角色"></select><button id="np-confirmMember" type="button">以此角色加入</button></div><p id="np-linkStatus" class="link-status" aria-live="polite"></p><button id="np-switchLinkedIdentity" class="identity-switch" type="button" hidden>切換角色</button></div><aside class="photo-rules-card-v71" aria-label="拍攝服務說明"><div><span>PHOTO SERVICE GUIDE</span><h2>今晚的拍攝小約定</h2></div><ul><li>每位主人本次營業最多可登記 3 張</li><li>同一位女僕，每位主人最多登記 1 張</li><li>拍攝將由店內依現場狀況分批安排</li><li>時段確認後會顯示於「本次消費」，到時也會由女僕通知您</li></ul></aside><section class="service-browser" aria-label="依女僕與服務類型篩選"><div class="maid-filter-copy"><div><h2>想和哪位女僕留下紀念？</h2><p>先選擇女僕，再查看她今晚開放的服務。</p></div><small>可左右滑動查看更多</small></div><div id="np-maidNav" class="maid-nav" aria-label="選擇女僕"></div></section><div class="service-filter-row"><strong id="np-serviceFilterTitle">全部服務</strong><div id="np-categoryNav" class="category-nav" aria-label="商品分類"></div></div><div class="shop-grid"><div id="np-productGrid" class="product-grid"><p class="empty">正在讀取本場商品…</p></div><aside class="cart"><p class="eyebrow">YOUR SELECTION</p><h2>今晚選擇</h2><div id="np-cartItems"><p class="empty">尚未選擇商品。</p></div><div class="cart-total"><span>合計</span><b id="np-cartTotal">0 Gil</b></div><button id="np-submitSelection" class="primary" disabled>送出服務訂單</button><p class="cart-note">送出後，女僕會為您安排服務；如需調整或取消，請直接告知店長。</p></aside></div></section>
+  <section id="np-ordersView" class="view" hidden><p class="eyebrow">MY ORDERS · TONIGHT</p><div class="page-intro"><div><h1>本次消費與服務安排</h1><p>今晚的餐點、紀念服務與本桌應付金額，都整理在這裡。</p></div><div id="np-linkedIdentity" class="session-summary"></div></div><button id="np-refreshReceipt" class="outline receipt-refresh" type="button">更新訂單明細</button><div id="np-receiptSummary" class="receipt-summary"><p class="empty">正在讀取本桌消費…</p></div><h2 class="orders-subtitle">我的服務狀態</h2><div id="np-orderList" class="order-list"><p class="empty">正在整理您的服務訂單…</p></div></section>
+</div>
+  
+<div class="bottom-cart" id="np-bottomCart"><span><small id="np-mobileCartCount">尚未選擇</small><b id="np-mobileCartTotal">0 Gil</b></span><button data-open-cart>查看選擇</button></div>
+<div class="overlay" id="np-exampleOverlay" hidden><div class="example-dialog"><button type="button" class="close" data-close-example aria-label="關閉範例視窗"><span aria-hidden="true">×</span><span>關閉</span></button><div class="example-gallery"><div id="np-exampleThumbs" class="example-thumbs"></div><div class="example-stage"><img id="np-exampleMainImage" alt="拍立得範例"></div></div><div class="example-copy"><p class="eyebrow" id="np-exampleEyebrow">PHOTO EXAMPLES</p><div class="example-provider" id="np-exampleProvider"></div><h2 id="np-exampleTitle">作品範例</h2><p id="np-exampleDescription"></p><p class="example-note">實際成品依當日拍攝與設計為準。</p><button class="primary" id="np-exampleSelectProduct">選擇這項商品</button></div></div></div>
+<div class="overlay" id="np-successOverlay" hidden><div class="dialog success"><div class="seal">✓</div><p class="eyebrow">REGISTRATION COMPLETE</p><h2 id="np-successTitle">拍攝服務已登記</h2><p id="np-successMessage"></p><div class="success-guidance">等待期間可以自由活動、使用攝影棚，或暫時離店。請在安排時段前回到店內，女僕也會在拍攝前再次通知您。</div><div class="success-actions-v71"><button class="outline" data-close-success>知道了</button><button class="primary" data-show-orders>查看我的安排</button></div></div></div>
+<div class="overlay" id="np-confirmOrderOverlay" hidden><div class="dialog order-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="np-confirmOrderTitle"><button type="button" class="close" id="np-closeOrderConfirm" aria-label="關閉">×</button><p class="eyebrow">FINAL CONFIRMATION</p><h2 id="np-confirmOrderTitle">送出服務訂單前請再次確認</h2><p id="np-confirmRole" class="confirm-role"></p><div id="np-confirmOrderItems" class="confirm-order-items"></div><div class="cart-total"><span>合計</span><b id="np-confirmOrderTotal">0 Gil</b></div><p class="cart-note">請確認目前角色與選購內容；送出後將由女僕為您安排服務。</p><div class="confirm-actions"><button type="button" class="outline" id="np-cancelOrderConfirm">返回修改</button><button type="button" class="primary" id="np-confirmOrderSubmit">送出服務訂單</button></div></div></div>
+
+</div>
+  </section>
+  <div id="orderFlow" class="order-shell" style="display:none;">
+    <header class="order-heading">
+      <div>
+        <p class="order-kicker">MENU</p>
+        <h2>線上點餐</h2>
+      </div>
+      <div class="order-visit-summary" aria-live="polite">
+        <span id="orderQueueNumber">候位號碼</span>
+        <strong id="orderGuestName">—</strong>
+      </div>
+    </header>
+
+    <aside class="browse-only-notice" id="menuBrowseNotice" hidden>
+      <div><strong>今晚的菜單可以先慢慢看看</strong><span>若想送出餐點，請先回到入店頁領取號碼牌，與女僕會合後即可點餐。</span></div>
+      <button class="btn primary" id="menuBrowseToQueue" type="button">回到入店頁領號</button>
+    </aside>
+
+    <section id="festival-order" aria-label="學園祭雙校餐點">
+      <div class="festival-cover">
+        <div class="festival-cover-copy"><a href="https://ephemere-order.pages.dev/school-festival-roster-arena-preview.html">← 學園祭首頁</a><h2 data-festival-title>曇時學園祭</h2><p>選校應援 · 活動餐點與特殊服務</p></div>
+        <div class="festival-cover-portrait" id="festival-cover" hidden aria-label="學園祭學生照片">
+          <img id="festival-cover-photo" alt=""><strong id="festival-cover-name"></strong>
+          <div id="festival-cover-controls" hidden><button type="button" id="festival-cover-prev" aria-label="上一位學生">‹</button><button type="button" id="festival-cover-toggle" aria-label="暫停自動播放">Ⅱ</button><button type="button" id="festival-cover-next" aria-label="下一位學生">›</button></div>
+        </div>
+      </div>
+      <div class="festival-order-header"><p id="festival-identity"></p><button id="festival-refresh" class="btn ghost" type="button">更新菜單與票券</button><button id="festival-show-tickets" class="btn ghost" type="button" hidden>我的券號</button></div>
+      <button id="festival-service-link" class="btn ghost" type="button">前往學園祭特殊服務</button>
+      <dialog id="festival-ticket-dialog"><form method="dialog"><button class="btn ghost" type="submit">關閉</button></form><h2>我的抽獎券號</h2><p id="festival-info"></p></dialog>
+      <div class="festival-guest-grid">
+      <div class="festival-guest-menu"><h3>學院菜單</h3>
+      <div id="festival-choices" class="festival-school-choices" hidden>
+        <button class="festival-team" type="button" data-team="A" aria-pressed="false" data-school-name="A">曇華女子學院</button>
+        <button class="festival-team" type="button" data-team="B" aria-pressed="false" data-school-name="B">曇光女子學院</button>
+      </div>
+      <div id="festival-items"></div></div>
+      <aside class="festival-receipt" id="festival-receipt" hidden><h3>本次點餐</h3><button id="festival-cart-details" type="button" aria-expanded="false" aria-controls="festival-cart-rows">查看明細</button><ul id="festival-cart-rows"></ul>
+      <output id="festival-total" aria-live="polite"></output>
+      <p id="festival-status" role="status"></p>
+      <button class="btn primary" id="festival-send" type="button" hidden>送出餐點</button></aside></div>
+    </section>
+    <div class="order-category-bar" id="categoryNav" aria-label="菜單分類"></div>
+
+    <div class="order-layout">
+    <main class="panel menu-panel" id="cartPanel">
+      <div class="menu-sync-row">
+        <div class="menu-sync-status" id="menuSyncStatus" aria-live="polite">女僕正在整理最新菜單…</div>
+        <button class="menu-refresh-btn" id="refreshMenuBtn" type="button">更新菜單</button>
+      </div>
+      <div id="menuList"><span class="empty">菜單載入中...</span></div>
+    </main>
+
+    <aside class="order-summary">
+    <div class="panel" id="orderDataPanel">
+      <p class="summary-kicker">已選品項</p>
+      <h3>今晚點單</h3>
+      <div id="dinerRoster" class="diner-roster" style="display:none;"></div>
+      <div id="cartList"><span class="empty-cart">尚未選擇餐點</span></div>
+    </div>
+
+    <div class="panel" id="orderSubmitPanel">
+      <p class="summary-kicker">送單資訊</p>
+      <div class="row">
+        <input type="text" id="custName" maxlength="40" autocomplete="name" placeholder="角色名／稱呼">
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <input type="text" id="custNote" maxlength="120" placeholder="備註（座位、餐點需求等，選填）">
+      </div>
+      <p id="orderError" style="font-size:12px;color:var(--rose);margin:10px 0 0;display:none;"></p>
+      <button class="btn primary" id="submitOrder" style="margin-top:12px;">送出餐點</button>
+    </div>
+    </aside>
+    </div>
+  </div>
+
+</div>
+
+<div class="magic-reminder" id="magicReminder" role="dialog" aria-modal="true" aria-labelledby="magicReminderTitle" aria-describedby="magicReminderCopy" hidden>
+  <section class="magic-reminder-dialog">
+    <button class="magic-reminder-close" id="magicReminderClose" type="button" aria-label="關閉隱藏魔法提醒">× 關閉</button>
+    <h2 id="magicReminderTitle">隱藏魔法</h2>
+    <div class="magic-reminder-copy" id="magicReminderCopy">
+      <p>今晚的蛋包飯，好像還差一點什麼……<br>主人要不要和女僕一起，幫它補上一點魔法？</p>
+      <p>儀式完成之後，<br>我們就一起相信它變得更好吃了～</p>
+    </div>
+    <p class="magic-reminder-note">想點魔法，可以在菜單中選購。</p>
+    <button class="magic-reminder-done" id="magicReminderDone" type="button">知道了</button>
+  </section>
+</div>
+
+<div class="photo-prompt-overlay" id="photoPromptOverlay" role="dialog" aria-modal="true" aria-labelledby="photoPromptTitle" hidden>
+  <div class="photo-prompt-dialog">
+    <button class="photo-prompt-close" id="closePhotoPrompt" type="button" aria-label="關閉拍立得提醒">×</button>
+    <div class="photo-prompt-kicker">PHOTO &amp; MEMORY</div>
+    <h2 id="photoPromptTitle">還想留下今晚的紀念嗎？</h2>
+    <p>女僕已收到您的餐點。若想留下今晚的紀念，現在可以前往拍攝／紀念服務區。</p>
+    <div class="photo-prompt-actions">
+      <button class="btn ghost" id="photoPromptLater" type="button">稍後再看</button>
+      <button class="btn primary photo-inline-button" id="photoPromptGo" type="button">前往拍攝／紀念服務</button>
+    </div>
+  </div>
+</div>
+<button class="first-visit-fab" id="openGuide" type="button" aria-haspopup="dialog"><span>第一次來訪？</span><strong>查看入店流程</strong><small>點擊開啟</small></button>
+<div class="guide-overlay" id="guideOverlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle" hidden>
+  <section class="guide-dialog">
+    <button class="guide-close" id="closeGuide" type="button" aria-label="關閉來店指南">×</button>
+    <p class="guide-kicker">FIRST VISIT · TONIGHT</p>
+    <h2 id="guideTitle">第一次來到曇時嗎？</h2>
+    <p class="guide-intro">主人與大小姐請放心，今晚只要跟著以下步驟，就能輕鬆完成候位、點餐與紀念服務。</p>
+    <ol class="guide-list">
+      <li><strong>領取號碼牌</strong><span>由一位代表登記本桌成員並領取候位號碼；女僕準備好後會在遊戲內與您會合。</span></li>
+      <li><strong>把通行密碼交給同行者</strong><span>領號完成後會取得六位數本桌密碼。同行者不必重新領號，輸入同一組密碼即可加入。</span></li>
+      <li><strong>入座後開始點餐</strong><span>一位代表可以替整桌點餐；同行者也能以自己的角色加入同桌，自行送出想享用的餐點。</span></li>
+      <li><strong>繼續加點請沿用原桌</strong><span>送出第一張訂單後仍可繼續加點，請使用原本的號碼牌與本桌身分，不需要再次領號。</span></li>
+      <li><strong>挑選今晚的紀念</strong><span>送出餐點後即可選購拍攝與紀念服務；安排完成時，頁面會顯示拍攝時段，女僕也會再通知您。</span></li>
+      <li><strong>離店前確認本次消費</strong><span>餐點、紀念服務與目前狀態都會整理在「本次消費」，若有追加訂單也會一併更新。</span></li>
+    </ol>
+    <div class="guide-footer"><button class="btn primary" id="guideDone" type="button">我知道今晚怎麼進行了</button></div>
+  </section>
+</div>
+
+<div class="flow-overlay" id="queueSuccessOverlay" role="dialog" aria-modal="true" aria-labelledby="queueSuccessTitle" hidden>
+  <section class="flow-dialog queue-success-dialog">
+    <div class="flow-seal">✓</div><p class="flow-kicker">WELCOME TO TONIGHT</p>
+    <h2 id="queueSuccessTitle">號碼牌領取完成</h2>
+    <p>女僕已收到您的來店登記，請留意遊戲內的招呼。</p>
+    <div class="queue-success-ticket"><span>候位號碼</span><strong id="queueSuccessNumber">A000</strong></div>
+    <div class="queue-success-code"><span>本桌通行密碼</span><strong id="queueSuccessCode">取得中…</strong><small>同行的主人與大小姐不必重新領號，請把這組密碼分享給同行者。</small></div>
+    <p class="flow-status" id="queueSuccessStatus" aria-live="polite"></p>
+    <div class="flow-actions"><button class="btn ghost" id="queueSuccessCopy" type="button" disabled>複製密碼</button><button class="btn primary" id="queueSuccessDone" type="button">知道了</button></div>
+  </section>
+</div>
+
+<div class="flow-overlay" id="orderSuccessOverlay" role="dialog" aria-modal="true" aria-labelledby="orderSuccessTitle" hidden>
+  <section class="flow-dialog order-success-dialog">
+    <div class="flow-seal">✓</div><p class="flow-kicker">ORDER RECEIVED</p>
+    <h2 id="orderSuccessTitle">餐點訂單已收到</h2>
+    <p>女僕已收下您的點單 <strong id="successNumber"></strong>。請稍候片刻，今晚也可以繼續使用原本的本桌身分加點。</p>
+    <div class="order-next-steps"><span>接下來想做什麼？</span><small>不需要重新領取號碼牌。</small></div>
+    <div class="flow-actions three"><button class="btn ghost" id="newOrderBtn" type="button">繼續加點</button><button class="btn ghost" id="orderSuccessPhoto" type="button">拍攝／紀念服務</button><button class="btn primary" id="showVisitTotal" type="button">本次消費</button></div>
+  </section>
+</div>
+
+<script src="festival-base/assets/magic-reminder-v90.js?v=20261010-v90"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js"></script>
+<script src="festival-presentation-v100.js"></script>
+<script>
+(function(){
+
+  var firebaseConfig = {
+    apiKey: "AIzaSyAPIpmaLgXp3TVTV7y-yrH63xkMtAuYMSQ",
+    authDomain: "lephemere-queue-c38d5.firebaseapp.com",
+    databaseURL: "https://lephemere-queue-c38d5-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "lephemere-queue-c38d5",
+    storageBucket: "lephemere-queue-c38d5.firebasestorage.app",
+    messagingSenderId: "35595928973",
+    appId: "1:35595928973:web:36a8a4695fd293061d29c4"
+  };
+
+  var isConfigured = firebaseConfig.apiKey.indexOf('貼上') === -1;
+  if(!isConfigured){ document.getElementById('configWarn').style.display = 'block'; }
+
+  var menuItems = {}; // id -> {category,name,price,note,addonLabel,addonPrice}
+  var categoryOrder = []; // first-seen order
+  var activeMenuCategory = '__all__';
+  function photoEntryKey(){
+    var sessionId=String(operationStatus&&operationStatus.sessionId||visitDateKey()||'');
+    return activeVisitId&&sessionId ? 'lephemerePhotoEntry:'+sessionId+':'+activeVisitId : '';
+  }
+  function photoEntryUnlocked(){
+    var key=photoEntryKey();
+    try{return !!key&&localStorage.getItem(key)==='1'}catch(_){return false}
+  }
+  function photoReceiptExists(){
+    if(!visitReceipt)return false;
+    var rows=Array.isArray(visitReceipt.photo)?visitReceipt.photo:Object.values(visitReceipt.photo||{});
+    return rows.some(function(row){return row&&row.status!=='cancelled'});
+  }
+  function photoEntryAllowed(){return !!activeVisit&&['assigned','serving'].indexOf(activeVisit.status)!==-1}
+  function renderPhotoEntry(){document.getElementById('photoTab').disabled=false}
+  function unlockPhotoEntry(){
+    var key=photoEntryKey();
+    try{if(key)localStorage.setItem(key,'1')}catch(_){}
+    renderPhotoEntry();
+    syncNativePhoto();
+  }
+  function closePhotoPrompt(){document.getElementById('photoPromptOverlay').hidden=true}
+  function photoAccessCode(){
+    var input=document.getElementById('sharedTableCode'),candidate=tableShareCode||(input&&input.value.trim())||'';
+    return /^\d{6}$/.test(candidate)?candidate:'';
+  }
+  function setPhotoFrameSource(){syncNativePhoto()}
+  function resetPhotoFrame(){document.getElementById('photoServicePanel').hidden=true}
+
+
+  function hasDiningOrderForPhoto(){
+    return Boolean(activeVisit && festivalState && festivalVisitKey===operationStatus.sessionId+'|'+activeVisitId+'|'+currentVisitorUid && festivalState.tableMinimum?.eligible);
+  }
+  function photoMemberLabels(){
+    var rows=activeVisit&&Array.isArray(activeVisit.partyMembers)?activeVisit.partyMembers.slice():[];
+    if(!rows.length&&activeVisit){var label=String(activeVisit.characterName||'').trim();if(activeVisit.world)label+='｜'+activeVisit.world;if(label)rows.push(label)}
+    return rows;
+  }
+  var photoSelectedMemberLabel='';
+  function currentPhotoMemberLabel(){return photoSelectedMemberLabel||sharedMemberLabel||photoMemberLabels()[0]||''}
+  function syncNativePhoto(){
+    var module=window.LephemerePhotoNative,select=document.getElementById('photoRoleSelect'),code=photoAccessCode(),members=photoMemberLabels();
+    if(photoSelectedMemberLabel&&members.indexOf(photoSelectedMemberLabel)===-1)photoSelectedMemberLabel='';
+    var current=currentPhotoMemberLabel();
+    if(select){select.innerHTML=members.map(function(member){return '<option value="'+escapeHtml(member)+'" '+(member===current?'selected':'')+'>'+escapeHtml(partyMemberName(member))+'</option>'}).join('');select.disabled=!members.length}
+    var ticket=document.getElementById('photoVisitTicket');
+    if(ticket)ticket.textContent=activeVisit&&activeVisit.queueNumber?'候位 '+activeVisit.queueNumber:'本桌服務';
+    var gate=document.getElementById('photoPurchaseGate'),enabled=hasDiningOrderForPhoto();
+    if(gate){gate.classList.toggle('is-open',enabled);gate.innerHTML=enabled?'<strong>現在可選購</strong><span>需要安排時間的服務，送出後會通知時段。</span>':'<strong>可先瀏覽</strong><span>送出餐點訂單後，即可選購本場服務。</span>'}
+    if(module){module.setPurchaseEnabled(enabled);if(code&&current)module.connect(code,current,activeVisitId)}
+  }
+
+  var cart = {}; // id -> {name, price, qty, addon:{label,price}|null, assignments:[用餐者]}
+  var pendingAddons = {}; // remembers add-ons selected before the base item is added
+  var db, menuRef, operationStatusRef, functionsClient, submitOrderFn, submitSharedOrderFn, createSharedTableCodeFn, joinSharedTableFn, getVisitReceiptFn;
+  var tableShareCode='', tableShareVisitId='', tableShareLoading=false, tableSharePromise=null, activeGuestView='queue';
+  var sharedJoinChallenge='', sharedMemberLabel='';
+  var visitsRef, visitQueueCounterRef, staffRosterRef, todayStaffRef;
+  var currentVisitorUid = '';
+  var activeVisitListenerRef = null;
+  var operationStatus = { isOpen:false, businessDate:'' };
+  var operationStatusLoaded = false;
+  var visits = {};
+  var staffRoster = {};
+  var todayStaff = {};
+  var activeVisit = null;
+  var activeVisitId = localStorage.getItem('lephemereActiveVisitId') || '';
+  var activeVisitSessionId = sessionStorage.getItem('lephemereActiveVisitSessionId') || '';
+  var visitRecoveryPending = !!activeVisitId && activeVisitSessionId!==activeVisitId;
+  var browseMode = false;
+  var menuSyncBusy = false;
+  var visitReceipt = null;
+  var visitReceiptBusy = false;
+  var siteLoaderStarted = Date.now();
+  var siteReady = {auth:false, operation:false, menu:false};
+
+  function finishSiteLoader(force){
+    if(!force && (!siteReady.auth || !siteReady.operation || !siteReady.menu)) return;
+    var loader=document.getElementById('siteLoader');
+    if(!loader || loader.classList.contains('is-hidden')) return;
+    var wait=Math.max(0,650-(Date.now()-siteLoaderStarted));
+    setTimeout(function(){loader.classList.add('is-hidden');setTimeout(function(){loader.hidden=true},450)},wait);
+  }
+  function markSiteReady(key){siteReady[key]=true;finishSiteLoader(false)}
+  setTimeout(function(){finishSiteLoader(true)},6500);
+  if(!isConfigured) finishSiteLoader(true);
+
+  function petals(){
+    var wrap = document.getElementById('wrap');
+    for(var i=0;i<6;i++){
+      var p = document.createElement('div');
+      p.className='petal';
+      p.style.left=(Math.random()*100)+'%';
+      p.style.animationDuration=(10+Math.random()*8)+'s';
+      p.style.animationDelay=(Math.random()*10)+'s';
+      wrap.appendChild(p);
+    }
+  }
+  petals();
+
+  function tickClock(){
+    var d=new Date();
+    document.getElementById('connText').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  }
+  tickClock();
+  setInterval(tickClock,15000);
+
+  function escapeHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+  function fmtGil(n){ return (n||0).toLocaleString('en-US') + ' Gil'; }
+
+  function partyMemberName(value){ return String(value||'').split('｜')[0].trim(); }
+  function hasCharacterName(value){ return String(value||'').trim().length>0; }
+  function syncCompanionRows(){
+    var rows=Array.prototype.slice.call(document.querySelectorAll('#visitCompanionList .companion-row'));
+    rows.forEach(function(row,index){
+      var number=index+2;
+      row.querySelector('.companion-index').textContent=number;
+      row.querySelector('[data-companion-name]').setAttribute('aria-label','同行者 '+number+' 的角色名稱');
+      row.querySelector('[data-companion-world]').setAttribute('aria-label','同行者 '+number+' 的伺服器');
+      row.querySelector('.companion-remove').setAttribute('aria-label','移除同行者 '+number);
+    });
+    var size=rows.length+1;
+    document.getElementById('visitPartySize').value=String(size);
+    document.getElementById('visitPartySizeDisplay').value=size+' 人（含領號代表）';
+    document.getElementById('visitPartyCount').textContent='目前共 '+size+' 人';
+  }
+  function addCompanionInput(){
+    var list=document.getElementById('visitCompanionList');
+    var row=document.createElement('div');
+    row.className='companion-row';
+    var index=document.createElement('span'); index.className='companion-index';
+    var nameLabel=document.createElement('label'); nameLabel.textContent='角色名稱';
+    var nameInput=document.createElement('input'); nameInput.type='text'; nameInput.maxLength=40; nameInput.placeholder='請輸入角色名稱'; nameInput.setAttribute('data-companion-name',''); nameLabel.appendChild(nameInput);
+    var worldLabel=document.createElement('label'); worldLabel.textContent='伺服器';
+    var worldSelect=document.createElement('select'); worldSelect.innerHTML=document.getElementById('visitWorld').innerHTML; worldSelect.setAttribute('data-companion-world',''); worldLabel.appendChild(worldSelect);
+    var remove=document.createElement('button'); remove.type='button'; remove.className='companion-remove'; remove.textContent='×';
+    remove.addEventListener('click',function(){ row.remove(); syncCompanionRows(); });
+    row.appendChild(index); row.appendChild(nameLabel); row.appendChild(worldLabel); row.appendChild(remove);
+    list.appendChild(row); syncCompanionRows(); nameInput.focus();
+  }
+
+  function currentDiners(){
+    var size=Math.max(1,Number(activeVisit && activeVisit.partySize || 1));
+    var saved=activeVisit && Array.isArray(activeVisit.partyMembers) ? activeVisit.partyMembers : [];
+    var diners=[];
+    for(var i=0;i<size;i++){
+      var name=partyMemberName(saved[i]);
+      if(!name && i===0) name=String(activeVisit && activeVisit.characterName || document.getElementById('custName').value || '').trim();
+      diners.push(name || (i===0?'領號代表':'同行者 '+(i+1)));
+    }
+    return diners;
+  }
+
+  function assignmentOptions(selected){
+    var values=currentDiners().concat(['全桌共享','尚未指定']);
+    return values.map(function(name){ return '<option value="'+escapeHtml(name)+'" '+(name===selected?'selected':'')+'>'+escapeHtml(name)+'</option>'; }).join('');
+  }
+
+  function normalizeAssignments(line){
+    var assignments=Array.isArray(line.assignments) ? line.assignments.slice(0,line.qty) : [];
+    var fallback=currentDiners().length===1 ? currentDiners()[0] : '尚未指定';
+    while(assignments.length<line.qty) assignments.push(fallback);
+    line.assignments=assignments;
+    return assignments;
+  }
+
+  function renderDinerRoster(){
+    var el=document.getElementById('dinerRoster');
+    if(!el) return;
+    var diners=currentDiners();
+    if(!activeVisit || diners.length<=1){ el.style.display='none'; el.textContent=''; return; }
+    el.style.display='block';
+    el.textContent='本組用餐者｜'+diners.join('・')+'。請在每份餐點下方選擇歸屬。';
+  }
+
+  if(isConfigured){
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    functionsClient = firebase.app().functions('asia-southeast1');
+    submitOrderFn = functionsClient.httpsCallable('submitOrder');
+    submitSharedOrderFn = functionsClient.httpsCallable('submitSharedOrder');
+    createSharedTableCodeFn = functionsClient.httpsCallable('polaroidCreateShareCode');
+    joinSharedTableFn = functionsClient.httpsCallable('joinSharedVisit');
+    getVisitReceiptFn = functionsClient.httpsCallable('polaroidGetVisitReceipt');
+    menuRef = db.ref('lephemere/menu');
+    operationStatusRef = db.ref('lephemere/operationStatus');
+    visitsRef = db.ref('lephemere/visits');
+    visitQueueCounterRef = db.ref('lephemere/visitQueueCounter');
+    staffRosterRef = db.ref('lephemere/staffRoster');
+
+    db.ref('.info/connected').on('value', function(snap){
+      document.getElementById('connDot').className = snap.val()===true ? 'dot online' : 'dot offline';
+    });
+
+    operationStatusRef.on('value', function(snap){
+      operationStatus = snap.val() || { isOpen:false, businessDate:'' };
+      operationStatusLoaded = true;
+      markSiteReady('operation');
+      watchDutySchedule(visitDateKey());
+      renderOperationStatus();
+      renderMenu();
+      if(activeVisit) updateVisitStatus();
+    });
+
+    firebase.auth().onAuthStateChanged(function(user){
+      if(user){
+        currentVisitorUid=user.uid;
+        markSiteReady('auth');
+        watchActiveVisit(activeVisitId);
+      }else{
+        firebase.auth().signInAnonymously().catch(function(){
+          markSiteReady('auth');
+          document.getElementById('configWarn').textContent='今晚的服務頁暫時無法開啟，請重新整理；若仍無法使用，請讓女僕為您協助。';
+          document.getElementById('configWarn').style.display='block';
+        });
+      }
+    });
+
+    staffRosterRef.on('value', function(snap){
+      staffRoster = snap.val() || {};
+      renderVisitPreference();
+    });
+
+    markSiteReady('menu');
+
+    function refreshVisibleVisitTotal(){
+      if(!document.hidden && activeVisit && activeGuestView==='total') fetchVisitTotal(false);
+    }
+    setInterval(refreshVisibleVisitTotal,15000);
+    window.addEventListener('focus',refreshVisibleVisitTotal);
+    document.addEventListener('visibilitychange',refreshVisibleVisitTotal);
+  }
+
+  function visitDateKey(){
+    if(operationStatus && /^\d{4}-\d{2}-\d{2}$/.test(operationStatus.businessDate||'')) return operationStatus.businessDate;
+    var d = new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  function watchDutySchedule(date){
+    if(!db || !date) return;
+    var nextRef = db.ref('lephemere/staffSchedules/'+date);
+    if(todayStaffRef && todayStaffRef.toString()===nextRef.toString()) return;
+    if(todayStaffRef) todayStaffRef.off();
+    todayStaffRef = nextRef;
+    todayStaffRef.on('value', function(snap){
+      var schedule = snap.val();
+      todayStaff = { staffIds:schedule && Array.isArray(schedule.staffIds) ? schedule.staffIds : [] };
+      renderVisitPreference();
+    });
+  }
+
+  function watchActiveVisit(id){
+    if(activeVisitListenerRef) activeVisitListenerRef.off();
+    activeVisitListenerRef=null;
+    visits={};
+    if(!id || !visitsRef){ updateVisitStatus(); return; }
+    activeVisitListenerRef=visitsRef.child(id);
+    activeVisitListenerRef.on('value',function(snap){
+      visits={};
+      if(snap.exists()) visits[id]=snap.val();
+      updateVisitStatus();
+    },function(){
+      forgetLocalVisit();
+    });
+  }
+
+  function setVisitView(view){
+    ['visitGate','visitRegister','sharedTablePanel','browsePanel','visitRecoveryPanel','visitStatusPanel'].forEach(function(id){
+      document.getElementById(id).style.display = id===view ? 'block' : 'none';
+    });
+  }
+
+  function visitOrderStatus(status,task){
+    var delivery=task&&task.taskType==='delivery';
+    if(status==='pending') return delivery?'已完成下訂・完成後由女僕交付':'已完成下訂・時段將由遊戲內私訊通知';
+    return{shooting:'已完成下訂・拍攝安排進行中',completed:'服務已完成',delivered:'已完成並交付',deferred:'已完成下訂・時段將另行通知',no_show:'已完成下訂・請聯絡女僕確認',cancelled:'此項服務已取消'}[status]||'已完成下訂';
+  }
+
+  function addMemberAmount(totals,label,amount){
+    label=String(label||'尚未指定').split('｜')[0].trim()||'尚未指定';
+    totals[label]=(totals[label]||0)+Number(amount||0);
+  }
+
+  function renderVisitTotal(){
+    var details=document.getElementById('visitTotalDetails'),alertHost=document.getElementById('visitTotalAlert'),identity=document.getElementById('visitTotalIdentity'),payment=document.getElementById('visitPaymentState'),memberHost=document.getElementById('visitMemberTotals');
+    if(identity)identity.textContent=currentPhotoMemberLabel()?'目前服務角色：'+partyMemberName(currentPhotoMemberLabel())+'｜以下金額為本桌合計':'以下金額為本桌合計';
+    if(!activeVisit||!visitReceipt){document.getElementById('visitDiningTotal').textContent='0 Gil';document.getElementById('visitPhotoTotal').textContent='0 Gil';document.getElementById('visitGrandTotal').textContent='0 Gil';alertHost.innerHTML='';if(payment)payment.innerHTML='';if(memberHost)memberHost.innerHTML='';details.innerHTML='<p class="visit-total-empty">尚未取得本桌消費明細。</p>';return}
+    var dining=Array.isArray(visitReceipt.dining)?visitReceipt.dining:Object.values(visitReceipt.dining||{}),photos=Array.isArray(visitReceipt.photo)?visitReceipt.photo:Object.values(visitReceipt.photo||{}),diningRows=[],memberTotals={};
+    photoMemberLabels().forEach(function(label){var name=partyMemberName(label);if(name&&!Object.prototype.hasOwnProperty.call(memberTotals,name))memberTotals[name]=0});
+    dining.forEach(function(order){(Array.isArray(order.items)?order.items:Object.values(order.items||{})).forEach(function(item){var qty=Number(item.qty||0),unit=Number(item.price||0)+Number(item.addon&&item.addon.price||0),amount=unit*qty,name=escapeHtml(item.name||'餐點')+' × '+qty+(item.addon?' ＋ '+escapeHtml(item.addon.label):'');diningRows.push('<div class="visit-total-line"><span>'+name+'</span><b>'+fmtGil(amount)+'</b></div>');var assignments=Array.isArray(item.assignments)?item.assignments:[];for(var i=0;i<qty;i++)addMemberAmount(memberTotals,assignments[i]||'尚未指定',unit)})});
+    var photoRows=photos.map(function(task){var delivery=task.taskType==='delivery',when=delivery?'完成後由女僕交付':task.roundId?((task.roundLabel||'拍攝時段')+' '+(task.startTime||'')+'–'+(task.endTime||'')):'拍攝時段安排中',member=(task.memberLabel||'').split('｜')[0]||'本桌主人',maid=task.maidName||'由女僕安排',updated=!delivery&&task.scheduleUpdatedAt&&task.previousRoundId&&task.previousRoundId!==task.roundId,previous=(task.previousRoundLabel||'原時段')+' '+(task.previousStartTime||'')+'–'+(task.previousEndTime||''),updateLine=updated?'<div class="visit-photo-update"><strong>拍攝時間已更新</strong><span>原 '+escapeHtml(previous)+' → 新 '+escapeHtml(when)+'</span></div>':'';addMemberAmount(memberTotals,task.memberLabel||'尚未指定',Number(task.price||0));return'<article class="visit-photo-card"><div class="visit-photo-card-head"><div><small>'+escapeHtml(member)+'</small><h4>'+escapeHtml(task.productName||'拍攝／紀念服務')+'</h4></div><span class="visit-photo-status">'+escapeHtml(visitOrderStatus(task.status,task))+'</span></div><dl><div><dt>對應女僕</dt><dd>'+escapeHtml(maid)+'</dd></div><div><dt>'+ (delivery?'交付安排':'拍攝時段') +'</dt><dd>'+escapeHtml(when)+'</dd></div><div><dt>金額</dt><dd>'+fmtGil(Number(task.price||0))+'</dd></div></dl>'+updateLine+'</article>'});
+    var memberOrder=photoMemberLabels().map(partyMemberName).filter(Boolean),special=['全桌共享','尚未指定'];Object.keys(memberTotals).forEach(function(name){if(memberOrder.indexOf(name)===-1&&special.indexOf(name)===-1)memberOrder.push(name)});special.forEach(function(name){if(memberTotals[name])memberOrder.push(name)});
+    if(memberHost)memberHost.innerHTML='<strong>個人購買金額</strong><div>'+memberOrder.map(function(name){return'<span><b>'+escapeHtml(name)+'</b> '+fmtGil(memberTotals[name]||0)+'</span>'}).join('')+'</div><small>依點餐時選擇的用餐者與服務角色計算；全桌共享及尚未指定不會平均分攤。</small>';
+    var diningTotal=Number(visitReceipt.diningTotal||0),photoTotal=Number(visitReceipt.photoTotal||0),paid=visitReceipt.paymentStatus==='settled'&&visitReceipt.paymentAttention!==true;document.getElementById('visitDiningTotal').textContent=fmtGil(diningTotal);document.getElementById('visitPhotoTotal').textContent=fmtGil(photoTotal);document.getElementById('visitGrandTotal').textContent=fmtGil(diningTotal+photoTotal);if(payment)payment.innerHTML=visitReceipt.paymentAttention===true?'<span class="needs-attention">結清後有新增訂單</span><small>請讓女僕再次為您確認新增的消費。</small>':(paid?'<span class="is-settled">本桌已結清</span><small>若繼續加點，新增內容會重新列入待結清。</small>':'<span>本桌尚未結清</span><small>餐點送達後，女僕會為您確認今晚的消費。</small>');alertHost.innerHTML=visitReceipt.paymentAttention===true?'<p class="visit-total-alert">⚠ 主人／大小姐，結清後有新的餐點或服務，離店前請再次與女僕確認。</p>':'';details.innerHTML='<section class="visit-total-section"><h3>餐點</h3>'+(diningRows.join('')||'<p class="visit-total-empty">尚無餐點訂單。</p>')+'</section><section class="visit-total-section"><h3>拍攝／紀念服務</h3>'+(photoRows.join('')||'<p class="visit-total-empty">尚無拍攝或紀念服務訂單。</p>')+'</section>';
+  }
+
+  function fetchVisitTotal(showLoading){
+    if(!activeVisitId||!getVisitReceiptFn||visitReceiptBusy)return Promise.resolve();
+    if(activeGuestView==='photo')refreshFestivalMenu(true);
+    visitReceiptBusy=true;if(showLoading)document.getElementById('visitTotalStatus').textContent='正在更新本桌消費…';
+    return getVisitReceiptFn({visitId:activeVisitId}).then(function(result){visitReceipt=result&&result.data||null;renderVisitTotal();renderPhotoEntry();syncNativePhoto();document.getElementById('visitTotalStatus').textContent='已更新・'+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}).catch(function(error){if(showLoading)document.getElementById('visitTotalStatus').textContent='暫時無法取得消費明細，請稍後再試。';console.warn('visit total',error)}).finally(function(){visitReceiptBusy=false});
+  }
+
+  function setGuestTab(orderingEnabled, showOrder, showTotal, showPhoto){activeGuestView=showPhoto?'photo':showTotal?'total':showOrder?'order':'queue';
+    var queueTab=document.getElementById('queueTab');
+    var orderTab=document.getElementById('orderTab');
+    var photoTab=document.getElementById('photoTab');
+    var totalTab=document.getElementById('totalTab');
+    orderTab.disabled=false;
+    totalTab.disabled=!activeVisit;
+    photoTab.disabled=false;
+    queueTab.classList.toggle('is-active', !showOrder&&!showTotal&&!showPhoto);
+    orderTab.classList.toggle('is-active', !!showOrder);
+    photoTab.classList.toggle('is-active', !!showPhoto);
+    totalTab.classList.toggle('is-active', !!showTotal);
+    document.getElementById('visitTotalPanel').style.display=showTotal?'block':'none';
+    document.getElementById('photoServicePanel').hidden=!showPhoto;
+    document.getElementById('orderFlow').style.display=showOrder?'block':'none';
+    if(showOrder || showPhoto) refreshFestivalMenu(false);
+  }
+
+  function openOrderView(){
+    var canOrder=!!activeVisit&&(activeVisit.status==='assigned'||activeVisit.status==='serving');
+    document.getElementById('orderFlow').style.display='block';
+    document.getElementById('menuBrowseNotice').hidden=canOrder;
+    document.getElementById('orderQueueNumber').textContent=canOrder?'候位 '+(activeVisit.queueNumber||'—'):'先行瀏覽';
+    document.getElementById('orderGuestName').textContent=canOrder?((activeVisit.characterName||'主人')+'・'+Number(activeVisit.partySize||1)+' 位'):'領號後即可點餐';
+    setGuestTab(canOrder, true);
+    renderOperationStatus();renderMenu();
+    document.getElementById('orderFlow').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  function openTotalView(){
+    if(!activeVisit)return;
+    setGuestTab(activeVisit.status==='assigned'||activeVisit.status==='serving',false,true);
+    fetchVisitTotal(true);refreshFestivalMenu(true);
+    document.getElementById('visitTotalPanel').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  function openPhotoView(){
+    syncNativePhoto();
+    setGuestTab(activeVisit&&(['assigned','serving'].indexOf(activeVisit.status)!==-1),false,false,true);
+    closePhotoPrompt();
+    refreshFestivalMenu(true);
+    document.getElementById('photoServicePanel').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  document.getElementById('queueTab').addEventListener('click',function(){
+    setGuestTab(!!activeVisit && (activeVisit.status==='assigned' || activeVisit.status==='serving'), false);
+    var target=activeVisit ? document.getElementById('visitStatusPanel') : document.getElementById('visitGate');
+    if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  document.getElementById('orderTab').addEventListener('click',openOrderView);
+  document.getElementById('photoTab').addEventListener('click',openPhotoView);
+  document.getElementById('totalTab').addEventListener('click',openTotalView);
+  document.getElementById('showVisitTotal').addEventListener('click',function(){document.getElementById('orderSuccessOverlay').hidden=true;openTotalView()});
+  document.getElementById('refreshVisitTotal').addEventListener('click',function(){fetchVisitTotal(true)});
+  document.getElementById('menuBrowseToQueue').addEventListener('click',function(){document.getElementById('queueTab').click()});
+  document.getElementById('visitAddMore').addEventListener('click',openOrderView);
+
+  function renderVisitPreference(){
+    var select = document.getElementById('visitPreference');
+    if(!select) return;
+    var selected = select.value;
+    var duty = Array.isArray(todayStaff.staffIds) ? todayStaff.staffIds : [];
+    var ids = duty.filter(function(id){ return staffRoster[id] && String(staffRoster[id].name||'').trim()!=='蒼'; });
+    ids.sort(function(a,b){
+      return String((staffRoster[a]||{}).name||'').localeCompare(String((staffRoster[b]||{}).name||''),'zh-Hant');
+    });
+    select.innerHTML = '<option value="">由今晚方便的女僕為您服務（等待較短）</option>' + ids.map(function(id){
+      return '<option value="'+escapeHtml(id)+'">希望由 '+escapeHtml((staffRoster[id]||{}).name||'未命名女僕')+' 接待（可能等候較久）</option>';
+    }).join('');
+    if(ids.indexOf(selected)!==-1) select.value = selected;
+  }
+
+  function waitingVisits(){
+    return Object.keys(visits).map(function(id){ return Object.assign({id:id}, visits[id]||{}); }).filter(function(v){
+      return v.businessDate===visitDateKey() && v.status==='waiting';
+    }).sort(function(a,b){ return Number(a.createdAt||0)-Number(b.createdAt||0); });
+  }
+
+  function updateVisitStatus(){
+    activeVisit = activeVisitId && visits[activeVisitId] ? Object.assign({id:activeVisitId}, visits[activeVisitId]) : null;if(activeVisitId&&!tableShareCode){try{tableShareCode=localStorage.getItem('lephemereTableCode:'+activeVisitId)||'';if(tableShareCode)tableShareVisitId=activeVisitId}catch(_){}}
+    renderPhotoEntry();syncNativePhoto();
+    if(activeVisit && activeVisit.ownerUid!==currentVisitorUid && !sharedMemberLabel){
+      sharedMemberLabel=localStorage.getItem('lephemereSharedMember:'+activeVisitId)||'';
+    }
+    if(!activeVisit){
+      visitReceipt=null;
+      resetPhotoFrame();
+      renderVisitTotal();
+      if(activeVisitId){ localStorage.removeItem('lephemereActiveVisitId'); sessionStorage.removeItem('lephemereActiveVisitSessionId'); activeVisitId=''; }
+      visitRecoveryPending=false;
+      if(!browseMode) setVisitView('visitGate');
+      document.getElementById('orderFlow').style.display = 'none';
+      setGuestTab(false, false);
+      renderOperationStatus();
+      renderMenu();
+      return;
+    }
+    if(operationStatusLoaded && (activeVisit.businessDate!==visitDateKey() || (operationStatus.sessionId && activeVisit.sessionId && activeVisit.sessionId!==operationStatus.sessionId))){
+      clearVisitLocalState(activeVisitId);
+      localStorage.removeItem('lephemereActiveVisitId');
+      sessionStorage.removeItem('lephemereActiveVisitSessionId');
+      activeVisitId=''; activeVisit=null; browseMode=false;
+      visitRecoveryPending=false;
+      renderPhotoEntry();
+      setVisitView('visitGate');
+      document.getElementById('orderFlow').style.display='none';
+      setGuestTab(false, false);
+      renderOperationStatus();
+      renderMenu();
+      return;
+    }
+    if(['completed','cancelled','no_show'].indexOf(activeVisit.status)!==-1){
+      clearVisitLocalState(activeVisitId);
+      localStorage.removeItem('lephemereActiveVisitId');
+      sessionStorage.removeItem('lephemereActiveVisitSessionId');
+      activeVisitId=''; activeVisit=null; browseMode=true;
+      visitRecoveryPending=false;
+      setVisitView('browsePanel');
+      showBrowseMenu(false);
+      renderOperationStatus();
+      renderMenu();
+      return;
+    }
+    if(visitRecoveryPending){
+      browseMode=false;
+      setVisitView('visitRecoveryPanel');
+      document.getElementById('orderFlow').style.display='none';
+      setGuestTab(false, false);
+      document.getElementById('recoveryTicketNumber').textContent=activeVisit.queueNumber||'候位中';
+      document.getElementById('recoveryVisitName').textContent=(activeVisit.characterName||'未填角色名')+(activeVisit.world?' @ '+activeVisit.world:'');
+      renderOperationStatus();
+      renderMenu();
+      return;
+    }
+    browseMode=false;
+    setVisitView('visitStatusPanel');
+    document.getElementById('visitTicketNumber').textContent = activeVisit.queueNumber || '候位中';
+    var legacyService = activeVisit.status==='special_service';
+    var assigned = activeVisit.status==='assigned' || activeVisit.status==='serving';
+    document.getElementById('visitStatusBadge').textContent = legacyService ? '服務即將完成' : (assigned ? (activeVisit.status==='serving'?'女僕服務中':'女僕已準備') : '候位中');
+    document.getElementById('visitStatusTitle').textContent = legacyService ? '今晚的桌邊服務即將完成' : (assigned ? '女僕已準備為您服務' : '女僕正在依序為主人與大小姐準備');
+    document.getElementById('visitAssignee').textContent = (assigned||legacyService) ? '今晚女僕｜'+(activeVisit.assignedStaffName||'女僕') : '';
+    document.getElementById('visitStatusMeta').textContent = legacyService ? '如仍有餐點或服務需要確認，請直接告知今晚為您服務的女僕。' : (assigned ? '請留意遊戲內的招呼；與女僕會合後即可在下方點餐。' : '候位號碼已領取｜同行 '+Number(activeVisit.partySize||1)+' 人');
+    document.getElementById('visitStatusHelp').textContent = legacyService ? '拍攝／紀念服務請至上方服務分頁選購。' : (assigned ? '若需要暫時離開或結束本次服務，請直接告知女僕。' : (activeVisit.preferredStaffName ? '您希望由 '+activeVisit.preferredStaffName+' 為您服務，因此等待時間可能較長。' : '請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。'));
+    document.getElementById('sharedTableLinkCard').style.display=activeVisit.ownerUid===currentVisitorUid?'':'none';
+    if(activeVisit.ownerUid===currentVisitorUid) ensureTableShareCode();
+    document.getElementById('cancelVisitQueue').style.display = activeVisit.status==='waiting'&&activeVisit.ownerUid===currentVisitorUid ? 'inline-block' : 'none';
+    document.getElementById('orderFlow').style.display = assigned ? 'block' : 'none';
+    if(!assigned)setGuestTab(false,false);else if(activeGuestView==='photo')setGuestTab(true,false,false,true);else if(activeGuestView==='total')setGuestTab(true,false,true,false);else setGuestTab(true,true,false,false);
+    if(assigned){
+      document.getElementById('menuBrowseNotice').hidden=true;
+      document.getElementById('cartPanel').style.display='block';
+      document.getElementById('orderDataPanel').style.display='block';
+      document.getElementById('orderSubmitPanel').style.display='block';
+      if(!document.getElementById('custName').value) document.getElementById('custName').value=sharedMemberLabel?(partyMemberName(sharedMemberLabel)||activeVisit.characterName||''):(activeVisit.characterName||'');
+      document.getElementById('orderQueueNumber').textContent='候位 '+(activeVisit.queueNumber||'—');
+      document.getElementById('orderGuestName').textContent=(activeVisit.characterName||'主人')+'・'+Number(activeVisit.partySize||1)+' 位';
+    }
+    renderDinerRoster();
+    renderCart();
+    if(activeGuestView==='total' && !document.hidden) fetchVisitTotal(false);
+    renderOperationStatus();
+    renderMenu();
+  }
+
+  function showBrowseMenu(show){
+    document.getElementById('orderFlow').style.display = 'none';
+    setGuestTab(false, false);
+  }
+
+  document.getElementById('chooseService').addEventListener('click', function(){ setVisitView('visitRegister'); });
+  document.getElementById('chooseBrowse').addEventListener('click', function(){ browseMode=true; setVisitView('browsePanel'); showBrowseMenu(false); });
+  document.getElementById('chooseSharedTable').addEventListener('click', function(){ setVisitView('sharedTablePanel'); });
+  document.getElementById('backSharedTable').addEventListener('click', function(){ setVisitView('visitGate'); });
+  document.getElementById('backVisitChoice').addEventListener('click', function(){ setVisitView('visitGate'); });
+  document.getElementById('browseToQueue').addEventListener('click', function(){ browseMode=false; showBrowseMenu(false); setVisitView('visitRegister'); });
+  document.getElementById('visitKind').addEventListener('change', function(){
+    document.getElementById('visitReservation').style.display = this.value==='reservation' ? 'block' : 'none';
+  });
+  document.getElementById('addVisitCompanion').addEventListener('click',addCompanionInput);
+  syncCompanionRows();
+
+  function clearVisitLocalState(visitId){
+    var entryKey=photoEntryKey();
+    if(entryKey)localStorage.removeItem(entryKey);
+    if(visitId){localStorage.removeItem('lephemereSharedMember:'+visitId);localStorage.removeItem('lephemereTableCode:'+visitId)}
+    tableShareCode='';tableShareVisitId='';tableShareLoading=false;sharedMemberLabel='';sharedJoinChallenge='';photoSelectedMemberLabel='';visitReceipt=null;
+    if(window.LephemerePhotoNative&&window.LephemerePhotoNative.disconnect)window.LephemerePhotoNative.disconnect();
+  }
+  function forgetLocalVisit(){
+    var previousVisitId=activeVisitId;
+    clearVisitLocalState(previousVisitId);
+    cart={}; pendingAddons={};
+    localStorage.removeItem('lephemereActiveVisitId');
+    sessionStorage.removeItem('lephemereActiveVisitSessionId');
+    activeVisitId=''; activeVisitSessionId=''; activeVisit=null; visitRecoveryPending=false; browseMode=false;
+    if(activeVisitListenerRef){activeVisitListenerRef.off();activeVisitListenerRef=null;}
+    visits={};
+    document.getElementById('orderSuccessOverlay').hidden=true;
+    document.getElementById('queueSuccessOverlay').hidden=true;
+    document.getElementById('orderFlow').style.display='none';
+    document.getElementById('custName').value='';
+    document.getElementById('custNote').value='';
+    renderPhotoEntry();
+    setVisitView('visitGate');
+    renderOperationStatus();
+    renderMenu();
+  }
+
+  document.getElementById('resumeVisit').addEventListener('click',function(){
+    if(!activeVisitId) return;
+    activeVisitSessionId=activeVisitId;
+    sessionStorage.setItem('lephemereActiveVisitSessionId',activeVisitId);
+    visitRecoveryPending=false;
+    updateVisitStatus();
+  });
+  document.getElementById('forgetRecoveredVisit').addEventListener('click',forgetLocalVisit);
+  document.getElementById('forgetVisitSession').addEventListener('click',function(){
+    if(confirm('要切換角色或加入其他桌嗎？\n尚未送出的餐點會清空；原候位與已送出的訂單不受影響。')) forgetLocalVisit();
+  });
+
+  document.getElementById('joinVisitQueue').addEventListener('click', function(){
+    var err = document.getElementById('visitError');
+    var name = document.getElementById('visitCharacter').value.trim();
+    if(!hasCharacterName(name)){ err.textContent='請填寫角色名稱'; err.style.display='block'; return; }
+    if(!document.getElementById('visitWorld').value){ err.textContent='請選擇角色所在伺服器'; err.style.display='block'; return; }
+    var companionRows=Array.prototype.slice.call(document.querySelectorAll('#visitCompanionList .companion-row'));
+    for(var companionIndex=0;companionIndex<companionRows.length;companionIndex++){
+      var companionName=companionRows[companionIndex].querySelector('[data-companion-name]').value.trim();
+      var companionWorld=companionRows[companionIndex].querySelector('[data-companion-world]').value.trim();
+      if(!hasCharacterName(companionName)){ err.textContent='請填寫同行者 '+(companionIndex+2)+' 的角色名稱'; err.style.display='block'; return; }
+      if(!companionWorld){ err.textContent='請選擇同行者 '+(companionIndex+2)+' 所在的伺服器'; err.style.display='block'; return; }
+    }
+    if(operationStatus.isOpen===false){ err.textContent='本場接待已結束，目前無法領取候位號碼'; err.style.display='block'; return; }
+    if(!currentVisitorUid){ err.textContent='正在為您準備入店資料，請稍候再試'; err.style.display='block'; return; }
+    if(!visitsRef){ err.textContent='目前無法連上候位服務，請稍後再試'; err.style.display='block'; return; }
+    err.style.display='none';
+    var btn=this; btn.disabled=true; btn.textContent='正在領號…';
+    var day=visitDateKey();
+    visitQueueCounterRef.child(day).transaction(function(current){ return Number(current||0)+1; }).then(function(result){
+      if(!result.committed) throw new Error('queue-number');
+      var number=Number(result.snapshot.val()||0);
+      var id=visitsRef.push().key;
+      var staffId=document.getElementById('visitPreference').value;
+      if(staffId && String((staffRoster[staffId]||{}).name||'').trim()==='蒼') staffId='';
+      var staffName=staffId && staffRoster[staffId] ? staffRoster[staffId].name||'' : '';
+      var now=Date.now();
+      var partySize=Number(document.getElementById('visitPartySize').value||1);
+      var partyMembers=[name+'｜'+document.getElementById('visitWorld').value.trim()];
+      document.querySelectorAll('#visitCompanionList .companion-row').forEach(function(row){
+        partyMembers.push(row.querySelector('[data-companion-name]').value.trim()+'｜'+row.querySelector('[data-companion-world]').value.trim());
+      });
+      var visitRecord={
+        queueNumber:'A'+String(number).padStart(3,'0'),
+        characterName:name,
+        world:document.getElementById('visitWorld').value.trim(),
+        partySize:partySize,
+        partyMembers:partyMembers,
+        visitKind:document.getElementById('visitKind').value,
+        reservationRef:document.getElementById('visitReservation').value.trim(),
+        preferredStaffId:staffId,
+        preferredStaffName:staffName,
+        ownerUid:currentVisitorUid,
+        status:'waiting',
+        businessDate:day,
+        sessionId:operationStatus.sessionId||'',
+        createdAt:now,
+        updatedAt:now
+      };
+      return visitsRef.child(id).set(visitRecord).then(function(){
+        activeVisitId=id;
+        localStorage.setItem('lephemereActiveVisitId',id);
+        activeVisitSessionId=id;
+        sessionStorage.setItem('lephemereActiveVisitSessionId',id);
+        visitRecoveryPending=false;
+        watchActiveVisit(id);
+        // watchActiveVisit 會先清空舊快照；要在啟動監聽後再放回剛建立的資料，
+        // 否則下一行更新畫面時會誤判候位不存在並清除新號碼。
+        visits[id]=visitRecord;
+        updateVisitStatus();
+        showQueueSuccess(visitRecord);
+      });
+    }).catch(function(error){
+      console.error('候位登記失敗', error);
+      var code=String((error&&error.code)||'').toLowerCase();
+      var message=String((error&&error.message)||'').toLowerCase();
+      if(code.indexOf('permission')!==-1 || message.indexOf('permission')!==-1){
+        err.textContent='暫時無法完成領號，請讓女僕為您協助。';
+      }else if(code.indexOf('network')!==-1 || message.indexOf('network')!==-1){
+        err.textContent='目前網路連線不穩定，請確認連線後再試一次';
+      }else if(message.indexOf('queue-number')!==-1){
+        err.textContent='暫時無法取得候位號碼，請讓女僕為您協助';
+      }else{
+        err.textContent='暫時無法完成候位，請讓女僕為您協助';
+      }
+      err.style.display='block';
+    }).finally(function(){ btn.disabled=false; btn.textContent='領取候位號碼'; renderOperationStatus(); });
+  });
+
+  document.getElementById('cancelVisitQueue').addEventListener('click', function(){
+    if(!activeVisitId || !visitsRef) return;
+    if(!confirm('確定取消候位並改為自由參觀嗎？')) return;
+    visitsRef.child(activeVisitId).update({status:'cancelled',cancelledAt:Date.now(),updatedAt:Date.now()});
+  });
+  function friendlyCallableError(err,fallback){var code=String(err&&err.code||'').toLowerCase();if(code.indexOf('permission')!==-1)return '目前無法取得本桌資料，請由領取號碼牌的人重新開啟此頁。';if(code.indexOf('network')!==-1||code.indexOf('unavailable')!==-1)return '網路連線不穩定，請稍後再試。';return fallback}
+  function ensureTableShareCode(){
+    if(!activeVisitId||!createSharedTableCodeFn)return Promise.resolve('');
+    if(tableShareVisitId===activeVisitId&&tableShareCode){document.getElementById('sharedTableShareCode').textContent=tableShareCode;document.getElementById('copySharedTableCode').disabled=false;return Promise.resolve(tableShareCode)}
+    if(tableShareLoading&&tableSharePromise)return tableSharePromise;
+    tableShareLoading=true;document.getElementById('sharedTableShareCode').textContent='取得中…';document.getElementById('tableAccessStatus').textContent='';
+    tableSharePromise=createSharedTableCodeFn({visitId:activeVisitId}).then(function(res){tableShareCode=String(res.data&&res.data.shareCode||'');tableShareVisitId=activeVisitId;try{localStorage.setItem('lephemereTableCode:'+activeVisitId,tableShareCode)}catch(_){}syncNativePhoto();if(!/^\d{6}$/.test(tableShareCode))throw new Error('missing-code');document.getElementById('sharedTableShareCode').textContent=tableShareCode;document.getElementById('copySharedTableCode').disabled=false;return tableShareCode}).catch(function(err){document.getElementById('sharedTableShareCode').textContent='暫時無法取得';document.getElementById('tableAccessStatus').textContent=friendlyCallableError(err,'暫時無法取得本桌通行密碼，請稍後重新整理。');return''}).finally(function(){tableShareLoading=false;tableSharePromise=null});return tableSharePromise
+  }
+  function copyTableCode(status){
+    if(!/^\d{6}$/.test(tableShareCode))return;
+    var done=function(){if(status)status.textContent='本桌通行密碼已複製，可以分享給同行者。'};
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(tableShareCode).then(done).catch(function(){window.prompt('請複製本桌通行密碼',tableShareCode)});else window.prompt('請複製本桌通行密碼',tableShareCode);
+  }
+  function showQueueSuccess(visit){
+    var overlay=document.getElementById('queueSuccessOverlay'),code=document.getElementById('queueSuccessCode'),copy=document.getElementById('queueSuccessCopy'),status=document.getElementById('queueSuccessStatus');
+    document.getElementById('queueSuccessNumber').textContent=visit&&visit.queueNumber||'—';code.textContent='取得中…';copy.disabled=true;status.textContent='女僕正在準備本桌通行密碼…';overlay.hidden=false;
+    ensureTableShareCode().then(function(value){if(!overlay.hidden){code.textContent=value||'暫時無法取得';copy.disabled=!value;status.textContent=value?'請將密碼分享給同行的主人與大小姐。':'可稍後在候位卡片中重新取得密碼。'}});
+  }
+  document.getElementById('copySharedTableCode').addEventListener('click',function(){
+    if(!activeVisit||!tableShareCode)return;var status=document.getElementById('tableAccessStatus');copyTableCode(status);
+  });
+  document.getElementById('joinSharedTable').addEventListener('click',function(){
+    var code=document.getElementById('sharedTableCode').value.trim(),status=document.getElementById('sharedTableStatus'),btn=this;
+    if(!/^\d{6}$/.test(code)){status.textContent='請輸入六位數本桌通行密碼。';return}
+    if(!joinSharedTableFn){status.textContent='目前無法連上本桌，請稍後再試。';return}
+    btn.disabled=true;status.textContent='正在確認本桌通行密碼…';
+    joinSharedTableFn({shareCode:code}).then(function(res){var d=res.data||{};if(!d.challenge||!Array.isArray(d.members))throw new Error('沒有取得本桌角色');sharedJoinChallenge=d.challenge;document.getElementById('sharedMemberSelect').innerHTML=d.members.map(function(member){return '<option value="'+escapeHtml(member)+'">'+escapeHtml(partyMemberName(member))+'</option>';}).join('');document.getElementById('sharedMemberForm').style.display='block';btn.style.display='none';status.textContent='請選擇您在本桌使用的角色。'}).catch(function(){sharedJoinChallenge='';document.getElementById('sharedMemberForm').style.display='none';status.textContent='本桌通行密碼不正確或已失效，請重新確認。'}).finally(function(){btn.disabled=false});
+  });
+  document.getElementById('confirmSharedMember').addEventListener('click',function(){
+    if(!sharedJoinChallenge)return;var member=document.getElementById('sharedMemberSelect').value,status=document.getElementById('sharedTableStatus'),btn=this;btn.disabled=true;status.textContent='正在為您加入本桌…';
+    joinSharedTableFn({challenge:sharedJoinChallenge,memberLabel:member}).then(function(res){var d=res.data||{};if(!d.visitId)throw new Error('沒有取得本桌資料');sharedMemberLabel=d.memberLabel||member;activeVisitId=d.visitId;tableShareCode=String(document.getElementById('sharedTableCode').value||'').trim();tableShareVisitId=d.visitId;try{localStorage.setItem('lephemereTableCode:'+d.visitId,tableShareCode)}catch(_){}activeVisitSessionId=d.visitId;localStorage.setItem('lephemereActiveVisitId',d.visitId);localStorage.setItem('lephemereSharedMember:'+d.visitId,sharedMemberLabel);sessionStorage.setItem('lephemereActiveVisitSessionId',d.visitId);visitRecoveryPending=false;sharedJoinChallenge='';watchActiveVisit(d.visitId);status.textContent='已加入本桌。';}).catch(function(){sharedJoinChallenge='';document.getElementById('sharedMemberForm').style.display='none';document.getElementById('joinSharedTable').style.display='';status.textContent='確認時間已逾時，請重新輸入本桌通行密碼。';}).finally(function(){btn.disabled=false;});
+  });
+  setInterval(function(){ if(activeVisit) updateVisitStatus(); },30000);
+
+  function renderOperationStatus(){
+    var closed = operationStatus.isOpen===false;
+    document.getElementById('operationBanner').style.display = closed ? 'block' : 'none';
+    document.getElementById('chooseService').disabled=closed;
+    document.getElementById('browseToQueue').disabled=closed;
+    var queueBtn=document.getElementById('joinVisitQueue');
+    if(closed){queueBtn.disabled=true;queueBtn.textContent='本場接待已結束';}
+    else if(queueBtn.textContent!=='正在領號…'){queueBtn.disabled=false;queueBtn.textContent='領取候位號碼';}
+    var btn = document.getElementById('submitOrder');
+    var canOrder = !!activeVisit && !visitRecoveryPending && (activeVisit.status==='assigned' || activeVisit.status==='serving');
+    btn.disabled = closed || !canOrder;
+    btn.textContent = closed ? '目前未開放點餐' : (canOrder ? '送出餐點' : '與女僕會合後即可點餐');
+  }
+
+  // ---------- menu rendering ----------
+  function itemIsAvailable(item){
+    return !!item && item.available!==false && item.available!=='false' && item.available!==0;
+  }
+
+  function isLegacyPhotoMenuItem(item){
+    var type=String(item&&item.serviceType||'').toLowerCase();
+    var source=String(item&&item.name||'')+' '+String(item&&item.category||'');
+    return type==='polaroid'||type==='lens'||/拍立得|純拍|lens|個人攝影|專屬留影/i.test(source);
+  }
+
+  function itemHasStockLimit(item){
+    return !!item && (item.stockEnabled===true || item.stockEnabled==='true' || item.stockEnabled===1);
+  }
+
+  function itemStockRemaining(item){
+    return Math.max(0, Math.floor(Number(item && item.stockRemaining || 0)));
+  }
+
+  function setMenuSyncStatus(message, isError){
+    var el = document.getElementById('menuSyncStatus');
+    if(!el) return;
+    el.textContent = message;
+    el.className = 'menu-sync-status' + (isError ? ' error' : '');
+  }
+
+  function applyMenuSnapshot(snap){
+    applyMenuData(snap.val());
+  }
+
+  function applyMenuData(nextMenu){
+    menuItems = nextMenu || {};
+    markSiteReady('menu');
+    syncCartWithMenu();
+    categoryOrder = [];
+    Object.keys(menuItems).sort(function(a,b){
+      return Number(menuItems[a].sortOrder||0)-Number(menuItems[b].sortOrder||0);
+    }).forEach(function(id){
+      var cat = menuItems[id].category || '其他';
+      if(categoryOrder.indexOf(cat) === -1) categoryOrder.push(cat);
+    });
+    renderMenu();
+    renderCart();
+    setMenuSyncStatus('菜單已更新・' + new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'}), false);
+  }
+
+  function refreshMenuSnapshot(){
+    if(!menuRef || menuSyncBusy) return Promise.resolve();
+    menuSyncBusy = true;
+    var refreshBtn = document.getElementById('refreshMenuBtn');
+    if(refreshBtn) refreshBtn.disabled = true;
+    var publicMenuUrl = firebaseConfig.databaseURL.replace(/\/$/, '') + '/lephemere/menu.json';
+    return fetch(publicMenuUrl, {cache:'no-store'}).then(function(response){
+      if(!response.ok) throw new Error('public-menu-http-'+response.status);
+      return response.json();
+    }).then(function(data){
+      applyMenuData(data);
+    }).catch(function(){
+      return menuRef.once('value').then(function(snap){
+        applyMenuSnapshot(snap);
+      }).catch(function(){
+        setMenuSyncStatus('菜單載入失敗，請按「立即更新菜單」', true);
+      });
+    }).then(function(){
+      menuSyncBusy = false;
+      if(refreshBtn) refreshBtn.disabled = false;
+    });
+  }
+
+  document.getElementById('refreshMenuBtn').addEventListener('click', function(){
+    setMenuSyncStatus('正在直接取得最新菜單…', false);
+    refreshMenuSnapshot();
+  });
+
+  function syncCartWithMenu(){
+    var syncedCart = {};
+    var syncedAddons = {};
+    var menuIds = Object.keys(menuItems);
+
+    Object.keys(cart).forEach(function(oldId){
+      var line = cart[oldId];
+      var newId = oldId;
+      var latest = menuItems[newId];
+
+      if(!latest){
+        newId = menuIds.find(function(id){ return menuItems[id].name === line.name; });
+        latest = newId ? menuItems[newId] : null;
+      }
+      if(!latest) return;
+      if(isLegacyPhotoMenuItem(latest)) return;
+      if(!itemIsAvailable(latest)) return;
+      var allowedQty = Number(line.qty||0);
+      if(itemHasStockLimit(latest)){
+        allowedQty = Math.min(allowedQty, itemStockRemaining(latest));
+      }
+      if(allowedQty<=0) return;
+
+      var addon = null;
+      if(line.addon && latest.addonLabel && !window.LephemereMagicReminder.isLegacyAddon(latest)){
+        addon = { label:latest.addonLabel, price:latest.addonPrice };
+        syncedAddons[newId] = true;
+      }
+      syncedCart[newId] = {
+        name:latest.name,
+        price:latest.price,
+        qty:allowedQty,
+        addon:addon,
+        assignments:Array.isArray(line.assignments) ? line.assignments.slice(0,allowedQty) : []
+      };
+      normalizeAssignments(syncedCart[newId]);
+    });
+
+    Object.keys(pendingAddons).forEach(function(oldId){
+      if(!pendingAddons[oldId]) return;
+      var newId = oldId;
+      if(!menuItems[newId]){
+        var oldName = cart[oldId] ? cart[oldId].name : '';
+        newId = menuIds.find(function(id){ return menuItems[id].name === oldName; });
+      }
+      if(newId && menuItems[newId] && menuItems[newId].addonLabel && !window.LephemereMagicReminder.isLegacyAddon(menuItems[newId])){
+        syncedAddons[newId] = true;
+      }
+    });
+
+    cart = syncedCart;
+    pendingAddons = syncedAddons;
+  }
+
+  function groupedMenu(){
+    var groups = {};
+    categoryOrder.forEach(function(c){ groups[c] = []; });
+    Object.keys(menuItems).forEach(function(id){
+      var item = menuItems[id];
+      if(isLegacyPhotoMenuItem(item)) return;
+      var cat = item.category || '其他';
+      if(!groups[cat]) groups[cat] = [];
+      groups[cat].push(Object.assign({id:id}, item));
+    });
+    Object.keys(groups).forEach(function(cat){
+      groups[cat].sort(function(a,b){ return Number(a.sortOrder||0)-Number(b.sortOrder||0); });
+    });
+    return groups;
+  }
+
+  function renderMenu(){
+    var el = document.getElementById('menuList');
+    var nav = document.getElementById('categoryNav');
+    var groups = groupedMenu();
+    if(categoryOrder.length === 0){
+      el.innerHTML = '<span class="empty">菜單尚未開放，請稍候或詢問女僕。</span>';
+      if(nav) nav.innerHTML='';
+      return;
+    }
+    if(activeMenuCategory!=='__all__' && categoryOrder.indexOf(activeMenuCategory)===-1){
+      activeMenuCategory='__all__';
+    }
+    var html = '';
+    function isPolaroidLimitNote(note){
+      return /每位店員每次營業限量開放\s*3\s*張拍立得服務/.test(note || '');
+    }
+    var visibleCategories=[];
+    categoryOrder.forEach(function(cat){
+      var items = groups[cat] || [];
+      if(items.length === 0) return;
+      var categoryParts = String(cat || '其他').split('※');
+      var categoryTitle = (categoryParts.shift() || '其他').trim();
+      visibleCategories.push({title:categoryTitle,key:cat});
+    });
+    visibleCategories.forEach(function(categoryEntry){
+      if(activeMenuCategory!=='__all__' && categoryEntry.key!==activeMenuCategory) return;
+      var cat=categoryEntry.key;
+      var items=groups[cat] || [];
+      var categoryParts = String(cat || '其他').split('※');
+      var categoryTitle = (categoryParts.shift() || '其他').trim();
+      var categoryNote = categoryParts.join('※').trim();
+      html += '<div class="cat-title">'+escapeHtml(categoryTitle)+'</div>';
+      var limitNoteItem = items.find(function(item){ return isPolaroidLimitNote(item.note); });
+      var limitText = categoryNote || (limitNoteItem ? String(limitNoteItem.note || '').replace(/^\s*※\s*/, '') : '');
+      if(limitText){
+        html += '<div class="category-notice">'
+          + '<span class="category-notice-label">LIMITED</span>'
+          + '<span>'+escapeHtml(limitText)+'</span>'
+          + '</div>';
+      }
+      items.forEach(function(item){
+        var qty = cart[item.id] ? cart[item.id].qty : 0;
+        var soldOut = !itemIsAvailable(item) || (itemHasStockLimit(item) && itemStockRemaining(item)<=0);
+        var canOrder = !!activeVisit && (activeVisit.status==='assigned' || activeVisit.status==='serving');
+        var orderingDisabled = soldOut || operationStatus.isOpen===false || !canOrder;
+        var availability = '';
+        if(!itemIsAvailable(item)) availability = '<span class="availability soldout">暫停供應</span>';
+        else if(itemHasStockLimit(item) && itemStockRemaining(item)<=0) availability = '<span class="availability soldout">本次額滿</span>';
+        else if(itemHasStockLimit(item)) availability = '<span class="availability">剩餘 '+itemStockRemaining(item)+' 份</span>';
+        var imageHtml = item.imageUrl
+          ? '<div class="item-image"><img src="'+escapeHtml(item.imageUrl)+'" alt="'+escapeHtml(item.name)+'" loading="lazy"></div>'
+          : '';
+        html += '<div class="item-row '+(soldOut?'unavailable':'')+'">'
+          + imageHtml
+          + '<div class="item-name">'+escapeHtml(item.name)
+          + (item.note && !isPolaroidLimitNote(item.note) ? '<span class="item-note">'+escapeHtml(item.note)+'</span>' : '')
+          + availability
+          + (item.addonLabel && !(window.LephemereMagicReminder && window.LephemereMagicReminder.isLegacyAddon(item)) ? '<div class="addon-row"><input type="checkbox" id="addon-'+item.id+'" '+((cart[item.id]&&cart[item.id].addon)||pendingAddons[item.id]?'checked':'')+' '+(orderingDisabled?'disabled':'')+'><label for="addon-'+item.id+'">'+escapeHtml(item.addonLabel)+' ＋'+fmtGil(item.addonPrice)+'</label></div>' : '')
+          + '</div>'
+          + '<div class="item-price">'+fmtGil(item.price)+'</div>'
+          + '<div class="stepper">'
+          + '<button class="step-btn" data-dec="'+item.id+'">－</button>'
+          + '<span class="step-qty" id="qty-'+item.id+'">'+qty+'</span>'
+          + '<button class="step-btn" data-inc="'+item.id+'" '+(orderingDisabled?'disabled':'')+'>＋</button>'
+          + '</div>'
+          + '</div>';
+      });
+    });
+    el.innerHTML = html;
+    if(nav){
+      nav.innerHTML='<button type="button" class="category-link '+(activeMenuCategory==='__all__'?'is-active':'')+'" data-category-index="all">全部</button>'
+        + visibleCategories.map(function(entry,index){
+          return '<button type="button" class="category-link '+(activeMenuCategory===entry.key?'is-active':'')+'" data-category-index="'+index+'">'+escapeHtml(entry.title)+'</button>';
+        }).join('');
+      nav.querySelectorAll('[data-category-index]').forEach(function(button){
+        button.addEventListener('click',function(){
+          var index=button.getAttribute('data-category-index');
+          activeMenuCategory=index==='all' ? '__all__' : visibleCategories[Number(index)].key;
+          renderMenu();
+        });
+      });
+    }
+
+    el.querySelectorAll('[data-inc]').forEach(function(btn){
+      btn.addEventListener('click', function(){ changeQty(btn.getAttribute('data-inc'), 1); });
+    });
+    el.querySelectorAll('[data-dec]').forEach(function(btn){
+      btn.addEventListener('click', function(){ changeQty(btn.getAttribute('data-dec'), -1); });
+    });
+    el.querySelectorAll('[id^="addon-"]').forEach(function(cb){
+      cb.addEventListener('change', function(){
+        var itemId = cb.id.replace('addon-','');
+        var item = menuItems[itemId];
+        pendingAddons[itemId] = cb.checked;
+        if(cb.checked && !cart[itemId]){
+          changeQty(itemId, 1);
+          return;
+        }
+        if(cart[itemId]){
+          cart[itemId].addon = cb.checked ? { label:item.addonLabel, price:item.addonPrice } : null;
+        }
+        renderCart();
+      });
+    });
+  }
+
+  function changeQty(id, delta){
+    var item = menuItems[id];
+    if(!item) return;
+    if(delta>0 && (operationStatus.isOpen===false || !itemIsAvailable(item) || !activeVisit || (activeVisit.status!=='assigned' && activeVisit.status!=='serving'))) return;
+    var current = cart[id] ? cart[id].qty : 0;
+    var next = Math.max(0, current + delta);
+    if(delta>0 && itemHasStockLimit(item)){
+      next = Math.min(next, itemStockRemaining(item));
+    }
+    if(next === 0){
+      delete cart[id];
+      delete pendingAddons[id];
+      var addonEl = document.getElementById('addon-'+id);
+      if(addonEl) addonEl.checked = false;
+    } else {
+      if(!cart[id]){
+        cart[id] = {
+          name:item.name,
+          price:item.price,
+          qty:0,
+          addon:pendingAddons[id] && !window.LephemereMagicReminder.isLegacyAddon(item) ? { label:item.addonLabel, price:item.addonPrice } : null,
+          assignments:[]
+        };
+      }
+      cart[id].qty = next;
+      normalizeAssignments(cart[id]);
+    }
+    var qtyEl = document.getElementById('qty-'+id);
+    if(qtyEl) qtyEl.textContent = next;
+    renderCart();
+    if(current===0 && next>0 && delta>0 && window.LephemereMagicReminder && window.LephemereMagicReminder.isEggRice(item)) window.LephemereMagicReminder.open();
+  }
+
+  function cartTotal(){
+    var total = 0;
+    Object.keys(cart).forEach(function(id){
+      var line = cart[id];
+      total += line.price * line.qty;
+      if(line.addon) total += line.addon.price * line.qty;
+    });
+    return total;
+  }
+
+  function renderCart(){
+    var el = document.getElementById('cartList');
+    var ids = Object.keys(cart);
+    if(ids.length === 0){
+      el.innerHTML = '<span class="empty-cart">尚未選擇餐點</span>';
+      return;
+    }
+    var html = '';
+    ids.forEach(function(id){
+      var line = cart[id];
+      var assignments=normalizeAssignments(line);
+      html += '<div class="cart-line-block"><div class="cart-line-main"><span>'+escapeHtml(line.name)+' × '+line.qty+'</span><span>'+fmtGil(line.price*line.qty)+'</span></div>';
+      if(line.addon){
+        html += '<div class="cart-line"><span>＋'+escapeHtml(line.addon.label)+' × '+line.qty+'</span><span>'+fmtGil(line.addon.price*line.qty)+'</span></div>';
+      }
+      html += '<div class="diner-assignments">';
+      assignments.forEach(function(assigned,index){
+        html += '<label class="diner-assignment"><span>第 '+(index+1)+' 份</span><select data-assignment-item="'+escapeHtml(id)+'" data-assignment-index="'+index+'">'+assignmentOptions(assigned)+'</select></label>';
+      });
+      html += '</div></div>';
+    });
+    html += '<div class="cart-total"><span>總計</span><span>'+fmtGil(cartTotal())+'</span></div>';
+    el.innerHTML = html;
+    el.querySelectorAll('[data-assignment-item]').forEach(function(select){
+      select.addEventListener('change',function(){
+        var id=select.getAttribute('data-assignment-item');
+        var index=Number(select.getAttribute('data-assignment-index'));
+        if(cart[id]){
+          normalizeAssignments(cart[id]);
+          cart[id].assignments[index]=select.value;
+        }
+      });
+    });
+  }
+
+  // ---------- submit ----------
+  function simpleHash(text){
+    var hash = 2166136261;
+    for(var i=0;i<text.length;i++){
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash>>>0).toString(36);
+  }
+
+  function submissionFingerprint(name, note, items){
+    return JSON.stringify({visitId:activeVisitId,sessionId:operationStatus.sessionId||'',name:name,note:note,items:items});
+  }
+
+  function pendingRequest(fingerprint){
+    var key = 'lephemerePendingOrder:'+activeVisitId;
+    try{
+      var existing = JSON.parse(localStorage.getItem(key)||'null');
+      if(existing && existing.fingerprint===fingerprint && existing.requestId) return existing;
+      var requestId = 'req-'+simpleHash(fingerprint+'|'+Math.floor(Date.now()/300000));
+      var created = {requestId:requestId,fingerprint:fingerprint,createdAt:Date.now()};
+      localStorage.setItem(key, JSON.stringify(created));
+      return created;
+    }catch(e){
+      return {requestId:'req-'+simpleHash(fingerprint+'|'+Math.floor(Date.now()/300000)),fingerprint:fingerprint};
+    }
+  }
+
+  function clearPendingRequest(){
+    try{ localStorage.removeItem('lephemerePendingOrder:'+activeVisitId); }catch(e){}
+  }
+
+  function orderFailureText(error){
+    var details = error && error.details || {};
+    var reason = details.reason || '';
+    if(reason==='BUSINESS_CLOSED') return '本場點餐已結束，請直接詢問女僕。';
+    if(reason==='SESSION_CHANGED') return '今晚的菜單已更新，請重新整理頁面後再送單。';
+    if(reason==='VISIT_NOT_FOUND') return '找不到您今晚的候位，請重新領號或詢問女僕。';
+    if(reason==='VISIT_NOT_ASSIGNED') return '女僕尚未與您會合，目前不能送出餐點。';
+    if(reason==='ITEM_UNAVAILABLE') return (details.itemName||'部分餐點')+'目前暫停供應，請重新確認菜單。';
+    if(reason==='OUT_OF_STOCK') return (details.itemName||'限量餐點')+'剩餘 '+Number(details.remaining||0)+' 份，請調整數量後重試。';
+    if(reason==='MINIMUM_NOT_MET') return '餐點金額尚未達低消，目前合計 '+fmtGil(Number(details.total||0))+'。';
+    if(reason==='TRANSACTION_RETRY') return '同時有其他客人送單，庫存正在更新；請按「重試送單」。';
+    if(reason==='AUTH_NOT_READY') return '正在確認您的入店身分，請稍候幾秒再試。';
+    var code = String(error && error.code || '');
+    if(/unavailable|deadline-exceeded|internal/.test(code)) return '目前連線不穩定，請稍後按「重試送單」。';
+    return '暫時無法送出餐點，請按「重試送單」或詢問女僕。';
+  }
+
+  document.getElementById('submitOrder').addEventListener('click', function(){
+    if(!isConfigured) return;
+    if(document.getElementById('festival-order')) return;
+    var errEl = document.getElementById('orderError');
+    var name = document.getElementById('custName').value.trim();
+    var note = document.getElementById('custNote').value.trim();
+    var ids = Object.keys(cart);
+
+    if(operationStatus.isOpen===false){
+      errEl.textContent = '目前已結束線上點餐，請直接詢問女僕';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    if(!activeVisit || (activeVisit.status!=='assigned' && activeVisit.status!=='serving')){
+      errEl.textContent = '請先領取候位號碼，並與女僕會合後再點餐';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    if(!name){
+      errEl.textContent = '請填寫角色名／稱呼';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(ids.length === 0){
+      errEl.textContent = '請至少選擇一項餐點';
+      errEl.style.display = 'block';
+      return;
+    }
+    var total = cartTotal();
+    if(total < 30000){
+      errEl.textContent = '每位入座客人的餐點低消為 30,000 Gil，請再選擇其他餐點。';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.textContent = '正在確認價格與供應數量…';
+    errEl.style.color = 'var(--gold)';
+    errEl.style.display = 'block';
+
+    var submitBtn = document.getElementById('submitOrder');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '正在為您送出餐點…';
+
+    var items = ids.map(function(id){
+      var line = cart[id];
+      return { id:id, qty:line.qty, addonSelected:!!line.addon, assignments:normalizeAssignments(line).slice() };
+    });
+    var fingerprint = submissionFingerprint(name, note, items);
+    var pending = pendingRequest(fingerprint);
+
+    var isSharedVisitor=activeVisit.ownerUid!==currentVisitorUid||!!sharedMemberLabel;
+    var orderCallable=isSharedVisitor?submitSharedOrderFn:submitOrderFn;
+    if(isSharedVisitor&&!sharedMemberLabel)sharedMemberLabel=localStorage.getItem('lephemereSharedMember:'+activeVisitId)||'';
+    orderCallable({requestId:pending.requestId,visitId:activeVisitId,name:name,note:note,diners:currentDiners(),items:items,memberLabel:sharedMemberLabel}).then(function(result){
+      var data = result && result.data || {};
+      errEl.textContent = '女僕已收到您的餐點。';
+      document.getElementById('successNumber').textContent = '#'+(data.orderNumber||'—');
+      document.getElementById('orderFlow').style.display = 'none';
+      setGuestTab(true, false);
+      document.getElementById('orderSuccessOverlay').hidden = false;
+      unlockPhotoEntry();
+      fetchVisitTotal(false);
+      clearPendingRequest();
+      cart = {};
+      pendingAddons = {};
+      document.getElementById('custNote').value = '';
+      renderMenu();
+      renderCart();
+      submitBtn.disabled = false;
+      submitBtn.textContent = '送出餐點';
+    }).catch(function(err){
+      errEl.textContent = orderFailureText(err);
+      errEl.style.color = 'var(--rose)';
+      errEl.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = '重試送單';
+    });
+  });
+
+  document.getElementById('newOrderBtn').addEventListener('click', function(){
+    document.getElementById('orderSuccessOverlay').hidden = true;
+    document.getElementById('orderFlow').style.display = 'block';
+    setGuestTab(true, true);
+  });
+  document.getElementById('orderSuccessPhoto').addEventListener('click',function(){document.getElementById('orderSuccessOverlay').hidden=true;openPhotoView()});
+  document.getElementById('queueSuccessCopy').addEventListener('click',function(){copyTableCode(document.getElementById('queueSuccessStatus'))});
+  document.getElementById('queueSuccessDone').addEventListener('click',function(){document.getElementById('queueSuccessOverlay').hidden=true});
+  document.getElementById('closePhotoPrompt').addEventListener('click',closePhotoPrompt);
+  document.getElementById('photoPromptLater').addEventListener('click',closePhotoPrompt);
+  document.getElementById('photoPromptGo').addEventListener('click',openPhotoView);
+  
+  document.getElementById('reloadPhotoService').addEventListener('click',function(){syncNativePhoto();if(window.LephemerePhotoNative)window.LephemerePhotoNative.refresh()});document.getElementById('photoRoleSelect').addEventListener('change',function(){photoSelectedMemberLabel=this.value;var code=photoAccessCode();if(code&&window.LephemerePhotoNative)window.LephemerePhotoNative.connect(code,this.value,activeVisitId)});window.addEventListener('lephemere-photo-native-ready',syncNativePhoto);
+  document.getElementById('photoPromptOverlay').addEventListener('click',function(e){if(e.target===this)closePhotoPrompt()});
+  window.addEventListener('lephemere-photo-order-created',function(){fetchVisitTotal(false)});window.addEventListener('lephemere-photo-open-total',openTotalView);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!document.getElementById('photoPromptOverlay').hidden)closePhotoPrompt()});
+  function openGuide(){document.getElementById('guideOverlay').hidden=false;setTimeout(function(){document.getElementById('closeGuide').focus()},0)}
+  var festivalPresentation=window.FestivalPresentation.defaults;
+  var festivalPortraits=[],festivalPortraitIndex=0,festivalPortraitTimer=null,festivalHover=false;
+  var festivalMotion=matchMedia('(prefers-reduced-motion: reduce)'),festivalPlay=!festivalMotion.matches;
+  function showFestivalPortrait(){
+    var row=festivalPortraits[festivalPortraitIndex],wrap=festivalView('cover');
+    wrap.hidden=!row;festivalView('cover-controls').hidden=festivalPortraits.length<2;
+    if(!row)return;
+    var photo=festivalView('cover-photo');photo.src=row.photo;photo.alt=row.name+'的學園祭照片';
+    festivalView('cover-name').textContent=row.team+' · '+row.name;
+  }
+  function shiftFestivalPortrait(delta){
+    if(festivalPortraits.length<2)return;
+    festivalPortraitIndex=(festivalPortraitIndex+delta+festivalPortraits.length)%festivalPortraits.length;
+    showFestivalPortrait();
+  }
+  function syncFestivalPortrait(){
+    clearInterval(festivalPortraitTimer);
+    var button=festivalView('cover-toggle');button.textContent=festivalPlay?'Ⅱ':'▶';
+    button.setAttribute('aria-label',festivalPlay?'暫停自動播放':'播放學生照片');
+    if(festivalPlay && !document.hidden && !festivalHover && !festivalView('cover').matches(':focus-within') && festivalPortraits.length>1)
+      festivalPortraitTimer=setInterval(function(){if(activeGuestView==='order')shiftFestivalPortrait(1)},6500);
+  }
+  window.FestivalPresentation.load().then(function(data){
+    festivalPresentation=data;window.FestivalPresentation.apply(data);
+    festivalPortraits=Object.values(data.teams).flatMap(function(team){return (team.members || []).flatMap(function(member){
+      if(!member.photo)return [];
+      try{var url=new URL(member.photo,document.baseURI);return (url.protocol==='https:'||(url.protocol==='http:'&&url.origin===location.origin&&/^(localhost|127\.0\.0\.1)$/.test(location.hostname)))?[{photo:url.href,team:team.name,name:member.name}]:[]}catch(_){return []}
+    })});
+    showFestivalPortrait();syncFestivalPortrait();if(festivalState)drawFestivalMenu();
+  });
+  var festivalVisitKey='', festivalState=null, festivalTeam='', festivalCounts={}, festivalMenuPromise=null, festivalSending=false;
+  var festivalView=function(id){return document.getElementById('festival-'+id)};
+  function refreshFestivalMenu(force){
+    var visitId=activeVisitId;
+    if(!functionsClient || !currentVisitorUid || !activeVisit || !visitId || activeVisit.sessionId!==operationStatus.sessionId){
+      festivalVisitKey='';festivalState=null;festivalCounts={};festivalTeam='';festivalMenuPromise=null;drawFestivalMenu();return;
+    }
+    var key=operationStatus.sessionId+'|'+visitId+'|'+currentVisitorUid;
+    if(key!==festivalVisitKey){festivalVisitKey=key;festivalTeam='';festivalCounts={};festivalState=null;festivalMenuPromise=null}
+    if(festivalMenuPromise || (festivalState && !force)) return festivalMenuPromise;
+    festivalView('status').textContent='正在核對本場菜單…';
+    var request=functionsClient.httpsCallable('festivalGuestMenuV99')({visitId:visitId}).then(function(result){
+      if(festivalVisitKey!==key || activeVisitId!==visitId) return;
+      festivalState=result.data;
+      if(festivalState.locked || !festivalTeam) festivalTeam=festivalState.team;
+      festivalView('status').textContent='';
+      drawFestivalMenu();syncNativePhoto();
+    }).catch(function(error){
+      if(festivalVisitKey!==key || activeVisitId!==visitId) return;
+      festivalState=null;
+      drawFestivalMenu();syncNativePhoto();
+      festivalView('status').textContent=String(error.message||'目前無法讀取學園祭菜單。');
+    }).finally(function(){if(festivalMenuPromise===request) festivalMenuPromise=null});
+    festivalMenuPromise=request;
+    return request;
+  }
+  function currentFestivalCart(){
+    if(!festivalState || !festivalTeam) return [];
+    return festivalState.menus.filter(function(row){return row.team===festivalTeam && row.available && festivalCounts[row.id]>0})
+      .map(function(row){return {id:row.id,qty:festivalCounts[row.id],price:row.price}});
+  }
+  function drawFestivalTotal(){
+    var cartRows=currentFestivalCart();
+    var total=cartRows.reduce(function(sum,row){return sum+row.qty*row.price},0);
+    var summary=festivalView('cart-rows');summary.replaceChildren();
+    cartRows.forEach(function(row){var item=document.createElement('li');var entry=festivalState.menus.find(function(menu){return menu.id===row.id});item.textContent=entry.name+' × '+row.qty+' · '+fmtGil(row.qty*row.price);summary.append(item)});
+    if(!cartRows.length){var empty=document.createElement('li');empty.textContent='尚未選擇餐點。';summary.append(empty)}
+    festivalView('total').textContent='本次合計 '+fmtGil(total);
+    festivalView('send').disabled=festivalSending || !currentFestivalCart().length || !activeVisit || operationStatus.isOpen!==true ||
+      !['assigned','serving'].includes(activeVisit.status);
+  }
+  function drawFestivalMenu(){
+    var list=festivalView('items');
+    list.replaceChildren();
+    renderFestivalServices();
+    festivalView('identity').textContent=festivalState ? '本次點餐角色 · '+festivalState.name : '';
+    festivalView('choices').hidden=!festivalState;
+    festivalView('send').hidden=!festivalState;
+    festivalView('receipt').hidden=!festivalState;
+    festivalView('show-tickets').hidden=!festivalState;
+    if(festivalState){
+      var numbers=festivalState.ticketNumbers.map(function(n){return String(n).padStart(3,'0')});
+      festivalView('info').replaceChildren();
+      if(!numbers.length)festivalView('info').textContent='尚未發券。';
+      numbers.forEach(function(number){var ticket=document.createElement('span');ticket.textContent=number;festivalView('info').append(ticket)});
+      var personal=document.getElementById('festival-consumption-tickets');personal.replaceChildren();if(!numbers.length)personal.textContent='尚未發券。';numbers.forEach(function(number){var ticket=document.createElement('span');ticket.textContent=number;personal.append(ticket)});
+      festivalView('choices').querySelectorAll('button').forEach(function(button){
+        button.disabled=festivalSending || (festivalState.locked && button.dataset.team!==festivalTeam);
+        button.setAttribute('aria-pressed',String(button.dataset.team===festivalTeam));
+      });
+      var group='';
+      festivalState.menus.filter(function(row){return row.team===festivalTeam}).sort(function(a,b){return String(a.category).localeCompare(String(b.category),'zh-Hant')}).forEach(function(row){
+        if(row.category!==group){group=row.category;var title=document.createElement('h3');title.textContent=group;list.append(title);}
+        var label=document.createElement('label'),text=document.createElement('span'),input=document.createElement('input');
+        text.textContent=(row.name||'餐點')+' · '+fmtGil(row.price)+(row.available?'':' · 暫停供應');
+        input.type='number';input.min='0';input.max='20';input.step='1';input.value=String(festivalCounts[row.id]||0);
+        input.disabled=!row.available || festivalSending;
+        input.setAttribute('aria-label',row.name+'數量');
+        input.addEventListener('input',function(){festivalCounts[row.id]=Math.min(20,Math.max(0,Math.trunc(Number(input.value)||0)));drawFestivalTotal()});
+        input.addEventListener('change',function(){input.value=String(festivalCounts[row.id])});
+        var control=document.createElement('span');control.className='festival-quantity';
+        [-1,1].forEach(function(delta){
+          if(delta===1)control.append(input);
+          var button=document.createElement('button');button.type='button';button.textContent=delta<0?'−':'+';button.disabled=input.disabled;
+          button.setAttribute('aria-label',(delta<0?'減少':'增加')+row.name);
+          button.addEventListener('click',function(){input.value=String(Math.max(0,Math.min(20,Number(input.value||0)+delta)));input.dispatchEvent(new Event('input'))});
+          control.append(button);
+        });
+        appendFestivalProduct(text,row);label.append(text,control);list.append(label);
+      });
+    } else {
+      festivalView('info').textContent='請先使用本場號碼牌領號或加入共桌。';document.getElementById('festival-consumption-tickets').textContent='請先使用本場號碼牌領號或加入共桌。';
+    }
+    drawFestivalTotal();
+  }
+  function appendFestivalProduct(host,row){
+    if(row.photo){var image=document.createElement('img');image.src=row.photo;image.alt=row.name;image.loading='lazy';image.className='festival-item-image';host.prepend(image);}
+    if(row.description){var copy=document.createElement('small');copy.textContent=row.description;copy.style.display='block';host.append(copy);}
+  }
+  function renderFestivalServices(){
+    var host=festivalView('service-items');host.replaceChildren();
+    var services=festivalState?.menus.filter(function(row){return row.team==='service'}) || [];
+    if(!services.length){host.textContent=festivalState?'本場沒有額外的限定服務。':'使用本場號碼牌後，可選購限定服務。';return;}
+    if(!festivalState.tableMinimum?.eligible){var message=document.createElement('p');message.textContent='本桌有效餐點需滿 30,000 Gil，才能選購特殊服務。';host.append(message);}
+    services.forEach(function(row){
+      var shell=document.createElement('div'), name=document.createElement('strong'), button=document.createElement('button');
+      shell.className='festival-service-card';name.textContent=row.name+' · '+fmtGil(row.price);
+      button.className='btn primary';button.type='button';button.textContent=row.available?'登記服務':'暫停供應';
+      button.disabled=!row.available || festivalSending || !festivalState.tableMinimum?.eligible;
+      button.addEventListener('click',function(){return buyFestivalService(row,button);});
+      shell.append(name);appendFestivalProduct(shell,row);shell.append(button);host.append(shell);
+    });
+  }
+  async function buyFestivalService(row,button){
+    if(festivalSending || !activeVisitId || !functionsClient)return;
+    if(!confirm('確認登記 '+row.name+'（'+fmtGil(row.price)+'）？'))return;
+    var visitId=activeVisitId,key='festival-service-request:'+visitId+':'+row.id,pending;
+    try{pending=localStorage.getItem(key)}catch(_){}
+    if(!pending){pending=crypto.randomUUID();try{localStorage.setItem(key,pending)}catch(_){}}
+    var tableSide=row.serviceType==='magic';
+    var payload=tableSide?{visitId:visitId,requestId:pending,team:festivalTeam||festivalState.team,items:[{id:row.id,qty:1}]}:{visitId:visitId,requestId:pending,productId:row.id};
+    festivalSending=true;button.disabled=true;festivalView('service-status').textContent='正在登記服務…';
+    try{
+      var result=await functionsClient.httpsCallable(tableSide?'festivalSubmitOrderV99':'festivalPhotoOrderV103')(payload);
+      if(activeVisitId!==visitId)return;
+      try{localStorage.removeItem(key)}catch(_){}
+      var data=result.data;
+      festivalView('service-status').textContent=data.roundLabel?'已登記 '+data.roundLabel+' '+data.roundTime+'。':data.orderNumber?'已送出訂單 #'+data.orderNumber+'。':'已登記，請留意女僕交付通知。';
+      fetchVisitTotal(false);
+    }catch(error){if(activeVisitId===visitId)festivalView('service-status').textContent=error.message || '服務尚未登記成功。';}
+    finally{festivalSending=false;button.disabled=false;}
+  }
+  festivalView('service-link').addEventListener('click',openPhotoView);
+  festivalView('cover-prev').addEventListener('click',function(){shiftFestivalPortrait(-1)});
+  festivalView('cover-next').addEventListener('click',function(){shiftFestivalPortrait(1)});
+  festivalView('cover-toggle').addEventListener('click',function(){festivalPlay=!festivalPlay;syncFestivalPortrait()});
+  festivalView('cover').addEventListener('pointerenter',function(event){if(event.pointerType==='mouse'){festivalHover=true;syncFestivalPortrait()}});
+  festivalView('cover').addEventListener('pointerleave',function(){festivalHover=false;syncFestivalPortrait()});
+  ['focusin','focusout'].forEach(function(type){festivalView('cover').addEventListener(type,function(){setTimeout(syncFestivalPortrait,0)})});
+  festivalMotion.addEventListener('change',function(event){if(event.matches){festivalPlay=false;syncFestivalPortrait()}});
+  document.addEventListener('visibilitychange',syncFestivalPortrait);
+  festivalView('show-tickets').addEventListener('click',function(){festivalView('ticket-dialog').showModal()});
+  festivalView('cart-details').addEventListener('click',function(){var open=festivalView('receipt').classList.toggle('expanded');this.setAttribute('aria-expanded',String(open));this.textContent=open?'收起明細':'查看明細'});
+  festivalView('choices').addEventListener('click',function(event){
+    var button=event.target.closest('button[data-team]');
+    if(!button || button.disabled || !festivalState || festivalSending) return;
+    if(festivalTeam!==button.dataset.team){festivalTeam=button.dataset.team;festivalCounts={}}
+    drawFestivalMenu();
+  });
+  festivalView('refresh').addEventListener('click',function(){refreshFestivalMenu(true)});
+  festivalView('send').addEventListener('click',async function(){
+    if(festivalSending || !activeVisitId || festivalView('send').disabled) return;
+    var key=festivalVisitKey,visitId=activeVisitId;
+    var rows=currentFestivalCart().map(function(row){return {id:row.id,qty:row.qty}});
+    var fingerprint=JSON.stringify([key,festivalTeam,rows]);
+    var storageKey='lephemereFestivalPending:'+visitId;
+    var pending;
+    try { pending=JSON.parse(localStorage.getItem(storageKey)||'null'); } catch (_) {}
+    if(!pending || pending.fingerprint!==fingerprint){
+      pending={fingerprint:fingerprint,requestId:crypto.randomUUID()};
+      try { localStorage.setItem(storageKey,JSON.stringify(pending)); } catch (_) {}
+    }
+    festivalSending=true;drawFestivalMenu();
+    festivalView('status').textContent='正在確認餐點與庫存…';
+    try {
+      var result=await functionsClient.httpsCallable('festivalSubmitOrderV99')({visitId:visitId,requestId:pending.requestId,team:festivalTeam,items:rows});
+      if(festivalVisitKey!==key || activeVisitId!==visitId) return;
+      try { localStorage.removeItem(storageKey); } catch (_) {}
+      festivalCounts={};unlockPhotoEntry();
+      await refreshFestivalMenu(true);
+      if(festivalVisitKey!==key || activeVisitId!==visitId) return;
+      festivalView('status').textContent='已送出訂單 #'+result.data.orderNumber+'。';
+    } catch(error) {
+      if(festivalVisitKey===key && activeVisitId===visitId) festivalView('status').textContent=String(error.message||'送單未確認，請重試。');
+    } finally {
+      festivalSending=false;drawFestivalMenu();
+    }
+  });
+
+  function closeGuide(){document.getElementById('guideOverlay').hidden=true;document.getElementById('openGuide').focus()}
+  document.getElementById('openGuide').addEventListener('click',openGuide);
+  document.getElementById('closeGuide').addEventListener('click',closeGuide);
+  document.getElementById('guideDone').addEventListener('click',closeGuide);
+  document.getElementById('guideOverlay').addEventListener('click',function(e){if(e.target===this)closeGuide()});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!document.getElementById('guideOverlay').hidden)closeGuide()});
+
+})();
+</script>
+<script src="festival-base/photo/assets/schedule.js?v=43"></script>
+<script src="assets/guest-photo-festival-v105.js?v=105"></script>
+<script src="festival-guest-layout.js?v=119"></script></body>
+</html>
+
+

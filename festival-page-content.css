@@ -1,0 +1,24 @@
+body[data-content-font=system] *,body[data-content-font=system] h1,body[data-content-font=system] h2,body[data-content-font=system] h3{font-family:"Microsoft JhengHei",sans-serif!important}
+.chairman-photo img,.profile-photo-reserved img{width:100%;height:100%;object-fit:contain}
+.chairman-card[hidden]{display:none!important}
+.chairman-card blockquote,.chairman-invitation blockquote,.entry-welcome{white-space:pre-line}
+#rules-dialog.festival-entry-dialog{width:min(1120px,calc(100vw - 70px));max-width:1120px;max-height:88vh;border:1px solid #c9bca5;background:#f7f4ed;padding:0;box-shadow:0 24px 100px #211e2340}
+.entry-top{display:flex;justify-content:space-between;align-items:center;padding:15px 24px;border-bottom:1px solid #d6cbb9;background:#eee7d8;color:#8b7963;font-size:12px}
+.entry-top button{padding:7px 13px;border:1px solid #cabba4;background:none;color:#6b5848;font-size:13px}
+.entry-layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:38px;padding:34px 34px 32px}
+.entry-photo-column{background:#eae2d2;padding:18px;display:flex;flex-direction:column;gap:20px}
+.entry-photo-column figure{margin:0;background:#f7f3ea;padding:7px;transform:rotate(-2deg)}
+.entry-photo-column img{display:block;width:100%;height:175px;object-fit:cover;object-position:50% 30%}
+.entry-photo-column figcaption{font-size:11px;color:#97856c;text-align:center;padding:9px 0 4px}
+.entry-school-names{font-size:14px;line-height:1.9;color:#6e5e49;font-weight:600}
+.entry-photo-column blockquote{font-size:18px;font-weight:600;line-height:1.9;color:#7c5a4b;margin:auto 0 0;padding:18px 0 4px;border-top:1px solid #cbbb9f}
+.entry-kicker{font-size:12px;letter-spacing:.12em;color:#9b7e60}
+.roster-design .entry-copy h2{font-size:33px!important;line-height:1.3;margin:12px 0 18px;color:var(--rose)}
+.entry-welcome{font-size:15px!important;color:#7e7268;line-height:1.9;margin:0 0 24px}
+.entry-copy ol{counter-reset:entry;list-style:none;padding:0;margin:0}
+.entry-copy li{counter-increment:entry;display:grid;grid-template-columns:32px 1fr;gap:14px;align-items:start;padding:13px 0;border-top:1px solid #dfd4c4;font-size:14px!important;line-height:1.8;color:#665a50}
+.entry-copy li:before{content:counter(entry,decimal-leading-zero);font:23px Georgia,serif;color:#b39a7d}
+.entry-bottom{display:flex;gap:20px;align-items:center;justify-content:space-between;margin-top:24px;padding-top:20px;border-top:1px solid #d6cbb9}
+.entry-bottom small{font-size:11px!important;color:#a18f7d;max-width:265px;line-height:1.8}
+.roster-design .entry-bottom button{white-space:nowrap;background:var(--rose);color:white;padding:12px 26px;font-size:15px}
+@media(prefers-reduced-motion:reduce){#rules-dialog.festival-entry-dialog{animation:none!important}}
