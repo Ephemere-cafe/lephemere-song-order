@@ -1,0 +1,15 @@
+.festival-collage .member strong .character-staff{display:block;font-size:13px!important;line-height:1.6;letter-spacing:.02em;color:var(--fp-muted);margin-top:4px;font-weight:400}
+.festival-collage .collage-portrait span .character-staff{display:block;font-size:12px;font-weight:400;text-shadow:inherit}
+.festival-collage #member-profile{width:min(1040px,calc(100% - 32px));max-width:1040px;max-height:88dvh;overflow:auto}
+.festival-collage #member-profile .profile{grid-template-columns:minmax(230px,.85fr) minmax(0,1.35fr);align-items:start;padding:30px;gap:32px}
+.festival-collage #member-profile .profile-photo{position:sticky;top:10px;max-height:68dvh;min-height:260px;aspect-ratio:3/4}
+.festival-collage #member-profile>form{position:sticky;top:0;z-index:5;background:var(--fp-surface);border-color:var(--fp-line);padding:9px 14px}
+.festival-collage #member-profile>form button{background:transparent!important;color:var(--fp-ink)!important;border:1px solid var(--fp-line)!important;border-radius:40px;padding:8px 18px;min-height:42px}
+.festival-collage #profile-name{font-size:clamp(27px,2.5vw,38px);line-height:1.5;margin:12px 0 20px;overflow-wrap:anywhere}
+.festival-collage #profile-school{font-size:15px;color:var(--fp-muted);line-height:1.8}
+.character-facts{display:grid;grid-template-columns:90px minmax(0,1fr);gap:12px 18px;border-top:1px solid var(--fp-line);border-bottom:1px solid var(--fp-line);padding:20px 0;margin:0 0 25px;font-size:16px;line-height:1.9}
+.character-facts dt{color:var(--fp-muted);font-size:14px}.character-facts dd{margin:0;white-space:pre-line;overflow-wrap:anywhere}
+.festival-collage .character-story p{white-space:pre-line;font-size:17px;line-height:2;margin:0 0 20px;color:var(--fp-ink)}
+.festival-guest-page #wrap #photoNativeRoot .maid-nav .character-staff{display:block;font-size:13px;font-weight:400;font-style:normal;color:var(--fp-muted);line-height:1.7}
+.character-import-tools{padding:16px 0;margin:0 0 20px;border-bottom:1px solid var(--fp-line)}.character-import-tools p{font-size:14px;line-height:1.9;margin:12px 0 0}.character-import-tools button{font-size:15px}
+@media(max-width:680px){.festival-collage #member-profile{width:calc(100% - 20px);max-height:90dvh}.festival-collage #member-profile .profile{display:block;padding:20px}.festival-collage #member-profile .profile-photo{position:relative;top:auto;max-height:none;min-height:0;height:300px;width:100%;max-width:300px;margin:0 auto 25px}.festival-collage #profile-name{font-size:27px}.character-facts{grid-template-columns:74px minmax(0,1fr);gap:10px 12px;font-size:16px}.festival-collage .character-story p{font-size:16px;line-height:2}.festival-collage .member strong .character-staff{font-size:13px!important}}

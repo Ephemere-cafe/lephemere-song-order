@@ -29,7 +29,7 @@
 <style>#festival-appearance{margin:12px 0}#festival-appearance summary{cursor:pointer;font-weight:700}#festival-appearance form{display:grid;gap:10px;margin-top:10px}#festival-appearance input,#festival-appearance textarea{max-width:100%;font:inherit;color:var(--ink);background:var(--paper)}#festival-appearance-teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}#festival-appearance fieldset{min-width:0;border:1px solid var(--line);padding:10px}#festival-appearance fieldset details{margin-top:8px;padding:6px;border-top:1px solid var(--line)}</style>
 <style>#festival-lucky-roll{margin:12px 0}#festival-lucky-roll summary{cursor:pointer;font-weight:700}#festival-lucky-roll form{margin-bottom:8px}#festival-lucky-roll ul{padding-left:1.3rem}#festival-lucky-roll li{margin:5px 0}#festival-lucky-roll code{font-size:1.25rem}#draw-status,#draw-hit,#draw-cancel-result{margin:8px 0}#draw-work h2{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}</style>
 <style>#festival-menu-editor{margin:12px 0}#festival-menu-editor summary{cursor:pointer;font-weight:700}#fest-menu-form{padding-top:12px;display:flex;gap:12px}#fest-menu-list{padding-left:1.3rem}#fest-menu-list li{margin:4px 0}</style>
-<link rel="stylesheet" href="festival-page-editor.css"><link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="school-festival-theme.css?v=119"><script src="school-festival-theme.js?v=119"></script></head>
+<link rel="stylesheet" href="festival-page-editor.css"><link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="festival-workbench-v121.css?v=121"><script src="festival-workbench-v121.js?v=121"></script><link rel="stylesheet" href="festival-character-ui-v124.css?v=124"></head>
 <body class="connected-page"><script>window.SchoolFestivalTheme?.refresh();</script>
 <header class="festival-masthead"><div class="masthead-inner"><strong>曇時學園祭・接待工作台</strong><div class="masthead-tools"><a href="admin/">返回原後台</a><a href="school-festival-roster-arena-preview.html">查看活動首頁</a><button id="festival-theme" type="button" aria-pressed="false">夜間模式</button></div></div></header>
 <main>
@@ -152,7 +152,7 @@
     </div>
   </div>
 </main>
-<script src="festival-presentation-v100.js"></script>
+<script src="festival-presentation-v100.js"></script><script src="festival-characters-v124.js?v=124"></script>
 <script>
 function createReceptionReader(db, managerEmails = []) {
   const root = db.ref('lephemere');
@@ -1233,5 +1233,5 @@ window.addEventListener('DOMContentLoaded', async () => {
   byId('logout').addEventListener('click', () => auth.signOut().catch(() => setStatus('登出失敗，請重試。')));
 });
 </script>
-<script src="festival-page-schema.js"></script><script src="festival-page-editor.js"></script></body>
+<script src="festival-page-schema.js"></script><script src="festival-page-editor.js"></script><script src="festival-character-ui-v124.js?v=124"></script></body>
 </html>
