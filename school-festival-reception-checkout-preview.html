@@ -29,9 +29,9 @@
 <style>#festival-appearance{margin:12px 0}#festival-appearance summary{cursor:pointer;font-weight:700}#festival-appearance form{display:grid;gap:10px;margin-top:10px}#festival-appearance input,#festival-appearance textarea{max-width:100%;font:inherit;color:var(--ink);background:var(--paper)}#festival-appearance-teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}#festival-appearance fieldset{min-width:0;border:1px solid var(--line);padding:10px}#festival-appearance fieldset details{margin-top:8px;padding:6px;border-top:1px solid var(--line)}</style>
 <style>#festival-lucky-roll{margin:12px 0}#festival-lucky-roll summary{cursor:pointer;font-weight:700}#festival-lucky-roll form{margin-bottom:8px}#festival-lucky-roll ul{padding-left:1.3rem}#festival-lucky-roll li{margin:5px 0}#festival-lucky-roll code{font-size:1.25rem}#draw-status,#draw-hit,#draw-cancel-result{margin:8px 0}#draw-work h2{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}</style>
 <style>#festival-menu-editor{margin:12px 0}#festival-menu-editor summary{cursor:pointer;font-weight:700}#fest-menu-form{padding-top:12px;display:flex;gap:12px}#fest-menu-list{padding-left:1.3rem}#fest-menu-list li{margin:4px 0}</style>
-<link rel="stylesheet" href="festival-page-editor.css"><link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="festival-workbench-v121.css?v=121"><script src="festival-workbench-v121.js?v=121"></script><link rel="stylesheet" href="festival-character-ui-v124.css?v=124"><link rel="stylesheet" href="festival-polish-v129.css?v=129"><script src="festival-photos-v129.js?v=129"></script><script src="festival-photo-editor-v129.js?v=129"></script><link rel="stylesheet" href="compact-order-v130.css?v=130"></head>
+<link rel="stylesheet" href="festival-page-editor.css"><link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="festival-workbench-v121.css?v=121"><script src="festival-workbench-v121.js?v=133"></script><link rel="stylesheet" href="festival-character-ui-v124.css?v=124"><link rel="stylesheet" href="festival-polish-v129.css?v=129"><script src="festival-photos-v129.js?v=129"></script><script src="festival-photo-editor-v129.js?v=129"></script><link rel="stylesheet" href="compact-order-v130.css?v=130"><script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script><link rel="stylesheet" href="desk-photo-original-v133.css"><link rel="stylesheet" href="desk-v133.css?v=133"></head>
 <body class="connected-page"><script>window.SchoolFestivalTheme?.refresh();</script>
-<header class="festival-masthead"><div class="masthead-inner"><strong>曇時學園祭・接待工作台</strong><div class="masthead-tools"><a href="admin/">返回原後台</a><a href="school-festival-roster-arena-preview.html">查看活動首頁</a><button id="festival-theme" type="button" aria-pressed="false">夜間模式</button></div></div></header>
+<header class="festival-masthead"><div class="masthead-inner"><strong>曇時學園祭・接待工作台</strong><div class="masthead-tools"><label class="desk-operator">目前操作店員<select id="globalStaffSelect" aria-label="目前操作店員"><option value="">請選擇店員</option></select></label><a href="admin/">返回原後台</a><a href="school-festival-roster-arena-preview.html">查看活動首頁</a><button id="festival-theme" type="button" aria-pressed="false">夜間模式</button></div></div></header>
 <main>
   <div class="festival-heading"><h1 id="page-title">連線驗證</h1>
   <p id="page-description">以原後台帳號核對本場候位和訂單。此頁只讀取資料。</p></div>
@@ -55,7 +55,83 @@
         </form><p id="festival-appearance-status" role="status"></p>
       </section>
     </details>
-    <details id="festival-live-admin" hidden><summary>學園祭點餐與票券設定</summary>
+    <details id="festival-photo-work" hidden><summary>拍立得與紀念服務 <span id="navPolaroidCount" hidden></span></summary><div id="polaroidTab">
+      <div class="page-heading polaroid-page-heading"><div class="page-heading-copy"><span class="page-eyebrow">Polaroid desk</span><h2>拍立得工作</h2><p>輪次、通知、拍攝進度、商品交付與收入集中在獨立工作區，不混入現場桌卡。</p></div><span class="polaroid-live" id="polaroidSessionBadge">場次確認中</span></div>
+      <div class="polaroid-admin-tabs" id="polaroidAdminTabs" role="tablist" aria-label="拍攝與紀念服務工作區">
+        <button type="button" class="active" data-polaroid-pane="work">我的工作</button>
+        <button type="button" class="manager-only" data-manager-only data-polaroid-pane="session">場次與輪次</button>
+        <button type="button" class="manager-only" data-manager-only data-polaroid-pane="products">商品與範例</button>
+        <button type="button" data-polaroid-pane="orders">全場服務狀況</button>
+      </div>
+
+      <section class="polaroid-pane" data-polaroid-panel="work">
+        <section class="panel polaroid-my-work"><div class="polaroid-work-head"><div><h3 id="polaroidMyTitle">我的服務工作</h3><p id="polaroidMyHint">請先在上方選擇操作女僕。</p></div><div hidden class="polaroid-status-actions" id="polaroidStatusActions"><button data-polaroid-status="available">可拍</button><button data-polaroid-status="serving">接待中</button><button data-polaroid-status="shooting">拍攝中</button><button data-polaroid-status="away">暫離</button><button data-polaroid-status="off">下班</button></div></div><div id="polaroidMyTasks" class="polaroid-task-list"><div class="queue-empty">正在讀取工作清單…</div></div></section>
+        <section class="panel"><div class="polaroid-work-head"><div><h3>拍攝提醒清單</h3><p>顯示所有尚未完成的拍攝工作，可依現場狀況隨時開啟到時提醒。</p></div></div><div id="polaroidDueTasks" class="polaroid-task-list"><div class="queue-empty">正在整理待拍工作…</div></div></section>
+      </section>
+
+      <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="session" hidden id="polaroidManagerArea">
+        <details class="panel polaroid-session-editor" open><summary><span><strong>本場拍立得設定</strong><small>需安排拍攝的服務每客 3 份、同女僕每客 1 份為固定限制</small></span></summary>
+          <div class="polaroid-session-fields"><label>場次名稱<input id="polaroidSessionTitle" maxlength="100" placeholder="例如：2026/09/22 曇時一般營業"></label><label>營業日期<input id="polaroidBusinessDate" type="date"></label><label>其他商品每客上限<input id="polaroidMaxProducts" type="number" min="1" max="50" value="5"></label><label>同時最多拍攝女僕人數<input id="polaroidSimultaneous" type="number" min="1" max="20" value="2"></label><label class="check"><input id="polaroidSessionOpen" type="checkbox" checked> 啟用本場服務區</label><label class="check"><input id="polaroidSalesOpen" type="checkbox" checked> 接受新拍攝登記（取消勾選並儲存後停止）</label><label class="check"><input id="polaroidOtherSalesOpen" type="checkbox" checked> 開放商品接單總開關</label></div>
+          <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><p class="polaroid-help">新單安排到最近尚未結束的輪次；未完成自動遞延並保留下單順位。時間以台灣時間為準，跨午夜輪次請放在最後。</p><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕</h4><p class="polaroid-help">勾選開放本場拍攝服務的女僕，個別設定本場接單數；預設 3 份。系統不判斷女僕是否有空。</p><div id="polaroidMaidEditor"></div></div></div>
+          <div class="polaroid-save-row"><span id="polaroidSaveStatus" aria-live="polite"></span><button type="button" class="btn primary" id="polaroidSaveSession">儲存場次與輪次</button></div>
+        </details>
+      </section>
+
+      <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="products" hidden>
+        <section class="panel polaroid-products-panel"><div class="polaroid-work-head"><div><h3>共用商品管理</h3><p>所有營業日期共用同一份商品名稱、圖片、說明、價格與限購設定；各場已售數量會分開計算。</p></div><button class="btn primary" id="polaroidNewProduct" type="button">＋ 新增商品</button></div><div id="polaroidProductList" class="polaroid-product-list"><div class="queue-empty">正在讀取商品…</div></div></section>
+        <section class="panel polaroid-product-editor" id="polaroidProductEditor">
+          <div class="polaroid-work-head"><div><h3 id="polaroidProductEditorTitle">新增商品</h3><p>所有商品都必須連結當日號碼牌才能購買，且不列入餐點低消。</p></div><button class="btn danger small" id="polaroidDeleteProduct" type="button" hidden>刪除商品</button></div>
+          <input id="polaroidProductId" type="hidden">
+          <div class="polaroid-product-fields">
+            <label>商品名稱<input id="polaroidProductName" maxlength="80" placeholder="例如：小顏的特製研磨抹茶"></label>
+            <label class="check"><input id="polaroidProductOnsite" type="checkbox" checked> 需安排拍攝（每客 3 份、同女僕 1 份）</label><label>分類<input id="polaroidProductCategory" maxlength="40" placeholder="簽繪／純拍／繪圖委託／個人照"></label>
+            <label>價格（Gil）<input id="polaroidProductPrice" type="number" min="0" step="10000" value="80000"></label>
+            <label>庫存（-1 代表不限量）<input id="polaroidProductStock" type="number" min="-1" value="10"></label>
+            <label>每人限購<input id="polaroidProductLimit" type="number" min="1" max="20" value="1"></label>
+            <label>工作方式<select id="polaroidProductMode"><option value="round">需要拍攝輪次</option><option value="delivery">完成後交付</option></select></label>
+            <label>主要負責女僕<select id="polaroidProductProvider"><option value="">請選擇</option></select></label>
+            <label>收入歸屬<select id="polaroidProductRevenue"><option value="maid">指定女僕</option><option value="split">多位女僕平均</option><option value="shared">共同收入</option></select></label>
+            <label class="wide">收入女僕（多選）<select id="polaroidProductRevenueMaids" multiple size="4"></select></label>
+            <label class="wide">商品說明<textarea id="polaroidProductDescription" maxlength="500" rows="3" placeholder="客人會在商品卡片與範例視窗看到這段文字。"></textarea></label>
+            <label class="check"><input id="polaroidProductEnabled" type="checkbox" checked> 公開販售</label>
+          </div>
+          <div class="polaroid-product-media"><label>商品封面<input id="polaroidProductImage" type="file" accept="image/jpeg,image/png,image/webp"></label><div id="polaroidProductImagePreview" class="polaroid-media-preview">尚未上傳封面</div></div>
+          <div class="polaroid-example-head"><div><h4>公開範例</h4><p>可在商品售完或停賣後繼續公開。</p></div><button class="btn ghost small" id="polaroidAddExample" type="button">＋ 增加範例</button></div>
+          <div id="polaroidExampleEditor" class="polaroid-example-editor"></div>
+          <div class="polaroid-save-row"><span id="polaroidProductStatus" aria-live="polite"></span><button type="button" class="btn primary" id="polaroidSaveProduct">儲存商品與範例</button></div>
+        </section>
+      </section>
+
+      <section class="polaroid-pane" data-polaroid-panel="orders" hidden>
+        <div class="polaroid-admin-metrics"><div><span>服務件數</span><strong id="polaroidMetricOrders">0</strong></div><div><span>已完成</span><strong id="polaroidMetricDone">0</strong></div><div><span>等待處理</span><strong id="polaroidMetricPending">0</strong></div><div><span>未完成（含拍攝中）</span><strong id="polaroidMetricDeferred">0</strong></div></div>
+        <section class="panel photo-round-summary"><p>目前：<strong id="polaroidCurrentRound"></strong></p><p>下一輪：<strong id="polaroidNextRound"></strong></p><p>拍攝中女僕：<strong id="polaroidBusyCount"></strong></p><div id="polaroidMaidTotals" class="photo-maid-totals"></div></section><section class="panel"><div class="polaroid-work-head polaroid-export-head"><div><h3>全場工作概況</h3><p>待拍依原始下單時間排序；跳過不會改變順位。已完成列於下方。最後一輪未完成工作留待店長安排。</p></div><div class="polaroid-export-actions"><button type="button" class="btn primary" id="polaroidCopyOrders">複製目前訂單</button><span id="polaroidCopyOrdersStatus" role="status" aria-live="polite"></span></div></div><div class="polaroid-export-note">只會複製目前已載入的場次、輪次、人員與訂單資料，不會修改任何內容。</div><div id="polaroidAllTasks" class="polaroid-task-list"></div></section><details class="panel polaroid-cancelled-archive" id="polaroidCancelledArchive" hidden><summary>已取消訂單（<span id="polaroidCancelledCount">0</span> 項）</summary><p>取消紀錄只供核對，不占用商品庫存、女僕名額或本場收入。</p><div id="polaroidCancelledTasks" class="polaroid-task-list"></div></details>
+      </section>
+    </div></details><details id="festival-photo-macros" hidden><summary>拍攝通知與巨集</summary><div id="macrosTab">
+      <div class="page-heading macro-page-heading">
+        <div class="page-heading-copy"><span class="page-eyebrow">My Messages</span><h2>我的巨集</h2><p>把接待時會用到的文字整理在這裡，需要時就能快速找到。</p></div>
+      </div>
+      <div class="macro-settings-grid">
+        
+        <section class="panel macro-editor-panel photo-macro-panel">
+  <div class="macro-editor-head"><div><h3>拍攝時段通知</h3><p>選擇客人 → 確認自動帶入的時段 → 複製到遊戲內私訊。</p></div><span class="macro-editor-tag">拍攝通知</span></div>
+  <label for="photoMacroTask">1. 選擇通知客人</label><select id="photoMacroTask"><option value="">選擇待拍客人</option></select>
+  <p id="photoMacroEmpty" class="macro-editor-hint">請先選擇客人，系統會帶入角色、商品及拍攝輪次時間。</p>
+  <div id="photoMacroMessage" hidden><p id="photoMacroRound" class="photo-macro-round"></p><p id="photoMacroNoticeState" class="photo-macro-notice-state"></p><label for="photoMacroPreview">2. 確認本次私訊（可修改）</label><textarea id="photoMacroPreview" maxlength="1500" rows="4"></textarea><p class="macro-editor-hint">此處修改只影響本次複製的文字，不會變更排程或已儲存的範本。若拍攝安排更新，系統會重新帶入最新內容，請再次確認。</p><div class="photo-macro-actions"><button type="button" class="btn primary" id="photoMacroCopy" disabled>3. 一鍵複製私訊</button><button type="button" class="btn ghost" id="photoMacroMarkNotified" disabled>4. 標記已通知</button></div></div>
+  <span id="photoMacroStatus" role="status" aria-live="polite"></span>
+  <details class="photo-macro-settings"><summary>編輯我的通知範本</summary><p class="macro-editor-hint">套用在目前選擇的女僕。請保留 {輪次}、{開始時間}、{結束時間}，選擇客人後會依訂單自動填入，不需每次手動改時間。</p><label for="photoMacroTemplate">通知範本</label><textarea id="photoMacroTemplate" maxlength="1000" rows="4"></textarea><div class="macro-variable-list"><span>{角色名}</span><span>{伺服器}</span><span>{候位號碼}</span><span>{女僕名}</span><span>{商品名}</span><span>{輪次}</span><span>{開始時間}</span><span>{結束時間}</span></div><button type="button" class="btn ghost small" id="photoMacroSave">儲存我的拍攝通知範本</button></details>
+</section>
+        <section class="panel macro-editor-panel photo-macro-panel due-photo-macro-panel">
+  <div class="macro-editor-head"><div><h3>到時拍攝提醒</h3><p>依現場狀況選擇待拍客人，不受目前時間限制。</p></div><span class="macro-editor-tag due">到時提醒</span></div>
+  <label for="photoDueMacroTask">1. 選擇要提醒的客人</label><select id="photoDueMacroTask"><option value="">選擇要提醒的客人</option></select>
+  <p id="photoDueMacroEmpty" class="macro-editor-hint">目前沒有可提醒的待拍客人。</p>
+  <div id="photoDueMacroMessage" hidden><p id="photoDueMacroRound" class="photo-macro-round"></p><p id="photoDueMacroNoticeState" class="photo-macro-notice-state"></p><label for="photoDueMacroPreview">2. 確認到時提醒（可修改）</label><textarea id="photoDueMacroPreview" maxlength="1500" rows="4"></textarea><p class="macro-editor-hint">這則訊息用於輪次已開始時提醒客人前來，與事前告知時段的「拍攝時段通知」分開記錄。</p><div class="photo-macro-actions"><button type="button" class="btn primary" id="photoDueMacroCopy" disabled>3. 一鍵複製到時提醒</button><button type="button" class="btn ghost" id="photoDueMacroMarkNotified" disabled>4. 標記已提醒</button></div></div>
+  <span id="photoDueMacroStatus" role="status" aria-live="polite"></span>
+  <details class="photo-macro-settings"><summary>編輯我的到時提醒範本</summary><p class="macro-editor-hint">由現場人員判斷發送時機，不會修改拍攝時段通知。</p><label for="photoDueMacroTemplate">到時提醒範本</label><textarea id="photoDueMacroTemplate" maxlength="1000" rows="4"></textarea><div class="macro-variable-list"><span>{角色名}</span><span>{伺服器}</span><span>{候位號碼}</span><span>{女僕名}</span><span>{商品名}</span><span>{輪次}</span><span>{開始時間}</span><span>{結束時間}</span></div><button type="button" class="btn ghost small" id="photoDueMacroSave">儲存我的到時提醒範本</button></details>
+</section>
+
+      </div>
+      <p class="macro-page-note">這裡只集中女僕自己的巨集。管理員設定的熟客門檻與店內通用文字仍保留在「客人管理」。</p>
+    </div></details><details id="festival-live-admin" hidden><summary>學園祭點餐與票券設定</summary>
       <section>
         <button id="festival-load-options" type="button">讀取本場設定與券號</button>
         <form id="festival-live-options" hidden><p>沿用原菜單的四道餐點時請全部選好。使用活動自訂餐點時可四欄留空。</p>
@@ -136,7 +212,7 @@
       </section>
     </details>
     <div class="columns">
-      <section class="print-panel"><h2 id="visit-heading">本場桌次</h2><div id="visit-list"></div></section>
+      <section class="print-panel"><h2 id="visit-heading">本場桌次</h2><div class="desk-metrics"><div>等待接待<strong id="desk-count-waiting">0</strong></div><div>我的桌次<strong id="desk-count-mine">0</strong></div><div>其他店員<strong id="desk-count-team">0</strong></div></div><div class="desk-queue-tools"><input id="desk-search" type="search" placeholder="搜尋角色或號碼牌" aria-label="搜尋角色或號碼牌"><button id="desk-next" type="button">查看下一組</button></div><div id="visit-list"></div></section>
       <section class="print-panel"><h2 id="order-heading">本桌訂單</h2><div id="orders">選一張號碼牌查看訂單。</div>
         <div id="festival-staff-actions" hidden><hr><h2>桌次與餐點操作</h2>
           <div class="toolbar"><label>目前操作女僕<select id="festival-staff-picker"></select></label>
@@ -321,6 +397,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   const reader = createReceptionReader(app.database(), managerEmails);
   const functions = testActionsEnabled && typeof app.functions === 'function' ? app.functions('asia-southeast1') : null;
   let role = null;
+  window.FestivalDeskBridge={app};
+  function notifyRole(){window.dispatchEvent(new CustomEvent("festival-desk-role",{detail:{role}}));}
   let authRevision = 0;
   let requestRevision = 0;
   let actionBusy = false;
@@ -1016,7 +1094,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   const festivalMenuEditor=initFestivalMenuEditor();
 
 
-  let selectedStaff='';
+  let selectedStaff=localStorage.getItem('lephemereCurrentStaffId')||'';
+  const globalStaff=byId('globalStaffSelect');let lastVisits=[],lastDate='';
+  async function syncStaff(date){const members=await reader.dutyStaff(date);globalStaff.replaceChildren(new Option('請選擇店員',''));for(const m of members)globalStaff.add(new Option(m.name,m.id));if(!members.some(m=>m.id===selectedStaff))selectedStaff='';globalStaff.value=selectedStaff;}
+  globalStaff.addEventListener('change',()=>{selectedStaff=globalStaff.value;localStorage.setItem('lephemereCurrentStaffId',selectedStaff);const picker=byId('festival-staff-picker');picker.value=selectedStaff;picker.dispatchEvent(new Event('change'));groupVisits();});
+  window.addEventListener('storage',e=>{if(e.key==='lephemereCurrentStaffId'){selectedStaff=e.newValue||'';globalStaff.value=selectedStaff;globalStaff.dispatchEvent(new Event('change',{bubbles:true}));}});
+  function groupVisits(){const list=byId('visit-list'),groups=[['等待接待',v=>v.status==='waiting'],['我的桌次',v=>v.status!=='waiting'&&v.assignedStaffId===selectedStaff],['其他店員桌次',v=>v.status!=='waiting'&&v.assignedStaffId!==selectedStaff]];const buttons=[...list.querySelectorAll('button[data-visit]')];for(const section of list.querySelectorAll('.desk-queue-group'))section.replaceWith(...section.querySelectorAll('button'));const search=(byId('desk-search').value||'').trim().toLowerCase();for(const [label,filter]of groups){const section=document.createElement('section');section.className='desk-queue-group';const rows=lastVisits.filter(filter);const heading=document.createElement('h3');heading.textContent=label+' · '+rows.length;section.append(heading);for(const v of rows){const b=buttons.find(b=>b.dataset.visit===v.id);if(b){b.hidden=search&&!b.textContent.toLowerCase().includes(search);section.append(b);}}list.append(section);}byId('desk-count-waiting').textContent=lastVisits.filter(v=>v.status==='waiting').length;byId('desk-count-mine').textContent=lastVisits.filter(v=>v.status!=='waiting'&&v.assignedStaffId===selectedStaff).length;byId('desk-count-team').textContent=lastVisits.filter(v=>v.status!=='waiting'&&v.assignedStaffId!==selectedStaff).length;}
+  byId('desk-search').addEventListener('input',groupVisits);
+  byId('desk-next').addEventListener('click',()=>{const v=lastVisits.find(v=>v.status==='waiting');if(!selectedStaff){setStatus('請先在右上角選擇店員。');globalStaff.focus();return;}if(v)byId('visit-list').querySelector('[data-visit="'+v.id+'"]').click();else setStatus('目前沒有等待接待的客人。');});
   let deskActionBusy=false;
   async function showStaffWorkspace(visit,revision,orders){
     if(!functions)return;
@@ -1034,14 +1119,17 @@ window.addEventListener('DOMContentLoaded', async () => {
       if(member.id!==visit.assignedStaffId)target.append(new Option(member.name,member.id));
     }
     dropdown.value=staff.some(member=>member.id===selectedStaff)?selectedStaff:'';
-    dropdown.onchange=()=>{selectedStaff=dropdown.value;renderActions();};
+    dropdown.onchange=()=>{selectedStaff=dropdown.value;globalStaff.value=selectedStaff;localStorage.setItem('lephemereCurrentStaffId',selectedStaff);renderActions();};
     const current=()=>revision===requestRevision && Boolean(role);
     async function run(action,fields={}){
       if(!current() || deskActionBusy || !dropdown.value)return;
       deskActionBusy=true;
       setStatus('正在更新 '+visit.queueNumber+'…');
       try{
-        await callLive('festivalStaffActionV102',{visitId:visit.id,staffId:dropdown.value,action,...fields});
+        const key='festivalDeskPendingAction';const saved=JSON.parse(localStorage.getItem(key)||'null');
+        if(saved&&(saved.visitId!==visit.id||saved.action!==action||saved.staffId!==dropdown.value))throw Error('上一項操作尚未確認，請先按「重試同步」。');
+        const payload=saved||{visitId:visit.id,staffId:dropdown.value,action,...fields,requestId:crypto.randomUUID()};localStorage.setItem(key,JSON.stringify(payload));
+        try{await callLive('festivalStaffActionV102',payload);localStorage.removeItem(key);}catch(error){if(!String(error.code||'').match(/internal|unavailable|deadline|network|aborted/))localStorage.removeItem(key);throw error;}
         if(!current())return;
         await refresh(visit.id);
         setStatus('已更新 '+visit.queueNumber+'。');
@@ -1107,6 +1195,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function selectVisit(visit, button) {
+    window.FestivalDeskBridge.selectedVisitId=visit.id;
     const revision = ++requestRevision;
     clearTableActions();
     for (const entry of byId('visit-list').querySelectorAll('button')) entry.setAttribute('aria-pressed', String(entry === button));
@@ -1132,6 +1221,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  let watchDate='',watchRef=null,watchHandler=null,watchTimer=null;
+  function watchVisits(date){if(date===watchDate)return;if(watchRef)watchRef.off('value',watchHandler);watchDate=date;if(!date)return;watchRef=app.database().ref('lephemere/visits').orderByChild('businessDate').equalTo(date);let first=true;watchHandler=()=>{if(first){first=false;return;}clearTimeout(watchTimer);watchTimer=setTimeout(()=>{if(!role)return;if(deskActionBusy||livePayBusy||liveQuote){setStatus('桌次資料已更新。請完成目前操作後重新讀取。');return;}refresh(window.FestivalDeskBridge.selectedVisitId);},500);};watchRef.on('value',watchHandler);}
+  window.addEventListener('festival-desk-role',e=>{if(!e.detail.role){clearTimeout(watchTimer);if(watchRef)watchRef.off('value',watchHandler);watchDate='';}});
   async function refresh(preferredVisitId) {
     if (!role) return;
     const revision = ++requestRevision;
@@ -1145,19 +1237,19 @@ window.addEventListener('DOMContentLoaded', async () => {
       const { date, visits } = await reader.currentVisits();
       if (revision !== requestRevision || !role) return;
       setStatus((role === 'manager' ? '管理員' : '員工') + ' · 主題日工作台');
-      let preferred;
+      lastVisits=visits;lastDate=date;await syncStaff(date);if(revision!==requestRevision||!role)return;let preferred;
       byId('visit-heading').textContent = date ? date + ' 本場桌次' : '本場桌次';
       if (!visits.length) showLine(list, '目前沒有符合條件的桌次。');
       for (const visit of visits) {
         const button = document.createElement('button');
-        button.type = 'button';
+        button.type = 'button';button.dataset.visit=visit.id;
         button.setAttribute('aria-pressed', 'false');
         button.textContent = [visit.queueNumber || '未編號', visit.characterName || '未命名角色', statusLabels[visit.status], checkoutLabels[visit.paymentStatus] || '尚未結清'].join(' · ');
         button.addEventListener('click', () => selectVisit(visit, button));
         list.append(button);
         if(visit.id===preferredVisitId)preferred={visit,button};
       }
-      if(preferred)await selectVisit(preferred.visit,preferred.button);
+      groupVisits();if(preferred)await selectVisit(preferred.visit,preferred.button);
     } catch {
       if (revision === requestRevision) setStatus('無法讀取本場桌次。請確認連線和原後台權限。');
     }
@@ -1173,7 +1265,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     requestRevision++;
     reader.resetReads();
     clearTableActions();
-    role = null;
+    role = null;notifyRole();
     luckyRoll.sync();
     festivalMenuEditor.sync();
     historyBusy = false;
@@ -1201,7 +1293,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       const access = await reader.access(user);
       if (revision !== authRevision) return;
       if (access) {
-        role = access;
+        role = access;notifyRole();
         luckyRoll.sync();
         festivalMenuEditor.sync();
         livePanel.hidden = role !== 'manager' || !functions;
@@ -1239,5 +1331,5 @@ window.addEventListener('DOMContentLoaded', async () => {
   byId('logout').addEventListener('click', () => auth.signOut().catch(() => setStatus('登出失敗，請重試。')));
 });
 </script>
-<script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema.js?v=132"></script><script src="festival-page-editor.js"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="workbench-menu-v130.js?v=130"></script></body>
+<script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema.js?v=132"></script><script src="festival-page-editor.js"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="workbench-menu-v130.js?v=130"></script><script src="desk-schedule-v133.js"></script><script src="desk-photo-v133.js?v=133"></script><script src="desk-recovery-v133.js?v=133"></script></body>
 </html>
