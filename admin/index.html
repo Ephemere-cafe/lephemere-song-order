@@ -29,7 +29,7 @@
   <link rel="stylesheet" href="admin-redesign-v69.css?v=20260924-v69">
   <link rel="stylesheet" href="admin-reference-v70.css?v=20260925-v85">
 <link rel="stylesheet" href="festival-workbench-entry.css?v=20261122-v110">
-</head>
+<link rel="stylesheet" href="staff-gallery-admin-v141.css?v=141"></head>
 <body>
 <div class="wrap" id="wrap">
 
@@ -136,7 +136,7 @@
       <div class="operations-hub-grid" id="operationsHubGrid">
         <button type="button" class="operations-hub-card is-primary" data-dashboard-target="operations"><span class="operations-hub-icon">◉</span><strong>本場營業</strong><small>營業日期、開關、提示音與本場日報集中處理。</small><span class="operations-hub-tags"><i>營業狀態</i><i>提示音</i><i>本場日報</i></span></button>
         <button type="button" class="operations-hub-card" data-dashboard-target="menu"><span class="operations-hub-icon">☕</span><strong>菜單與商品</strong><small>餐點、圖片、價格、庫存與拍攝商品集中管理。</small><span class="operations-hub-tags"><i>餐點菜單</i><i>拍攝商品</i><i>限量庫存</i></span></button>
-        <button type="button" class="operations-hub-card" data-dashboard-target="staff"><span class="operations-hub-icon">♙</span><strong>人員與排班</strong><small>成員名冊、今日值班、照片與後台帳號權限。</small><span class="operations-hub-tags"><i>今日班表</i><i>成員資料</i><i>照片位置</i></span></button>
+        <button type="button" class="operations-hub-card" data-dashboard-target="staff"><span class="operations-hub-icon">♙</span><strong>人員與排班</strong><small>成員名冊、今日值班、照片與後台帳號權限。</small><span class="operations-hub-tags"><i>今日班表</i><i>成員資料</i><i>官網相簿／代表色</i></span></button>
         <button type="button" class="operations-hub-card" data-dashboard-target="reservations"><span class="operations-hub-icon">□</span><strong>預約與接待規則</strong><small>開放日期、預約名單與主人看見的注意事項。</small><span class="operations-hub-tags"><i>開放日期</i><i>預約總覽</i><i>店規</i></span></button>
         <button type="button" class="operations-hub-card" data-dashboard-target="polaroid"><span class="operations-hub-icon">◎</span><strong>拍攝服務場次</strong><small>當日輪次、接單女僕、名額與全場拍攝進度。</small><span class="operations-hub-tags"><i>場次與輪次</i><i>女僕名額</i><i>全場進度</i></span></button>
         <button type="button" class="operations-hub-card" data-dashboard-target="payroll"><span class="operations-hub-icon">＄</span><strong>薪資與結算</strong><small>本場收入、分配方式、個人明細與薪資條。</small><span class="operations-hub-tags"><i>本場結算</i><i>個人明細</i><i>薪資條</i></span></button>
@@ -671,7 +671,7 @@
           <input type="url" id="newStaffThreads" placeholder="Threads 網址（選填）" style="flex:1;min-width:180px;">
           <button class="btn primary" id="addStaff">新增店員</button>
         </div>
-        <p class="staff-help">新增或修改後會即時同步至官網「駐店成員」。新增後請展開店員卡片。「設定成員照」供官網名冊及個人頁使用，「上傳 Q 版頭貼」同步至官網出勤和點餐拍攝服務。</p>
+        <p class="staff-help">新增或修改後會即時同步至官網「駐店成員」。新增後請展開店員卡片。「編輯官網相簿與代表色」可設定官網多張照片、輪播、構圖與代表色，「上傳 Q 版頭貼」同步至官網出勤和點餐拍攝服務。</p>
         <div id="staffManageList" class="staff-manager-list">尚未建立店員名單</div>
       </div>
     </div>
@@ -1003,7 +1003,7 @@
 <script src="admin-redesign-v69.js?v=20260924-v69"></script>
 <script src="admin-reference-v70.js?v=20260924-v72"></script>
 
-<script src="site-presentation-schema.js?v=20261121-v3"></script><link rel="stylesheet" href="site-presentation-admin.css?v=20261121-v3"><script src="site-presentation-admin.js?v=20261121-v3"></script></body>
+<script src="site-presentation-schema.js?v=20261121-v3"></script><link rel="stylesheet" href="site-presentation-admin.css?v=20261121-v3"><script src="site-presentation-admin.js?v=20261121-v3"></script><script src="staff-photos-api-v141.js?v=141"></script><script src="staff-photo-editor-v141.js?v=141"></script><script src="member-colors-v141.js?v=141"></script><script src="staff-gallery-admin-v141.js?v=141"></script><script>document.addEventListener('click',function(e){if(e.target.closest('[data-photo-staff]')&&!window.LephemereStaffGalleryReady){e.preventDefault();e.stopImmediatePropagation();alert('新版官網相簿尚未載入完成，請重新整理後再試。');}},true);</script></body>
 </html>
 
 

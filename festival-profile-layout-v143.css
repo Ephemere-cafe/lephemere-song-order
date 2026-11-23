@@ -1,0 +1,24 @@
+/* A single media column owns the photograph, thumbnails and controls. */
+.festival-collage #member-profile{height:min(88dvh,900px);max-height:88dvh;overflow:hidden;padding:0}
+.festival-collage #member-profile[open]{display:grid;grid-template-rows:auto minmax(0,1fr)}
+.festival-collage #member-profile>form{position:relative;top:auto;z-index:2;margin:0;flex:none}
+.festival-collage #member-profile .profile{display:grid;grid-template-columns:minmax(230px,.85fr) minmax(0,1.35fr);grid-template-areas:'media copy';grid-template-rows:minmax(0,1fr);align-items:stretch;gap:28px;min-height:0;overflow:hidden;padding:24px}
+.festival-collage #member-profile .profile-media-v143{grid-area:media!important;min-width:0;min-height:0;display:flex;flex-direction:column;align-items:stretch;gap:12px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.festival-collage #member-profile .profile-copy-v143{grid-area:copy!important;min-width:0;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;padding-right:10px;scroll-padding:12px}
+.festival-collage #member-profile #profile-photo{position:relative;top:auto;width:min(100%,calc((88dvh - 260px)*.75));max-width:360px;height:auto;max-height:none;min-height:0;aspect-ratio:3/4;align-self:center;flex:none;margin:0;overflow:hidden}
+.festival-collage #member-profile .festival-photo-choices{grid-area:auto;display:flex;flex-direction:column;flex-wrap:nowrap;gap:10px;align-self:stretch;min-width:0;margin:0;padding:2px}
+.festival-collage #member-profile .gallery-thumbnails-v143{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;max-width:100%;padding:3px;scrollbar-width:thin;flex:none}
+.festival-collage #member-profile .gallery-thumbnails-v143 button{width:48px;height:64px;min-width:48px;padding:3px;flex:none;margin:0}
+.festival-collage #member-profile .gallery-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0;flex:none}
+.festival-collage #member-profile .gallery-controls button{min-height:40px;height:auto;padding:7px 11px;font-size:14px;white-space:nowrap}
+.festival-collage #member-profile .gallery-count{font-size:14px;white-space:nowrap}
+.festival-collage #member-profile :is(.character-story,.character-facts){overflow-wrap:anywhere}
+@media(max-width:760px){
+ .festival-collage #member-profile{width:calc(100% - 20px);height:90dvh;max-height:90dvh}
+ .festival-collage #member-profile .profile{display:block;overflow-y:auto;overflow-x:hidden;padding:18px;overscroll-behavior:contain}
+ .festival-collage #member-profile .profile-media-v143{display:flex;overflow:visible;gap:12px;max-width:340px;margin:0 auto 24px}
+ .festival-collage #member-profile #profile-photo{position:relative;top:auto;width:min(100%,210px);height:auto;min-height:0;max-height:none;aspect-ratio:3/4;margin:0}
+ .festival-collage #member-profile .profile-copy-v143{overflow:visible;min-height:0;max-height:none;padding:0}
+ .festival-collage #member-profile .gallery-thumbnails-v143{justify-content:flex-start}
+ .festival-collage #member-profile .gallery-controls{justify-content:center}
+}
