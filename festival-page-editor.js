@@ -29,11 +29,13 @@
  function init(){if(window.FestivalPageEditorAdapter){adapter=window.FestivalPageEditorAdapter;document.querySelector('main').append(panel);panel.hidden=false;panel.open=true;load.click();return;}
   try{app=firebase.app('school-festival-read');}catch{return;}
   const anchor=document.getElementById('festival-appearance');if(!anchor)return;anchor.after(panel);
-  const shortcut=document.createElement('button');
-  shortcut.type='button';
-  shortcut.textContent='編輯夏目美雪的照片與自介';
-  shortcut.onclick=()=>{const tab=document.querySelector('.wb-nav [data-target="festival-page-editor"]');if(tab)tab.click();else{panel.open=true;panel.scrollIntoView({block:'start'});}};
-  anchor.querySelector('section')?.prepend(shortcut);
+  const shortcut=anchor.querySelector('[data-chairman-editor]');
+  if(shortcut)shortcut.onclick=()=>{
+    const tab=document.querySelector('.wb-nav [data-target="festival-page-editor"]');
+    if(tab&&!tab.hidden)tab.click();
+    else if(!panel.hidden){panel.classList.add('wb-active');panel.open=true;}
+    if(!panel.hidden)panel.scrollIntoView({block:'start'});
+  };
   const loadWhenOpened=()=>{if(panel.open&&!panel.hidden&&form.hidden&&!busy)load.click();};
   panel.addEventListener('toggle',loadWhenOpened);
   new MutationObserver(loadWhenOpened).observe(panel,{attributes:true,attributeFilter:['class','hidden']});
