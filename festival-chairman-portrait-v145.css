@@ -1,0 +1,57 @@
+/* Keep the face in the public previews. The profile shows the original crop. */
+.festival-collage .chairman-card .chairman-photo:has(img) {
+  display: block;
+  inline-size: min(100%, 440px);
+  block-size: auto;
+  aspect-ratio: 16 / 10;
+  border-radius: 18px;
+}
+.festival-collage .chairman-card .chairman-photo > img,
+#rules-dialog .entry-photo-column figure > img:not([hidden]) {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  object-position: center 29%;
+}
+#rules-dialog .entry-photo-column {
+  align-self: start;
+}
+#rules-dialog .entry-photo-column figure:has(img:not([hidden])) {
+  inline-size: 100%;
+  max-inline-size: 320px;
+  margin-inline: auto;
+}
+#rules-dialog .entry-photo-column figure > img:not([hidden]) {
+  block-size: auto;
+  max-block-size: none;
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+}
+#chairman-profile .profile-photo-reserved:has(img) {
+  block-size: auto;
+  max-inline-size: 285px;
+  margin-inline: auto;
+  background: transparent;
+  border: 0;
+}
+#chairman-profile .profile-photo-reserved > img {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  max-block-size: 520px;
+  object-fit: contain;
+}
+@media (max-width: 760px) {
+  #rules-dialog .entry-photo-column figure:has(img:not([hidden])) {
+    max-inline-size: 240px;
+  }
+  #chairman-profile .chairman-profile-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    padding: 16px;
+  }
+  #chairman-profile .profile-photo-reserved > img {
+    max-block-size: 48dvh;
+  }
+}

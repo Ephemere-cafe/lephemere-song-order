@@ -1,11 +1,11 @@
 (()=>{
  const schema=window.FestivalPageSchema;let app,adapter,revision=0,dirty=false,busy=false;
- const panel=document.createElement('details');panel.id='festival-page-editor';panel.hidden=true;panel.innerHTML='<summary>主題頁內容與彈窗</summary><div class="page-editor-body"><p class="page-editor-note">編輯主視覺合照、邀請函、活動介紹彈窗與中立方完整人設。成員與學院資料請用上方「活動頁面與學院設定」。活動說明文字不會改變發券計算規則。</p><div class="page-editor-toolbar"><button type="button" data-page-load>讀取目前內容</button><button type="button" data-page-save disabled>儲存並更新主題頁</button><a href="school-festival-roster-arena-preview.html?intro=1" target="_blank" rel="noopener">查看入口彈窗 ↗</a></div><p class="page-editor-status" role="status"></p><form hidden></form></div>';
+ const panel=document.createElement('details');panel.id='festival-page-editor';panel.hidden=true;panel.innerHTML='<summary>夏目美雪與主視覺</summary><div class="page-editor-body"><p class="page-editor-note">在「夏目美雪｜照片與自介」更換學姊照片、姓名與自介。這裡也能編輯主視覺合照、邀請函與活動規則彈窗。成員與學院資料請用上方「活動頁面與學院設定」。活動說明文字不會改變發券計算規則。</p><div class="page-editor-toolbar"><button type="button" data-page-load>讀取目前內容</button><button type="button" data-page-save disabled>儲存並更新主題頁</button><a href="school-festival-roster-arena-preview.html?intro=1" target="_blank" rel="noopener">查看入口彈窗 ↗</a></div><p class="page-editor-status" role="status"></p><form hidden></form></div>';
  const form=panel.querySelector('form'),status=panel.querySelector('[role=status]'),save=panel.querySelector('[data-page-save]'),load=panel.querySelector('[data-page-load]');
  const byName=key=>form.elements.namedItem(key);
- function sync(){if(!window.FestivalPageEditorAdapter){panel.hidden=document.getElementById('festival-appearance')?.hidden!==false;if(panel.hidden){form.hidden=true;save.disabled=true;dirty=false;}}}
+ function sync(){if(!window.FestivalPageEditorAdapter){panel.hidden=document.getElementById('festival-appearance')?.hidden!==false;if(panel.hidden){form.hidden=true;save.disabled=true;dirty=false;panel.open=false;}}}
  function render(raw){const page=schema.normalize(raw);revision=page._revision;form.replaceChildren();
-  schema.groups.forEach((group,index)=>{const box=document.createElement('details');box.className='page-editor-group';box.open=index===0;const title=document.createElement('summary');title.textContent=group.title;box.append(title);const grid=document.createElement('div');grid.className='page-editor-grid';
+  schema.groups.forEach((group,index)=>{const box=document.createElement('details');box.className='page-editor-group';box.open=group.fields.some(([key])=>key==='chairmanPhoto');const title=document.createElement('summary');title.textContent=group.fields.some(([key])=>key==='chairmanPhoto')?'夏目美雪｜照片與自介':group.title;box.append(title);const grid=document.createElement('div');grid.className='page-editor-grid';
    for(const [key,caption,type]of group.fields){const label=document.createElement('label');label.className='page-field'+(type==='area'?' wide':'');const name=document.createElement('span');name.textContent=caption;label.append(name);let input;
     if(type==='font'){input=document.createElement('select');for(const [value,text]of [['sans','思源黑體／Noto Sans TC'],['system','微軟正黑體']]){const o=document.createElement('option');o.value=value;o.textContent=text;input.append(o);}input.value=page[key];}
     else if(type==='boolean'){input=document.createElement('input');input.type='checkbox';input.checked=page[key];label.classList.add('checkbox-field');}
@@ -29,6 +29,14 @@
  function init(){if(window.FestivalPageEditorAdapter){adapter=window.FestivalPageEditorAdapter;document.querySelector('main').append(panel);panel.hidden=false;panel.open=true;load.click();return;}
   try{app=firebase.app('school-festival-read');}catch{return;}
   const anchor=document.getElementById('festival-appearance');if(!anchor)return;anchor.after(panel);
+  const shortcut=document.createElement('button');
+  shortcut.type='button';
+  shortcut.textContent='編輯夏目美雪的照片與自介';
+  shortcut.onclick=()=>{const tab=document.querySelector('.wb-nav [data-target="festival-page-editor"]');if(tab)tab.click();else{panel.open=true;panel.scrollIntoView({block:'start'});}};
+  anchor.querySelector('section')?.prepend(shortcut);
+  const loadWhenOpened=()=>{if(panel.open&&!panel.hidden&&form.hidden&&!busy)load.click();};
+  panel.addEventListener('toggle',loadWhenOpened);
+  new MutationObserver(loadWhenOpened).observe(panel,{attributes:true,attributeFilter:['class','hidden']});
   adapter={load:()=>app.functions('asia-southeast1').httpsCallable('festivalPresentationV100')({}).then(r=>r.data),save:(page,expectedRevision)=>app.functions('asia-southeast1').httpsCallable('festivalPresentationV100')({action:'savePage',page,expectedRevision}).then(r=>r.data)};
   new MutationObserver(sync).observe(anchor,{attributes:true,attributeFilter:['hidden']});app.auth().onAuthStateChanged(()=>{dirty=false;sync();});sync();
  }

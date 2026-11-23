@@ -22,7 +22,7 @@
   const rail=document.createElement('aside');rail.className='wb-rail';rail.setAttribute('aria-label','工作台導覽');
   rail.innerHTML='<div class="wb-brand"><strong>學園祭</strong><span>兩校聯合 · 接待工作台</span></div><small>現場營運 / MANAGEMENT</small><nav class="wb-nav" aria-label="工作台功能"></nav><p class="wb-rail-note">桌次與訂單沿用原後台資料。<br>切換頁籤會保留尚未送出的表單。</p>';
   shell.append(rail,main);const nav=rail.querySelector('nav');
-  const groups=[['desk','接待與結帳'],['festival-photo-work','拍立得工作'],['festival-photo-macros','拍攝通知與巨集'],['festival-live-admin','點餐與票券'],['festival-menu-editor','餐點與服務'],['festival-lucky-roll','開獎與取消訂單'],['festival-appearance','學院與成員'],['festival-page-editor','主視覺與彈窗'],['history-cleanup','備份與清理']];
+  const groups=[['desk','接待與結帳'],['festival-photo-work','拍立得工作'],['festival-photo-macros','拍攝通知與巨集'],['festival-live-admin','點餐與票券'],['festival-menu-editor','餐點與服務'],['festival-lucky-roll','開獎與取消訂單'],['festival-appearance','學院與成員'],['festival-page-editor','夏目美雪與主視覺'],['history-cleanup','備份與清理']];
   let active='desk';
   function select(id,focus=false){
    const target=document.getElementById(id);if(id!=='desk'&&(!target||target.hidden))return;
