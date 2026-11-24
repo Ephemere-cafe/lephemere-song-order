@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>曇時學園祭｜雙校陣容</title>
+<title>曇時學園祭</title>
 <style>
 :root{--paper:#e9e3d5;--ink:#273a42;--muted:#4d5d63;--a:#365b6b;--b:#794b5b;--ap:#c1d2d6;--bp:#e2cbd1;--line:#859196;font:16px/1.55 "Microsoft JhengHei",sans-serif;color:var(--ink);background:#c9cdca}
 *{box-sizing:border-box}
@@ -158,7 +158,7 @@ dialog.is-closing::backdrop{animation:festival-scrim-out 135ms ease-in both}
     <div class="type-bottom"><span data-school-name="A">曇華女子學院</span><i aria-hidden="true">VS</i><span data-school-name="B">曇光女子學院</span></div>
   </section>
   <section class="roster" id="lineup" aria-labelledby="roster-title">
-    <div class="roster-title"><h2 id="roster-title">雙校陣容</h2><p>點選學生查看個人介紹</p></div>
+    <div class="roster-title"><h2 id="roster-title">認識雙校學生</h2><p>點選學生查看個人介紹</p></div>
     <div class="team"><div class="team-name"><span aria-hidden="true">A</span><h3 data-school-name="A">曇華女子學院</h3></div><div class="cards" id="school-a"></div></div>
     <div class="vs" aria-hidden="true">VS</div>
     <div class="team b"><div class="team-name"><span aria-hidden="true">B</span><h3 data-school-name="B">曇光女子學院</h3></div><div class="cards" id="school-b"></div></div>
@@ -251,7 +251,7 @@ for(const group of groups){
 renderMembers();
 window.FestivalPresentation.load().then(data=>{
   window.FestivalPresentation.apply(data);
-  document.title=data.title+"｜雙校陣容";
+  document.title=data.title;
   const title=byId("festival-heading");
   if(data.title!=="曇時學園祭"){
     const chars=Array.from(data.title), n=Math.ceil(chars.length/2);
