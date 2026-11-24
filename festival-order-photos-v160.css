@@ -1,0 +1,87 @@
+html[data-festival-theme] body.festival-guest-page #festival-order .festival-cover {
+  height: auto !important;
+  max-height: none !important;
+  grid-template-columns: minmax(0, 1fr) clamp(106px, 28vw, 200px) !important;
+}
+
+html[data-festival-theme] body.festival-guest-page #festival-order .festival-cover:has(.festival-cover-portrait[hidden]) {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+html[data-festival-theme] body.festival-guest-page #festival-order #festival-cover:not([hidden]) {
+  display: grid;
+  height: auto !important;
+  min-height: 0 !important;
+  border-radius: 10px !important;
+  background: var(--fp-surface) !important;
+}
+
+html[data-festival-theme] body.festival-guest-page #festival-order #festival-cover-photo {
+  position: static;
+  display: block;
+  height: clamp(110px, 24vw, 164px) !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  border-radius: 0;
+}
+
+html[data-festival-theme] body.festival-guest-page #festival-order #festival-cover-name {
+  position: static;
+  border-top: 1px solid var(--fp-line);
+  background: transparent !important;
+  color: var(--fp-ink) !important;
+  overflow-wrap: anywhere;
+}
+
+html[data-festival-theme] body.festival-guest-page #festival-order #festival-cover-controls:not([hidden]) {
+  position: static;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0;
+  border-top: 1px solid var(--fp-line);
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+html[data-festival-theme] body.festival-guest-page #festival-order #festival-cover-controls button {
+  min-height: 36px;
+  color: var(--fp-ink) !important;
+}
+
+.preview-menu-row:has(.festival-item-image:not([hidden])) {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.preview-menu-row:has(.festival-item-image:not([hidden])) p {
+  grid-column: 2;
+}
+
+.preview-menu-row .festival-item-image:not([hidden]) {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: start;
+  width: clamp(64px, 12vw, 112px);
+  height: auto;
+  max-height: 112px;
+  border-radius: 8px;
+  margin: 0;
+}
+
+.festival-guest-page #festival-order .festival-item-image {
+  object-fit: contain;
+}
+
+@media (max-width: 540px) {
+  .preview-menu-row:has(.festival-item-image:not([hidden])) {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 5px 12px;
+  }
+
+  .preview-menu-row:has(.festival-item-image:not([hidden])) :is(strong, span) {
+    grid-column: 2;
+  }
+
+  .preview-menu-row .festival-item-image:not([hidden]) {
+    grid-row: 1 / span 4;
+  }
+}

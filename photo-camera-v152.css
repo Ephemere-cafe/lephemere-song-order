@@ -1,0 +1,15 @@
+.photo-camera-viewport {
+  position: relative;
+  overflow: hidden;
+}
+.photo-camera-edit {
+  cursor: grab;
+  touch-action: none;
+}
+.photo-camera-edit:active { cursor: grabbing; }
+.photo-editor .editor-photo-frame {
+  aspect-ratio: 3 / 4;
+}
+.photo-camera-help {
+  margin-block: 6px 12px;
+}
