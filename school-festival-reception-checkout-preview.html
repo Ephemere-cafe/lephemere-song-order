@@ -149,7 +149,7 @@
         <p id="festival-live-status" role="status"></p><ul id="festival-live-tickets" aria-label="已發券號"></ul>
       </section>
     </details>
-    <details id="festival-menu-editor" hidden><summary>學園祭餐點與特殊服務管理</summary>
+    <details id="festival-menu-editor" hidden><summary>學園祭共用餐點與特殊服務</summary>
       <section>
         <p>拍立得與個人攝影使用本場既有拍攝時段。新增服務前請先設定本場拍攝女僕。</p>
         <div class="toolbar"><button type="button" id="fest-menu-load">讀取本場品項</button>
@@ -795,7 +795,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     function updateButtons(){
       const prepared=Boolean(roll);
       const hit=matchingTicket();
-      byId('draw-freeze').disabled=busy || !model || model.locked;
+      byId('draw-freeze').disabled=busy || !model || model.configured===false || model.locked;
       byId('draw-publish').disabled=busy || !model?.locked;
       byId('draw-prepare').disabled=busy || !model?.locked || !prizes.value;
       byId('draw-copy-command').disabled=busy || !prepared;
@@ -828,7 +828,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       const selected=prizes.value;
       model=summary;
       work.hidden=false;
-      byId('draw-counts').textContent='發券截止 '+(model.cutoffAt>8e15?'手動停止':formatTime(model.cutoffAt))+'｜'+(model.locked?'已鎖定':'尚未鎖定')+
+      byId('draw-counts').textContent=model.configured===false ? '獎項可先設定，開啟學園祭後可管理本場票券與開獎。' : '發券截止 '+(model.cutoffAt>8e15?'手動停止':formatTime(model.cutoffAt))+'｜'+(model.locked?'已鎖定':'尚未鎖定')+
         '｜已發 '+model.count+' 張，作廢 '+model.voided+' 張｜'+teamName('A')+' '+model.votes.A+' 票、'+teamName('B')+' '+model.votes.B+' 票';
       prizes.replaceChildren(new Option('選擇要抽的獎品',''));
       const list=byId('draw-prize-list');
@@ -1340,5 +1340,5 @@ window.addEventListener('DOMContentLoaded', async () => {
   byId('logout').addEventListener('click', () => auth.signOut().catch(() => setStatus('登出失敗，請重試。')));
 });
 </script>
-<script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema-v152.js"></script><script src="festival-chairman-composition-v152.js"></script><script src="festival-page-editor-v148.js"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="workbench-menu-v130.js?v=130"></script><script src="desk-schedule-v133.js"></script><script src="desk-photo-v133.js?v=133"></script><script src="desk-recovery-v133.js?v=133"></script></body>
+<script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema-v152.js"></script><script src="festival-chairman-composition-v152.js"></script><script src="festival-page-editor-v148.js"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="workbench-menu-v169.js"></script><script src="desk-schedule-v133.js"></script><script src="desk-photo-v133.js?v=133"></script><script src="desk-recovery-v133.js?v=133"></script></body>
 </html>
