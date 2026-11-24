@@ -1,0 +1,23 @@
+#festival-checkout-confirm {
+  box-sizing: border-box;
+  width: min(550px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  padding: 22px;
+  border: 1px solid var(--line, #aebacc);
+  border-radius: 18px;
+  background: var(--panel, #fff);
+  color: var(--text, #283d55);
+}
+
+#festival-checkout-confirm::backdrop { background: rgba(20, 30, 44, .55); }
+#festival-checkout-confirm h2 { margin: 0 0 12px; }
+
+#festival-checkout-support {
+  padding: 12px;
+  border-inline-start: 4px solid var(--accent, #416694);
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  font-weight: 650;
+}
+
+#festival-checkout-support, #festival-checkout-amount { white-space: pre-line; }
+#festival-checkout-confirm menu { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; padding: 0; }

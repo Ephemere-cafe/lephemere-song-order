@@ -30,7 +30,7 @@
 <style>#festival-lucky-roll{margin:12px 0}#festival-lucky-roll summary{cursor:pointer;font-weight:700}#festival-lucky-roll form{margin-bottom:8px}#festival-lucky-roll ul{padding-left:1.3rem}#festival-lucky-roll li{margin:5px 0}#festival-lucky-roll code{font-size:1.25rem}#draw-status,#draw-hit,#draw-cancel-result{margin:8px 0}#draw-work h2{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}</style>
 <style>#festival-menu-editor{margin:12px 0}#festival-menu-editor summary{cursor:pointer;font-weight:700}#fest-menu-form{padding-top:12px;display:flex;gap:12px}#fest-menu-list{padding-left:1.3rem}#fest-menu-list li{margin:4px 0}</style>
 <link rel="stylesheet" href="festival-page-editor.css"><link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="festival-workbench-v121.css?v=121"><script src="festival-workbench-v121.js?v=146"></script><link rel="stylesheet" href="festival-character-ui-v124.css?v=124"><link rel="stylesheet" href="festival-polish-v129.css?v=129"><script src="photo-camera-v152.js"></script><script src="festival-photos-v152.js"></script><script src="festival-photo-editor-v152.js"></script><link rel="stylesheet" href="compact-order-v130.css?v=130"><script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script><link rel="stylesheet" href="desk-photo-original-v133.css"><link rel="stylesheet" href="desk-v133.css?v=133"><link rel="stylesheet" href="festival-chairman-composition-v148.css">
-<link rel="stylesheet" href="photo-camera-v152.css"></head>
+<link rel="stylesheet" href="photo-camera-v152.css"><link rel="stylesheet" href="festival-checkout-prompt-v170.css"></head>
 <body class="connected-page"><script>window.SchoolFestivalTheme?.refresh();</script>
 <header class="festival-masthead"><div class="masthead-inner"><strong>曇時學園祭・接待工作台</strong><div class="masthead-tools"><label class="desk-operator">目前操作店員<select id="globalStaffSelect" aria-label="目前操作店員"><option value="">請選擇店員</option></select></label><a href="admin/">返回原後台</a><a href="school-festival-roster-arena-preview.html">查看活動首頁</a><button id="festival-theme" type="button" aria-pressed="false">夜間模式</button></div></div></header>
 <main>
@@ -655,9 +655,25 @@ window.addEventListener('DOMContentLoaded', async () => {
   let livePayRequest = null;
   let liveQuote = null;
   let livePayBusy = false;
+  const checkoutPrompt=document.createElement('dialog');
+  checkoutPrompt.id='festival-checkout-confirm';
+  checkoutPrompt.setAttribute('aria-labelledby','festival-checkout-title');
+  checkoutPrompt.innerHTML='<form method="dialog"><h2 id="festival-checkout-title">結帳前核對學院應援</h2><p id="festival-checkout-support"></p><p>符合資格的餐飲累計滿 30,000 Gil 並完成結帳後，每位客人可為所選學院投 1 票。首次結帳後，應援學院即鎖定。</p><p id="festival-checkout-amount"></p><menu><button value="cancel" autofocus>返回核對</button><button value="pay" class="primary">確認已收款</button></menu></form>';
+  document.body.append(checkoutPrompt);
+
+  function confirmFestivalPayment(support,amount) {
+    byId('festival-checkout-support').textContent=support;
+    byId('festival-checkout-amount').textContent=amount;
+    checkoutPrompt.returnValue='cancel';
+    return new Promise(resolve=>{
+      checkoutPrompt.addEventListener('close',()=>resolve(checkoutPrompt.returnValue==='pay'),{once:true});
+      checkoutPrompt.showModal();
+    });
+  }
 
   function resetLiveTable() {
     liveTable.hidden = true;
+    if(checkoutPrompt.open)checkoutPrompt.close('cancel');
     liveQuote = null;
     livePayRequest = null;
     byId('festival-live-quote-status').textContent = '';
@@ -692,7 +708,13 @@ window.addEventListener('DOMContentLoaded', async () => {
       const {orders,photo} = liveQuote;
       const dining = orders.map(order => '餐點 '+order.total.toLocaleString('zh-TW')+' Gil · '+order.items.map(item => item.name+' × '+item.qty).join('、')).join('\n');
       const total = amount(orders)+amount(photo);
-      if (!confirm('確認 '+visit.queueNumber+' 已收 '+total.toLocaleString('zh-TW')+' Gil？\n'+dining+'\n拍攝 '+amount(photo).toLocaleString('zh-TW')+' Gil。')) return;
+      const checkedQuote=liveQuote;
+      if(checkoutPrompt.open)return;
+      const guests=(checkedQuote.support || []).map(row=>[row.name,publicDesign.teams[row.team]?.name].filter(Boolean).join(' · '));
+      const support=guests.length ? '待結清餐點的應援學院：\n'+guests.join('\n') :
+        orders.length ? '請先核對客人已選擇的應援學院。' : '本次沒有待結清的餐點。';
+      const detail=[visit.queueNumber+' · 應收 '+total.toLocaleString('zh-TW')+' Gil',dining,'拍攝 '+amount(photo).toLocaleString('zh-TW')+' Gil'].filter(Boolean).join('\n');
+      if(!await confirmFestivalPayment(support,detail) || !active() || livePayBusy || liveQuote!==checkedQuote)return;
       livePayRequest ||= crypto.randomUUID();
       livePayBusy = true; quote.disabled = true; pay.disabled = true;
       try {

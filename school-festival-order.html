@@ -210,7 +210,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   @media(max-width:680px){.festival-cover{min-height:110px;grid-template-columns:minmax(0,1fr) minmax(126px,38%)}.festival-cover-copy{padding:9px}.festival-cover-portrait{min-height:110px}.festival-cover-portrait strong{top:5px;bottom:auto}.festival-guest-grid{grid-template-columns:1fr;padding-bottom:92px}.festival-receipt{position:fixed;inset:auto 0 0;z-index:6;padding:6px 10px calc(6px + env(safe-area-inset-bottom));display:grid;gap:4px;grid-template-columns:1fr auto;box-shadow:0 -4px 13px #202c3940}.festival-receipt h3{display:none}.festival-receipt #festival-cart-details{display:block;text-align:left;width:max-content;background:none;border:0;text-decoration:underline;grid-row:2}.festival-receipt ul{display:none}.festival-receipt.expanded ul{display:block;grid-column:1/-1;max-height:28vh;overflow:auto}.festival-receipt #festival-total{grid-row:1;grid-column:1}.festival-receipt #festival-status{grid-column:1/-1}.festival-receipt #festival-send{grid-column:2;grid-row:1/3;align-self:center}}
 </style><style>.festival-quantity{display:flex;align-items:center;gap:4px}.festival-quantity button{min-width:30px;background:#d4e0e4;border:1px solid #7c939d;cursor:pointer}.festival-quantity input{max-width:3.2em}.festival-cover:has(.festival-cover-portrait[hidden]){grid-template-columns:1fr}</style>
 <link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="school-festival-theme.css?v=119"><script src="school-festival-theme.js?v=132"></script><link rel="stylesheet" href="festival-guest-layout.css?v=119"><link rel="stylesheet" href="festival-collage-v123.css?v=123"><link rel="stylesheet" href="festival-character-ui-v124.css?v=124"><link rel="stylesheet" href="compact-order-v130.css?v=130"><script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema.js?v=132"></script><script src="public-copy-v132.js?v=132"></script><link rel="stylesheet" href="festival-example-v131.css?v=132"><link rel="stylesheet" href="festival-journey-v132.css?v=132"><link rel="stylesheet" href="festival-mobile-v146.css">
-<link rel="stylesheet" href="festival-order-photos-v160.css"><link rel="stylesheet" href="festival-services-v169.css"></head>
+<link rel="stylesheet" href="festival-order-photos-v160.css"><link rel="stylesheet" href="festival-services-v169.css"><link rel="stylesheet" href="festival-support-v170.css"></head>
 <body class="festival-guest-page festival-design"><script>window.SchoolFestivalTheme?.refresh();</script>
 <div id="siteLoader" class="site-loader" role="status" aria-live="polite">
   <div class="order-loader-mark" aria-hidden="true"><span class="loader-dish"></span><span class="loader-steam one"></span><span class="loader-steam two"></span></div>
@@ -1865,7 +1865,10 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       if(festivalVisitKey!==key || activeVisitId!==visitId) return;
       festivalView('status').textContent=window.FestivalCopyText('12','送出成功')+'\n訂單 #'+result.data.orderNumber;
     } catch(error) {
-      if(festivalVisitKey===key && activeVisitId===visitId) festivalView('status').textContent=String(error.message||'送單未確認，請重試。');
+      if(festivalVisitKey===key && activeVisitId===visitId) {
+        var needsRetry=/internal|deadline-exceeded|unavailable|aborted/.test(String(error.code||'')) || error.message==='internal';
+        festivalView('status').textContent=needsRetry?'送單結果尚未確認。請保留現在的餐點明細，再按一次確認送出。':String(error.message||'送單未確認，請重試。');
+      }
     } finally {
       festivalSending=false;drawFestivalMenu();
     }
@@ -1882,7 +1885,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 </script>
 <script src="festival-base/photo/assets/schedule.js?v=43"></script>
 <script src="assets/guest-photo-festival-v105.js?v=105"></script>
-<script src="festival-guest-layout.js?v=119"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="compact-order-v130.js?v=130"></script><script src="festival-journey-v160.js"></script></body>
+<script src="festival-guest-layout.js?v=119"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="compact-order-v130.js?v=130"></script><script src="festival-journey-v170.js"></script></body>
 </html>
 
 
