@@ -1,0 +1,23 @@
+.prize-shared-v173{margin:0 0 26px;padding:clamp(16px,3vw,28px);background:var(--canvas,#e5ecf7);background:color-mix(in srgb,var(--ink,#1b304b) 6%,transparent);border:1px solid var(--line,#c8d2e1);border-radius:24px 8px}
+.prize-shared-v173>header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px 24px;margin-bottom:12px}
+.prize-shared-v173>header h3,.prize-shared-v173>header p,.prize-feature-v173 p,.prize-feature-v173 h4{margin:0}
+.prize-feature-grid,.prize-school-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 30px}
+.prize-feature-v173{display:flex;align-items:center;min-width:0;gap:16px;padding:14px 0 0;border-top:1px solid var(--line,#c8d2e1)}
+.prize-feature-v173 img,.prize-feature-v173 .prize-audio-v173{width:90px;height:90px;object-fit:contain;border:1px solid var(--line,#c8d2e1);border-radius:10px 3px;flex:none}
+.prize-audio-v173{display:grid;place-items:center;font-size:2rem}
+.prize-school-v173 h3{padding-bottom:8px;border-bottom:2px solid #58799e;margin:0}
+.prize-school-v173[data-pool="B"] h3{border-color:#a56674}
+.prize-school-v173 ul{margin:0;padding:0;list-style:none}
+.prize-school-v173 li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:7px 12px;border-bottom:1px solid var(--line,#c8d2e1);padding:10px 0}
+.prize-school-v173 li span{display:flex;gap:8px;align-items:center;overflow-wrap:anywhere}
+.prize-school-v173 img{width:40px;height:46px;object-fit:contain;border-radius:5px}
+.prize-school-v173 li small{white-space:nowrap}
+.order-prize-reminder{display:flex;gap:12px;align-items:center;justify-content:space-between;margin:14px 0;padding:12px 16px;border:1px solid var(--line,#c8d2e1);border-inline-start:4px solid #5274a0;border-radius:4px 12px 12px 4px}
+.order-prize-reminder p{margin:0}
+.festival-dialog-v173{box-sizing:border-box;max-width:min(680px,calc(100% - 24px));max-height:90dvh;padding:clamp(18px,4vw,30px);border:1px solid var(--line,#c8d2e1);border-radius:22px 7px;color:var(--ink,#1b304b);background:var(--panel,#f5f8fd)}
+.festival-dialog-v173::backdrop{background:#1020349c}
+.festival-dialog-v173 h2{margin:.15em 0 .5em}
+.festival-dialog-v173 .journey-section{margin:0;padding:0;border:0}
+.festival-dialog-v173 footer{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:18px}
+.festival-dialog-v173 .btn{min-height:44px}
+@media(max-width:620px){.prize-feature-grid,.prize-school-grid{grid-template-columns:1fr}.prize-feature-v173 img,.prize-feature-v173 .prize-audio-v173{width:62px;height:62px}.order-prize-reminder{align-items:flex-start;flex-wrap:wrap}.festival-dialog-v173 .prize-shared-v173{padding:14px}}

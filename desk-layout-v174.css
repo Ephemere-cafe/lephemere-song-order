@@ -1,0 +1,19 @@
+.wb #desk>.columns{grid-template-columns:minmax(240px,.7fr) minmax(0,2.15fr)}
+.desk-preview-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(270px,1fr);gap:14px;align-items:start;margin-top:14px}
+.desk-preview-food{min-width:0;border:1px solid var(--line);border-radius:12px;padding:10px 15px}
+.desk-preview-table #orders{padding:0;min-height:0!important}
+.desk-preview-table .desk-preview-order-heading{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;padding:10px 0;border-bottom:2px solid var(--line);font-size:1.06rem}
+.desk-preview-table #orders>p:not(.desk-preview-order-heading){padding:9px 0;margin:0;line-height:1.55}
+.desk-preview-table #festival-live-table{margin:0;padding:15px 17px;border:1px solid var(--line);border-inline-start:4px solid var(--fp-a,#4f7092);border-radius:10px}
+.desk-preview-table #festival-live-table h2,.desk-preview-table #festival-staff-actions h2{margin:0 0 12px;font-size:1.15rem}
+.desk-preview-table #festival-staff-actions{margin-top:14px;padding:14px 16px;border:1px solid var(--line);border-radius:11px;background:color-mix(in srgb,var(--panel) 92%,var(--ink));display:grid;grid-template-columns:auto 1fr;align-items:end;gap:10px 16px}
+.desk-preview-table [hidden]{display:none!important}
+.desk-preview-table #festival-staff-actions h2{grid-column:1/-1;margin:0}
+.desk-preview-table #festival-transfer-region{margin:0}
+.desk-preview-table #festival-staff-buttons{margin:0}
+.desk-preview-table #desk-preview-order-actions>.toolbar{gap:7px;border-top:1px solid var(--line);padding:12px 0 0;flex-wrap:wrap}
+.desk-preview-table #festival-live-quote-status{margin:9px 0;font-variant-numeric:tabular-nums}
+.desk-preview-table #festival-table-ticket-numbers{font-weight:700;margin:5px 0 0}
+@media(max-width:1150px){.wb #desk>.columns{grid-template-columns:minmax(205px,.65fr) minmax(0,1.85fr)}.desk-preview-grid{grid-template-columns:1fr}.desk-preview-table #festival-staff-actions{grid-template-columns:1fr}}
+
+@media(max-width:1000px){.wb #desk>.columns{grid-template-columns:1fr}}

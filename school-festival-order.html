@@ -210,7 +210,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   @media(max-width:680px){.festival-cover{min-height:110px;grid-template-columns:minmax(0,1fr) minmax(126px,38%)}.festival-cover-copy{padding:9px}.festival-cover-portrait{min-height:110px}.festival-cover-portrait strong{top:5px;bottom:auto}.festival-guest-grid{grid-template-columns:1fr;padding-bottom:92px}.festival-receipt{position:fixed;inset:auto 0 0;z-index:6;padding:6px 10px calc(6px + env(safe-area-inset-bottom));display:grid;gap:4px;grid-template-columns:1fr auto;box-shadow:0 -4px 13px #202c3940}.festival-receipt h3{display:none}.festival-receipt #festival-cart-details{display:block;text-align:left;width:max-content;background:none;border:0;text-decoration:underline;grid-row:2}.festival-receipt ul{display:none}.festival-receipt.expanded ul{display:block;grid-column:1/-1;max-height:28vh;overflow:auto}.festival-receipt #festival-total{grid-row:1;grid-column:1}.festival-receipt #festival-status{grid-column:1/-1}.festival-receipt #festival-send{grid-column:2;grid-row:1/3;align-self:center}}
 </style><style>.festival-quantity{display:flex;align-items:center;gap:4px}.festival-quantity button{min-width:30px;background:#d4e0e4;border:1px solid #7c939d;cursor:pointer}.festival-quantity input{max-width:3.2em}.festival-cover:has(.festival-cover-portrait[hidden]){grid-template-columns:1fr}</style>
 <link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="school-festival-theme.css?v=119"><script src="school-festival-theme.js?v=132"></script><link rel="stylesheet" href="festival-guest-layout.css?v=119"><link rel="stylesheet" href="festival-collage-v123.css?v=123"><link rel="stylesheet" href="festival-character-ui-v124.css?v=124"><link rel="stylesheet" href="compact-order-v130.css?v=130"><script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema.js?v=132"></script><script src="public-copy-v132.js?v=132"></script><link rel="stylesheet" href="festival-example-v131.css?v=132"><link rel="stylesheet" href="festival-journey-v132.css?v=132"><link rel="stylesheet" href="festival-mobile-v146.css">
-<link rel="stylesheet" href="festival-order-photos-v160.css"><link rel="stylesheet" href="festival-services-v169.css"><link rel="stylesheet" href="festival-support-v170.css"></head>
+<link rel="stylesheet" href="festival-order-photos-v160.css"><link rel="stylesheet" href="festival-services-v169.css"><link rel="stylesheet" href="festival-support-v170.css"><link rel="stylesheet" href="festival-prizes-v173.css"></head>
 <body class="festival-guest-page festival-design"><script>window.SchoolFestivalTheme?.refresh();</script>
 <div id="siteLoader" class="site-loader" role="status" aria-live="polite">
   <div class="order-loader-mark" aria-hidden="true"><span class="loader-dish"></span><span class="loader-steam one"></span><span class="loader-steam two"></span></div>
@@ -506,7 +506,14 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   </section>
 </div>
 
-<div class="flow-overlay" id="orderSuccessOverlay" role="dialog" aria-modal="true" aria-labelledby="orderSuccessTitle" hidden>
+<dialog id="festival-order-sent" class="festival-dialog-v173" aria-labelledby="festival-order-sent-title">
+    <h2 id="festival-order-sent-title">餐點已送出</h2>
+    <p id="festival-order-sent-detail"></p>
+    <p>餐點送達後，女僕會和您確認結帳及抽獎券號。符合資格的餐飲達低消，結帳後會自動計入應援票並發放抽獎券。</p>
+    <p>您也可以在「本次消費」查看自己的券號。</p>
+    <footer><form method="dialog"><button class="btn" autofocus>繼續瀏覽</button></form><button id="festival-sent-to-total" class="btn primary" type="button">前往本次消費</button></footer>
+  </dialog>
+  <div class="flow-overlay" id="orderSuccessOverlay" role="dialog" aria-modal="true" aria-labelledby="orderSuccessTitle" hidden>
   <section class="flow-dialog order-success-dialog">
     <div class="flow-seal">✓</div><p class="flow-kicker">ORDER RECEIVED</p>
     <h2 id="orderSuccessTitle">餐點訂單已收到</h2>
@@ -1863,6 +1870,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     drawFestivalMenu();
   });
   festivalView('refresh').addEventListener('click',function(){refreshFestivalMenu(true)});
+  var festivalSentDialog=document.getElementById('festival-order-sent');
+  document.getElementById('festival-sent-to-total').addEventListener('click',function(){festivalSentDialog.close();openTotalView()});
   festivalView('send').addEventListener('click',async function(){
     if(festivalSending || !activeVisitId || festivalView('send').disabled) return;
     var key=festivalVisitKey,visitId=activeVisitId;
@@ -1893,6 +1902,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       var schoolName=festivalView('choices').querySelector('[data-team="'+festivalTeam+'"]')?.textContent.trim() || '所選學院';
       festivalView('status').textContent='訂單 #'+confirmed.orderNumber+' 已送出 · '+fmtGil(confirmed.total)+'\n'+
         '你選了'+schoolName+'。符合資格的餐飲滿 30,000 Gil，結帳後自動計入 1 票與 1 張抽獎券，券號在「本次消費」。';
+      document.getElementById('festival-order-sent-detail').textContent='訂單 #'+confirmed.orderNumber+' · '+fmtGil(confirmed.total)+' · '+schoolName;
+      if(!festivalSentDialog.open)festivalSentDialog.showModal();
       Promise.resolve(festivalMenuPromise).then(function(){
         if(festivalVisitKey===key && activeVisitId===visitId)refreshFestivalMenu(true,true);
       });
@@ -1917,7 +1928,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 </script>
 <script src="festival-base/photo/assets/schedule.js?v=43"></script>
 <script src="assets/guest-photo-festival-v105.js?v=105"></script>
-<script src="festival-guest-layout.js?v=119"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="compact-order-v130.js?v=130"></script><script src="festival-journey-v172.js"></script></body>
+<script src="festival-guest-layout.js?v=119"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="compact-order-v130.js?v=130"></script><script src="festival-prizes-v173.js"></script><script src="festival-journey-order-v173.js"></script></body>
 </html>
 
 

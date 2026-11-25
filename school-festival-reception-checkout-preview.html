@@ -30,7 +30,7 @@
 <style>#festival-lucky-roll{margin:12px 0}#festival-lucky-roll summary{cursor:pointer;font-weight:700}#festival-lucky-roll form{margin-bottom:8px}#festival-lucky-roll ul{padding-left:1.3rem}#festival-lucky-roll li{margin:5px 0}#festival-lucky-roll code{font-size:1.25rem}#draw-status,#draw-hit,#draw-cancel-result{margin:8px 0}#draw-work h2{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}</style>
 <style>#festival-menu-editor{margin:12px 0}#festival-menu-editor summary{cursor:pointer;font-weight:700}#fest-menu-form{padding-top:12px;display:flex;gap:12px}#fest-menu-list{padding-left:1.3rem}#fest-menu-list li{margin:4px 0}</style>
 <link rel="stylesheet" href="festival-page-editor.css"><link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="festival-workbench-v121.css?v=121"><script src="festival-workbench-v121.js?v=146"></script><link rel="stylesheet" href="festival-character-ui-v124.css?v=124"><link rel="stylesheet" href="festival-polish-v129.css?v=129"><script src="photo-camera-v152.js"></script><script src="festival-photos-v152.js"></script><script src="festival-photo-editor-v152.js"></script><link rel="stylesheet" href="compact-order-v130.css?v=130"><script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script><link rel="stylesheet" href="desk-photo-original-v133.css"><link rel="stylesheet" href="desk-v133.css?v=133"><link rel="stylesheet" href="festival-chairman-composition-v148.css">
-<link rel="stylesheet" href="photo-camera-v152.css"><link rel="stylesheet" href="festival-checkout-prompt-v170.css"></head>
+<link rel="stylesheet" href="photo-camera-v152.css"><link rel="stylesheet" href="festival-checkout-prompt-v170.css"><link rel="stylesheet" href="festival-draw-v173.css"><link rel="stylesheet" href="desk-layout-v174.css"></head>
 <body class="connected-page"><script>window.SchoolFestivalTheme?.refresh();</script>
 <header class="festival-masthead"><div class="masthead-inner"><strong>曇時學園祭・接待工作台</strong><div class="masthead-tools"><label class="desk-operator">目前操作店員<select id="globalStaffSelect" aria-label="目前操作店員"><option value="">請選擇店員</option></select></label><a href="admin/">返回原後台</a><a href="school-festival-roster-arena-preview.html">查看活動首頁</a><button id="festival-theme" type="button" aria-pressed="false">夜間模式</button></div></div></header>
 <main>
@@ -175,6 +175,11 @@
         <button type="button" id="draw-refresh">讀取本場票券與獎項</button>
         <p id="draw-status" role="status"></p>
         <div id="draw-work" hidden>
+          <div class="draw-scoreboard-v173" id="draw-scoreboard" aria-label="本場票數與券數">
+            <div><span id="draw-team-a"></span><strong id="draw-vote-a">0</strong><small>應援票</small></div>
+            <div><span id="draw-team-b"></span><strong id="draw-vote-b">0</strong><small>應援票</small></div>
+            <div><span>有效抽獎券</span><strong id="draw-ticket-total">0</strong><small id="draw-ticket-breakdown"></small></div>
+          </div>
           <p id="draw-counts"></p>
           <h2>獎項設定</h2>
           <form id="draw-prize-form">
@@ -186,6 +191,11 @@
           </form>
           <ul id="draw-prize-list"></ul>
           <h2>開獎</h2>
+          <form id="draw-ticket-lookup" class="draw-ticket-lookup-v173">
+            <label>抽獎券號碼<input id="draw-lookup-number" type="text" inputmode="numeric" autocomplete="off" placeholder="例如 001" pattern="[0-9]+" required></label>
+            <button type="submit" class="primary">查詢券號</button>
+            <p id="draw-lookup-result" role="status">輸入券號即可查看持有人及中獎狀態。</p>
+          </form>
           <div class="toolbar"><button type="button" id="draw-freeze">停止投票與發券</button><button id="draw-publish" type="button">公布最終票數</button><label>獎品<select id="draw-prizes"></select></label><button type="button" id="draw-prepare">準備擲骰</button></div>
           <div class="toolbar"><code id="draw-command"></code><button type="button" id="draw-copy-command">複製擲骰指令</button></div>
           <form id="draw-roll-form">
@@ -215,17 +225,19 @@
     </details>
     <div class="columns">
       <section class="print-panel"><h2 id="visit-heading">本場桌次</h2><div class="desk-metrics"><div>等待接待<strong id="desk-count-waiting">0</strong></div><div>我的桌次<strong id="desk-count-mine">0</strong></div><div>其他店員<strong id="desk-count-team">0</strong></div></div><div class="desk-queue-tools"><input id="desk-search" type="search" placeholder="搜尋角色或號碼牌" aria-label="搜尋角色或號碼牌"><button id="desk-next" type="button">查看下一組</button></div><div id="visit-list"></div></section>
-      <section class="print-panel"><h2 id="order-heading">本桌訂單</h2><div id="orders">選一張號碼牌查看訂單。</div>
-        <div id="festival-staff-actions" hidden><hr><h2>桌次與餐點操作</h2>
+      <section class="print-panel desk-preview-table"><h2 id="order-heading">本桌訂單</h2>
+        <div class="desk-preview-grid"><div class="desk-preview-food"><div id="orders">選一張號碼牌查看訂單。</div><div id="desk-preview-order-actions"></div></div>
+        <div id="festival-live-table" hidden><h2>本桌結帳</h2>
+          <div class="toolbar"><button id="festival-live-quote" type="button">核對本桌待收</button>
+          <button class="primary" id="festival-live-pay" type="button" disabled>確認結清並發券</button></div>
+          <p id="festival-live-quote-status" role="status"></p>
+        </div></div>
+        <div id="festival-staff-actions" hidden><h2>桌次操作</h2>
           <div class="toolbar"><label>目前操作女僕<select id="festival-staff-picker"></select></label>
           <label id="festival-transfer-region" hidden>轉交給<select id="festival-transfer-picker"></select></label></div>
           <div id="festival-staff-buttons" class="toolbar"></div>
         </div>
-        <div id="festival-live-table" hidden><hr><h2>學園祭整桌結清</h2>
-          <div class="toolbar"><button id="festival-live-quote" type="button">核對本桌待收</button>
-          <button class="primary" id="festival-live-pay" type="button" disabled>確認結清並發券</button></div>
-          <p id="festival-live-quote-status" role="status"></p>
-        </div>
+
       </section>
     </div>
   </div>
@@ -836,6 +848,22 @@ window.addEventListener('DOMContentLoaded', async () => {
     const saveWinner=byId('draw-confirm');
     const hits=byId('draw-hit');
     const orderResult=byId('draw-cancel-result');
+    const lookupForm=byId('draw-ticket-lookup'), lookupInput=byId('draw-lookup-number'), lookupResult=byId('draw-lookup-result');
+    lookupInput.addEventListener('input',()=>{lookupResult.textContent='';});
+    lookupForm.addEventListener('submit',event=>{
+      event.preventDefault();
+      if(!model || !canUse() || busy)return;
+      const number=Number(lookupInput.value.trim());
+      if(!Number.isSafeInteger(number)||number<1){lookupResult.textContent='請輸入有效的抽獎券號碼。';return;}
+      lookupResult.textContent='查詢中…';
+      void run('lookupTicket',{number},result=>{
+        if(Number(lookupInput.value.trim())!==number)return;
+        if(result.status==='missing'){lookupResult.textContent='本場查無券號 #'+pad(number)+'。';return;}
+        const identity=[result.name,result.server].filter(Boolean).join('｜') || '未記錄持有人';
+        const detail=result.status==='voided'?'已作廢':result.status==='winner'?'已中獎 · '+result.prizeName+' · '+result.claimStatus:'有效券 · 尚未登記中獎';
+        lookupResult.textContent='#'+pad(result.number)+' · '+identity+' · '+teamName(result.team)+' · '+detail;
+      }).finally(()=>{if(lookupResult.textContent==='查詢中…')lookupResult.textContent='查詢未完成，請再試一次。';});
+    });
     let model, roll, drawId, cancellation, busy=false;
     const pad=value=>String(value).padStart(3,'0');
     const teamName=id=>id==='all'?'全場共同':publicDesign.teams[id]?.name || id;
@@ -851,6 +879,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       byId('draw-prepare').disabled=busy || !model?.locked || !prizes.value;
       byId('draw-copy-command').disabled=busy || !prepared;
       rollInput.disabled=busy || !prepared;
+      lookupForm.querySelector('button').disabled=busy || !model || model.configured===false;
       saveWinner.disabled=busy || !hit;
       byId('draw-cancel-confirm').disabled=busy || !cancellation || ['cancelled','refunded'].includes(cancellation.status);
     }
@@ -880,7 +909,14 @@ window.addEventListener('DOMContentLoaded', async () => {
       model=summary;
       work.hidden=false;
       byId('draw-counts').textContent=model.configured===false ? '獎項可先設定，開啟學園祭後可管理本場票券與開獎。' : '發券截止 '+(model.cutoffAt>8e15?'手動停止':formatTime(model.cutoffAt))+'｜'+(model.locked?'已鎖定':'尚未鎖定')+
-        '｜已發 '+model.count+' 張，作廢 '+model.voided+' 張｜'+teamName('A')+' '+model.votes.A+' 票、'+teamName('B')+' '+model.votes.B+' 票';
+        '';
+      byId('draw-scoreboard').hidden=model.configured===false;
+      byId('draw-team-a').textContent=teamName('A');
+      byId('draw-team-b').textContent=teamName('B');
+      byId('draw-vote-a').textContent=model.votes.A;
+      byId('draw-vote-b').textContent=model.votes.B;
+      byId('draw-ticket-total').textContent=Math.max(0,model.count-model.voided);
+      byId('draw-ticket-breakdown').textContent='已發 '+model.count+' 張 · 作廢 '+model.voided+' 張';
       prizes.replaceChildren(new Option('選擇要抽的獎品',''));
       const list=byId('draw-prize-list');
       list.replaceChildren();
@@ -1209,7 +1245,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       const actions=byId('festival-staff-buttons');
       actions.replaceChildren();
       byId('festival-transfer-region').hidden=true;
-      for(const host of box.querySelectorAll('[data-order-controls]'))host.remove();
+      byId('desk-preview-order-actions').replaceChildren();
       if(!dropdown.value)return;
       if(visit.status==='waiting'){
         attachButton(actions,'接待這組','claim');
@@ -1230,7 +1266,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         row.append('訂單 #'+order.orderNumber+' · '+(order.status==='pending'?'待接單':'備餐中'));
         if(order.status==='pending')attachButton(row,'接單備餐','prepare',{orderId:order.id});
         attachButton(row,'餐點已送達','serve',{orderId:order.id});
-        box.append(row);
+        byId('desk-preview-order-actions').append(row);
       }
     }
     box.hidden=false;
@@ -1254,7 +1290,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     stopWatchingOrders=null;
     resetLiveTable();
     const staffBox=byId('festival-staff-actions');staffBox.hidden=true;
-    for(const row of staffBox.querySelectorAll('[data-order-controls]'))row.remove();
+    byId('desk-preview-order-actions').replaceChildren();
   }
 
   async function selectVisit(visit, button) {
@@ -1284,9 +1320,14 @@ window.addEventListener('DOMContentLoaded', async () => {
       container.replaceChildren();
       if (!orders.length) showLine(container, '目前沒有餐點訂單。');
       for (const order of orders) {
-        showLine(container, '訂單 #' + (order.orderNumber || '—') + ' · ' + Number(order.total || 0).toLocaleString('zh-TW') + ' Gil');
+        const header=document.createElement('p');header.className='desk-preview-order-heading';
+        const title=document.createElement('strong');title.textContent='訂單 #'+(order.orderNumber || '—');
+        const total=document.createElement('strong');total.textContent=Number(order.total || 0).toLocaleString('zh-TW')+' Gil';
+        header.append(title,total);container.append(header);
         for (const item of Object.values(order.items || {})) {
-          const recipients = Array.isArray(item.assignments) ? item.assignments.join('、') : '';
+          const assigned = new Map();
+          for(const name of Array.isArray(item.assignments) ? item.assignments : [])assigned.set(name,(assigned.get(name) || 0)+1);
+          const recipients = [...assigned].map(([name,quantity])=>quantity>1 ? name+' × '+quantity : name).join('、');
           showLine(container, item.name + ' × ' + item.qty + (recipients ? ' · ' + recipients : ''));
         }
       }
