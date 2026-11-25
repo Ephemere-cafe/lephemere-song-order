@@ -1287,8 +1287,10 @@
   function checkoutHtml(visitId){
     var bill=checkoutForVisit(visitId),visit=visits[visitId]||{};if(!bill.diningOrders&&!bill.photoItems)return'';
     var status=visit.paymentAttention===true?'<strong class="payment-attention">⚠ 結清後有新增訂單</strong>':(visit.paymentStatus==='settled'?'<strong class="payment-settled">✓ 已結清</strong>':'<span>尚未結清</span>'),label=visit.paymentAttention===true?'再次結清':(visit.paymentStatus==='settled'?'重新確認結清':'標記已結清');
+    var festivalTickets=ordersForVisit(visitId).some(order=>order.festivalEventId===visit.sessionId && order.festivalEventId)
+      ? '<div><button type="button" class="btn ghost small" data-festival-table-tickets="'+escapeAttr(visitId)+'">查看本桌抽獎券</button><span role="status" data-festival-ticket-result></span></div>' : '';
     var photoDetails=bill.photoDetails.length?'<div class="visit-checkout-details">'+bill.photoDetails.map(function(item){return'<div class="visit-checkout-photo"><span><b>'+escapeHtml(item.productName||'拍攝／紀念服務')+'</b><small>'+escapeHtml(item.memberLabel||'本桌主人')+'・'+escapeHtml(photoCheckoutStatus(item.status))+'</small></span><strong>'+fmtGil(Number(item.price||0))+'</strong></div>'}).join('')+'</div>':'';
-    return '<section class="visit-checkout"><div class="visit-checkout-title"><span>TABLE・本桌應收</span><strong>'+fmtGil(bill.total)+'</strong><small>仍可加點</small></div><h3>餐點＋拍攝／紀念服務</h3><div class="visit-checkout-values"><span>餐點小計<b>'+fmtGil(bill.diningTotal)+'</b></span><span>拍攝服務小計<b>'+fmtGil(bill.photoTotal)+'</b></span></div>'+photoDetails+'<div class="payment-row">'+status+'<button type="button" class="btn ghost small" data-settle-visit="'+escapeAttr(visitId)+'">'+label+'</button></div><small class="visit-checkout-note">結清金額已包含餐點與拍攝／紀念服務；新增任何訂單後會再次提醒結清。</small></section>';
+    return '<section class="visit-checkout"><div class="visit-checkout-title"><span>TABLE・本桌應收</span><strong>'+fmtGil(bill.total)+'</strong><small>仍可加點</small></div><h3>餐點＋拍攝／紀念服務</h3><div class="visit-checkout-values"><span>餐點小計<b>'+fmtGil(bill.diningTotal)+'</b></span><span>拍攝服務小計<b>'+fmtGil(bill.photoTotal)+'</b></span></div>'+photoDetails+'<div class="payment-row">'+status+'<button type="button" class="btn ghost small" data-settle-visit="'+escapeAttr(visitId)+'">'+label+'</button></div>'+festivalTickets+'<small class="visit-checkout-note">結清金額已包含餐點與拍攝／紀念服務；新增任何訂單後會再次提醒結清。</small></section>';
   }
 
   function specialAssignmentPlan(visitId){
@@ -1998,14 +2000,45 @@
     if(!confirm('已在遊戲內叫號，但 '+(visit.queueNumber||'這組')+' 沒有回應嗎？\n確認後會移出候位隊列。')) return;
     visitsRef.child(id).update({status:'no_show',noShowAt:Date.now(),updatedAt:Date.now()});
   });
-  document.addEventListener('click',function(e){
+  document.addEventListener('click',async function(e){
     var copy=e.target.closest('[data-copy-share-code]');if(copy){var code=visitShareCodes[copy.getAttribute('data-copy-share-code')]||'';if(!code)return;navigator.clipboard.writeText(code).then(function(){var old=copy.textContent;copy.textContent='已複製';setTimeout(function(){copy.textContent=old},1200)}).catch(function(){prompt('請複製本桌密碼：',code)});return}
+    var ticketButton=e.target.closest('[data-festival-table-tickets]');
+    if(ticketButton){
+      var resultLine=ticketButton.parentElement.querySelector('[data-festival-ticket-result]');
+      ticketButton.disabled=true;resultLine.textContent='正在讀取本桌券號…';
+      try{
+        var ticketResponse=await functionsClient.httpsCallable('festivalQuoteV99')({action:'tableTickets',visitId:ticketButton.dataset.festivalTableTickets});
+        var tickets=ticketResponse.data.tickets;
+        resultLine.textContent=tickets.length ? tickets.map(ticket=>ticket.name+' #'+String(ticket.number).padStart(3,'0')).join('、') : '本桌目前沒有有效抽獎券。';
+      }catch(error){resultLine.textContent=error.message || '無法讀取本桌券號。';}
+      finally{ticketButton.disabled=false;}
+      return;
+    }
     var settle=e.target.closest('[data-settle-visit]');if(settle){
       var visitId=settle.getAttribute('data-settle-visit'),bill=checkoutForVisit(visitId);
-      if(!confirm('確認已收取本桌合計 '+fmtGil(bill.total)+' 嗎？'))return;
       if(typeof setVisitPaymentStatusFn!=='function'){alert('結清功能尚未連線，請重新整理後再試。');return;}
       var previousLabel=settle.textContent;
       settle.disabled=true;
+      settle.textContent='核對桌次…';
+      try {
+        var route=await functionsClient.httpsCallable('festivalQuoteV99')({action:'checkoutRoute',visitId:visitId});
+        if(route?.data?.festival===true){
+          var checkout=new URL(document.getElementById('festivalWorkbenchEntry').href);
+          checkout.searchParams.set('visit',visitId);
+          location.assign(checkout.href);
+          return;
+        }
+        if(route?.data?.festival!==false)throw Error('無法確認這桌的結帳方式，請重新整理。');
+      } catch(error) {
+        settle.disabled=false;settle.textContent=previousLabel;
+        alert(error.message || '無法確認這桌的結帳方式，請重試。');
+        return;
+      }
+      bill=checkoutForVisit(visitId);
+      if(!confirm('確認已收取本桌合計 '+fmtGil(bill.total)+' 嗎？')){
+        settle.disabled=false;settle.textContent=previousLabel;
+        return;
+      }
       settle.textContent='處理中…';
       setVisitPaymentStatusFn({visitId:visitId}).then(function(result){
         var data=result&&result.data||{};

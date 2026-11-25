@@ -235,21 +235,10 @@
 function createReceptionReader(db, managerEmails = []) {
   const root = db.ref('lephemere');
   const get = async ref => (await ref.once('value')).val();
-  const pendingReads = new Map();
   const dutyByDate = new Map();
-
-  function sharePending(key, load) {
-    if (pendingReads.has(key)) return pendingReads.get(key);
-    const request = load().finally(() => {
-      if (pendingReads.get(key) === request) pendingReads.delete(key);
-    });
-    pendingReads.set(key, request);
-    return request;
-  }
 
   return {
     resetReads() {
-      pendingReads.clear();
       dutyByDate.clear();
     },
 
@@ -280,13 +269,13 @@ function createReceptionReader(db, managerEmails = []) {
       return { date, visits };
     },
 
-    async orders(visit) {
-      if (!visit?.id || !visit?.sessionId) return [];
-      const rows = await sharePending('orders/'+visit.id, () =>
-        get(root.child('orders').orderByChild('visitId').equalTo(visit.id)));
-      return Object.entries(rows || {})
-        .filter(([, order]) => order?.visitId === visit.id && order.sessionId === visit.sessionId && order.status !== 'cancelled')
-        .map(([id, order]) => ({ ...order, id }));
+    watchOrders(visit, onOrders, onError) {
+      const ref = root.child('orders').orderByChild('visitId').equalTo(visit.id);
+      const handler = snapshot => onOrders(Object.entries(snapshot.val() || {})
+        .filter(([, order]) => order?.visitId === visit.id && order.sessionId === visit.sessionId && !['cancelled','refunded'].includes(order.status))
+        .map(([id, order]) => ({ ...order, id })));
+      ref.on('value', handler, onError);
+      return () => ref.off('value', handler);
     },
 
     async testVisit(visitId) {
@@ -655,25 +644,43 @@ window.addEventListener('DOMContentLoaded', async () => {
   let livePayRequest = null;
   let liveQuote = null;
   let livePayBusy = false;
+  let orderRevision = 0;
   const checkoutPrompt=document.createElement('dialog');
   checkoutPrompt.id='festival-checkout-confirm';
   checkoutPrompt.setAttribute('aria-labelledby','festival-checkout-title');
   checkoutPrompt.innerHTML='<form method="dialog"><h2 id="festival-checkout-title">結帳前核對學院應援</h2><p id="festival-checkout-support"></p><p>符合資格的餐飲累計滿 30,000 Gil 並完成結帳後，每位客人可為所選學院投 1 票。首次結帳後，應援學院即鎖定。</p><p id="festival-checkout-amount"></p><menu><button value="cancel" autofocus>返回核對</button><button value="pay" class="primary">確認已收款</button></menu></form>';
   document.body.append(checkoutPrompt);
 
+  let resolveCheckoutPrompt;
+  function finishCheckoutPrompt(confirmed) {
+    const resolve=resolveCheckoutPrompt;
+    resolveCheckoutPrompt=null;
+    if(checkoutPrompt.open)checkoutPrompt.close(confirmed?'pay':'cancel');
+    resolve?.(confirmed);
+  }
+  checkoutPrompt.addEventListener('submit',event=>{
+    event.preventDefault();
+    finishCheckoutPrompt(event.submitter?.value==='pay');
+  });
+  checkoutPrompt.addEventListener('cancel',event=>{
+    event.preventDefault();
+    finishCheckoutPrompt(false);
+  });
+
   function confirmFestivalPayment(support,amount) {
     byId('festival-checkout-support').textContent=support;
     byId('festival-checkout-amount').textContent=amount;
     checkoutPrompt.returnValue='cancel';
     return new Promise(resolve=>{
-      checkoutPrompt.addEventListener('close',()=>resolve(checkoutPrompt.returnValue==='pay'),{once:true});
+      resolveCheckoutPrompt=resolve;
       checkoutPrompt.showModal();
     });
   }
 
   function resetLiveTable() {
     liveTable.hidden = true;
-    if(checkoutPrompt.open)checkoutPrompt.close('cancel');
+    byId('festival-table-ticket-host')?.remove();
+    if(checkoutPrompt.open)finishCheckoutPrompt(false);
     liveQuote = null;
     livePayRequest = null;
     byId('festival-live-quote-status').textContent = '';
@@ -683,6 +690,20 @@ window.addEventListener('DOMContentLoaded', async () => {
   function showLiveTable(visit, revision) {
     if (!functions || !['assigned','serving','special_service'].includes(visit.status)) return;
     liveTable.hidden = false;
+    const ticketLine=document.createElement('p');
+    ticketLine.id='festival-table-ticket-numbers';
+    ticketLine.setAttribute('aria-live','polite');
+    const ticketButton=document.createElement('button');
+    ticketButton.type='button';ticketButton.textContent='查看本桌抽獎券';
+    ticketButton.onclick=async ()=>{
+      ticketButton.disabled=true;ticketLine.textContent='正在讀取本桌券號…';
+      try{
+        const result=await callLive('festivalQuoteV99',{action:'tableTickets',visitId:visit.id});
+        ticketLine.textContent=result.tickets.length ? result.tickets.map(ticket=>ticket.name+' #'+String(ticket.number).padStart(3,'0')).join('、') : '本桌目前沒有有效抽獎券。';
+      }catch(error){ticketLine.textContent=error.message || '無法讀取本桌券號。';}
+      finally{ticketButton.disabled=false;}
+    };
+    const ticketHost=document.createElement('div');ticketHost.id='festival-table-ticket-host';ticketHost.append(ticketButton,ticketLine);liveTable.append(ticketHost);
     const quote = byId('festival-live-quote'), pay = byId('festival-live-pay');
     const info = byId('festival-live-quote-status');
     const active = () => auth.currentUser && revision === requestRevision;
@@ -690,15 +711,21 @@ window.addEventListener('DOMContentLoaded', async () => {
     quote.onclick = async () => {
       if (!active() || livePayBusy) return;
       quote.disabled = true; pay.disabled = true;
+      const quotedOrderRevision=orderRevision;
       info.textContent = '正在核對餐點與拍攝金額…';
       try {
         const result = await callLive('festivalQuoteV99',{visitId:visit.id});
-        if (!active()) return;
-        const fingerprint = JSON.stringify([result.orders,result.photo]);
+        if (!active() || orderRevision!==quotedOrderRevision) return;
+        const fingerprint = JSON.stringify([result.orders,result.photo,result.originalPaidAt]);
         if (fingerprint !== liveQuote?.fingerprint) livePayRequest = null;
         liveQuote = {...result,fingerprint};
         info.textContent = '待收餐點 '+amount(result.orders).toLocaleString('zh-TW')+' Gil、拍攝 '+amount(result.photo).toLocaleString('zh-TW')+' Gil。';
-        pay.disabled = !(result.orders.length || result.photo.length);
+        const recovering=Boolean(result.originalPaidAt);
+        pay.textContent=recovering?'核對已收款並補發票券':'確認已收款並結清';
+        if(recovering){
+          info.textContent+=' 原後台已標記收款。'+(role==='manager'?'請核對已收金額，再補登應援票與抽獎券。':'請管理員核對並補登票券。');
+        }
+        pay.disabled = !(result.orders.length || result.photo.length) || (recovering && role!=='manager');
       } catch (error) {
         if (active()) info.textContent = error.message || '無法取得本桌學園祭金額。';
       } finally { quote.disabled = false; }
@@ -713,15 +740,17 @@ window.addEventListener('DOMContentLoaded', async () => {
       const guests=(checkedQuote.support || []).map(row=>[row.name,publicDesign.teams[row.team]?.name].filter(Boolean).join(' · '));
       const support=guests.length ? '待結清餐點的應援學院：\n'+guests.join('\n') :
         orders.length ? '請先核對客人已選擇的應援學院。' : '本次沒有待結清的餐點。';
-      const detail=[visit.queueNumber+' · 應收 '+total.toLocaleString('zh-TW')+' Gil',dining,'拍攝 '+amount(photo).toLocaleString('zh-TW')+' Gil'].filter(Boolean).join('\n');
+      const paymentLabel=checkedQuote.originalPaidAt?'已收款金額':'應收';
+      checkoutPrompt.querySelector('[value=pay]').textContent=checkedQuote.originalPaidAt?'確認已收款並補登':'確認已收款';
+      const detail=[visit.queueNumber+' · '+paymentLabel+' '+total.toLocaleString('zh-TW')+' Gil',dining,'拍攝 '+amount(photo).toLocaleString('zh-TW')+' Gil'].filter(Boolean).join('\n');
       if(!await confirmFestivalPayment(support,detail) || !active() || livePayBusy || liveQuote!==checkedQuote)return;
       livePayRequest ||= crypto.randomUUID();
       livePayBusy = true; quote.disabled = true; pay.disabled = true;
       try {
-        const receipt = await callLive('festivalSettleV99',{visitId:visit.id,requestId:livePayRequest,previewOrders:orders,previewPhoto:photo});
+        const receipt = await callLive('festivalSettleV99',{visitId:visit.id,requestId:livePayRequest,previewOrders:orders,previewPhoto:photo,...(checkedQuote.originalPaidAt ? {originalPaidAt:checkedQuote.originalPaidAt} : {})});
         if (!active()) return;
-        await refresh();
-        setStatus('已結清。新增券號 '+(receipt.ticketNumbers || []).map(no=>String(no).padStart(3,'0')).join('、').replace(/^$/,'無')+'。');
+        await refresh(visit.id);
+        setStatus((checkedQuote.originalPaidAt?'已補登原後台收款。':'已結清。')+'新增券號 '+(receipt.ticketNumbers || []).map(no=>String(no).padStart(3,'0')).join('、').replace(/^$/,'無')+'。');
       } catch (error) {
         if (active()) {
           info.textContent = error.message || '結清未確認，請重試或重新讀取。';
@@ -1219,7 +1248,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     byId('page-description').textContent = '在這裡接待、處理餐點與結清。訂單和桌次會同步到原後台。';
   }
 
+  let stopWatchingOrders;
   function clearTableActions() {
+    stopWatchingOrders?.();
+    stopWatchingOrders=null;
     resetLiveTable();
     const staffBox=byId('festival-staff-actions');staffBox.hidden=true;
     for(const row of staffBox.querySelectorAll('[data-order-controls]'))row.remove();
@@ -1233,23 +1265,38 @@ window.addEventListener('DOMContentLoaded', async () => {
     byId('order-heading').textContent = (visit.queueNumber || '未編號桌次') + ' 本桌訂單';
     const container = byId('orders');
     container.textContent = '讀取中…';
-    try {
-      const orders = await reader.orders(visit);
+    let previousOrders;
+    stopWatchingOrders=reader.watchOrders(visit, orders=>{
       if (revision !== requestRevision || !role) return;
+      const signature=JSON.stringify(orders.map(order=>[order.id,order.total,order.items]));
+      if(previousOrders!==undefined && signature!==previousOrders){
+        orderRevision++;
+        if(!livePayBusy){
+          if(checkoutPrompt.open)finishCheckoutPrompt(false);
+          liveQuote=null;
+          livePayRequest=null;
+          byId('festival-live-pay').disabled=true;
+          byId('festival-live-quote-status').textContent='本桌訂單已更新，請重新核對金額。';
+        }
+      }
+      const first=previousOrders===undefined;
+      previousOrders=signature;
       container.replaceChildren();
       if (!orders.length) showLine(container, '目前沒有餐點訂單。');
       for (const order of orders) {
         showLine(container, '訂單 #' + (order.orderNumber || '—') + ' · ' + Number(order.total || 0).toLocaleString('zh-TW') + ' Gil');
-        for (const item of Array.isArray(order.items) ? order.items : []) {
+        for (const item of Object.values(order.items || {})) {
           const recipients = Array.isArray(item.assignments) ? item.assignments.join('、') : '';
           showLine(container, item.name + ' × ' + item.qty + (recipients ? ' · ' + recipients : ''));
         }
       }
-      showLiveTable(visit, revision);
-      await showStaffWorkspace(visit, revision, orders);
-    } catch {
-      if (revision === requestRevision) container.textContent = '無法讀取這桌訂單。請檢查原後台權限與訂單索引。';
-    }
+      if(first)showLiveTable(visit,revision);
+      if(!deskActionBusy)showStaffWorkspace(visit,revision,orders);
+    }, ()=>{
+      if(revision!==requestRevision)return;
+      resetLiveTable();
+      container.textContent='無法同步這桌訂單，請重新讀取並確認原後台權限。';
+    });
   }
 
   let watchDate='',watchRef=null,watchHandler=null,watchTimer=null;
@@ -1268,7 +1315,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       const { date, visits } = await reader.currentVisits();
       if (revision !== requestRevision || !role) return;
       setStatus((role === 'manager' ? '管理員' : '員工') + ' · 主題日工作台');
-      lastVisits=visits;lastDate=date;await syncStaff(date);if(revision!==requestRevision||!role)return;let preferred;
+      lastVisits=visits;lastDate=date;watchVisits(date);await syncStaff(date);if(revision!==requestRevision||!role)return;let preferred;
       byId('visit-heading').textContent = date ? date + ' 本場桌次' : '本場桌次';
       if (!visits.length) showLine(list, '目前沒有符合條件的桌次。');
       for (const visit of visits) {
@@ -1331,7 +1378,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         appearancePanel.hidden = livePanel.hidden;
         syncHistoryControls();
         byId('desk').hidden = false;
-        await refresh();
+        await refresh(new URLSearchParams(location.search).get('visit'));
         return;
       }
     } catch {
@@ -1357,7 +1404,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
   byId('refresh').addEventListener('click', () => {
     reader.resetReads();
-    return refresh();
+    return refresh(window.FestivalDeskBridge.selectedVisitId);
   });
   byId('logout').addEventListener('click', () => auth.signOut().catch(() => setStatus('登出失敗，請重試。')));
 });

@@ -572,7 +572,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
 
   function hasDiningOrderForPhoto(){
-    return Boolean(activeVisit && festivalState && festivalVisitKey===operationStatus.sessionId+'|'+activeVisitId+'|'+currentVisitorUid && festivalState.tableMinimum?.eligible);
+    return Boolean(activeVisit && ['assigned','serving','special_service'].includes(activeVisit.status) && festivalState && festivalVisitKey===operationStatus.sessionId+'|'+activeVisitId+'|'+currentVisitorUid && festivalState.tableMinimum?.eligible);
   }
   function photoMemberLabels(){
     var rows=activeVisit&&Array.isArray(activeVisit.partyMembers)?activeVisit.partyMembers.slice():[];
@@ -767,7 +767,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     markSiteReady('menu');
 
     function refreshVisibleVisitTotal(){
-      if(!document.hidden && activeVisit && activeGuestView==='total') fetchVisitTotal(false);
+      if(!document.hidden && activeVisit && activeGuestView==='total'){fetchVisitTotal(false);refreshFestivalMenu(true,true);}
     }
     setInterval(refreshVisibleVisitTotal,15000);
     window.addEventListener('focus',refreshVisibleVisitTotal);
@@ -841,11 +841,13 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   function fetchVisitTotal(showLoading){
     if(!activeVisitId||!getVisitReceiptFn||visitReceiptBusy)return Promise.resolve();
     if(activeGuestView==='photo')refreshFestivalMenu(true);
+    var receiptVisitId=activeVisitId;
     visitReceiptBusy=true;if(showLoading)document.getElementById('visitTotalStatus').textContent='正在更新本桌消費…';
-    return getVisitReceiptFn({visitId:activeVisitId}).then(function(result){visitReceipt=result&&result.data||null;renderVisitTotal();renderPhotoEntry();syncNativePhoto();document.getElementById('visitTotalStatus').textContent='已更新・'+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}).catch(function(error){if(showLoading)document.getElementById('visitTotalStatus').textContent='暫時無法取得消費明細，請稍後再試。';console.warn('visit total',error)}).finally(function(){visitReceiptBusy=false});
+    return getVisitReceiptFn({visitId:receiptVisitId}).then(function(result){if(receiptVisitId!==activeVisitId)return;visitReceipt=result&&result.data||null;renderVisitTotal();renderPhotoEntry();syncNativePhoto();document.getElementById('visitTotalStatus').textContent='已更新・'+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}).catch(function(error){if(showLoading)document.getElementById('visitTotalStatus').textContent='暫時無法取得消費明細，請稍後再試。';console.warn('visit total',error)}).finally(function(){visitReceiptBusy=false});
   }
 
   function setGuestTab(orderingEnabled, showOrder, showTotal, showPhoto){activeGuestView=showPhoto?'photo':showTotal?'total':showOrder?'order':'queue';
+    document.getElementById('visitAddMore').closest('.visit-reorder-note').style.display=activeVisit?.status==='completed'?'none':'';
     var queueTab=document.getElementById('queueTab');
     var orderTab=document.getElementById('orderTab');
     var photoTab=document.getElementById('photoTab');
@@ -956,7 +958,23 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       renderMenu();
       return;
     }
-    if(['completed','cancelled','no_show'].indexOf(activeVisit.status)!==-1){
+    if(activeVisit.status==='completed' && !visitRecoveryPending){
+      setVisitView('visitStatusPanel');
+      document.getElementById('visitTicketNumber').textContent=activeVisit.queueNumber || '已離席';
+      document.getElementById('visitStatusBadge').textContent='已離席';
+      document.getElementById('visitStatusTitle').textContent='仍可查看本次消費與抽獎券';
+      document.getElementById('visitAssignee').textContent='';
+      document.getElementById('visitStatusMeta').textContent='';
+      document.getElementById('visitStatusHelp').textContent='';
+      document.getElementById('sharedTableLinkCard').style.display='none';
+      document.getElementById('cancelVisitQueue').style.display='none';
+      setGuestTab(false,false,true,false);
+      fetchVisitTotal(false);
+      refreshFestivalMenu(true,true);
+      renderOperationStatus();renderMenu();
+      return;
+    }
+    if(['cancelled','no_show'].indexOf(activeVisit.status)!==-1){
       clearVisitLocalState(activeVisitId);
       localStorage.removeItem('lephemereActiveVisitId');
       sessionStorage.removeItem('lephemereActiveVisitSessionId');
@@ -1005,7 +1023,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     }
     renderDinerRoster();
     renderCart();
-    if(activeGuestView==='total' && !document.hidden) fetchVisitTotal(false);
+    if(activeGuestView==='total' && !document.hidden){fetchVisitTotal(false);refreshFestivalMenu(true,true);}
     renderOperationStatus();
     renderMenu();
   }
@@ -1701,25 +1719,26 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     })});
     showFestivalPortrait();syncFestivalPortrait();if(festivalState)drawFestivalMenu();
   });
-  var festivalVisitKey='', festivalState=null, festivalTeam='', festivalCounts={}, festivalMenuPromise=null, festivalSending=false;
+  var festivalVisitKey='', festivalState=null, festivalTeam='', festivalCounts={}, festivalMenuPromise=null, festivalSending=false, festivalLastOrder=null;
   var festivalView=function(id){return document.getElementById('festival-'+id)};
-  function refreshFestivalMenu(force){
+  function refreshFestivalMenu(force, quiet){
     var visitId=activeVisitId;
     if(!functionsClient || !currentVisitorUid || !activeVisit || !visitId || activeVisit.sessionId!==operationStatus.sessionId){
-      festivalVisitKey='';festivalState=null;festivalCounts={};festivalTeam='';festivalMenuPromise=null;drawFestivalMenu();return;
+      festivalVisitKey='';festivalLastOrder=null;festivalState=null;festivalCounts={};festivalTeam='';festivalMenuPromise=null;drawFestivalMenu();return;
     }
     var key=operationStatus.sessionId+'|'+visitId+'|'+currentVisitorUid;
-    if(key!==festivalVisitKey){festivalVisitKey=key;festivalTeam='';festivalCounts={};festivalState=null;festivalMenuPromise=null}
+    if(key!==festivalVisitKey){festivalVisitKey=key;festivalLastOrder=null;festivalTeam='';festivalCounts={};festivalState=null;festivalMenuPromise=null}
     if(festivalMenuPromise || (festivalState && !force)) return festivalMenuPromise;
-    festivalView('status').textContent='正在核對本場菜單…';
+    if(!quiet && !festivalSending) festivalView('status').textContent='正在核對本場菜單…';
     var request=functionsClient.httpsCallable('festivalGuestMenuV99')({visitId:visitId}).then(function(result){
       if(festivalVisitKey!==key || activeVisitId!==visitId) return;
       festivalState=result.data;
       if(festivalState.locked || !festivalTeam) festivalTeam=festivalState.team;
-      festivalView('status').textContent='';
+      if(!quiet && !festivalSending) festivalView('status').textContent='';
       drawFestivalMenu();syncNativePhoto();
     }).catch(function(error){
       if(festivalVisitKey!==key || activeVisitId!==visitId) return;
+      if(quiet && festivalState)return;
       festivalState=null;
       drawFestivalMenu();syncNativePhoto();
       festivalView('status').textContent=String(error.message||'目前無法讀取學園祭菜單。');
@@ -1734,11 +1753,13 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   }
   function drawFestivalTotal(){
     var cartRows=currentFestivalCart();
-    var total=cartRows.reduce(function(sum,row){return sum+row.qty*row.price},0);
+    var sent=!cartRows.length && festivalLastOrder;
+    if(sent)cartRows=sent.items;
+    var total=sent ? sent.total : cartRows.reduce(function(sum,row){return sum+row.qty*row.price},0);
     var summary=festivalView('cart-rows');summary.replaceChildren();
-    cartRows.forEach(function(row){var item=document.createElement('li');var entry=festivalState.menus.find(function(menu){return menu.id===row.id});item.textContent=entry.name+' × '+row.qty+' · '+fmtGil(row.qty*row.price);summary.append(item)});
+    cartRows.forEach(function(row){var item=document.createElement('li');var entry=row.name ? row : festivalState.menus.find(function(menu){return menu.id===row.id});item.textContent=entry.name+' × '+row.qty+' · '+fmtGil(row.qty*row.price);summary.append(item)});
     if(!cartRows.length){var empty=document.createElement('li');empty.textContent=window.FestivalCopyText('12','空白狀態');summary.append(empty)}
-    festivalView('total').textContent=window.FestivalCopyText('12','合計')+' '+fmtGil(total);
+    festivalView('total').textContent=(sent ? '訂單 #'+sent.orderNumber+' 餐點合計' : window.FestivalCopyText('12','合計'))+' '+fmtGil(total);
     festivalView('send').disabled=festivalSending || !currentFestivalCart().length || !activeVisit || operationStatus.isOpen!==true ||
       (!['assigned','serving'].includes(activeVisit.status) || festivalState?.orderingOpen===false);
   }
@@ -1845,7 +1866,10 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   festivalView('send').addEventListener('click',async function(){
     if(festivalSending || !activeVisitId || festivalView('send').disabled) return;
     var key=festivalVisitKey,visitId=activeVisitId;
-    var rows=currentFestivalCart().map(function(row){return {id:row.id,qty:row.qty}});
+    var submittedItems=currentFestivalCart().map(function(row){
+      return {...row,name:festivalState.menus.find(menu=>menu.id===row.id).name};
+    });
+    var rows=submittedItems.map(function(row){return {id:row.id,qty:row.qty}});
     var fingerprint=JSON.stringify([key,festivalTeam,rows]);
     var storageKey='lephemereFestivalPending:'+visitId;
     var pending;
@@ -1859,11 +1883,19 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     try {
       var result=await functionsClient.httpsCallable('festivalSubmitOrderV99')({visitId:visitId,requestId:pending.requestId,team:festivalTeam,items:rows});
       if(festivalVisitKey!==key || activeVisitId!==visitId) return;
+      var confirmed=result.data;
+      if(!confirmed?.orderId || !Number.isSafeInteger(confirmed.orderNumber) || !Number.isSafeInteger(confirmed.total) || confirmed.total<0){
+        throw Object.assign(Error('送單未確認'),{code:'aborted'});
+      }
       try { localStorage.removeItem(storageKey); } catch (_) {}
+      festivalLastOrder={...confirmed,items:confirmed.items || submittedItems};
       festivalCounts={};unlockPhotoEntry();
-      await refreshFestivalMenu(true);
-      if(festivalVisitKey!==key || activeVisitId!==visitId) return;
-      festivalView('status').textContent=window.FestivalCopyText('12','送出成功')+'\n訂單 #'+result.data.orderNumber;
+      var schoolName=festivalView('choices').querySelector('[data-team="'+festivalTeam+'"]')?.textContent.trim() || '所選學院';
+      festivalView('status').textContent='訂單 #'+confirmed.orderNumber+' 已送出 · '+fmtGil(confirmed.total)+'\n'+
+        '你選了'+schoolName+'。符合資格的餐飲滿 30,000 Gil，結帳後自動計入 1 票與 1 張抽獎券，券號在「本次消費」。';
+      Promise.resolve(festivalMenuPromise).then(function(){
+        if(festivalVisitKey===key && activeVisitId===visitId)refreshFestivalMenu(true,true);
+      });
     } catch(error) {
       if(festivalVisitKey===key && activeVisitId===visitId) {
         var needsRetry=/internal|deadline-exceeded|unavailable|aborted/.test(String(error.code||'')) || error.message==='internal';
@@ -1885,7 +1917,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 </script>
 <script src="festival-base/photo/assets/schedule.js?v=43"></script>
 <script src="assets/guest-photo-festival-v105.js?v=105"></script>
-<script src="festival-guest-layout.js?v=119"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="compact-order-v130.js?v=130"></script><script src="festival-journey-v170.js"></script></body>
+<script src="festival-guest-layout.js?v=119"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="compact-order-v130.js?v=130"></script><script src="festival-journey-v172.js"></script></body>
 </html>
 
 
