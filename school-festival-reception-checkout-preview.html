@@ -246,6 +246,17 @@
           </form>
           <p id="draw-hit" aria-live="polite"></p>
           <h2>中獎與領獎紀錄</h2><button type="button" id="draw-copy-winners">複製 Discord 中獎名單</button><ul id="draw-winners"></ul>
+
+          <details id="draw-full-reset">
+            <summary>整場重置</summary>
+            <p>打烊後才能重置。本場訂單、拍立得登記、號碼牌、已發及作廢券、應援票與中獎紀錄會全部清空。共用菜單、獎項設定、排班及拍攝輪次會保留。</p>
+            <button id="draw-full-reset-preview" type="button">預覽本場重置</button>
+            <div id="draw-full-reset-tools" hidden>
+              <label>輸入確認文字<input id="draw-full-reset-confirm" type="text" autocomplete="off"></label>
+              <button id="draw-full-reset-apply" type="button" disabled>確認重置整場</button>
+            </div>
+            <p id="draw-full-reset-status" role="status"></p>
+          </details>
           <h2>取消學園祭餐點</h2>
           <section aria-labelledby="draw-batch-heading">
             <h3 id="draw-batch-heading">批次取消餐點</h3>
@@ -926,6 +937,40 @@ window.addEventListener('DOMContentLoaded', async () => {
     const poolLabel=(id)=>teamName(id)+'獎池';
     const canUse=()=>role==='manager' && Boolean(functions);
     const actions=panel.querySelectorAll('button');
+    const resetPreviewButton=byId('draw-full-reset-preview');
+    const resetTools=byId('draw-full-reset-tools');
+    const resetInput=byId('draw-full-reset-confirm');
+    const resetApply=byId('draw-full-reset-apply');
+    const resetStatus=byId('draw-full-reset-status');
+    const resetPhrase='重置本場';
+    let resetPlan=null;
+    function updateResetButtons(){
+      resetPreviewButton.disabled=busy || !model || model.configured===false;
+      resetInput.disabled=busy;
+      resetApply.disabled=busy || !resetPlan || resetInput.value.trim()!==resetPhrase;
+    }
+    function clearReset(){
+      resetPlan=null;resetTools.hidden=true;resetInput.value='';resetStatus.textContent='';
+    }
+    resetInput.addEventListener('input',updateResetButtons);
+    resetPreviewButton.addEventListener('click',()=>{
+      clearReset();
+      return run('resetSession',{},result=>{
+        resetPlan=result;resetTools.hidden=false;
+        const counts=result.counts;
+        resetStatus.textContent=result.businessDate+'｜訂單 '+counts.orders+' 筆、號碼牌 '+counts.visits+' 張、拍立得 '+counts.photos+' 筆、已發券 '+counts.issued+' 張（作廢 '+counts.voided+' 張）、中獎 '+counts.wins+' 筆。確認是要清空的場次後，請輸入「'+resetPhrase+'」。';
+      },message=>{resetStatus.textContent=message;});
+    });
+    resetApply.addEventListener('click',()=>{
+      if(!resetPlan || resetApply.disabled || !confirm('確定清空 '+resetPlan.businessDate+' 的整場測試資料？此操作無法復原。'))return;
+      return run('resetSession',{confirm:true,signature:resetPlan.signature},async (result,revision)=>{
+        clearReset();resetBatch();resetRoll();resetCancellation();
+        resetStatus.textContent='已重置 '+result.businessDate+'。已發與作廢券已歸零。';
+        const summary=await request('summary',{});
+        if(revision===authRevision && canUse())render(summary);
+      },message=>{resetStatus.textContent=message;});
+    });
+
     const batchLoad=byId('draw-batch-load');
     const batchTools=byId('draw-batch-tools');
     const batchFilter=byId('draw-batch-filter');
@@ -1019,6 +1064,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       rollInput.disabled=busy || !prepared;
       lookupForm.querySelector('button').disabled=busy || !model || model.configured===false;
       saveWinner.disabled=busy || !hit;
+      updateResetButtons();
       updateBatchButtons();
       byId('draw-cancel-confirm').disabled=busy || !cancellation || ['cancelled','refunded'].includes(cancellation.status);
     }
@@ -1045,7 +1091,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
     function render(summary){
       const selected=prizes.value;
-      if(model?.sessionId!==summary.sessionId)resetBatch();
+      if(model?.sessionId!==summary.sessionId){resetBatch();clearReset();}
       model=summary;
       work.hidden=false;
       byId('draw-counts').textContent=model.configured===false ? '獎項可先設定，開啟學園祭後可管理本場票券與開獎。' : '發券截止 '+(model.cutoffAt>8e15?'手動停止':formatTime(model.cutoffAt))+'｜'+(model.locked?'已鎖定':'尚未鎖定')+
@@ -1128,7 +1174,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     byId('draw-refresh').addEventListener('click',()=>run('summary',{},summary=>{
-      resetRoll();resetCancellation();resetBatch();render(summary);
+      resetRoll();resetCancellation();resetBatch();clearReset();render(summary);
     }));
     prizeForm.addEventListener('submit',event=>{
       event.preventDefault();
@@ -1215,7 +1261,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         if(!canUse()){
           panel.open=false;work.hidden=true;
           model=null;busy=false;
-          resetRoll();resetCancellation();resetBatch();status.textContent='';
+          resetRoll();resetCancellation();resetBatch();clearReset();status.textContent='';
           for(const button of actions)if(button.id!=='draw-refresh')button.disabled=false;
           updateButtons();
         }
@@ -1594,5 +1640,5 @@ window.addEventListener('DOMContentLoaded', async () => {
   byId('logout').addEventListener('click', () => auth.signOut().catch(() => setStatus('登出失敗，請重試。')));
 });
 </script>
-<script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema-v152.js"></script><script src="festival-chairman-composition-v152.js"></script><script src="festival-page-editor-v148.js"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="workbench-menu-v169.js"></script><script src="desk-schedule-v133.js"></script><script src="desk-photo-v182.js"></script><script src="desk-recovery-v133.js?v=133"></script><script src="photo-opening-v182.js"></script></body>
+<script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema-v152.js"></script><script src="festival-chairman-composition-v152.js"></script><script src="festival-page-editor-v148.js"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="workbench-menu-v169.js"></script><script src="desk-schedule-v133.js"></script><script src="desk-photo-v184.js"></script><script src="desk-recovery-v133.js?v=133"></script><script src="photo-opening-v182.js"></script></body>
 </html>
