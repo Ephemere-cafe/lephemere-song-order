@@ -27,7 +27,10 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js"></script>
 <link rel="stylesheet" href="festival-ui.css?v=98">
 <style>#festival-appearance{margin:12px 0}#festival-appearance summary{cursor:pointer;font-weight:700}#festival-appearance form{display:grid;gap:10px;margin-top:10px}#festival-appearance input,#festival-appearance textarea{max-width:100%;font:inherit;color:var(--ink);background:var(--paper)}#festival-appearance-teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}#festival-appearance fieldset{min-width:0;border:1px solid var(--line);padding:10px}#festival-appearance fieldset details{margin-top:8px;padding:6px;border-top:1px solid var(--line)}</style>
-<style>#festival-lucky-roll{margin:12px 0}#festival-lucky-roll summary{cursor:pointer;font-weight:700}#festival-lucky-roll form{margin-bottom:8px}#festival-lucky-roll ul{padding-left:1.3rem}#festival-lucky-roll li{margin:5px 0}#festival-lucky-roll code{font-size:1.25rem}#draw-status,#draw-hit,#draw-cancel-result{margin:8px 0}#draw-work h2{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}</style>
+<style>#festival-lucky-roll{margin:12px 0}#festival-lucky-roll summary{cursor:pointer;font-weight:700}#festival-lucky-roll form{margin-bottom:8px}#festival-lucky-roll ul{padding-left:1.3rem}#festival-lucky-roll li{margin:5px 0}#festival-lucky-roll code{font-size:1.25rem}#draw-status,#draw-hit,#draw-cancel-result{margin:8px 0}
+#draw-batch-list{max-height:25rem;overflow:auto;padding:0;list-style:none}
+#draw-batch-list label{display:flex;align-items:flex-start;gap:.75rem;padding:.55rem 0;border-bottom:1px solid var(--line)}
+#draw-batch-list input{flex:0 0 auto;width:1rem;height:1rem;min-height:0;margin-top:.3rem}#draw-work h2{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}</style>
 <style>#festival-menu-editor{margin:12px 0}#festival-menu-editor summary{cursor:pointer;font-weight:700}#fest-menu-form{padding-top:12px;display:flex;gap:12px}#fest-menu-list{padding-left:1.3rem}#fest-menu-list li{margin:4px 0}</style>
 <link rel="stylesheet" href="festival-page-editor.css"><link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="festival-workbench-v121.css?v=121"><script src="festival-workbench-v121.js?v=146"></script><link rel="stylesheet" href="festival-character-ui-v124.css?v=124"><link rel="stylesheet" href="festival-polish-v129.css?v=129"><script src="photo-camera-v152.js"></script><script src="festival-photos-v152.js"></script><script src="festival-photo-editor-v152.js"></script><link rel="stylesheet" href="compact-order-v130.css?v=130"><script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script><link rel="stylesheet" href="desk-photo-original-v133.css"><link rel="stylesheet" href="desk-v133.css?v=133"><link rel="stylesheet" href="festival-chairman-composition-v148.css">
 <link rel="stylesheet" href="photo-camera-v152.css"><link rel="stylesheet" href="festival-checkout-prompt-v170.css"><link rel="stylesheet" href="festival-draw-v173.css"><link rel="stylesheet" href="desk-layout-v174.css">
@@ -244,6 +247,20 @@
           <p id="draw-hit" aria-live="polite"></p>
           <h2>中獎與領獎紀錄</h2><button type="button" id="draw-copy-winners">複製 Discord 中獎名單</button><ul id="draw-winners"></ul>
           <h2>取消學園祭餐點</h2>
+          <section aria-labelledby="draw-batch-heading">
+            <h3 id="draw-batch-heading">批次取消餐點</h3>
+            <button id="draw-batch-load" type="button">讀取本場餐點訂單</button>
+            <div id="draw-batch-tools" hidden>
+              <label>搜尋客人、號碼牌或訂單編號<input id="draw-batch-filter" type="search" autocomplete="off"></label>
+              <div class="toolbar">
+                <button id="draw-batch-select" type="button">全選本場餐點</button>
+                <button id="draw-batch-clear" type="button">取消勾選</button>
+                <button id="draw-batch-submit" class="primary" type="button" disabled>取消所選訂單</button>
+              </div>
+              <ul id="draw-batch-list"></ul>
+            </div>
+            <p id="draw-batch-status" role="status"></p>
+          </section>
           <form id="draw-cancel-form"><label>訂單編號<input id="draw-cancel-number" type="number" min="1" required></label><button type="submit">查詢訂單</button></form>
           <p id="draw-cancel-result" aria-live="polite"></p><button type="button" id="draw-cancel-confirm">確認取消這筆訂單</button>
         </div>
@@ -909,6 +926,88 @@ window.addEventListener('DOMContentLoaded', async () => {
     const poolLabel=(id)=>teamName(id)+'獎池';
     const canUse=()=>role==='manager' && Boolean(functions);
     const actions=panel.querySelectorAll('button');
+    const batchLoad=byId('draw-batch-load');
+    const batchTools=byId('draw-batch-tools');
+    const batchFilter=byId('draw-batch-filter');
+    const batchSelect=byId('draw-batch-select');
+    const batchClear=byId('draw-batch-clear');
+    const batchSubmit=byId('draw-batch-submit');
+    const batchList=byId('draw-batch-list');
+    const batchStatus=byId('draw-batch-status');
+    let batchOrders=[];
+    let shownOrders=[];
+    const selectedOrders=new Set();
+
+    function updateBatchButtons(){
+      batchLoad.disabled=busy || !model || model.configured===false;
+      batchFilter.disabled=busy;
+      batchSelect.disabled=busy || shownOrders.length===0;
+      batchClear.disabled=busy || selectedOrders.size===0;
+      batchSubmit.disabled=busy || selectedOrders.size===0;
+      batchSubmit.textContent=selectedOrders.size ? '取消所選 '+selectedOrders.size+' 筆訂單' : '取消所選訂單';
+      for(const checkbox of batchList.querySelectorAll('input'))checkbox.disabled=busy;
+    }
+    function resetBatch(){
+      batchOrders=[];shownOrders=[];selectedOrders.clear();
+      batchFilter.value='';batchList.replaceChildren();batchStatus.textContent='';batchTools.hidden=true;
+    }
+    function renderBatch(){
+      const filter=batchFilter.value.trim().toLocaleLowerCase();
+      shownOrders=batchOrders.filter(order=>{
+        if(filter.startsWith('#'))return String(order.orderNumber)===filter.slice(1);
+        return [order.guest,order.queueNumber,order.orderNumber].some(value=>String(value ?? '').toLocaleLowerCase().includes(filter));
+      });
+      batchSelect.textContent=filter ? '全選搜尋結果' : '全選本場餐點';
+      const fragment=document.createDocumentFragment();
+      for(const order of shownOrders){
+        const row=document.createElement('li');
+        const label=document.createElement('label');
+        const check=document.createElement('input');
+        const text=document.createElement('span');
+        const title=document.createElement('strong');
+        check.type='checkbox';check.dataset.order=order.orderId;check.checked=selectedOrders.has(order.orderId);
+        title.textContent=['#'+order.orderNumber,order.queueNumber,order.guest,Number(order.total || 0).toLocaleString('zh-TW')+' Gil'].filter(Boolean).join(' · ');
+        const state=order.status==='completed'?'已送達':order.status==='preparing'?'備餐中':'待處理';
+        text.append(title,document.createElement('br'),state+' · '+order.items.map(item=>item.name+' × '+item.qty).join('、'));
+        label.append(check,text);row.append(label);fragment.append(row);
+      }
+      batchList.replaceChildren(fragment);
+      batchStatus.textContent=shownOrders.length ? '顯示 '+shownOrders.length+' 筆，已勾選 '+selectedOrders.size+' 筆。' : '目前沒有符合條件的餐點訂單。';
+      updateBatchButtons();
+    }
+
+    batchLoad.addEventListener('click',()=>run('listCancelOrders',{},result=>{
+      batchOrders=result.orders;selectedOrders.clear();batchTools.hidden=false;renderBatch();
+    },message=>{batchStatus.textContent=message;}));
+    batchFilter.addEventListener('input',()=>{selectedOrders.clear();renderBatch();});
+    batchList.addEventListener('change',event=>{
+      const id=event.target.dataset.order;
+      if(!id)return;
+      if(event.target.checked)selectedOrders.add(id);else selectedOrders.delete(id);
+      batchStatus.textContent='顯示 '+shownOrders.length+' 筆，已勾選 '+selectedOrders.size+' 筆。';
+      updateBatchButtons();
+    });
+    batchSelect.addEventListener('click',()=>{for(const order of shownOrders)selectedOrders.add(order.orderId);renderBatch();});
+    batchClear.addEventListener('click',()=>{selectedOrders.clear();renderBatch();});
+    batchSubmit.addEventListener('click',()=>{
+      if(!model || busy || !selectedOrders.size)return;
+      const ids=[...selectedOrders];
+      const numbers=shownOrders.filter(order=>selectedOrders.has(order.orderId)).map(order=>'#'+order.orderNumber);
+      const orderPreview=numbers.slice(0,8).join('、')+(numbers.length>8?' 等 '+numbers.length+' 筆':'');
+      if(!confirm('確定取消勾選的 '+ids.length+' 筆學園祭餐點？\n'+orderPreview+'\n庫存和票券會依原本的取消規則重新核算。'))return;
+      const sessionId=model.sessionId;
+      return run('cancelOrders',{orderIds:ids},async (result,revision)=>{
+        resetCancellation();resetRoll();
+        const cancelled=new Set(ids);
+        batchOrders=batchOrders.filter(order=>!cancelled.has(order.orderId));
+        selectedOrders.clear();renderBatch();
+        const message='已取消 '+result.orderNumbers.length+' 筆。'+(result.alreadyCancelled?'其中 '+result.alreadyCancelled+' 筆先前已取消。':'');
+        batchStatus.textContent=message;
+        const summary=await request('summary',{});
+        if(revision===authRevision && canUse() && summary.sessionId===sessionId)render(summary);
+      },message=>{batchStatus.textContent=message;});
+    });
+
     const formatTime=at=>new Date(at).toLocaleString('zh-TW',{timeZone:'Asia/Taipei',hour12:false});
     function updateButtons(){
       const prepared=Boolean(roll);
@@ -920,6 +1019,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       rollInput.disabled=busy || !prepared;
       lookupForm.querySelector('button').disabled=busy || !model || model.configured===false;
       saveWinner.disabled=busy || !hit;
+      updateBatchButtons();
       byId('draw-cancel-confirm').disabled=busy || !cancellation || ['cancelled','refunded'].includes(cancellation.status);
     }
     function matchingTicket(){
@@ -945,6 +1045,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
     function render(summary){
       const selected=prizes.value;
+      if(model?.sessionId!==summary.sessionId)resetBatch();
       model=summary;
       work.hidden=false;
       byId('draw-counts').textContent=model.configured===false ? '獎項可先設定，開啟學園祭後可管理本場票券與開獎。' : '發券截止 '+(model.cutoffAt>8e15?'手動停止':formatTime(model.cutoffAt))+'｜'+(model.locked?'已鎖定':'尚未鎖定')+
@@ -1001,7 +1102,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     async function request(action,fields){
       return callLive('festivalDrawAdminV101',{action,sessionId:model?.sessionId,...fields});
     }
-    async function run(action,fields,success){
+    async function run(action,fields,success,failure){
       if(!canUse() || busy)return;
       const revision=authRevision;
       busy=true;updateButtons();
@@ -1012,7 +1113,11 @@ window.addEventListener('DOMContentLoaded', async () => {
         status.textContent='';
         await success(data,revision);
       }catch(error){
-        if(revision===authRevision)status.textContent=error.message || '無法完成，請重新讀取。';
+        if(revision===authRevision){
+          const message=error.message || '無法完成，請重新讀取。';
+          status.textContent=message;
+          failure?.(message);
+        }
       }finally{
         if(revision===authRevision){busy=false;updateButtons();}
       }
@@ -1023,7 +1128,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     byId('draw-refresh').addEventListener('click',()=>run('summary',{},summary=>{
-      resetRoll();resetCancellation();render(summary);
+      resetRoll();resetCancellation();resetBatch();render(summary);
     }));
     prizeForm.addEventListener('submit',event=>{
       event.preventDefault();
@@ -1110,7 +1215,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         if(!canUse()){
           panel.open=false;work.hidden=true;
           model=null;busy=false;
-          resetRoll();resetCancellation();status.textContent='';
+          resetRoll();resetCancellation();resetBatch();status.textContent='';
           for(const button of actions)if(button.id!=='draw-refresh')button.disabled=false;
           updateButtons();
         }
