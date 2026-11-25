@@ -178,6 +178,8 @@
     var title = document.getElementById('businessSessionTitle');
     var help = document.getElementById('businessSessionHelp');
     if(title) title.textContent = operationStatus.isOpen===false ? businessDateText()+' 已打烊' : businessDateText()+' 營業中';
+    var photoChoice = document.getElementById('photoOpenChoice');
+    if (photoChoice) photoChoice.hidden = operationStatus.isOpen !== false || !isManager();
     if(help) help.textContent = operationStatus.isOpen===false
       ? '可調整上方日期後按「開始營業」；開店後日期會鎖定，直到本場打烊。'
       : '目前場次已鎖定，不會在午夜自動換日；請於本場結束後再打烊。';
@@ -2000,6 +2002,54 @@
     if(!confirm('已在遊戲內叫號，但 '+(visit.queueNumber||'這組')+' 沒有回應嗎？\n確認後會移出候位隊列。')) return;
     visitsRef.child(id).update({status:'no_show',noShowAt:Date.now(),updatedAt:Date.now()});
   });
+  const festivalCheckoutPending = new Map();
+  const festivalCheckoutBusy = new Set();
+
+  async function settleFestivalTable(visitId, button, uid, key) {
+    let request = festivalCheckoutPending.get(key);
+    if (!request) {
+      const {data: quote} = await functionsClient.httpsCallable('festivalQuoteV99', {timeout: 20000})({visitId});
+      if (firebase.auth().currentUser?.uid !== uid) throw Error('登入帳號已切換，請重新核對本桌。');
+      if (!Array.isArray(quote?.orders) || !Array.isArray(quote?.photo)) throw Error('無法讀取本桌金額，請重試。');
+      if (!quote.orders.length && !quote.photo.length) {
+        showCopyToast('本桌目前沒有待結清項目。', true);
+        return;
+      }
+      if (quote.originalPaidAt && !isManager()) throw Error('原後台已標記收款，請管理員核對並補登票券。');
+      const amount = rows => rows.reduce((total, row) => total + Number(row.total), 0);
+      const dining = amount(quote.orders);
+      const photo = amount(quote.photo);
+      const support = (quote.support || []).map(row => [row.name, row.team + ' 欄學院'].filter(Boolean).join('・'));
+      const details = [
+        '學園祭 ' + (visits[visitId]?.queueNumber || '本桌'),
+        '餐點 ' + fmtGil(dining) + '，拍攝／紀念服務 ' + fmtGil(photo),
+        ...(support.length ? ['本次應援學院', ...support] : []),
+        quote.originalPaidAt ? '確認已收取 ' + fmtGil(dining + photo) + ' 並補登票券？' : '確認已收取本桌合計 ' + fmtGil(dining + photo) + ' 嗎？'
+      ];
+      if (!confirm(details.join('\n'))) return;
+      request = {visitId, requestId: crypto.randomUUID(), previewOrders: quote.orders, previewPhoto: quote.photo};
+      if (quote.originalPaidAt) request.originalPaidAt = quote.originalPaidAt;
+      festivalCheckoutPending.set(key, request);
+    }
+
+    button.textContent = '正在確認結清…';
+    try {
+      const {data: receipt} = await functionsClient.httpsCallable('festivalSettleV99', {timeout: 24000})(request);
+      if (!Number.isSafeInteger(receipt?.paidAt)) throw Error('結清回覆尚未確認。');
+      festivalCheckoutPending.delete(key);
+      if (firebase.auth().currentUser?.uid !== uid) return;
+      const numbers = (receipt.ticketNumbers || []).map(number => '#' + String(number).padStart(3, '0'));
+      const result = request.originalPaidAt ? '已補登學園祭結清' : '本桌已完成學園祭結清';
+      showCopyToast(result + (numbers.length ? '。新增券號 ' + numbers.join('、') : '。'), true);
+    } catch (error) {
+      if (/invalid-argument|failed-precondition|permission-denied|unauthenticated/.test(error?.code || '')) {
+        festivalCheckoutPending.delete(key);
+        throw error;
+      }
+      throw Error('結清結果尚未確認。請按「確認上次結清」，系統會查核同一筆。');
+    }
+  }
+
   document.addEventListener('click',async function(e){
     var copy=e.target.closest('[data-copy-share-code]');if(copy){var code=visitShareCodes[copy.getAttribute('data-copy-share-code')]||'';if(!code)return;navigator.clipboard.writeText(code).then(function(){var old=copy.textContent;copy.textContent='已複製';setTimeout(function(){copy.textContent=old},1200)}).catch(function(){prompt('請複製本桌密碼：',code)});return}
     var ticketButton=e.target.closest('[data-festival-table-tickets]');
@@ -2020,19 +2070,38 @@
       var previousLabel=settle.textContent;
       settle.disabled=true;
       settle.textContent='核對桌次…';
+      const uid = firebase.auth().currentUser?.uid;
+      const festivalKey = uid + ':' + visitId;
+      if (!uid || festivalCheckoutBusy.has(festivalKey)) {
+        settle.disabled=false;settle.textContent=previousLabel;
+        return;
+      }
+      festivalCheckoutBusy.add(festivalKey);
+      let festival = festivalCheckoutPending.has(festivalKey);
+      let routeConfirmed = false;
       try {
-        var route=await functionsClient.httpsCallable('festivalQuoteV99')({action:'checkoutRoute',visitId:visitId});
+        if (festival) {
+          await settleFestivalTable(visitId, settle, uid, festivalKey);
+          return;
+        }
+        var route=await functionsClient.httpsCallable('festivalQuoteV99', {timeout: 20000})({action:'checkoutRoute',visitId:visitId});
+        if (firebase.auth().currentUser?.uid !== uid) throw Error('登入帳號已切換，請重新核對本桌。');
+        festival = route?.data?.festival===true;
         if(route?.data?.festival===true){
-          var checkout=new URL(document.getElementById('festivalWorkbenchEntry').href);
-          checkout.searchParams.set('visit',visitId);
-          location.assign(checkout.href);
+          await settleFestivalTable(visitId, settle, uid, festivalKey);
           return;
         }
         if(route?.data?.festival!==false)throw Error('無法確認這桌的結帳方式，請重新整理。');
+        routeConfirmed = true;
       } catch(error) {
-        settle.disabled=false;settle.textContent=previousLabel;
         alert(error.message || '無法確認這桌的結帳方式，請重試。');
         return;
+      } finally {
+        festivalCheckoutBusy.delete(festivalKey);
+        if (!routeConfirmed) {
+          settle.disabled = false;
+          settle.textContent = festivalCheckoutPending.has(festivalKey) ? '確認上次結清' : (festival ? '結清' : previousLabel);
+        }
       }
       bill=checkoutForVisit(visitId);
       if(!confirm('確認已收取本桌合計 '+fmtGil(bill.total)+' 嗎？')){
@@ -3079,12 +3148,35 @@
   }
 
   document.getElementById('viewDailyReport').addEventListener('click', function(){ showDailyReport(false); });
-  document.getElementById('operationToggle').addEventListener('click', function(){
+  document.getElementById('operationToggle').addEventListener('click', async function(){
     if(operationStatus.isOpen===false){
       var input = document.getElementById('businessDateInput');
       var businessDate = input && input.value.trim();
       if(!isScheduleDate(businessDate)){ alert('請先選擇這一場的營業日期。'); return; }
-      operationStatusRef.set({ isOpen:true, label:'營業中', businessDate:businessDate, sessionId:'session-'+businessDate+'-'+Date.now(), openedAt:Date.now(), updatedAt:Date.now() });
+      const openedAt = Date.now();
+      const sessionId = 'session-' + businessDate + '-' + openedAt;
+      const openPhoto = document.getElementById('photoOpenWithBusiness')?.checked;
+      const result = document.getElementById('photoOpeningResult');
+      this.disabled = true;
+      if (result) result.textContent = '';
+      try {
+        await operationStatusRef.set({isOpen:true,label:'營業中',businessDate,sessionId,openedAt,updatedAt:openedAt});
+      } catch (error) {
+        alert(error.message || '開始營業失敗，請重試。');
+        this.disabled = false;
+        return;
+      }
+      try {
+        if (openPhoto) {
+          if (result) result.textContent = '營業已開始，正在同步拍立得…';
+          const photo = await window.PhotoOpening.prepare(firebase.app(),sessionId);
+          if (result) result.textContent = photo.state === 'needs-setup' ? '拍立得尚未開放。' + photo.message : photo.message;
+        }
+      } catch {
+        if (result) result.textContent = '營業已開始。拍立得尚未確認，請到拍立得設定按「用本場排班開啟」。';
+      } finally {
+        this.disabled = false;
+      }
       return;
     }
     var preview = buildDailyReport();

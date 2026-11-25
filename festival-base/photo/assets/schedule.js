@@ -26,7 +26,7 @@
   function allTasks(s){var out=[];Object.entries(s.orders||{}).forEach(function(pair){Object.entries(pair[1].tasks||{}).forEach(function(tp){out.push(Object.assign({},tp[1],{orderId:pair[0],taskId:tp[0],createdAt:pair[1].createdAt||tp[1].createdAt||0}))})});return out.sort(function(a,b){return a.createdAt-b.createdAt||String(a.taskNumber||a.taskId).localeCompare(String(b.taskNumber||b.taskId))})}
   function onsiteTask(s,t){var p=(s.products||{})[t.productId]||{};return t.isOnsitePhoto===true||(t.isOnsitePhoto!==false&&onsite(Object.assign({},p,{id:t.productId,processingMode:t.taskType==='delivery'?'delivery':'round'})))}
   function counts(s,key){var count=0,maids={};allTasks(s).forEach(function(t){if((!key||t.memberKey===key)&&onsiteTask(s,t)&&t.status!=='cancelled'){count++;providers(t).forEach(function(id){maids[id]=(maids[id]||0)+1})}});return{total:count,maids:maids}}
-  function quota(s,id){var m=(s.maids||{})[id]||{};return Number.isFinite(Number(m.quota))?Math.max(0,Math.floor(Number(m.quota))):3}
+  function quota(s,id){var m=(s.maids||{})[id]||{};if(m.quotaUnlimited===true || m.quota===Number.MAX_SAFE_INTEGER)return Infinity;return Number.isFinite(Number(m.quota))?Math.max(0,Math.floor(Number(m.quota))):3}
   function assertPurchase(s,selected,key,time){
     var mine=counts(s,key),sold=counts(s),picked=0,seen={};
     selected.forEach(function(p){if(p.processingMode!=='delivery'&&!next(s,time))throw new Error('最後一輪已結束，現場拍攝已停止接單。');if(!onsite(p))return;

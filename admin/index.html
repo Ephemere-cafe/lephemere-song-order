@@ -29,7 +29,23 @@
   <link rel="stylesheet" href="admin-redesign-v69.css?v=20260924-v69">
   <link rel="stylesheet" href="admin-reference-v70.css?v=20260925-v85">
 <link rel="stylesheet" href="festival-workbench-entry.css?v=20261122-v110">
-<link rel="stylesheet" href="staff-gallery-admin-v141.css?v=141"></head>
+<link rel="stylesheet" href="staff-gallery-admin-v141.css?v=141"><style>
+  #photoOpenChoice:not([hidden]) {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: .5rem;
+    min-height: 2rem;
+    cursor: pointer;
+  }
+  #photoOpenWithBusiness {
+    flex: 0 0 auto;
+    width: 1rem;
+    height: 1rem;
+    min-height: 0;
+    margin: 0;
+  }
+</style></head>
 <body>
 <div class="wrap" id="wrap">
 
@@ -322,9 +338,15 @@
       </section>
 
       <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="session" hidden id="polaroidManagerArea">
-        <details class="panel polaroid-session-editor" open><summary><span><strong>本場拍立得設定</strong><small>需安排拍攝的服務每客 3 份、同女僕每客 1 份為固定限制</small></span></summary>
+        <section class="panel">
+          <h3>本場拍立得</h3>
+          <p>沿用上一場的拍攝輪次，按本場排班開放。每位值班女僕可持續接單。</p>
+          <button type="button" class="btn primary" id="photoQuickOpen">用本場排班開啟</button>
+          <p id="photoQuickStatus" role="status"></p>
+        </section>
+        <details class="panel polaroid-session-editor"><summary><span><strong>進階設定：輪次與值班女僕</strong><small>需安排拍攝的服務每客 3 份、同女僕每客 1 份為固定限制</small></span></summary>
           <div class="polaroid-session-fields"><label>場次名稱<input id="polaroidSessionTitle" maxlength="100" placeholder="例如：2026/09/22 曇時一般營業"></label><label>營業日期<input id="polaroidBusinessDate" type="date"></label><label>其他商品每客上限<input id="polaroidMaxProducts" type="number" min="1" max="50" value="5"></label><label>同時最多拍攝女僕人數<input id="polaroidSimultaneous" type="number" min="1" max="20" value="2"></label><label class="check"><input id="polaroidSessionOpen" type="checkbox" checked> 啟用本場服務區</label><label class="check"><input id="polaroidSalesOpen" type="checkbox" checked> 接受新拍攝登記（取消勾選並儲存後停止）</label><label class="check"><input id="polaroidOtherSalesOpen" type="checkbox" checked> 開放商品接單總開關</label></div>
-          <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><p class="polaroid-help">新單安排到最近尚未結束的輪次；未完成自動遞延並保留下單順位。時間以台灣時間為準，跨午夜輪次請放在最後。</p><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕</h4><p class="polaroid-help">勾選開放本場拍攝服務的女僕，個別設定本場接單數；預設 3 份。系統不判斷女僕是否有空。</p><div id="polaroidMaidEditor"></div></div></div>
+          <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><p class="polaroid-help">新單安排到最近尚未結束的輪次；未完成自動遞延並保留下單順位。時間以台灣時間為準，跨午夜輪次請放在最後。</p><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕</h4><p class="polaroid-help">勾選本場開放拍攝的女僕，方便臨時增減人員。</p><div id="polaroidMaidEditor"></div></div></div>
           <div class="polaroid-save-row"><span id="polaroidSaveStatus" aria-live="polite"></span><button type="button" class="btn primary" id="polaroidSaveSession">儲存場次與輪次</button></div>
         </details>
       </section>
@@ -433,6 +455,8 @@
           <div class="business-session-copy">
             <strong id="businessSessionTitle">正在確認營業場次</strong>
             <span id="businessSessionHelp">營業日期不會在午夜自動跳日；打烊後再由管理人員開啟下一場。</span>
+            <label class="manager-only" data-manager-only id="photoOpenChoice"><input id="photoOpenWithBusiness" type="checkbox" checked> 開始營業時一併開放拍立得</label>
+            <span id="photoOpeningResult" role="status"></span>
           </div>
         </div>
       </section>
@@ -993,17 +1017,17 @@
 <script src="guest-actions.js?v=20260908-v21"></script>
 <script src="guest-local.js?v=20260908-v21"></script>
 <script src="guest-registry.js?v=20260913-v31"></script>
-<script src="admin.js?v=20261125-v172"></script>
+<script src="admin.js?v=20261125-v181"></script>
 <script src="site-content-admin.js?v=20260826a"></script>
 <script src="guestbook-admin.js?v=20260910-v25"></script>
 <script src="studio-admin.js?v=20260909-v22"></script>
 <script src="admin-workspace-preview.js?v=20260905c"></script>
-<script src="schedule.js?v=56"></script><script src="polaroid-admin.js?v=20260925-v88a"></script>
+<script src="schedule.js?v=56"></script><script src="polaroid-admin-v182.js"></script>
 <script src="admin-theme-toggle.js?v=20260919-v67"></script>
 <script src="admin-redesign-v69.js?v=20260924-v69"></script>
 <script src="admin-reference-v70.js?v=20260924-v72"></script>
 
-<script src="site-presentation-schema.js?v=20261121-v3"></script><link rel="stylesheet" href="site-presentation-admin.css?v=20261121-v3"><script src="site-presentation-admin.js?v=20261121-v3"></script><script src="staff-photos-api-v141.js?v=141"></script><script src="staff-photo-editor-v141.js?v=141"></script><script src="member-colors-v141.js?v=141"></script><script src="staff-gallery-admin-v141.js?v=141"></script><script>document.addEventListener('click',function(e){if(e.target.closest('[data-photo-staff]')&&!window.LephemereStaffGalleryReady){e.preventDefault();e.stopImmediatePropagation();alert('新版官網相簿尚未載入完成，請重新整理後再試。');}},true);</script></body>
+<script src="site-presentation-schema.js?v=20261121-v3"></script><link rel="stylesheet" href="site-presentation-admin.css?v=20261121-v3"><script src="site-presentation-admin.js?v=20261121-v3"></script><script src="staff-photos-api-v141.js?v=141"></script><script src="staff-photo-editor-v141.js?v=141"></script><script src="member-colors-v141.js?v=141"></script><script src="staff-gallery-admin-v141.js?v=141"></script><script>document.addEventListener('click',function(e){if(e.target.closest('[data-photo-staff]')&&!window.LephemereStaffGalleryReady){e.preventDefault();e.stopImmediatePropagation();alert('新版官網相簿尚未載入完成，請重新整理後再試。');}},true);</script><script src="../photo-opening-v182.js"></script></body>
 </html>
 
 

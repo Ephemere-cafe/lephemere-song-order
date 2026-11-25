@@ -30,7 +30,40 @@
 <style>#festival-lucky-roll{margin:12px 0}#festival-lucky-roll summary{cursor:pointer;font-weight:700}#festival-lucky-roll form{margin-bottom:8px}#festival-lucky-roll ul{padding-left:1.3rem}#festival-lucky-roll li{margin:5px 0}#festival-lucky-roll code{font-size:1.25rem}#draw-status,#draw-hit,#draw-cancel-result{margin:8px 0}#draw-work h2{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}</style>
 <style>#festival-menu-editor{margin:12px 0}#festival-menu-editor summary{cursor:pointer;font-weight:700}#fest-menu-form{padding-top:12px;display:flex;gap:12px}#fest-menu-list{padding-left:1.3rem}#fest-menu-list li{margin:4px 0}</style>
 <link rel="stylesheet" href="festival-page-editor.css"><link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="festival-workbench-v121.css?v=121"><script src="festival-workbench-v121.js?v=146"></script><link rel="stylesheet" href="festival-character-ui-v124.css?v=124"><link rel="stylesheet" href="festival-polish-v129.css?v=129"><script src="photo-camera-v152.js"></script><script src="festival-photos-v152.js"></script><script src="festival-photo-editor-v152.js"></script><link rel="stylesheet" href="compact-order-v130.css?v=130"><script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script><link rel="stylesheet" href="desk-photo-original-v133.css"><link rel="stylesheet" href="desk-v133.css?v=133"><link rel="stylesheet" href="festival-chairman-composition-v148.css">
-<link rel="stylesheet" href="photo-camera-v152.css"><link rel="stylesheet" href="festival-checkout-prompt-v170.css"><link rel="stylesheet" href="festival-draw-v173.css"><link rel="stylesheet" href="desk-layout-v174.css"></head>
+<link rel="stylesheet" href="photo-camera-v152.css"><link rel="stylesheet" href="festival-checkout-prompt-v170.css"><link rel="stylesheet" href="festival-draw-v173.css"><link rel="stylesheet" href="desk-layout-v174.css">
+<style>
+  .wb-shell:has(> main > #desk[hidden]) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  main:has(> #desk[hidden]) {
+    width: 100%;
+    max-width: 34rem;
+    margin-inline: auto;
+  }
+  main:has(> #desk[hidden]) .festival-heading {
+    padding-inline: 0;
+  }
+  .wb main:has(> #desk[hidden]) #login {
+    width: 100%;
+  }
+  #login-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 16px;
+  }
+  #login-form input {
+    width: 100%;
+    min-width: 0;
+  }
+  #login-form button {
+    justify-self: start;
+  }
+  body:has(main > #desk[hidden]) .masthead-tools .desk-operator {
+    display: none;
+  }
+</style>
+</head>
 <body class="connected-page"><script>window.SchoolFestivalTheme?.refresh();</script>
 <header class="festival-masthead"><div class="masthead-inner"><strong>曇時學園祭・接待工作台</strong><div class="masthead-tools"><label class="desk-operator">目前操作店員<select id="globalStaffSelect" aria-label="目前操作店員"><option value="">請選擇店員</option></select></label><a href="admin/">返回原後台</a><a href="school-festival-roster-arena-preview.html">查看活動首頁</a><button id="festival-theme" type="button" aria-pressed="false">夜間模式</button></div></div></header>
 <main>
@@ -72,9 +105,15 @@
       </section>
 
       <section class="polaroid-pane manager-only" data-manager-only data-polaroid-panel="session" hidden id="polaroidManagerArea">
-        <details class="panel polaroid-session-editor" open><summary><span><strong>本場拍立得設定</strong><small>需安排拍攝的服務每客 3 份、同女僕每客 1 份為固定限制</small></span></summary>
+        <section class="panel">
+          <h3>本場拍立得</h3>
+          <p>沿用上一場的拍攝輪次，按本場排班開放。每位值班女僕可持續接單。</p>
+          <button type="button" class="btn primary" id="photoQuickOpen">用本場排班開啟</button>
+          <p id="photoQuickStatus" role="status"></p>
+        </section>
+        <details class="panel polaroid-session-editor"><summary><span><strong>進階設定：輪次與值班女僕</strong><small>需安排拍攝的服務每客 3 份、同女僕每客 1 份為固定限制</small></span></summary>
           <div class="polaroid-session-fields"><label>場次名稱<input id="polaroidSessionTitle" maxlength="100" placeholder="例如：2026/09/22 曇時一般營業"></label><label>營業日期<input id="polaroidBusinessDate" type="date"></label><label>其他商品每客上限<input id="polaroidMaxProducts" type="number" min="1" max="50" value="5"></label><label>同時最多拍攝女僕人數<input id="polaroidSimultaneous" type="number" min="1" max="20" value="2"></label><label class="check"><input id="polaroidSessionOpen" type="checkbox" checked> 啟用本場服務區</label><label class="check"><input id="polaroidSalesOpen" type="checkbox" checked> 接受新拍攝登記（取消勾選並儲存後停止）</label><label class="check"><input id="polaroidOtherSalesOpen" type="checkbox" checked> 開放商品接單總開關</label></div>
-          <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><p class="polaroid-help">新單安排到最近尚未結束的輪次；未完成自動遞延並保留下單順位。時間以台灣時間為準，跨午夜輪次請放在最後。</p><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕</h4><p class="polaroid-help">勾選開放本場拍攝服務的女僕，個別設定本場接單數；預設 3 份。系統不判斷女僕是否有空。</p><div id="polaroidMaidEditor"></div></div></div>
+          <div class="polaroid-editor-grid"><div><h4>拍攝輪次</h4><p class="polaroid-help">新單安排到最近尚未結束的輪次；未完成自動遞延並保留下單順位。時間以台灣時間為準，跨午夜輪次請放在最後。</p><div id="polaroidRoundEditor"></div><button type="button" class="btn ghost small" id="polaroidAddRound">新增輪次</button></div><div><h4>本場女僕</h4><p class="polaroid-help">勾選本場開放拍攝的女僕，方便臨時增減人員。</p><div id="polaroidMaidEditor"></div></div></div>
           <div class="polaroid-save-row"><span id="polaroidSaveStatus" aria-live="polite"></span><button type="button" class="btn primary" id="polaroidSaveSession">儲存場次與輪次</button></div>
         </details>
       </section>
@@ -1450,5 +1489,5 @@ window.addEventListener('DOMContentLoaded', async () => {
   byId('logout').addEventListener('click', () => auth.signOut().catch(() => setStatus('登出失敗，請重試。')));
 });
 </script>
-<script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema-v152.js"></script><script src="festival-chairman-composition-v152.js"></script><script src="festival-page-editor-v148.js"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="workbench-menu-v169.js"></script><script src="desk-schedule-v133.js"></script><script src="desk-photo-v133.js?v=133"></script><script src="desk-recovery-v133.js?v=133"></script></body>
+<script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema-v152.js"></script><script src="festival-chairman-composition-v152.js"></script><script src="festival-page-editor-v148.js"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="workbench-menu-v169.js"></script><script src="desk-schedule-v133.js"></script><script src="desk-photo-v182.js"></script><script src="desk-recovery-v133.js?v=133"></script><script src="photo-opening-v182.js"></script></body>
 </html>
