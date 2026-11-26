@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-Hant" data-festival-order-v190>
+<html lang="zh-Hant" data-cafe-cast-root="festival-base/photo/assets/chibi-cast/" data-festival-order-v190>
 <head>
+<link rel="stylesheet" href="cafe-motion-v194.css"><link rel="stylesheet" href="cafe-loading-v195.css"><script src="cafe-loading-v195.js"></script><script defer src="cafe-motion-v194.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>曇時學園祭｜來店服務</title>
@@ -260,7 +261,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
 </head>
 <body class="festival-guest-page festival-design"><script>window.SchoolFestivalTheme?.refresh();</script>
 <div id="siteLoader" class="site-loader" role="status" aria-live="polite">
-  <div class="order-loader-mark" aria-hidden="true"><span class="loader-dish"></span><span class="loader-steam one"></span><span class="loader-steam two"></span></div>
+  <div class="cafe-loader-cast" aria-hidden="true" data-cast-root="festival-base/photo/assets/chibi-cast/"></div><script>window.CafeLoading?.populate(document.currentScript.previousElementSibling);</script>
   <strong>正在準備今晚的菜單</strong>
   <span id="siteLoaderText">女僕正在整理今晚的菜單…</span>
 </div>
@@ -408,7 +409,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
     
 <section class="panel"><h3>學園祭限定服務</h3><div id="festival-service-items"></div><p id="festival-service-status" role="status"></p></section>
 <div id="photoNativeRoot" class="native-photo is-embedded" data-purchase-enabled="false">
-  <div id="np-siteLoader" class="site-loader" role="status" aria-live="polite"><div class="loader-mark" aria-hidden="true"><span class="loader-photo"></span><span class="loader-spark spark-one">✦</span><span class="loader-spark spark-two">✧</span></div><strong>女僕正在準備今晚的服務</strong><span id="np-siteLoaderText">整理服務項目中…</span></div>
+  <div id="np-siteLoader" class="site-loader" role="status" aria-live="polite"><div class="cafe-loader-cast" aria-hidden="true" data-cast-root="festival-base/photo/assets/chibi-cast/"></div><script>window.CafeLoading?.populate(document.currentScript.previousElementSibling);</script><strong>女僕正在準備今晚的服務</strong><span id="np-siteLoaderText">整理服務項目中…</span></div>
   <div class="native-photo-main">
   <section id="np-shopView" class="view"><div id="np-sessionSummary" class="session-summary photo-session-summary" aria-live="polite">正在確認本場資訊…</div><div id="np-accessNotice" class="access-notice access-pending"><button id="np-dismissAccessGate" class="access-gate-close" type="button" aria-label="先瀏覽商品，關閉角色確認提示">×</button><div class="access-copy"><strong>正在確認本桌角色</strong><span>請稍候，確認完成後即可選購服務。</span></div><div id="np-ticketLinkForm" class="ticket-link-form" hidden><input id="np-linkShareCode" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="六位數本桌通行密碼" aria-label="六位數本桌通行密碼"><button id="np-verifyTable" type="button">確認通行密碼</button></div><div id="np-memberLinkForm" class="member-link-form" hidden><select id="np-linkMember" aria-label="選擇角色"></select><button id="np-confirmMember" type="button">以此角色加入</button></div><p id="np-linkStatus" class="link-status" aria-live="polite"></p><button id="np-switchLinkedIdentity" class="identity-switch" type="button" hidden>切換角色</button></div><aside class="photo-rules-card-v71" aria-label="拍攝服務說明"><div><span>PHOTO SERVICE GUIDE</span><h2>今晚的拍攝小約定</h2></div><ul><li>每位主人本次營業最多可登記 3 張</li><li>同一位女僕，每位主人最多登記 1 張</li><li>拍攝將由店內依現場狀況分批安排</li><li>時段確認後會顯示於「本次消費」，到時也會由女僕通知您</li></ul></aside><section class="service-browser" aria-label="依女僕與服務類型篩選"><div class="maid-filter-copy"><div><h2>想和哪位女僕留下紀念？</h2><p>先選擇女僕，再查看她今晚開放的服務。</p></div></div><div id="np-maidNav" class="maid-nav" aria-label="選擇女僕"></div></section><div class="service-filter-row"><strong id="np-serviceFilterTitle">全部服務</strong><div id="np-categoryNav" class="category-nav" aria-label="商品分類"></div></div><div class="shop-grid"><div id="np-productGrid" class="product-grid"><p class="empty">正在讀取本場商品…</p></div><aside class="cart"><p class="eyebrow">YOUR SELECTION</p><h2>我的紀念服務</h2><div id="np-cartItems"><p class="empty">尚未選擇商品。</p></div><div class="cart-total"><span>合計</span><b id="np-cartTotal">0 Gil</b></div><button id="np-submitSelection" class="primary" disabled>確認預約</button><p id="np-cartStatus" class="cart-note" role="status"></p><p class="cart-note">送出後，女僕會為您安排服務；如需調整或取消，請直接告知店長。</p></aside></div></section>
   <section id="np-ordersView" class="view" hidden><p class="eyebrow">MY ORDERS · TONIGHT</p><div class="page-intro"><div><h1>本次消費與服務安排</h1><p>今晚的餐點、紀念服務與本桌應付金額，都整理在這裡。</p></div><div id="np-linkedIdentity" class="session-summary"></div></div><button id="np-refreshReceipt" class="outline receipt-refresh" type="button">更新訂單明細</button><div id="np-receiptSummary" class="receipt-summary"><p class="empty">正在讀取本桌消費…</p></div><h2 class="orders-subtitle">我的服務狀態</h2><div id="np-orderList" class="order-list"><p class="empty">正在整理您的服務訂單…</p></div></section>
@@ -449,6 +450,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
       <div class="festival-order-header"><p id="festival-identity"></p><button id="festival-refresh" class="btn ghost" type="button">更新菜單與票券</button><button id="festival-show-tickets" class="btn ghost" type="button" hidden>我的券號</button></div>
       <button id="festival-service-link" class="btn ghost" type="button">前往學園祭特殊服務</button>
       <dialog id="festival-ticket-dialog"><form method="dialog"><button class="btn ghost" type="submit">關閉</button></form><h2>我的幸運號碼 ♡</h2><p id="festival-info"></p></dialog>
+      <div id="festival-menu-loading-anchor"></div>
       <div class="festival-guest-grid">
       <div class="festival-guest-menu"><h3>學院菜單</h3>
       <div id="festival-choices" class="festival-school-choices" hidden>
@@ -576,7 +578,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
   </footer>
 </dialog>
 <dialog id="festival-order-sent" class="festival-dialog-v173" aria-labelledby="festival-order-sent-title">
-    <h2 id="festival-order-sent-title">餐點已送出</h2>
+    <h2 id="festival-order-sent-title"><span class="cafe-motion-check" aria-hidden="true">✓</span>餐點已送出</h2>
     <p id="festival-order-sent-detail"></p>
     <p>餐點送達後，女僕會和您確認結帳及抽獎券號。符合資格的餐飲達低消，結帳後會自動計入應援票並發放抽獎券。</p>
     <p>您也可以在「本次消費」查看自己的券號。</p>
@@ -760,6 +762,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
     remove.addEventListener('click',function(){ row.remove(); syncCompanionRows(); });
     row.appendChild(index); row.appendChild(nameLabel); row.appendChild(worldLabel); row.appendChild(remove);
     list.appendChild(row); syncCompanionRows(); nameInput.focus();
+    window.CafeMotion?.companion(row);
   }
 
   function currentDiners(){
@@ -1086,6 +1089,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
     document.getElementById('visitStatusBadge').textContent = legacyService ? '服務即將完成' : (assigned ? (activeVisit.status==='serving'?'女僕服務中':'女僕已準備') : '候位中');
     document.getElementById('visitStatusTitle').textContent = legacyService ? '今晚的桌邊服務即將完成' : (assigned ? '女僕已準備為您服務' : '女僕正在依序為主人與大小姐準備');
     document.getElementById('visitAssignee').textContent = (assigned||legacyService) ? '今晚女僕｜'+(activeVisit.assignedStaffName||'女僕') : '';
+    window.CafeMotion?.reception(activeVisitId,activeVisit.status);
     document.getElementById('visitStatusMeta').textContent = legacyService ? '如仍有餐點或服務需要確認，請直接告知今晚為您服務的女僕。' : (assigned ? '請留意遊戲內的招呼；與女僕會合後即可在下方點餐。' : '候位號碼已領取｜同行 '+Number(activeVisit.partySize||1)+' 人');
     document.getElementById('visitStatusHelp').textContent = legacyService ? '拍攝／紀念服務請至上方服務分頁選購。' : (assigned ? '若需要暫時離開或結束本次服務，請直接告知女僕。' : (activeVisit.preferredStaffName ? '您希望由 '+activeVisit.preferredStaffName+' 為您服務，因此等待時間可能較長。' : '請先留在店內候位區，輪到時女僕會在遊戲內向您打招呼。'));
     document.getElementById('sharedTableLinkCard').style.display=activeVisit.ownerUid===currentVisitorUid?'':'none';
@@ -1792,6 +1796,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
     if(festivalPlay && !document.hidden && !festivalHover && !festivalView('cover').matches(':focus-within') && festivalPortraits.length>1)
       festivalPortraitTimer=setInterval(function(){if(activeGuestView==='order')shiftFestivalPortrait(1)},6500);
   }
+  var stopFestivalPreview=window.CafeLoading?.begin("festival-menu-loading-anchor","正在載入今晚菜單…");
   window.FestivalPresentation.load().then(function(data){
     festivalPresentation=data;window.FestivalPresentation.apply(data);
     festivalPortraits=Object.values(data.teams).flatMap(function(team){return (team.members || []).flatMap(function(member){
@@ -1799,7 +1804,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
       try{var url=new URL(member.photo,document.baseURI);return (url.protocol==='https:'||(url.protocol==='http:'&&url.origin===location.origin&&/^(localhost|127\.0\.0\.1)$/.test(location.hostname)))?[{photo:url.href,team:team.name,name:member.name}]:[]}catch(_){return []}
     })});
     showFestivalPortrait();syncFestivalPortrait();if(festivalState)drawFestivalMenu();
-  });
+  }).finally(function(){stopFestivalPreview?.();});
   var festivalVisitKey='', festivalState=null, festivalTeam='', festivalCounts={}, festivalMenuPromise=null, festivalSending=false, festivalLastOrder=null;
   var festivalView=function(id){return document.getElementById('festival-'+id)};
   function refreshFestivalMenu(force, quiet){
@@ -1811,6 +1816,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
     if(key!==festivalVisitKey){festivalVisitKey=key;festivalLastOrder=null;festivalTeam='';festivalCounts={};festivalState=null;festivalMenuPromise=null}
     if(festivalMenuPromise || (festivalState && !force)) return festivalMenuPromise;
     if(!quiet && !festivalSending) festivalView('status').textContent='正在核對本場菜單…';
+    var stopLoading=!quiet && !festivalSending ? window.CafeLoading?.begin('festival-menu-loading-anchor','正在核對本場菜單…') : null;
     var request=functionsClient.httpsCallable('festivalGuestMenuV99')({visitId:visitId}).then(function(result){
       if(festivalVisitKey!==key || activeVisitId!==visitId) return;
       festivalState=result.data;
@@ -1823,7 +1829,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
       festivalState=null;
       drawFestivalMenu();syncNativePhoto();
       festivalView('status').textContent=String(error.message||'目前無法讀取學園祭菜單。');
-    }).finally(function(){if(festivalMenuPromise===request) festivalMenuPromise=null});
+    }).finally(function(){stopLoading?.();if(festivalMenuPromise===request) festivalMenuPromise=null});
     festivalMenuPromise=request;
     return request;
   }
@@ -1863,6 +1869,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
       if(!numbers.length)festivalView('info').textContent=window.FestivalCopyText('16','尚未取得');
       numbers.forEach(function(number){var ticket=document.createElement('span');ticket.textContent=number;festivalView('info').append(ticket)});
       var personal=document.getElementById('festival-consumption-tickets');personal.replaceChildren();if(!numbers.length)personal.textContent=window.FestivalCopyText('16','尚未取得');numbers.forEach(function(number){var ticket=document.createElement('span');ticket.textContent=number;personal.append(ticket)});
+      window.CafeMotion?.tickets(festivalVisitKey);
       festivalView('choices').querySelectorAll('button').forEach(function(button){
         button.disabled=festivalSending || (festivalState.locked && button.dataset.team!==festivalTeam);
         const selected=button.dataset.team===festivalTeam;
@@ -1897,7 +1904,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
         input.type='number';input.min='0';input.max='20';input.step='1';input.value=String(festivalCounts[row.id]||0);
         input.disabled=!row.available || festivalSending;
         input.setAttribute('aria-label',row.name+'數量');
-        input.addEventListener('input',function(){festivalCounts[row.id]=Math.min(20,Math.max(0,Math.trunc(Number(input.value)||0)));drawFestivalTotal()});
+        input.addEventListener('input',function(){var previous=festivalCounts[row.id] || 0;festivalCounts[row.id]=Math.min(20,Math.max(0,Math.trunc(Number(input.value)||0)));drawFestivalTotal();if(previous!==festivalCounts[row.id])window.CafeMotion?.cart()});
         input.addEventListener('change',function(){input.value=String(festivalCounts[row.id])});
         var control=document.createElement('span');control.className='festival-quantity stepper';
         [-1,1].forEach(function(delta){
@@ -1969,6 +1976,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
     if(currentFestivalCart().length && !confirm('更換學院會清空已選餐點。要繼續嗎？'))return;
     festivalTeam=button.dataset.team;festivalCounts={};
     drawFestivalMenu();
+    window.CafeMotion?.school(button);
   });
   festivalView('refresh').addEventListener('click',function(){refreshFestivalMenu(true)});
   var festivalSentDialog=document.getElementById('festival-order-sent');

@@ -1,6 +1,7 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-cafe-cast-root="festival-base/photo/assets/chibi-cast/">
 <head>
+<link rel="stylesheet" href="cafe-motion-v194.css"><link rel="stylesheet" href="cafe-loading-v195.css"><script src="cafe-loading-v195.js"></script><script defer src="cafe-motion-v194.js"></script>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>曇時學園祭</title>
 <style>
@@ -159,7 +160,7 @@ dialog.is-closing::backdrop{animation:festival-scrim-out 135ms ease-in both}
 </head>
 <body class="actual-design roster-design"><script>window.SchoolFestivalTheme?.refresh();</script>
 <header><div class="shell"><strong>曇時 CAFÉ</strong><nav aria-label="學園祭導覽"><button id="top-rules" type="button" class="action">活動規則</button><a class="action primary" href="school-festival-order.html">學園祭點餐</a></nav></div></header>
-<p id="festival-home-loading" class="shell" role="status">學園祭內容載入中…</p>
+<div id="festival-home-loading" class="shell" role="status"><div class="cafe-loader-cast" aria-hidden="true" data-cast-root="festival-base/photo/assets/chibi-cast/"></div><script>window.CafeLoading?.populate(document.currentScript.previousElementSibling);</script><span>學園祭內容載入中…</span></div>
 <p id="festival-home-error" class="shell" role="status" hidden>部分活動內容暫時無法載入，請重新整理頁面。</p>
 <main class="shell festival-layout">
   <section class="cover type-cover type-dark" aria-labelledby="festival-heading">

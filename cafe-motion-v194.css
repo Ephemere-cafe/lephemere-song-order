@@ -1,0 +1,72 @@
+.cafe-loader-cast {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: clamp(9px, 2.5vw, 18px);
+  width: max-content;
+  max-width: 100%;
+  padding: 12px 8px 5px;
+  margin: 0 auto 5px;
+}
+.cafe-loader-cast img {
+  width: clamp(44px, 11vw, 65px);
+  height: clamp(44px, 11vw, 65px);
+  display: block;
+  object-fit: contain;
+  transform-origin: center bottom;
+}
+:is(#siteLoader, #np-siteLoader):not([hidden], .is-hidden) .cafe-loader-cast img,
+html[data-festival-loading] #festival-home-loading .cafe-loader-cast img,
+html[data-cafe-boot] #cafeOfficialLoader .cafe-loader-cast img {
+  animation: cafe-cast-hop .95s ease-in-out infinite;
+}
+.cafe-loader-cast img:nth-child(2) { animation-delay: .14s !important; }
+.cafe-loader-cast img:nth-child(3) { animation-delay: .28s !important; }
+@keyframes cafe-cast-hop {
+  0%, 48%, 100% { transform: translateY(0) rotate(0); }
+  22% { transform: translateY(-9px) rotate(-4deg); }
+  36% { transform: translateY(-3px) rotate(3deg); }
+}
+#festival-home-loading { text-align: center; color: var(--fp-ink); }
+#cafeOfficialLoader {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  place-content: center;
+  text-align: center;
+  color: var(--ink, #513741);
+  background: var(--paper, #f4f1eb);
+}
+html[data-cafe-boot] #cafeOfficialLoader {
+  display: grid;
+  animation: cafe-loader-show 0s .12s both;
+}
+@keyframes cafe-loader-show { from { visibility: hidden; } to { visibility: visible; } }
+.cafe-motion-check {
+  display: inline-grid;
+  place-items: center;
+  width: 1.65em;
+  height: 1.65em;
+  margin-inline-end: .5em;
+  border-radius: 50%;
+  background: #dcebe3;
+  color: #27513e;
+}
+html[data-festival-theme="dark"] .cafe-motion-check {
+  background: #234638;
+  color: #c4eed7;
+}
+.cafe-portrait-previous {
+  position: absolute !important;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cafe-loader-cast img {
+    animation: none !important;
+  }
+}
