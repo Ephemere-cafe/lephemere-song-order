@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant" data-cafe-cast-root="festival-base/photo/assets/chibi-cast/" data-festival-order-v190>
 <head>
-<link rel="stylesheet" href="cafe-motion-v194.css"><link rel="stylesheet" href="cafe-loading-v195.css"><script src="cafe-loading-v195.js"></script><script defer src="cafe-motion-v194.js"></script>
+<link rel="stylesheet" href="cafe-motion-v194.css"><link rel="stylesheet" href="cafe-loading-v195.css"><script src="cafe-loading-v195.js"></script><link rel="stylesheet" href="cafe-order-motion-v198.css"><script defer src="cafe-order-motion-v198.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>曇時學園祭｜來店服務</title>
@@ -258,7 +258,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
   outline-offset: 2px;
 }
 </style>
-</head>
+<link rel="stylesheet" href="cafe-guest-updates-v201.css"><script defer src="cafe-guest-updates-v201.js"></script></head>
 <body class="festival-guest-page festival-design"><script>window.SchoolFestivalTheme?.refresh();</script>
 <div id="siteLoader" class="site-loader" role="status" aria-live="polite">
   <div class="cafe-loader-cast" aria-hidden="true" data-cast-root="festival-base/photo/assets/chibi-cast/"></div><script>window.CafeLoading?.populate(document.currentScript.previousElementSibling);</script>
@@ -397,6 +397,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
     <div class="visit-total-head"><div><p class="panel-title">MY ORDERS · TONIGHT</p><h2 id="visitTotalTitle">本次消費與服務安排</h2><p>今晚的餐點、紀念服務與本桌應付金額，都整理在這裡。</p></div><button class="btn ghost visit-total-refresh" id="refreshVisitTotal" type="button">重新整理</button></div>
     <div id="visitTotalIdentity" class="visit-total-identity"></div><div id="visitPaymentState" class="visit-payment-state"></div><div id="visitMemberTotals" class="visit-member-totals"></div>
     <div id="visitTotalAlert"></div>
+    <p id="cafe-receipt-announcement" class="cafe-receipt-announcement" role="status"></p>
     <div id="visitTotalDetails" class="visit-total-details"><p class="visit-total-empty">正在讀取本桌消費…</p></div>
     <div class="visit-total-cards"><div class="visit-total-card"><span>餐點小計</span><strong id="visitDiningTotal">0 Gil</strong></div><div class="visit-total-card"><span>拍攝／紀念服務小計</span><strong id="visitPhotoTotal">0 Gil</strong></div><div class="visit-total-card grand"><span>本次總計</span><strong id="visitGrandTotal">0 Gil</strong></div></div>
     <div class="visit-reorder-note"><div><strong>今晚還想再享用一些嗎？</strong><span>請沿用目前的本桌身分繼續加點，不需要重新領取號碼牌。</span></div><button class="btn ghost" id="visitAddMore" type="button">繼續加點</button></div>
@@ -672,6 +673,7 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
     if(ticket)ticket.textContent=activeVisit&&activeVisit.queueNumber?'候位 '+activeVisit.queueNumber:'本桌服務';
     var gate=document.getElementById('photoPurchaseGate'),enabled=hasDiningOrderForPhoto();
     if(gate){gate.classList.toggle('is-open',enabled);gate.innerHTML=enabled?'<strong>現在可選購</strong><span>需要安排時間的服務，送出後會通知時段。</span>':'<strong>可先瀏覽</strong><span>送出餐點訂單後，即可選購本場服務。</span>'}
+    window.CafeGuestUpdates?.photoAvailability(activeVisitId,Boolean(activeVisitId && enabled && operationStatus.isOpen!==false),['festival-service-link']);
     if(module){module.setPurchaseEnabled(enabled);if(code&&current)module.connect(code,current,activeVisitId)}
   }
 
@@ -915,11 +917,12 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
     if(!activeVisit||!visitReceipt){document.getElementById('visitDiningTotal').textContent='0 Gil';document.getElementById('visitPhotoTotal').textContent='0 Gil';document.getElementById('visitGrandTotal').textContent='0 Gil';alertHost.innerHTML='';if(payment)payment.innerHTML='';if(memberHost)memberHost.innerHTML='';details.innerHTML='<p class="visit-total-empty">尚未取得本桌消費明細。</p>';return}
     var dining=Array.isArray(visitReceipt.dining)?visitReceipt.dining:Object.values(visitReceipt.dining||{}),photos=Array.isArray(visitReceipt.photo)?visitReceipt.photo:Object.values(visitReceipt.photo||{}),diningRows=[],memberTotals={};
     photoMemberLabels().forEach(function(label){var name=partyMemberName(label);if(name&&!Object.prototype.hasOwnProperty.call(memberTotals,name))memberTotals[name]=0});
-    dining.forEach(function(order){(Array.isArray(order.items)?order.items:Object.values(order.items||{})).forEach(function(item){var qty=Number(item.qty||0),unit=Number(item.price||0)+Number(item.addon&&item.addon.price||0),amount=unit*qty,name=escapeHtml(item.name||'餐點')+' × '+qty+(item.addon?' ＋ '+escapeHtml(item.addon.label):'');diningRows.push('<div class="visit-total-line"><span>'+name+'</span><b>'+fmtGil(amount)+'</b></div>');var assignments=Array.isArray(item.assignments)?item.assignments:[];for(var i=0;i<qty;i++)addMemberAmount(memberTotals,assignments[i]||'尚未指定',unit)})});
+    dining.forEach(function(order){var indicator=window.CafeGuestUpdates?.deliveryLine(order);if(indicator)diningRows.push(indicator);(Array.isArray(order.items)?order.items:Object.values(order.items||{})).forEach(function(item){var qty=Number(item.qty||0),unit=Number(item.price||0)+Number(item.addon&&item.addon.price||0),amount=unit*qty,name=escapeHtml(item.name||'餐點')+' × '+qty+(item.addon?' ＋ '+escapeHtml(item.addon.label):'');diningRows.push('<div class="visit-total-line"><span>'+name+'</span><b>'+fmtGil(amount)+'</b></div>');var assignments=Array.isArray(item.assignments)?item.assignments:[];for(var i=0;i<qty;i++)addMemberAmount(memberTotals,assignments[i]||'尚未指定',unit)})});
     var photoRows=photos.map(function(task){var delivery=task.taskType==='delivery',when=delivery?'完成後由女僕交付':task.roundId?((task.roundLabel||'拍攝時段')+' '+(task.startTime||'')+'–'+(task.endTime||'')):'拍攝時段安排中',member=(task.memberLabel||'').split('｜')[0]||'本桌主人',maid=task.maidName||'由女僕安排',updated=!delivery&&task.scheduleUpdatedAt&&task.previousRoundId&&task.previousRoundId!==task.roundId,previous=(task.previousRoundLabel||'原時段')+' '+(task.previousStartTime||'')+'–'+(task.previousEndTime||''),updateLine=updated?'<div class="visit-photo-update"><strong>拍攝時間已更新</strong><span>原 '+escapeHtml(previous)+' → 新 '+escapeHtml(when)+'</span></div>':'';addMemberAmount(memberTotals,task.memberLabel||'尚未指定',Number(task.price||0));return'<article class="visit-photo-card"><div class="visit-photo-card-head"><div><small>'+escapeHtml(member)+'</small><h4>'+escapeHtml(task.productName||'拍攝／紀念服務')+'</h4></div><span class="visit-photo-status">'+escapeHtml(visitOrderStatus(task.status,task))+'</span></div><dl><div><dt>對應女僕</dt><dd>'+escapeHtml(maid)+'</dd></div><div><dt>'+ (delivery?'交付安排':'拍攝時段') +'</dt><dd>'+escapeHtml(when)+'</dd></div><div><dt>金額</dt><dd>'+fmtGil(Number(task.price||0))+'</dd></div></dl>'+updateLine+'</article>'});
     var memberOrder=photoMemberLabels().map(partyMemberName).filter(Boolean),special=['全桌共享','尚未指定'];Object.keys(memberTotals).forEach(function(name){if(memberOrder.indexOf(name)===-1&&special.indexOf(name)===-1)memberOrder.push(name)});special.forEach(function(name){if(memberTotals[name])memberOrder.push(name)});
     if(memberHost)memberHost.innerHTML='<strong>個人購買金額</strong><div>'+memberOrder.map(function(name){return'<span><b>'+escapeHtml(name)+'</b> '+fmtGil(memberTotals[name]||0)+'</span>'}).join('')+'</div><small>依點餐時選擇的用餐者與服務角色計算；全桌共享及尚未指定不會平均分攤。</small>';
     var diningTotal=Number(visitReceipt.diningTotal||0),photoTotal=Number(visitReceipt.photoTotal||0),paid=visitReceipt.paymentStatus==='settled'&&visitReceipt.paymentAttention!==true;document.getElementById('visitDiningTotal').textContent=fmtGil(diningTotal);document.getElementById('visitPhotoTotal').textContent=fmtGil(photoTotal);document.getElementById('visitGrandTotal').textContent=fmtGil(diningTotal+photoTotal);if(payment)payment.innerHTML=visitReceipt.paymentAttention===true?'<span class="needs-attention">結清後有新增訂單</span><small>請讓女僕再次為您確認新增的消費。</small>':(paid?'<span class="is-settled">本桌已結清</span><small>若繼續加點，新增內容會重新列入待結清。</small>':'<span>本桌尚未結清</span><small>餐點送達後，女僕會為您確認今晚的消費。</small>');alertHost.innerHTML=visitReceipt.paymentAttention===true?'<p class="visit-total-alert">⚠ 主人／大小姐，結清後有新的餐點或服務，離店前請再次與女僕確認。</p>':'';details.innerHTML='<section class="visit-total-section"><h3>餐點</h3>'+(diningRows.join('')||'<p class="visit-total-empty">尚無餐點訂單。</p>')+'</section><section class="visit-total-section"><h3>拍攝／紀念服務</h3>'+(photoRows.join('')||'<p class="visit-total-empty">尚無拍攝或紀念服務訂單。</p>')+'</section>';
+    window.CafeGuestUpdates?.deliveryMotion(activeVisitId,dining,details);
   }
 
   function fetchVisitTotal(showLoading){
@@ -1850,7 +1853,8 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
     festivalView('send').disabled=festivalSending || !currentFestivalCart().length || !activeVisit || operationStatus.isOpen!==true ||
       (!['assigned','serving'].includes(activeVisit.status) || festivalState?.orderingOpen===false);
     festivalView('review-mobile').hidden=festivalView('send').disabled;
-    festivalView('mobile-total').textContent=fmtGil(total);
+    var count=cartRows.reduce(function(sum,row){return sum+row.qty},0);
+    festivalView('mobile-total').textContent=(count ? count+' 份 · ' : '')+fmtGil(total);
   }
   function drawFestivalMenu(){
     window.FestivalPersonalState=festivalState;window.dispatchEvent(new CustomEvent("festival-personal-state",{detail:festivalState}));
@@ -1904,7 +1908,14 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
         input.type='number';input.min='0';input.max='20';input.step='1';input.value=String(festivalCounts[row.id]||0);
         input.disabled=!row.available || festivalSending;
         input.setAttribute('aria-label',row.name+'數量');
-        input.addEventListener('input',function(){var previous=festivalCounts[row.id] || 0;festivalCounts[row.id]=Math.min(20,Math.max(0,Math.trunc(Number(input.value)||0)));drawFestivalTotal();if(previous!==festivalCounts[row.id])window.CafeMotion?.cart()});
+        input.addEventListener('input',function(){
+          var previous=festivalCounts[row.id] || 0;
+          var next=Math.min(20,Math.max(0,Math.trunc(Number(input.value)||0)));
+          festivalCounts[row.id]=next;
+          drawFestivalTotal();
+          if(next>previous)window.CafeMotion?.addedQuantity(input.closest('.stepper'),[festivalView('total'),festivalView('mobile-total')]);
+          else if(next<previous)window.CafeMotion?.cart();
+        });
         input.addEventListener('change',function(){input.value=String(festivalCounts[row.id])});
         var control=document.createElement('span');control.className='festival-quantity stepper';
         [-1,1].forEach(function(delta){
@@ -1985,18 +1996,30 @@ html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(but
     return festivalPresentation.teams?.[team]?.name || '所選學院';
   }
   function festivalVoteText(){
+    if(festivalState?.entriesClosed)return festivalState.voteCount>0 ? '應援已截止，已計入應援票，仍可點餐。' : '應援已截止，仍可點餐。';
     if(festivalState?.voteCount>0)return '應援票已計入。';
-    if(festivalState?.entriesClosed)return '應援已截止，仍可點餐。';
     return '餐飲滿 30,000 Gil 並結帳後，自動投 1 票。';
   }
   function drawFestivalSupport(){
     if(!festivalView('support-summary'))return;
     var title=festivalView('support-state');
-    title.textContent=festivalTeam ? (festivalState?.locked?'已確認：':'目前支持：')+festivalSchoolName() : '請選擇要投票的學院';
+    title.textContent=festivalTeam ? (festivalState?.locked?'已確認應援：':'你選擇應援：')+festivalSchoolName() : '請選擇要投票的學院';
     festivalView('support-rule').textContent=festivalVoteText();
+    window.CafeGuestUpdates?.entriesClosed(festivalVisitKey,Boolean(festivalState?.entriesClosed),festivalView('support-rule'));
     festivalView('cart-school').textContent=festivalTeam ? '應援學院：'+festivalSchoolName() : '尚未選擇應援學院';
   }
   document.addEventListener('festival-support-ready',drawFestivalSupport,{once:true});
+  // The prize dialog is added after the presentation has loaded.
+  const prizeObserver=new MutationObserver(function(){
+    const dialog=document.getElementById('festival-prize-dialog');
+    if(!dialog)return;
+    prizeObserver.disconnect();
+    new MutationObserver(function(){
+      if(dialog.open)window.CafeGuestUpdates?.prizeBookmarks(dialog,festivalState?.team,
+        Boolean(festivalState?.locked && festivalState.ticketNumbers.length));
+    }).observe(dialog,{attributes:true,attributeFilter:['open']});
+  });
+  prizeObserver.observe(document.body,{childList:true});
   var festivalConfirm=festivalView('order-confirm'), festivalReviewed=null;
   function festivalReviewSnapshot(){
     if(festivalSending || !activeVisitId || festivalView('send').disabled)return null;

@@ -1,0 +1,35 @@
+
+.stepper:has(> .cafe-quantity-check) { position: relative; }
+.cafe-quantity-check {
+  position: absolute;
+  inset-inline-end: -2px;
+  inset-block-start: -2px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  border-radius: 50%;
+  background: #386454;
+  color: #fff;
+  font: 700 .7rem/1 system-ui, sans-serif;
+  pointer-events: none;
+}
+#festival-choices .festival-team strong::after {
+  content: "";
+  display: block;
+  block-size: 2px;
+  margin-block-start: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transition: transform 160ms ease-out;
+}
+#festival-choices .festival-team[aria-pressed="true"] strong::after { transform: scaleX(.68); }
+@media (max-width: 760px) {
+  #festival-order #festival-review-mobile #festival-mobile-total { flex: 0 0 auto; white-space: nowrap; }
+  #festival-order #festival-review-mobile #festival-mobile-review { flex: 1 1 auto; inline-size: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #festival-choices .festival-team strong::after { transition: none; }
+}
