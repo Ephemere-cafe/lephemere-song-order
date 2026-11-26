@@ -210,7 +210,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   @media(max-width:680px){.festival-cover{min-height:110px;grid-template-columns:minmax(0,1fr) minmax(126px,38%)}.festival-cover-copy{padding:9px}.festival-cover-portrait{min-height:110px}.festival-cover-portrait strong{top:5px;bottom:auto}.festival-guest-grid{grid-template-columns:1fr;padding-bottom:92px}.festival-receipt{position:fixed;inset:auto 0 0;z-index:6;padding:6px 10px calc(6px + env(safe-area-inset-bottom));display:grid;gap:4px;grid-template-columns:1fr auto;box-shadow:0 -4px 13px #202c3940}.festival-receipt h3{display:none}.festival-receipt #festival-cart-details{display:block;text-align:left;width:max-content;background:none;border:0;text-decoration:underline;grid-row:2}.festival-receipt ul{display:none}.festival-receipt.expanded ul{display:block;grid-column:1/-1;max-height:28vh;overflow:auto}.festival-receipt #festival-total{grid-row:1;grid-column:1}.festival-receipt #festival-status{grid-column:1/-1}.festival-receipt #festival-send{grid-column:2;grid-row:1/3;align-self:center}}
 </style><style>.festival-quantity{display:flex;align-items:center;gap:4px}.festival-quantity button{min-width:30px;background:#d4e0e4;border:1px solid #7c939d;cursor:pointer}.festival-quantity input{max-width:3.2em}.festival-cover:has(.festival-cover-portrait[hidden]){grid-template-columns:1fr}</style>
 <link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="school-festival-theme.css?v=119"><script src="school-festival-theme.js?v=132"></script><link rel="stylesheet" href="festival-guest-layout.css?v=119"><link rel="stylesheet" href="festival-collage-v123.css?v=123"><link rel="stylesheet" href="festival-character-ui-v124.css?v=124"><link rel="stylesheet" href="compact-order-v130.css?v=130"><script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema.js?v=132"></script><script src="public-copy-v132.js?v=132"></script><link rel="stylesheet" href="festival-example-v131.css?v=132"><link rel="stylesheet" href="festival-journey-v132.css?v=132"><link rel="stylesheet" href="festival-mobile-v146.css">
-<link rel="stylesheet" href="festival-order-photos-v160.css"><link rel="stylesheet" href="festival-services-v169.css"><link rel="stylesheet" href="festival-support-v170.css"><link rel="stylesheet" href="festival-prizes-v173.css"><link rel="stylesheet" href="festival-order-dialogs-v175.css"></head>
+<link rel="stylesheet" href="festival-order-photos-v160.css"><link rel="stylesheet" href="festival-services-v169.css"><link rel="stylesheet" href="festival-support-v170.css"><link rel="stylesheet" href="festival-prizes-v173.css"><link rel="stylesheet" href="festival-order-dialogs-v175.css"><link rel="stylesheet" href="festival-services-v188.css">
+</head>
 <body class="festival-guest-page festival-design"><script>window.SchoolFestivalTheme?.refresh();</script>
 <div id="siteLoader" class="site-loader" role="status" aria-live="polite">
   <div class="order-loader-mark" aria-hidden="true"><span class="loader-dish"></span><span class="loader-steam one"></span><span class="loader-steam two"></span></div>
@@ -1798,7 +1799,10 @@ input:focus{outline:none;border-color:var(--gold-dim);}
         button.setAttribute('aria-pressed',String(button.dataset.team===festivalTeam));
       });
       var group='';
-      festivalState.menus.filter(function(row){return row.team===festivalTeam}).sort(function(a,b){return String(a.category).localeCompare(String(b.category),'zh-Hant')}).forEach(function(row){
+      festivalState.menus.filter(function(row){return row.team===festivalTeam}).sort(function(a,b){
+        return (a.displayOrder??Infinity)-(b.displayOrder??Infinity) ||
+          String(a.category).localeCompare(String(b.category),'zh-Hant');
+      }).forEach(function(row){
         if(row.category!==group){group=row.category;var title=document.createElement('h3');title.textContent=group;list.append(title);}
         var label=document.createElement('label'),text=document.createElement('span'),input=document.createElement('input');
         text.textContent=(row.name||'餐點')+' · '+fmtGil(row.price)+(row.available?'':' · 暫停供應');
@@ -1934,7 +1938,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 })();
 </script>
 <script src="festival-base/photo/assets/schedule.js?v=43"></script>
-<script src="assets/guest-photo-festival-v177.js"></script>
+<script src="assets/guest-photo-festival-v188.js"></script>
 <script src="festival-guest-layout.js?v=119"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="compact-order-v130.js?v=130"></script><script src="festival-prizes-v173.js"></script><script src="festival-journey-order-v175.js"></script></body>
 </html>
 

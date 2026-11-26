@@ -149,9 +149,18 @@ dialog.is-closing::backdrop{animation:festival-scrim-out 135ms ease-in both}
 <style>.type-dark h1.long-title span{font-size:clamp(.9rem,14cqi,2.3rem);overflow-wrap:anywhere}.type-dark .type-bottom span:first-child{border-color:var(--festival-accent-a,#7ca1ad)}.type-dark .type-bottom span:last-child{border-color:var(--festival-accent-b,#af7f90)}</style><link rel="stylesheet" href="current-design.css"><link rel="stylesheet" href="photo-refinement.css"><link rel="stylesheet" href="chairman-preview.css"><link rel="stylesheet" href="festival-page-content.css"><link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="school-festival-theme.css?v=119"><script src="school-festival-theme.js?v=132"></script><link rel="stylesheet" href="festival-collage-v123.css?v=123"><link rel="stylesheet" href="festival-character-ui-v124.css?v=124"><link rel="stylesheet" href="festival-gallery-v128.css?v=128"><link rel="stylesheet" href="festival-polish-v129.css?v=129"><script src="festival-photos-v129.js?v=129"></script><script src="festival-photo-editor-v129.js?v=129"></script><script src="public-copy-v132.js?v=132"></script><link rel="stylesheet" href="festival-example-v131.css?v=132"><link rel="stylesheet" href="festival-journey-v132.css?v=132"><link rel="stylesheet" href="festival-profile-layout-v143.css?v=143"><link rel="stylesheet" href="festival-dual-groups-v143.css?v=143"><link rel="stylesheet" href="festival-chairman-portrait-v145.css">
 <link rel="stylesheet" href="festival-mobile-v146.css">
 <link rel="stylesheet" href="festival-chairman-composition-v148.css">
-<link rel="stylesheet" href="festival-prizes-v173.css"></head>
+<link rel="stylesheet" href="festival-prizes-v173.css"><style>
+  #festival-home-loading { display:none; }
+  html[data-festival-loading] #festival-home-loading { display:block; padding-block:clamp(32px, 8vw, 100px); }
+  html[data-festival-loading] main.festival-layout { display:none !important; }
+  html[data-festival-loading] #top-rules { visibility:hidden; }
+</style>
+<script>document.documentElement.setAttribute('data-festival-loading','');</script>
+</head>
 <body class="actual-design roster-design"><script>window.SchoolFestivalTheme?.refresh();</script>
 <header><div class="shell"><strong>曇時 CAFÉ</strong><nav aria-label="學園祭導覽"><button id="top-rules" type="button" class="action">活動規則</button><a class="action primary" href="school-festival-order.html">學園祭點餐</a></nav></div></header>
+<p id="festival-home-loading" class="shell" role="status">學園祭內容載入中…</p>
+<p id="festival-home-error" class="shell" role="status" hidden>部分活動內容暫時無法載入，請重新整理頁面。</p>
 <main class="shell festival-layout">
   <section class="cover type-cover type-dark" aria-labelledby="festival-heading">
     <div class="type-main"><span class="type-overline" aria-hidden="true">曇時 Café</span><h1 id="festival-heading"><span>曇時</span><span>學園祭</span></h1></div>
@@ -184,7 +193,7 @@ dialog.is-closing::backdrop{animation:festival-scrim-out 135ms ease-in both}
   <ul><li>該校活動餐點結清滿 30,000 Gil，為該校計一票並發一張券。</li><li>活動餐點每累計滿 200,000 Gil，再多一張券。</li><li>首次結清後鎖定學院。停止發券後仍可以點餐。</li></ul>
   <footer><button type="button" class="action primary" id="rules-understood">我了解了</button></footer>
 </div></dialog>
-<script src="festival-presentation-v100.js"></script><script src="festival-characters-v124.js?v=124"></script>
+<script src="festival-home-presentation-v188.js"></script><script src="festival-characters-v124.js?v=124"></script>
 <script>
 let groups=[
  {key:'a',name:'曇華女子學院',members:[{"name":"彌亞璃卡","photo":"school-photos/miarica.png"},{"name":"璐可","photo":"school-photos/ruko.png"},{"name":"麻辣草莓湯","photo":"school-photos/strawberry.png"},{"name":"魯德曼","photo":"school-photos/rudman.png"},{"name":"蒼","photo":"school-photos/cang.png"}]},
@@ -248,7 +257,6 @@ for(const group of groups){
   }
 }
 }
-renderMembers();
 window.FestivalPresentation.load().then(data=>{
   window.FestivalPresentation.apply(data);
   document.title=data.title;
@@ -277,5 +285,17 @@ if(false){
   try{if(!sessionStorage.getItem('festival-intro-seen')){rules.showModal();sessionStorage.setItem('festival-intro-seen','1');}}catch{}
 }
 </script>
-<script src="roster-design.js"></script><script src="chairman-preview.js"></script><script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema-v148.js"></script><script src="festival-page-content.js"></script><script src="festival-collage-v123.js?v=124"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="festival-gallery-v143.js?v=143"></script><script src="festival-welcome-v129.js?v=129"></script><script src="festival-prizes-v173.js"></script><script src="festival-journey-home-v173.js"></script><script src="festival-dual-groups-v143.js?v=143"></script><script src="festival-chairman-composition-v148.js"></script><script>window.addEventListener("DOMContentLoaded",()=>{FestivalPresentation.load().then(data=>FestivalChairmanComposition.applyPublic(data.page?.chairmanComposition)).catch(()=>{});},{once:true});</script></body>
+<script src="roster-design.js"></script><script src="chairman-preview.js"></script><script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema-v148.js"></script><script src="festival-page-content.js"></script><script src="festival-collage-v123.js?v=124"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="festival-gallery-v143.js?v=143"></script><script src="festival-welcome-v129.js?v=129"></script><script src="festival-prizes-v173.js"></script><script src="festival-journey-home-v173.js"></script><script src="festival-dual-groups-v143.js?v=143"></script><script src="festival-chairman-composition-v148.js"></script><script>window.addEventListener("DOMContentLoaded",()=>{FestivalPresentation.load().then(data=>FestivalChairmanComposition.applyPublic(data.page?.chairmanComposition)).catch(()=>{});},{once:true});</script><script>
+  document.addEventListener('DOMContentLoaded',()=>{
+    const ready=window.FestivalPresentation?.load();
+    Promise.resolve(ready).then(data=>reveal(!data || data.isFallback),()=>reveal(true));
+    function reveal(failed){
+      document.getElementById('festival-home-error').hidden=!failed;
+      document.documentElement.removeAttribute('data-festival-loading');
+      const anchor=document.getElementById(location.hash.slice(1));
+      anchor?.scrollIntoView();
+    }
+  },{once:true});
+</script>
+</body>
 </html>

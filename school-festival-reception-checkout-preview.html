@@ -76,7 +76,10 @@
     .desk-table-photo-row>strong,.desk-table-totals strong{white-space:nowrap}
     .desk-table-totals{margin:0 0 12px;display:grid;gap:6px}
     .desk-table-totals>div:last-child{border-top:1px solid var(--line);padding-top:7px}
-  </style></head>
+  </style><style>
+  .fest-menu-order-controls { display:inline-flex; gap:.4rem; margin-inline-start:.6rem; }
+</style>
+</head>
 <body class="connected-page"><script>window.SchoolFestivalTheme?.refresh();</script>
 <header class="festival-masthead"><div class="masthead-inner"><strong>曇時學園祭・接待工作台</strong><div class="masthead-tools"><label class="desk-operator">目前操作店員<select id="globalStaffSelect" aria-label="目前操作店員"><option value="">請選擇店員</option></select></label><a href="admin/">返回原後台</a><a href="school-festival-roster-arena-preview.html">查看活動首頁</a><button id="festival-theme" type="button" aria-pressed="false">夜間模式</button></div></div></header>
 <main>
@@ -206,6 +209,7 @@
         <p>拍立得與個人攝影使用本場既有拍攝時段。新增服務前請先設定本場拍攝女僕。</p>
         <div class="toolbar"><button type="button" id="fest-menu-load">讀取本場品項</button>
         <button id="fest-menu-import" type="button" disabled>複製原本的桌邊服務</button></div>
+        <p id="fest-menu-sort-hint" hidden>同一學院的餐點可用「上移／下移」調整，按下即儲存。</p>
         <ul id="fest-menu-list"></ul><p id="fest-menu-status" role="status"></p>
         <form id="fest-menu-form" hidden>
           <input name="itemId" type="hidden"><label>品項名稱<input name="productName" required maxlength="80"></label>
@@ -1311,6 +1315,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   function initFestivalMenuEditor(){
     const panel=byId('festival-menu-editor'), form=byId('fest-menu-form'), fields=form.elements;
     const status=byId('fest-menu-status'), list=byId('fest-menu-list');
+    const sortHint=byId('fest-menu-sort-hint');
     let model,busy=false,loadedStock;
     const roleAllowed=()=>role==='manager' && Boolean(functions);
     const displayType={food:'餐點',magic:'桌邊服務',polaroid:'拍立得',lens:'個人攝影',delivery:'交付服務'};
@@ -1338,14 +1343,23 @@ window.addEventListener('DOMContentLoaded', async () => {
       fields.sell.checked=row.available!==false;
       chooseKind();
     }
-    function display(data){
+    function display(data,preserveEditor=false){
       model=data;
       form.hidden=false;
       byId('fest-menu-import').disabled=false;
-      fields.maid.replaceChildren(new Option('選擇本場拍攝女僕',''));
-      for(const maid of data.maids)fields.maid.append(new Option(maid.name,maid.id));
+      if(!preserveEditor){
+        fields.maid.replaceChildren(new Option('選擇本場拍攝女僕',''));
+        for(const maid of data.maids)fields.maid.append(new Option(maid.name,maid.id));
+      }
       list.replaceChildren();
-      for(const row of data.rows){
+      const rowById=new Map(data.rows.map(row=>[row.id,row]));
+      const groups=Object.fromEntries(Object.entries(data.orderGroups || {}).filter(([,ids])=>ids.every(id=>rowById.has(id))));
+      const sorted=[...(groups.A || []),...(groups.B || [])];
+      const sortable=new Set(sorted);
+      const rows=sorted.map(id=>rowById.get(id)).filter(Boolean)
+        .concat(data.rows.filter(row=>!sortable.has(row.id)));
+      sortHint.hidden=!(groups.A?.length>1 || groups.B?.length>1);
+      for(const row of rows){
         const li=document.createElement('li'),button=document.createElement('button'),remove=document.createElement('button');
         button.type='button';button.textContent='編輯';
         button.addEventListener('click',()=>{if(!busy){fill(row);fields.productName.focus();}});
@@ -1359,9 +1373,33 @@ window.addEventListener('DOMContentLoaded', async () => {
         const school=publicDesign.teams[row.team]?.name;
         li.append(row.name+' · '+(school?school+' · ':'')+kind+' · '+row.price.toLocaleString('zh-TW')+' Gil'+
           (row.stockEnabled?' · 限量 '+row.stockRemaining:'')+(row.available?'':' · 已下架')+' ',button,remove);
+        const order=groups[row.team];
+        const index=order?.indexOf(row.id) ?? -1;
+        if(index!==-1 && order.length>1){
+          const controls=document.createElement('span');
+          controls.className='fest-menu-order-controls';
+          for(const [delta,label] of [[-1,'上移'],[1,'下移']]){
+            const move=document.createElement('button');
+            move.type='button';move.textContent=label;
+            move.setAttribute('aria-label',label+' '+row.name);
+            move.dataset.moveItem=row.id;
+            move.dataset.moveDirection=String(delta);
+            const next=index+delta;
+            move.disabled=next<0 || next>=order.length;
+            move.onclick=()=>run('reorder',{team:row.team,expected:order,ids:order.map((id,i)=>
+              i===index?order[next]:i===next?row.id:id)},async (_,revision)=>{
+                await reload('已更新「'+row.name+'」的顯示順序。',revision,true);
+                if(revision!==authRevision || !roleAllowed())return;
+                const updated=[...list.querySelectorAll('[data-move-item]')].filter(b=>b.dataset.moveItem===row.id && !b.disabled);
+                (updated.find(b=>b.dataset.moveDirection===String(delta)) || updated[0])?.focus();
+              });
+            controls.append(move);
+          }
+          li.append(controls);
+        }
         list.append(li);
       }
-      fill();
+      if(!preserveEditor)fill();
     }
     async function run(action,args,done){
       if(!roleAllowed() || busy)return;
@@ -1376,13 +1414,13 @@ window.addEventListener('DOMContentLoaded', async () => {
       }catch(error){if(revision===authRevision)status.textContent=error.message || '尚未完成，請重新讀取。';}
       finally{if(revision===authRevision){busy=false;submit.disabled=false;}}
     }
-    async function reload(message,revision){
+    async function reload(message,revision,preserveEditor=false){
       const data=await callLive('festivalMenuAdminV103',{action:'list'});
-      if(revision===authRevision && roleAllowed()){display(data);status.textContent=message;}
+      if(revision===authRevision && roleAllowed()){display(data,preserveEditor);status.textContent=message;}
     }
     fields.kind.addEventListener('change',chooseKind);
     fields.limited.addEventListener('change',chooseKind);
-    byId('fest-menu-load').addEventListener('click',()=>run('list',{},display));
+    byId('fest-menu-load').addEventListener('click',()=>run('list',{},data=>display(data)));
     byId('fest-menu-new').addEventListener('click',()=>{if(!busy){fill();fields.productName.focus();}});
     byId('fest-menu-import').addEventListener('click',()=>run('import',{},(result,revision)=>reload('已複製 '+result.count+' 項原本的桌邊服務。',revision)));
     fields.upload.addEventListener('change',async ()=>{
@@ -1410,7 +1448,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       sync(){
         panel.hidden=!roleAllowed();
         if(!roleAllowed()){
-          panel.open=false;list.replaceChildren();form.hidden=true;model=null;busy=false;status.textContent='';
+          panel.open=false;list.replaceChildren();sortHint.hidden=true;form.hidden=true;model=null;busy=false;status.textContent='';
           byId('fest-menu-import').disabled=true;
         }
       }
