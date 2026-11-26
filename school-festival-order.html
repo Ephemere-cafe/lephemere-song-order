@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-festival-order-v190>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -211,6 +211,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 </style><style>.festival-quantity{display:flex;align-items:center;gap:4px}.festival-quantity button{min-width:30px;background:#d4e0e4;border:1px solid #7c939d;cursor:pointer}.festival-quantity input{max-width:3.2em}.festival-cover:has(.festival-cover-portrait[hidden]){grid-template-columns:1fr}</style>
 <link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="school-festival-theme.css?v=119"><script src="school-festival-theme.js?v=132"></script><link rel="stylesheet" href="festival-guest-layout.css?v=119"><link rel="stylesheet" href="festival-collage-v123.css?v=123"><link rel="stylesheet" href="festival-character-ui-v124.css?v=124"><link rel="stylesheet" href="compact-order-v130.css?v=130"><script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema.js?v=132"></script><script src="public-copy-v132.js?v=132"></script><link rel="stylesheet" href="festival-example-v131.css?v=132"><link rel="stylesheet" href="festival-journey-v132.css?v=132"><link rel="stylesheet" href="festival-mobile-v146.css">
 <link rel="stylesheet" href="festival-order-photos-v160.css"><link rel="stylesheet" href="festival-services-v169.css"><link rel="stylesheet" href="festival-support-v170.css"><link rel="stylesheet" href="festival-prizes-v173.css"><link rel="stylesheet" href="festival-order-dialogs-v175.css"><link rel="stylesheet" href="festival-services-v188.css">
+<link rel="stylesheet" href="festival-order-review-v190.css">
 </head>
 <body class="festival-guest-page festival-design"><script>window.SchoolFestivalTheme?.refresh();</script>
 <div id="siteLoader" class="site-loader" role="status" aria-live="polite">
@@ -394,7 +395,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 
     <section id="festival-order" aria-label="學園祭雙校餐點">
       <div class="festival-cover">
-        <div class="festival-cover-copy"><a href="school-festival-roster-arena-preview.html">← 學園祭首頁</a><h2 data-festival-title>曇時學園祭</h2><p>選校應援 · 活動餐點與特殊服務</p></div>
+        <div class="festival-cover-copy"><a href="school-festival-roster-arena-preview.html">← 學園祭首頁</a><h2 data-festival-title>曇時學園祭</h2><p>學園祭餐點</p></div>
         <div class="festival-cover-portrait" id="festival-cover" hidden aria-label="學園祭學生照片">
           <img id="festival-cover-photo" alt=""><strong id="festival-cover-name"></strong>
           <div id="festival-cover-controls" hidden><button type="button" id="festival-cover-prev" aria-label="上一位學生">‹</button><button type="button" id="festival-cover-toggle" aria-label="暫停自動播放">Ⅱ</button><button type="button" id="festival-cover-next" aria-label="下一位學生">›</button></div>
@@ -406,14 +407,15 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       <div class="festival-guest-grid">
       <div class="festival-guest-menu"><h3>學院菜單</h3>
       <div id="festival-choices" class="festival-school-choices" hidden>
-        <button class="festival-team" type="button" data-team="A" aria-pressed="false" data-school-name="A">曇華女子學院</button>
-        <button class="festival-team" type="button" data-team="B" aria-pressed="false" data-school-name="B">曇光女子學院</button>
+        <button class="festival-team" type="button" data-team="A" aria-pressed="false"><span>支持</span><strong data-school-name="A">曇華女子學院</strong></button>
+        <button class="festival-team" type="button" data-team="B" aria-pressed="false"><span>支持</span><strong data-school-name="B">曇光女子學院</strong></button>
       </div>
       <div id="festival-items"></div></div>
-      <aside class="festival-receipt" id="festival-receipt" hidden><h3>本次點餐</h3><button id="festival-cart-details" type="button" aria-expanded="false" aria-controls="festival-cart-rows">查看明細</button><ul id="festival-cart-rows"></ul>
+      <aside class="festival-receipt" id="festival-receipt" hidden><h3>今晚點單</h3><p id="festival-cart-school"></p><button id="festival-cart-details" type="button" aria-expanded="false" aria-controls="festival-cart-rows">查看明細</button><ul id="festival-cart-rows"></ul>
       <output id="festival-total" aria-live="polite"></output>
       <p id="festival-status" role="status"></p>
-      <button class="btn primary" id="festival-send" type="button" hidden>送出餐點</button></aside></div>
+      <button class="btn primary" id="festival-send" type="button" aria-haspopup="dialog" hidden>確認餐點</button></aside></div>
+      <div id="festival-review-mobile" hidden><strong id="festival-mobile-total"></strong><button id="festival-mobile-review" class="btn primary" type="button" aria-haspopup="dialog">確認餐點</button></div>
     </section>
     <div class="order-category-bar" id="categoryNav" aria-label="菜單分類"></div>
 
@@ -513,6 +515,21 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   <footer><form method="dialog"><button class="festival-dialog-button is-primary" autofocus>知道了</button></form></footer>
 </dialog>
 <script src="festival-results-notice-v175.js"></script>
+<dialog id="festival-order-confirm" class="festival-dialog-v173 festival-review-dialog" aria-labelledby="festival-confirm-title">
+  <h2 id="festival-confirm-title">確認餐點與應援學院</h2>
+  <div class="festival-review-school">
+    <span>支持的學院</span>
+    <strong id="festival-confirm-school"></strong>
+    <p id="festival-confirm-vote"></p>
+  </div>
+  <ul id="festival-confirm-items" aria-label="餐點明細"></ul>
+  <p class="festival-review-total"><span>本次餐點合計</span><strong id="festival-confirm-total"></strong></p>
+  <p id="festival-confirm-notice" role="status" hidden>餐點或學院有變動，請再確認一次。</p>
+  <footer>
+    <button type="button" id="festival-confirm-back" class="festival-dialog-button" autofocus>返回修改</button>
+    <button type="button" id="festival-confirm-send" class="festival-dialog-button is-primary">確認送出餐點</button>
+  </footer>
+</dialog>
 <dialog id="festival-order-sent" class="festival-dialog-v173" aria-labelledby="festival-order-sent-title">
     <h2 id="festival-order-sent-title">餐點已送出</h2>
     <p id="festival-order-sent-detail"></p>
@@ -531,6 +548,10 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 </div>
 
 <script src="festival-base/assets/magic-reminder-v90.js?v=20261010-v90"></script>
+
+
+
+
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
@@ -1777,6 +1798,8 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     festivalView('total').textContent=(sent ? '訂單 #'+sent.orderNumber+' 餐點合計' : window.FestivalCopyText('12','合計'))+' '+fmtGil(total);
     festivalView('send').disabled=festivalSending || !currentFestivalCart().length || !activeVisit || operationStatus.isOpen!==true ||
       (!['assigned','serving'].includes(activeVisit.status) || festivalState?.orderingOpen===false);
+    festivalView('review-mobile').hidden=festivalView('send').disabled;
+    festivalView('mobile-total').textContent=fmtGil(total);
   }
   function drawFestivalMenu(){
     window.FestivalPersonalState=festivalState;window.dispatchEvent(new CustomEvent("festival-personal-state",{detail:festivalState}));
@@ -1785,6 +1808,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     renderFestivalServices();
     festivalView('identity').textContent=festivalState ? '本次點餐角色 · '+festivalState.name : '';
     festivalView('choices').hidden=!festivalState;
+    drawFestivalSupport();
     festivalView('send').hidden=!festivalState;
     festivalView('receipt').hidden=!festivalState;
     festivalView('show-tickets').hidden=!festivalState;
@@ -1796,30 +1820,49 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       var personal=document.getElementById('festival-consumption-tickets');personal.replaceChildren();if(!numbers.length)personal.textContent=window.FestivalCopyText('16','尚未取得');numbers.forEach(function(number){var ticket=document.createElement('span');ticket.textContent=number;personal.append(ticket)});
       festivalView('choices').querySelectorAll('button').forEach(function(button){
         button.disabled=festivalSending || (festivalState.locked && button.dataset.team!==festivalTeam);
-        button.setAttribute('aria-pressed',String(button.dataset.team===festivalTeam));
+        const selected=button.dataset.team===festivalTeam;
+        button.setAttribute('aria-pressed',String(selected));
+        button.setAttribute('aria-label','支持 '+festivalSchoolName(button.dataset.team));
       });
+      if(!festivalTeam){
+        const note=document.createElement('p');note.className='festival-menu-empty';
+        note.textContent='先選擇要支持的學院，再挑餐點。';list.append(note);
+      }
       var group='';
       festivalState.menus.filter(function(row){return row.team===festivalTeam}).sort(function(a,b){
         return (a.displayOrder??Infinity)-(b.displayOrder??Infinity) ||
           String(a.category).localeCompare(String(b.category),'zh-Hant');
       }).forEach(function(row){
-        if(row.category!==group){group=row.category;var title=document.createElement('h3');title.textContent=group;list.append(title);}
+        if(row.category!==group){group=row.category;var title=document.createElement('h3');title.textContent=group;title.className='cat-title';list.append(title);}
         var label=document.createElement('label'),text=document.createElement('span'),input=document.createElement('input');
-        text.textContent=(row.name||'餐點')+' · '+fmtGil(row.price)+(row.available?'':' · 暫停供應');
+        label.className='item-row';
+        text.className='item-name';
+        var name=document.createElement('strong');name.textContent=row.name || '餐點';text.append(name);
+        if(row.description){
+          var note=document.createElement('small');note.className='item-note';note.textContent=row.description;text.append(note);
+        }
+        if(!row.available){
+          var sold=document.createElement('small');sold.className='availability';sold.textContent='暫停供應';text.append(sold);
+        }
+        var price=document.createElement('div');price.className='item-price';price.textContent=fmtGil(row.price);
+        if(row.photo){
+          var image=document.createElement('img');image.src=row.photo;image.alt='';image.loading='lazy';image.className='item-image';
+          image.addEventListener('error',function(){image.remove()},{once:true});label.append(image);
+        }
         input.type='number';input.min='0';input.max='20';input.step='1';input.value=String(festivalCounts[row.id]||0);
         input.disabled=!row.available || festivalSending;
         input.setAttribute('aria-label',row.name+'數量');
         input.addEventListener('input',function(){festivalCounts[row.id]=Math.min(20,Math.max(0,Math.trunc(Number(input.value)||0)));drawFestivalTotal()});
         input.addEventListener('change',function(){input.value=String(festivalCounts[row.id])});
-        var control=document.createElement('span');control.className='festival-quantity';
+        var control=document.createElement('span');control.className='festival-quantity stepper';
         [-1,1].forEach(function(delta){
           if(delta===1)control.append(input);
-          var button=document.createElement('button');button.type='button';button.textContent=delta<0?'−':'+';button.disabled=input.disabled;
+          var button=document.createElement('button');button.type='button';button.className='step-btn';button.textContent=delta<0?'−':'+';button.disabled=input.disabled;
           button.setAttribute('aria-label',(delta<0?'減少':'增加')+row.name);
           button.addEventListener('click',function(){input.value=String(Math.max(0,Math.min(20,Number(input.value||0)+delta)));input.dispatchEvent(new Event('input'))});
           control.append(button);
         });
-        appendFestivalProduct(text,row);label.append(text,control);list.append(label);
+        label.append(text,price,control);list.append(label);
       });
     } else {
       festivalView('info').textContent='請先使用本場號碼牌領號或加入共桌。';document.getElementById('festival-consumption-tickets').textContent='請先使用本場號碼牌領號或加入共桌。';
@@ -1877,20 +1920,71 @@ input:focus{outline:none;border-color:var(--gold-dim);}
   festivalView('choices').addEventListener('click',function(event){
     var button=event.target.closest('button[data-team]');
     if(!button || button.disabled || !festivalState || festivalSending) return;
-    if(festivalTeam!==button.dataset.team){festivalTeam=button.dataset.team;festivalCounts={}}
+    if(festivalTeam===button.dataset.team)return;
+    if(currentFestivalCart().length && !confirm('更換學院會清空已選餐點。要繼續嗎？'))return;
+    festivalTeam=button.dataset.team;festivalCounts={};
     drawFestivalMenu();
   });
   festivalView('refresh').addEventListener('click',function(){refreshFestivalMenu(true)});
   var festivalSentDialog=document.getElementById('festival-order-sent');
   document.getElementById('festival-sent-to-total').addEventListener('click',function(){festivalSentDialog.close();openTotalView()});
-  festivalView('send').addEventListener('click',async function(){
-    if(festivalSending || !activeVisitId || festivalView('send').disabled) return;
-    var key=festivalVisitKey,visitId=activeVisitId;
-    var submittedItems=currentFestivalCart().map(function(row){
+  function festivalSchoolName(team=festivalTeam){
+    return festivalPresentation.teams?.[team]?.name || '所選學院';
+  }
+  function festivalVoteText(){
+    if(festivalState?.voteCount>0)return '應援票已計入。';
+    if(festivalState?.entriesClosed)return '應援已截止，仍可點餐。';
+    return '餐飲滿 30,000 Gil 並結帳後，自動投 1 票。';
+  }
+  function drawFestivalSupport(){
+    if(!festivalView('support-summary'))return;
+    var title=festivalView('support-state');
+    title.textContent=festivalTeam ? (festivalState?.locked?'已確認：':'目前支持：')+festivalSchoolName() : '請選擇要投票的學院';
+    festivalView('support-rule').textContent=festivalVoteText();
+    festivalView('cart-school').textContent=festivalTeam ? '應援學院：'+festivalSchoolName() : '尚未選擇應援學院';
+  }
+  document.addEventListener('festival-support-ready',drawFestivalSupport,{once:true});
+  var festivalConfirm=festivalView('order-confirm'), festivalReviewed=null;
+  function festivalReviewSnapshot(){
+    if(festivalSending || !activeVisitId || festivalView('send').disabled)return null;
+    var items=currentFestivalCart().map(function(row){
       return {...row,name:festivalState.menus.find(menu=>menu.id===row.id).name};
     });
+    return {key:festivalVisitKey,visitId:activeVisitId,team:festivalTeam,items,
+      school:festivalSchoolName(),vote:festivalVoteText()};
+  }
+  function showFestivalReview(review,changed){
+    festivalReviewed=review;
+    festivalView('confirm-school').textContent=review.school;
+    festivalView('confirm-vote').textContent=review.vote;
+    festivalView('confirm-items').replaceChildren(...review.items.map(function(row){
+      var li=document.createElement('li'),name=document.createElement('span'),amount=document.createElement('strong');
+      name.textContent=row.name+' × '+row.qty;amount.textContent=fmtGil(row.price*row.qty);
+      li.append(name,amount);return li;
+    }));
+    festivalView('confirm-total').textContent=fmtGil(review.items.reduce((sum,row)=>sum+row.price*row.qty,0));
+    festivalView('confirm-notice').hidden=!changed;
+    if(!festivalConfirm.open)festivalConfirm.showModal();
+  }
+  function openFestivalReview(){
+    var review=festivalReviewSnapshot();
+    if(review)showFestivalReview(review,false);
+  }
+  festivalView('send').addEventListener('click',openFestivalReview);
+  festivalView('mobile-review').addEventListener('click',openFestivalReview);
+  festivalView('confirm-back').addEventListener('click',()=>festivalConfirm.close());
+  festivalView('confirm-send').addEventListener('click',async function(){
+    var review=festivalReviewSnapshot();
+    if(!review){
+      festivalConfirm.close();
+      festivalView('status').textContent='目前無法送單，請重新確認菜單。';
+      return;
+    }
+    if(JSON.stringify(review)!==JSON.stringify(festivalReviewed)){showFestivalReview(review,true);return;}
+    festivalConfirm.close();
+    var {key,visitId,team,items:submittedItems,school:schoolName}=review;
     var rows=submittedItems.map(function(row){return {id:row.id,qty:row.qty}});
-    var fingerprint=JSON.stringify([key,festivalTeam,rows]);
+    var fingerprint=JSON.stringify([key,team,rows]);
     var storageKey='lephemereFestivalPending:'+visitId;
     var pending;
     try { pending=JSON.parse(localStorage.getItem(storageKey)||'null'); } catch (_) {}
@@ -1901,7 +1995,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
     festivalSending=true;drawFestivalMenu();
     festivalView('status').textContent='正在確認餐點與庫存…';
     try {
-      var result=await functionsClient.httpsCallable('festivalSubmitOrderV99')({visitId:visitId,requestId:pending.requestId,team:festivalTeam,items:rows});
+      var result=await functionsClient.httpsCallable('festivalSubmitOrderV99')({visitId:visitId,requestId:pending.requestId,team,items:rows});
       if(festivalVisitKey!==key || activeVisitId!==visitId) return;
       var confirmed=result.data;
       if(!confirmed?.orderId || !Number.isSafeInteger(confirmed.orderNumber) || !Number.isSafeInteger(confirmed.total) || confirmed.total<0){
@@ -1910,9 +2004,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
       try { localStorage.removeItem(storageKey); } catch (_) {}
       festivalLastOrder={...confirmed,items:confirmed.items || submittedItems};
       festivalCounts={};unlockPhotoEntry();
-      var schoolName=festivalView('choices').querySelector('[data-team="'+festivalTeam+'"]')?.textContent.trim() || '所選學院';
-      festivalView('status').textContent='訂單 #'+confirmed.orderNumber+' 已送出 · '+fmtGil(confirmed.total)+'\n'+
-        '你選了'+schoolName+'。符合資格的餐飲滿 30,000 Gil，結帳後自動計入 1 票與 1 張抽獎券，券號在「本次消費」。';
+      festivalView('status').textContent='訂單 #'+confirmed.orderNumber+' 已送出 · '+fmtGil(confirmed.total);
       document.getElementById('festival-order-sent-detail').textContent='訂單 #'+confirmed.orderNumber+' · '+fmtGil(confirmed.total)+' · '+schoolName;
       if(!festivalSentDialog.open)festivalSentDialog.showModal();
       Promise.resolve(festivalMenuPromise).then(function(){
@@ -1939,7 +2031,7 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 </script>
 <script src="festival-base/photo/assets/schedule.js?v=43"></script>
 <script src="assets/guest-photo-festival-v188.js"></script>
-<script src="festival-guest-layout.js?v=119"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="compact-order-v130.js?v=130"></script><script src="festival-prizes-v173.js"></script><script src="festival-journey-order-v175.js"></script></body>
+<script src="festival-guest-layout-v190.js"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="compact-order-v130.js?v=130"></script><script src="festival-prizes-v173.js"></script><script src="festival-journey-order-v190.js"></script></body>
 </html>
 
 
