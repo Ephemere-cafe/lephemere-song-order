@@ -212,6 +212,51 @@ input:focus{outline:none;border-color:var(--gold-dim);}
 <link rel="icon" href="festival-base/assets/logo.webp"><link rel="stylesheet" href="school-festival-theme.css?v=119"><script src="school-festival-theme.js?v=132"></script><link rel="stylesheet" href="festival-guest-layout.css?v=119"><link rel="stylesheet" href="festival-collage-v123.css?v=123"><link rel="stylesheet" href="festival-character-ui-v124.css?v=124"><link rel="stylesheet" href="compact-order-v130.css?v=130"><script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema.js?v=132"></script><script src="public-copy-v132.js?v=132"></script><link rel="stylesheet" href="festival-example-v131.css?v=132"><link rel="stylesheet" href="festival-journey-v132.css?v=132"><link rel="stylesheet" href="festival-mobile-v146.css">
 <link rel="stylesheet" href="festival-order-photos-v160.css"><link rel="stylesheet" href="festival-services-v169.css"><link rel="stylesheet" href="festival-support-v170.css"><link rel="stylesheet" href="festival-prizes-v173.css"><link rel="stylesheet" href="festival-order-dialogs-v175.css"><link rel="stylesheet" href="festival-services-v188.css">
 <link rel="stylesheet" href="festival-order-review-v190.css">
+<style>
+html[data-festival-theme="dark"] body.festival-guest-page #visitRegister {
+  color-scheme: dark;
+}
+html[data-festival-theme="dark"] body.festival-guest-page #visitRegister #characterNameNotice {
+  background: var(--fp-bw);
+  border-color: var(--fp-line);
+  border-inline-start-color: var(--fp-b);
+  border-radius: 7px;
+}
+html[data-festival-theme="dark"] body.festival-guest-page #visitRegister #characterNameNotice strong {
+  font-size:14px;
+  color: var(--fp-ink);
+}
+html[data-festival-theme="dark"] body.festival-guest-page #visitRegister #visitCompanionFields {
+  background: var(--fp-panel);
+  border-color: var(--fp-line);
+  border-radius: 7px;
+}
+html[data-festival-theme="dark"] body.festival-guest-page #visitRegister .companion-fields-title {
+  color: var(--fp-ink);
+  font-weight: 650;
+}
+html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(.companion-fields-help, .companion-count),
+html[data-festival-theme="dark"] body.festival-guest-page #visitRegister input::placeholder {
+  color: var(--fp-muted);
+}
+html[data-festival-theme="dark"] body.festival-guest-page #visitRegister .companion-index {
+  background: var(--fp-a);
+  color: var(--fp-button) !important;
+}
+html[data-festival-theme="dark"] body.festival-guest-page #visitRegister #addVisitCompanion {
+  background: var(--fp-surface);
+  border-color: var(--fp-line);
+  color: var(--fp-a);
+}
+html[data-festival-theme="dark"] body.festival-guest-page #visitRegister #addVisitCompanion:hover {
+  background: var(--fp-aw);
+  border-color: var(--fp-a);
+}
+html[data-festival-theme="dark"] body.festival-guest-page #visitRegister :is(button, input, select):focus-visible {
+  outline: 2px solid var(--fp-a);
+  outline-offset: 2px;
+}
+</style>
 </head>
 <body class="festival-guest-page festival-design"><script>window.SchoolFestivalTheme?.refresh();</script>
 <div id="siteLoader" class="site-loader" role="status" aria-live="polite">
