@@ -66,7 +66,17 @@
     display: none;
   }
 </style>
-</head>
+<style>
+    .wb .desk-table-photo{margin:16px 0 0;padding:16px;border:1px solid var(--line);border-radius:12px}
+    .desk-table-photo h3{margin:0 0 8px;font-size:1rem}
+    .desk-table-photo p{margin:0;color:var(--muted)}
+    .desk-table-photo-row,.desk-table-totals>div{display:flex;align-items:baseline;justify-content:space-between;gap:.5rem 1rem;flex-wrap:wrap}
+    .desk-table-photo-row{padding:8px 0;border-top:1px solid var(--line)}
+    .desk-table-photo-row small{display:block;color:var(--muted)}
+    .desk-table-photo-row>strong,.desk-table-totals strong{white-space:nowrap}
+    .desk-table-totals{margin:0 0 12px;display:grid;gap:6px}
+    .desk-table-totals>div:last-child{border-top:1px solid var(--line);padding-top:7px}
+  </style></head>
 <body class="connected-page"><script>window.SchoolFestivalTheme?.refresh();</script>
 <header class="festival-masthead"><div class="masthead-inner"><strong>曇時學園祭・接待工作台</strong><div class="masthead-tools"><label class="desk-operator">目前操作店員<select id="globalStaffSelect" aria-label="目前操作店員"><option value="">請選擇店員</option></select></label><a href="admin/">返回原後台</a><a href="school-festival-roster-arena-preview.html">查看活動首頁</a><button id="festival-theme" type="button" aria-pressed="false">夜間模式</button></div></div></header>
 <main>
@@ -293,8 +303,18 @@
     <div class="columns">
       <section class="print-panel"><h2 id="visit-heading">本場桌次</h2><div class="desk-metrics"><div>等待接待<strong id="desk-count-waiting">0</strong></div><div>我的桌次<strong id="desk-count-mine">0</strong></div><div>其他店員<strong id="desk-count-team">0</strong></div></div><div class="desk-queue-tools"><input id="desk-search" type="search" placeholder="搜尋角色或號碼牌" aria-label="搜尋角色或號碼牌"><button id="desk-next" type="button">查看下一組</button></div><div id="visit-list"></div></section>
       <section class="print-panel desk-preview-table"><h2 id="order-heading">本桌訂單</h2>
-        <div class="desk-preview-grid"><div class="desk-preview-food"><div id="orders">選一張號碼牌查看訂單。</div><div id="desk-preview-order-actions"></div></div>
+        <div class="desk-preview-grid"><div class="desk-preview-food"><div id="orders">選一張號碼牌查看訂單。</div><div id="desk-preview-order-actions"></div>
+          <section id="desk-table-photo" class="desk-table-photo" aria-labelledby="desk-table-photo-heading" hidden>
+            <h3 id="desk-table-photo-heading">拍攝／紀念服務</h3>
+            <p id="desk-table-photo-status" role="status"></p>
+            <div id="desk-table-photo-items"></div>
+          </section></div>
         <div id="festival-live-table" hidden><h2>本桌結帳</h2>
+          <div id="desk-table-totals" class="desk-table-totals" hidden>
+            <div>餐點小計 <strong id="desk-table-dining-total"></strong></div>
+            <div>拍攝／紀念服務小計 <strong id="desk-table-photo-total"></strong></div>
+            <div>本桌消費合計 <strong id="desk-table-total"></strong></div>
+          </div>
           <div class="toolbar"><button id="festival-live-quote" type="button">核對本桌待收</button>
           <button class="primary" id="festival-live-pay" type="button" disabled>確認結清並發券</button></div>
           <p id="festival-live-quote-status" role="status"></p>
@@ -1474,10 +1494,54 @@ window.addEventListener('DOMContentLoaded', async () => {
     byId('page-description').textContent = '在這裡接待、處理餐點與結清。訂單和桌次會同步到原後台。';
   }
 
-  let stopWatchingOrders;
+  let stopWatchingOrders, renderSelectedPhoto;
+  const formatGil=total=>Number(total).toLocaleString('zh-TW')+' Gil';
+  const photoStatuses={pending:'待處理',shooting:'拍攝中',completed:'已完成',delivered:'已交付',deferred:'已順延',no_show:'暫時未到'};
+
+  function invalidateTableQuote(){
+    orderRevision++;
+    if(livePayBusy)return;
+    if(checkoutPrompt.open)finishCheckoutPrompt(false);
+    liveQuote=null;
+    livePayRequest=null;
+    byId('festival-live-pay').disabled=true;
+    byId('festival-live-quote-status').textContent='本桌訂單已更新，請重新核對金額。';
+  }
+
+  function renderPhotoAndTotals(photo,diningTotal){
+    byId('desk-table-photo').hidden=false;
+    byId('desk-table-totals').hidden=false;
+    const ready=photo.state==='ready';
+    const photoTotal=ready?photo.summary.total:0;
+    const fallback=photo.state==='error'?'暫時無法讀取':'讀取中…';
+    byId('desk-table-dining-total').textContent=formatGil(diningTotal);
+    byId('desk-table-photo-total').textContent=ready?formatGil(photoTotal):fallback;
+    byId('desk-table-total').textContent=ready?formatGil(diningTotal+photoTotal):fallback;
+    const status=byId('desk-table-photo-status');
+    const host=byId('desk-table-photo-items');
+    host.replaceChildren();
+    status.textContent=ready?(photo.summary.itemCount?'':'目前沒有拍攝／紀念服務訂單。'):
+      (photo.state==='error'?'無法同步本桌服務，請確認網路或重新開啟工作台。':'正在同步本桌服務…');
+    if(!ready)return;
+    const rows=document.createDocumentFragment();
+    for(const item of photo.summary.items){
+      const row=document.createElement('div');row.className='desk-table-photo-row';
+      const content=document.createElement('div');
+      const title=document.createElement('strong');title.textContent=item.productName || '拍攝／紀念服務';
+      const detail=document.createElement('small');detail.textContent=[item.memberLabel,photoStatuses[item.status]].filter(Boolean).join(' · ');
+      const amount=document.createElement('strong');amount.textContent=formatGil(item.price || 0);
+      content.append(title,detail);row.append(content,amount);rows.append(row);
+    }
+    host.append(rows);
+  }
+  window.addEventListener('polaroid-accounting-updated',()=>renderSelectedPhoto?.());
+
   function clearTableActions() {
     stopWatchingOrders?.();
     stopWatchingOrders=null;
+    renderSelectedPhoto=null;
+    byId('desk-table-photo').hidden=true;
+    byId('desk-table-totals').hidden=true;
     resetLiveTable();
     const staffBox=byId('festival-staff-actions');staffBox.hidden=true;
     byId('desk-preview-order-actions').replaceChildren();
@@ -1491,19 +1555,24 @@ window.addEventListener('DOMContentLoaded', async () => {
     byId('order-heading').textContent = (visit.queueNumber || '未編號桌次') + ' 本桌訂單';
     const container = byId('orders');
     container.textContent = '讀取中…';
-    let previousOrders;
+    let previousOrders, previousPhoto;
+    let diningTotal=0;
+    renderSelectedPhoto=()=>{
+      if(revision!==requestRevision || !role)return;
+      const photo=window.FestivalTablePhoto?.(visit) || {state:'loading'};
+      if(photo.state==='ready'){
+        if(previousPhoto!==undefined && previousPhoto!==photo.signature)invalidateTableQuote();
+        previousPhoto=photo.signature;
+      }else if(photo.state==='error' && previousPhoto!==undefined){
+        previousPhoto=undefined;invalidateTableQuote();
+      }
+      renderPhotoAndTotals(photo,diningTotal);
+    };
     stopWatchingOrders=reader.watchOrders(visit, orders=>{
       if (revision !== requestRevision || !role) return;
       const signature=JSON.stringify(orders.map(order=>[order.id,order.total,order.items]));
       if(previousOrders!==undefined && signature!==previousOrders){
-        orderRevision++;
-        if(!livePayBusy){
-          if(checkoutPrompt.open)finishCheckoutPrompt(false);
-          liveQuote=null;
-          livePayRequest=null;
-          byId('festival-live-pay').disabled=true;
-          byId('festival-live-quote-status').textContent='本桌訂單已更新，請重新核對金額。';
-        }
+        invalidateTableQuote();
       }
       const first=previousOrders===undefined;
       previousOrders=signature;
@@ -1521,11 +1590,13 @@ window.addEventListener('DOMContentLoaded', async () => {
           showLine(container, item.name + ' × ' + item.qty + (recipients ? ' · ' + recipients : ''));
         }
       }
+      diningTotal=orders.reduce((sum,order)=>sum+Number(order.total || 0),0);
       if(first)showLiveTable(visit,revision);
+      renderSelectedPhoto?.();
       if(!deskActionBusy)showStaffWorkspace(visit,revision,orders);
     }, ()=>{
       if(revision!==requestRevision)return;
-      resetLiveTable();
+      clearTableActions();
       container.textContent='無法同步這桌訂單，請重新讀取並確認原後台權限。';
     });
   }
@@ -1640,5 +1711,5 @@ window.addEventListener('DOMContentLoaded', async () => {
   byId('logout').addEventListener('click', () => auth.signOut().catch(() => setStatus('登出失敗，請重試。')));
 });
 </script>
-<script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema-v152.js"></script><script src="festival-chairman-composition-v152.js"></script><script src="festival-page-editor-v148.js"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="workbench-menu-v169.js"></script><script src="desk-schedule-v133.js"></script><script src="desk-photo-v184.js"></script><script src="desk-recovery-v133.js?v=133"></script><script src="photo-opening-v182.js"></script></body>
+<script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema-v152.js"></script><script src="festival-chairman-composition-v152.js"></script><script src="festival-page-editor-v148.js"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="workbench-menu-v169.js"></script><script src="desk-schedule-v133.js"></script><script src="desk-photo-v185.js"></script><script src="desk-recovery-v133.js?v=133"></script><script src="photo-opening-v182.js"></script></body>
 </html>
