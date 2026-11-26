@@ -300,7 +300,26 @@
         <ul id="history-dates"></ul>
       </section>
     </details>
-    <div class="columns">
+    <div class="columns"><section class="print-panel addon-board" aria-labelledby="addon-title" hidden id="addon-board">
+  <div class="addon-line"><div><h2 id="addon-title">全場加點</h2><p id="addon-count" role="status"></p></div>
+  <div class="toolbar" id="addon-filters"><button type="button" data-view="pending" aria-pressed="true">待接單</button><button type="button" data-view="all" aria-pressed="false">全部加點</button></div></div>
+  <div id="addon-orders"></div>
+</section>
+<section class="print-panel addon-board" aria-labelledby="addon-manager-title" hidden id="addon-manager">
+  <h2 id="addon-manager-title">加點巡查</h2>
+  <p id="addon-manager-count"></p>
+  <div id="addon-manager-events"></div>
+</section>
+<style>
+.wb .addon-board{grid-column:1/-1;padding:20px;border-radius:14px;min-width:0}
+.addon-line,.addon-board-row{display:flex;justify-content:space-between;align-items:center;gap:10px 18px;flex-wrap:wrap}
+.addon-board-row{padding:12px 0;border-top:1px solid var(--line)}
+.addon-board-row p,.addon-line p{margin:3px 0 0}.addon-board small{color:var(--muted)}
+.wb #addon-filters [aria-pressed="true"]{background:var(--a-paper);border-color:var(--a);color:var(--ink)}
+.addon-board-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.addon-board-late{color:var(--ink);background:var(--warn);padding:4px 8px;border:1px solid var(--line);border-radius:7px}
+</style>
+
       <section class="print-panel"><h2 id="visit-heading">本場桌次</h2><div class="desk-metrics"><div>等待接待<strong id="desk-count-waiting">0</strong></div><div>我的桌次<strong id="desk-count-mine">0</strong></div><div>其他店員<strong id="desk-count-team">0</strong></div></div><div class="desk-queue-tools"><input id="desk-search" type="search" placeholder="搜尋角色或號碼牌" aria-label="搜尋角色或號碼牌"><button id="desk-next" type="button">查看下一組</button></div><div id="visit-list"></div></section>
       <section class="print-panel desk-preview-table"><h2 id="order-heading">本桌訂單</h2>
         <div class="desk-preview-grid"><div class="desk-preview-food"><div id="orders">選一張號碼牌查看訂單。</div><div id="desk-preview-order-actions"></div>
@@ -1711,5 +1730,5 @@ window.addEventListener('DOMContentLoaded', async () => {
   byId('logout').addEventListener('click', () => auth.signOut().catch(() => setStatus('登出失敗，請重試。')));
 });
 </script>
-<script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema-v152.js"></script><script src="festival-chairman-composition-v152.js"></script><script src="festival-page-editor-v148.js"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="workbench-menu-v169.js"></script><script src="desk-schedule-v133.js"></script><script src="desk-photo-v185.js"></script><script src="desk-recovery-v133.js?v=133"></script><script src="photo-opening-v182.js"></script></body>
+<script src="public-copy-fields-v132.js?v=132"></script><script src="festival-page-schema-v152.js"></script><script src="festival-chairman-composition-v152.js"></script><script src="festival-page-editor-v148.js"></script><script src="festival-character-ui-v124.js?v=124"></script><script src="workbench-menu-v169.js"></script><script src="desk-schedule-v133.js"></script><script src="desk-photo-v185.js"></script><script src="desk-recovery-v133.js?v=133"></script><script src="photo-opening-v182.js"></script><script src="order-addons-v186.js"></script></body>
 </html>
