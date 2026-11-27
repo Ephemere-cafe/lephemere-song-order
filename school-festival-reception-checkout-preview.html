@@ -79,6 +79,13 @@
   </style><style>
   .fest-menu-order-controls { display:inline-flex; gap:.4rem; margin-inline-start:.6rem; }
 </style>
+<style>
+  #desk-share-code:not([hidden]){display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:0 0 14px;padding:10px 12px;border:1px solid var(--line);border-radius:9px}
+  #desk-share-value{font-size:1.2rem;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.13em;user-select:all}
+  #desk-share-status{margin:0;flex-basis:100%}
+  #desk-share-status:empty{display:none}
+  #desk-share-code [hidden]{display:none!important}
+</style>
 </head>
 <body class="connected-page"><script>window.SchoolFestivalTheme?.refresh();</script>
 <header class="festival-masthead"><div class="masthead-inner"><strong>曇時學園祭・接待工作台</strong><div class="masthead-tools"><label class="desk-operator">目前操作店員<select id="globalStaffSelect" aria-label="目前操作店員"><option value="">請選擇店員</option></select></label><a href="admin/">返回原後台</a><a href="school-festival-roster-arena-preview.html">查看活動首頁</a><button id="festival-theme" type="button" aria-pressed="false">夜間模式</button></div></div></header>
@@ -326,6 +333,13 @@
 
       <section class="print-panel"><h2 id="visit-heading">本場桌次</h2><div class="desk-metrics"><div>等待接待<strong id="desk-count-waiting">0</strong></div><div>我的桌次<strong id="desk-count-mine">0</strong></div><div>其他店員<strong id="desk-count-team">0</strong></div></div><div class="desk-queue-tools"><input id="desk-search" type="search" placeholder="搜尋角色或號碼牌" aria-label="搜尋角色或號碼牌"><button id="desk-next" type="button">查看下一組</button></div><div id="visit-list"></div></section>
       <section class="print-panel desk-preview-table"><h2 id="order-heading">本桌訂單</h2>
+        <section id="desk-share-code" aria-labelledby="desk-share-label" hidden>
+          <strong id="desk-share-label">同行通行密碼</strong>
+          <output id="desk-share-value" aria-label="本桌六位數通行密碼" hidden></output>
+          <button id="desk-share-read" type="button">顯示密碼</button>
+          <button id="desk-share-copy" type="button" hidden>複製密碼</button>
+          <p id="desk-share-status" role="status"></p>
+        </section>
         <div class="desk-preview-grid"><div class="desk-preview-food"><div id="orders">選一張號碼牌查看訂單。</div><div id="desk-preview-order-actions"></div>
           <section id="desk-table-photo" class="desk-table-photo" aria-labelledby="desk-table-photo-heading" hidden>
             <h3 id="desk-table-photo-heading">拍攝／紀念服務</h3>
@@ -514,6 +528,74 @@ window.addEventListener('DOMContentLoaded', async () => {
   function notifyRole(){window.dispatchEvent(new CustomEvent("festival-desk-role",{detail:{role}}));}
   let authRevision = 0;
   let requestRevision = 0;
+  const shareDesk = byId('desk-share-code');
+  const shareRead = byId('desk-share-read');
+  const shareCopy = byId('desk-share-copy');
+  const shareValue = byId('desk-share-value');
+  const shareStatus = byId('desk-share-status');
+  const fetchDeskShare = functions?.httpsCallable('polaroidCreateShareCode',{timeout:12000});
+  let shareSelection = null;
+
+  function resetDeskShare(){
+    shareSelection=null;
+    shareDesk.hidden=true;
+    shareRead.hidden=false;
+    shareRead.disabled=false;
+    shareCopy.hidden=true;
+    shareValue.hidden=true;
+    shareValue.textContent='';
+    shareStatus.textContent='';
+  }
+  function showDeskShare(visit,revision){
+    if(!fetchDeskShare || !role)return;
+    shareSelection={visitId:visit.id,revision};
+    shareDesk.hidden=false;
+  }
+  const isCurrentShare = selection => Boolean(selection && selection===shareSelection &&
+    selection.revision===requestRevision && role);
+  shareRead.addEventListener('click',async()=>{
+    const selection=shareSelection;
+    if(!isCurrentShare(selection) || shareRead.disabled)return;
+    shareRead.disabled=true;
+    shareStatus.textContent='正在讀取本桌通行密碼…';
+    try{
+      const {data}=await fetchDeskShare({visitId:selection.visitId,desk:true});
+      if(!isCurrentShare(selection))return;
+      const code=String(data?.shareCode || '');
+      if(!/^\d{6}$/.test(code))throw Error('Invalid share code response');
+      shareValue.textContent=code;
+      shareValue.hidden=false;
+      shareRead.hidden=true;
+      shareCopy.hidden=false;
+      shareStatus.textContent='';
+      shareCopy.focus();
+    }catch(error){
+      if(!isCurrentShare(selection))return;
+      switch(error?.code){
+        case 'functions/failed-precondition':
+          shareStatus.textContent='這桌目前未開放加入，請重新讀取桌次。';break;
+        case 'functions/permission-denied':
+        case 'functions/unauthenticated':
+          shareStatus.textContent='請使用有接待權限的店員帳號登入。';break;
+        default:
+          shareStatus.textContent='暫時無法讀取通行密碼，請再試一次。';
+      }
+    }finally{
+      if(isCurrentShare(selection))shareRead.disabled=false;
+    }
+  });
+  shareCopy.addEventListener('click',async()=>{
+    const selection=shareSelection;
+    const code=shareValue.textContent;
+    if(!isCurrentShare(selection) || !/^\d{6}$/.test(code))return;
+    try{
+      await navigator.clipboard.writeText(code);
+      if(isCurrentShare(selection))shareStatus.textContent='已複製本桌通行密碼。';
+    }catch{
+      if(isCurrentShare(selection))shareStatus.textContent='可選取上方六位數手動複製。';
+    }
+  });
+
   let actionBusy = false;
   const statusLabels = { waiting:'等待接待', assigned:'已接待', serving:'服務中', special_service:'服務中' };
   const checkoutLabels = { settled:'已結清', reopened:'追加待結清' };
@@ -1594,6 +1676,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener('polaroid-accounting-updated',()=>renderSelectedPhoto?.());
 
   function clearTableActions() {
+    resetDeskShare();
     stopWatchingOrders?.();
     stopWatchingOrders=null;
     renderSelectedPhoto=null;
@@ -1610,6 +1693,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     clearTableActions();
     for (const entry of byId('visit-list').querySelectorAll('button')) entry.setAttribute('aria-pressed', String(entry === button));
     byId('order-heading').textContent = (visit.queueNumber || '未編號桌次') + ' 本桌訂單';
+    showDeskShare(visit,revision);
     const container = byId('orders');
     container.textContent = '讀取中…';
     let previousOrders, previousPhoto;
